@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>plotplot — palette & type preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Hanken+Grotesk:wght@400..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF5E9; --band:#F2EAD6; --surface:#F5EEDD; --border:#E2D8C0;
+    --ink:#3A2718; --soft:#786148;
+    --growth:#357E2C; --growth-deep:#2C6B2A; --leaf:#4A9E3F;
+    --forest:#214A2C; --sun:#E89227; --sun-ink:#A86518;
+    --poppy:#D6502F; --petal:#E588A0; --sky:#4E88A6; --plum:#97539B;
+    --d-bg:#1C1610; --d-surface:#262019; --d-border:#403628;
+    --d-text:#F3ECD9; --d-growth:#84C56A; --d-sun:#F2A93B; --d-forest:#9FD08A;
+    --mono:'JetBrains Mono',monospace;
+    --body:'Hanken Grotesk',system-ui,sans-serif;
+    --display:'Fraunces',Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--body);font-size:17px;line-height:1.65;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:960px;margin:0 auto;padding:64px 28px 96px}
+  h1,h2,h3{font-family:var(--display);font-optical-sizing:auto;margin:0;line-height:1.05}
+  h1{font-size:clamp(3.4rem,8vw,5.6rem);font-weight:600;letter-spacing:-.02em}
+  h2{font-size:2rem;font-weight:600;margin:64px 0 6px;letter-spacing:-.01em}
+  h3{font-size:1.25rem;font-weight:600}
+  .kick{font-family:var(--mono);font-size:.72rem;font-weight:500;
+    text-transform:uppercase;letter-spacing:.22em;color:var(--sun-ink)}
+  .lede{font-size:1.3rem;color:var(--soft);max-width:30ch;margin:12px 0 0}
+  .em{font-style:italic;color:var(--growth-deep)}
+  .uline{background:linear-gradient(var(--sun),var(--sun)) bottom/100% .18em no-repeat;padding-bottom:.02em}
+  hr{border:0;border-top:1px solid var(--border);margin:0}
+  /* buttons */
+  .btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+  .btn{font-family:var(--body);font-weight:600;font-size:.95rem;border:0;
+    border-radius:8px;padding:11px 18px;cursor:pointer;text-decoration:none;display:inline-block}
+  .btn.primary{background:var(--growth);color:var(--paper)}
+  .btn.sun{background:var(--sun);color:var(--ink)}
+  .btn.forest{background:var(--forest);color:var(--paper)}
+  .btn.ghost{background:transparent;color:var(--growth-deep);box-shadow:inset 0 0 0 1.5px var(--border)}
+  /* swatches */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-top:24px}
+  .sw{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)}
+  .chip{height:78px;display:flex;align-items:flex-end;padding:8px 10px}
+  .chip .ratio{font-family:var(--mono);font-size:.66rem;background:rgba(58,39,24,.6);color:#FAF5E9;
+    padding:4px 8px;border-radius:999px;backdrop-filter:blur(2px)}
+  .meta{padding:9px 11px 12px}
+  .meta b{font-size:.92rem}
+  .meta .hex{font-family:var(--mono);font-size:.72rem;color:var(--soft);text-transform:uppercase}
+  .meta .role{font-size:.78rem;color:var(--soft);margin-top:3px;line-height:1.35}
+  .blooms{display:flex;gap:14px;flex-wrap:wrap;margin-top:22px;align-items:center}
+  .dot{width:46px;height:46px;border-radius:50%;box-shadow:0 1px 0 #0001,0 6px 16px -8px #0005}
+  .dot+small{display:block}
+  .bl{text-align:center;font-family:var(--mono);font-size:.66rem;color:var(--soft);text-transform:uppercase;letter-spacing:.04em}
+  /* specimen */
+  .spec b{font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.18em;color:var(--soft)}
+  code{font-family:var(--mono);font-size:.86rem;background:var(--surface);border:1px solid var(--border);
+    border-radius:6px;padding:2px 7px}
+  /* dark panel */
+  .night{background:var(--d-bg);color:var(--d-text);border-radius:12px;padding:40px 32px;margin-top:32px}
+  .night h2{color:var(--d-text);margin-top:0}
+  .night .lede{color:#C9BBA0}
+  .night .kick{color:var(--d-sun)}
+  .night .btn.primary{background:var(--d-growth);color:var(--d-bg)}
+  .night .btn.sun{background:var(--d-sun);color:var(--d-bg)}
+  .night code{background:var(--d-surface);border-color:var(--d-border);color:var(--d-text)}
+  .night a.link{color:var(--d-growth)}
+  .foot{font-family:var(--mono);font-size:.72rem;color:var(--soft);margin-top:64px;border-top:1px solid var(--border);padding-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kick">plotplot · brand preview · v0</p>
+  <h1>Grow what <span class="em">matters</span>.</h1>
+  <p class="lede">A garden of small, sharp tools for <span class="uline">building with AI</span>.</p>
+  <div class="btns">
+    <a class="btn primary" href="#">Browse the garden</a>
+    <a class="btn sun" href="#">Install tilth</a>
+    <a class="btn ghost" href="#">View source</a>
+  </div>
+
+  <h2>Light palette</h2>
+  <p class="spec"><b>warm paper · deep brown · growth + forest green · sunlight</b></p>
+  <div class="grid">
+    <div class="sw"><div class="chip" style="background:#FAF5E9"></div><div class="meta"><b>Paper</b><div class="hex">#FAF5E9</div><div class="role">page background</div></div></div>
+    <div class="sw"><div class="chip" style="background:#F5EEDD"></div><div class="meta"><b>Surface</b><div class="hex">#F5EEDD</div><div class="role">cards, panels</div></div></div>
+    <div class="sw"><div class="chip" style="background:#3A2718"><span class="ratio">13.0:1</span></div><div class="meta"><b>Ink (deep brown)</b><div class="hex">#3A2718</div><div class="role">headings + body</div></div></div>
+    <div class="sw"><div class="chip" style="background:#786148"><span class="ratio">5.4:1</span></div><div class="meta"><b>Text soft</b><div class="hex">#786148</div><div class="role">secondary prose</div></div></div>
+    <div class="sw"><div class="chip" style="background:#357E2C"><span class="ratio">4.6:1</span></div><div class="meta"><b>Growth green</b><div class="hex">#357E2C</div><div class="role">primary · links · buttons</div></div></div>
+    <div class="sw"><div class="chip" style="background:#214A2C"><span class="ratio">9.3:1</span></div><div class="meta"><b>Forest green</b><div class="hex">#214A2C</div><div class="role">depth · sections · secondary</div></div></div>
+    <div class="sw"><div class="chip" style="background:#E89227"><span class="ratio" style="color:#3A2718;background:#fff7">fill</span></div><div class="meta"><b>Sunlight</b><div class="hex">#E89227</div><div class="role">CTAs (brown text), highlights — not body text</div></div></div>
+    <div class="sw"><div class="chip" style="background:#4A9E3F"><span class="ratio" style="background:rgba(255,255,255,.55);color:#3A2718">deco</span></div><div class="meta"><b>Leaf (vibrant)</b><div class="hex">#4A9E3F</div><div class="role">marks · illustration only</div></div></div>
+  </div>
+
+  <h2>Blooms <span style="font-family:var(--body);font-size:1rem;font-weight:400;color:var(--soft)">— one per product</span></h2>
+  <div class="blooms">
+    <div class="bl"><div class="dot" style="background:#D6502F"></div>poppy</div>
+    <div class="bl"><div class="dot" style="background:#E89227"></div>sunlight</div>
+    <div class="bl"><div class="dot" style="background:#357E2C"></div>growth</div>
+    <div class="bl"><div class="dot" style="background:#4E88A6"></div>sky</div>
+    <div class="bl"><div class="dot" style="background:#97539B"></div>plum</div>
+    <div class="bl"><div class="dot" style="background:#E588A0"></div>petal</div>
+    <div class="bl"><div class="dot" style="background:#214A2C"></div>forest</div>
+  </div>
+
+  <h2>Type</h2>
+  <p class="spec"><b>Fraunces — display</b></p>
+  <p style="font-family:var(--display);font-size:2.6rem;line-height:1.1;margin:.2em 0 0">tilth · tend · petals · <span class="em">pleach</span> · trellis</p>
+  <p class="spec" style="margin-top:24px"><b>Hanken Grotesk — body</b></p>
+  <p style="max-width:60ch;margin:.3em 0 0">The AI world is loud. plotplot is a garden of small, sharp tools for the people building with it — code intelligence, orchestration, and the quiet infrastructure of a well-kept plot. The best work is grown, not rushed.</p>
+  <p class="spec" style="margin-top:24px"><b>JetBrains Mono — code &amp; labels</b></p>
+  <p style="margin:.3em 0 0"><code>brew install tilth</code> &nbsp; <code>/petals check Hero.tsx</code></p>
+
+  <div class="night">
+    <p class="kick">soil at night · dark mode</p>
+    <h2>Grow what <span class="em" style="color:var(--d-growth)">matters</span>.</h2>
+    <p class="lede">Same garden, after dusk — deep loam, lifted leaf and sunlight.</p>
+    <div class="btns">
+      <a class="btn primary" href="#">Browse the garden</a>
+      <a class="btn sun" href="#">Install tilth</a>
+    </div>
+    <p style="margin-top:22px">Body on soil-night <span class="ratio" style="font-family:var(--mono);font-size:.7rem">15:1</span> · <a class="link" href="#">a growth-green link</a> · <code>trellis up</code></p>
+  </div>
+
+  <p class="foot">every text pair measured to WCAG AA · sunlight &amp; blooms are display/fill colors, never body text · fonts: Fraunces / Hanken Grotesk / JetBrains Mono (Google Fonts)</p>
+
+</div>
+</body>
+</html>
