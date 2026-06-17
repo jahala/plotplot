@@ -10,8 +10,9 @@ for the garden. Read this before changing the page or the brand.
   framing (that was superseded; if you find it in old assets, it's stale).
 - Tagline: **Grow what matters.** Audience: everyone building with AI.
 - The beds: **tilth** (code intelligence, live), **tend** (feature mapping +
-  narration), **petals** (brand intelligence for agents), **pleach** (purpose TBD),
-  **trellis** (orchestrate agent CLIs in tmux — a proposed rename of rctrl).
+  narration), **petals** (brand intelligence for agents), **pleach** (the conductor —
+  gates agent work and ships only what's verified), **umbel** (fan out agent CLIs in
+  tmux — renamed from rctrl).
 
 ## Architecture / tech (decisions)
 
@@ -78,8 +79,6 @@ for the garden. Read this before changing the page or the brand.
 
 ## Open decisions (resolve before / at launch)
 
-- **pleach** — needs a real one-line purpose (currently placeholder "still taking root").
-- **trellis** — confirm the rctrl → trellis rename before it's public.
 - **DNS** — plotplot.ai nameservers still GoDaddy (pending); plotplot.io on Cloudflare.
   Attach the domains (uncomment the routes) once both zones are Active.
 

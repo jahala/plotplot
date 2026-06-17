@@ -48,7 +48,7 @@ Each tool in the garden claims one accent; the primary palette is shared across 
 | tend | #D6502F | feature mapping & narration — poppy |
 | petals | #E588A0 | brand intelligence for agents — petal |
 | pleach | #97539B | the conductor — plum |
-| trellis | #E89227 | orchestrate agent CLIs — sunlight |
+| umbel | #E89227 | fan out agent CLIs — sunlight |
 
 ## Contrast Pairings
 
@@ -154,7 +154,7 @@ Dark mode is "soil at night," not a harsh developer theme. Embedded terminal pan
   --pp-tend:   #D6502F;
   --pp-petals: #E588A0;
   --pp-pleach: #97539B;
-  --pp-trellis:#E89227;
+  --pp-umbel:  #E89227;
 
   /* soil-night terminal */
   --pp-term-bg:      #1C1610;

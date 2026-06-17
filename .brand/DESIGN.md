@@ -46,7 +46,7 @@ Machine-readable surface tokens — radius scale, border strokes, shadow recipes
 
 Buttons are restrained, direct, and legible. Primary buttons use growth green (#357E2C) with cream text. Sunlight (#E89227) with ink text is reserved for high-momentum actions such as install or launch. Forest (#214A2C) carries depth on paper and is the primary action inside dark sections. Destructive actions use error (#BC4126).
 
-Inputs feel like warm archive fields: surface backgrounds, subtle borders, growth-green focus rings, plain labels. Cards group context rather than decorate it: surface backgrounds, hairline borders, a small product-accent marker, clear headings. Navigation uses product accents sparingly as section markers; labels stay lowercase: tilth, tend, petals, pleach, trellis.
+Inputs feel like warm archive fields: surface backgrounds, subtle borders, growth-green focus rings, plain labels. Cards group context rather than decorate it: surface backgrounds, hairline borders, a small product-accent marker, clear headings. Navigation uses product accents sparingly as section markers; labels stay lowercase: tilth, tend, petals, pleach, umbel.
 
 ## 7. Iconography
 

@@ -13,8 +13,8 @@ repo holds the **umbrella landing page** and the **canonical brand** for the who
 | [tilth](https://github.com/jahala/tilth) | code intelligence — an AST-aware map of your codebase for agents | live |
 | [tend](https://github.com/jahala/tend) | feature mapping & narration across sessions | soon |
 | [petals](https://github.com/jahala/petals) | brand intelligence for agents (extract + check) | soon |
-| [pleach](https://github.com/jahala/pleach) | still taking root | soon |
-| [trellis](https://github.com/jahala/rctrl) | orchestrate agent CLIs (Claude Code, Codex, Gemini) in tmux | soon |
+| [pleach](https://github.com/jahala/pleach) | the conductor — gates agent work, ships only what's verified | soon |
+| [umbel](https://github.com/jahala/rctrl) | fan out agent CLIs (Claude Code, Codex, Gemini) in tmux | soon |
 
 ## Repo layout
 
