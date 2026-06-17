@@ -22,6 +22,7 @@ plotplot is built around one belief: good work is grown, not rushed. The brand s
 | A garden of beds | Show the family as a cultivated plot — each tool a bed with its own bloom. Composition and relationship over flat lists. |
 | Honest about craft | The tools are files, skills, and terminals. Show real commands and real output; never a fake dashboard. |
 | Calm motion | Things unfold and settle like leaves. Alive, not restless. |
+| Make AI accountable | AI-generated output exposes its sources, confidence, and reasoning, with clear points for human review. |
 
 ## 3. Color System
 

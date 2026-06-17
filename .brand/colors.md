@@ -25,6 +25,7 @@ petal, and muted are display/decorative colors — never body text on paper.
 | Paper | #FAF5E9 | rgb(250,245,233) | Page background — warm sunlit cream. |
 | Band | #F2EAD6 | rgb(242,234,214) | Alternating section band for vertical rhythm. |
 | Surface | #F5EEDD | rgb(245,238,221) | Cards, panels, grouped content. |
+| Artifact paper | #FCFAF2 | rgb(252,250,242) | Lighter long-read paper for document / polyglot surfaces (e.g. tend) — higher luminance for extended reading. |
 | Border | #E2D8C0 | rgb(226,216,192) | Dividers, card and input borders, hairline rules. |
 
 ## Semantic Roles
@@ -46,11 +47,8 @@ Each tool in the garden claims one accent; the primary palette is shared across 
 | tilth | #4E88A6 | code intelligence — sky |
 | tend | #D6502F | feature mapping & narration — poppy |
 | petals | #E588A0 | brand intelligence for agents — petal |
-| pleach | #97539B | composition / weaving — plum |
+| pleach | #97539B | the conductor — plum |
 | trellis | #E89227 | orchestrate agent CLIs — sunlight |
-
-[FLAG: identity-pleach] pleach's one-line purpose is a placeholder ("composition / weaving"); replace once the product is described. Its accent #97539B is fine to keep.
-[FLAG: identity-trellis] "trellis" is the proposed garden rename of rctrl (orchestrate agent CLIs in tmux); confirm before public use.
 
 ## Contrast Pairings
 
@@ -140,6 +138,7 @@ Dark mode is "soil at night," not a harsh developer theme. Embedded terminal pan
   --pp-text-soft: #786148;
   --pp-bg:        #FAF5E9;     /* warm sunlit paper */
   --pp-bg-band:   #F2EAD6;
+  --pp-bg-artifact:#FCFAF2;
   --pp-surface:   #F5EEDD;
   --pp-border:    #E2D8C0;
 
