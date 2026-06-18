@@ -28,8 +28,9 @@ for the garden. Read this before changing the page or the brand.
   (`wrangler deploy`) on push to `main`/`master`. Needs repo secret
   `CLOUDFLARE_API_TOKEN`.
 - **Domains:** plotplot.ai + plotplot.io (apex + www) are `custom_domain` routes in
-  `wrangler.jsonc`, kept **commented until the zones are Active** — deploying a route
-  onto an inactive zone fails the whole deploy.
+  `wrangler.jsonc`, **live and attached** — both zones are Active on Cloudflare and
+  serve this Worker. (Gotcha: adding a route onto an *inactive* zone fails the whole
+  deploy — only attach once a zone is Active.)
 
 ## Brand = petals (decisions)
 
@@ -79,8 +80,8 @@ for the garden. Read this before changing the page or the brand.
 
 ## Open decisions (resolve before / at launch)
 
-- **DNS** — plotplot.ai nameservers still GoDaddy (pending); plotplot.io on Cloudflare.
-  Attach the domains (uncomment the routes) once both zones are Active.
+- None — page, brand, CI auto-deploy, and both custom domains (plotplot.ai +
+  plotplot.io, apex + www) are live.
 
 ## Working here
 

@@ -4,3 +4,6 @@
 *.log
 node_modules/
 .wrangler/
+
+# page screenshots / verification captures (kept locally, not tracked)
+docs/brand/pp-*.png
