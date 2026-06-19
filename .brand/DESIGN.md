@@ -48,6 +48,8 @@ Buttons are restrained, direct, and legible. Primary buttons use growth green (#
 
 Inputs feel like warm archive fields: surface backgrounds, subtle borders, growth-green focus rings, plain labels. Cards group context rather than decorate it: surface backgrounds, hairline borders, a small product-accent marker, clear headings. Navigation uses product accents sparingly as section markers; labels stay lowercase: tilth, tend, petals, pleach, umbel.
 
+Every page closes with the **garden footer**: a fixed forest band whose **garden row** links to every tool in the garden — one pill per product, each marked with its bloom, the current tool highlighted — so each page points back to the whole plot. Structure and values live in `components.md`.
+
 ## 7. Iconography
 
 Icons feel like botanical diagrams with character — sprouts, leaves, plots, nodes, roots, stems, coordinate marks — drawn in thin, lively linework. A plotplot sprout mark is welcome as the family motif. Avoid generic Material Design icons, sparkle/"AI" clichés, and heavy filled shapes. Icons clarify function first, then express the garden.
