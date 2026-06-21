@@ -14,7 +14,8 @@ repo holds the **umbrella landing page** and the **canonical brand** for the who
 | [tend](https://github.com/jahala/tend) | feature mapping & narration across sessions | soon |
 | [petals](https://github.com/jahala/petals) | brand intelligence for agents (extract + check) | soon |
 | [pleach](https://github.com/jahala/pleach) | the conductor — gates agent work, ships only what's verified | soon |
-| [umbel](https://github.com/jahala/rctrl) | fan out agent CLIs (Claude Code, Codex, Gemini) in tmux | soon |
+| [umbel](https://github.com/jahala/rctrl) | fan out agent CLIs (Claude Code, Codex, Gemini) in tmux | live |
+| [copeca](https://github.com/jahala/copeca) | cost per correct answer — a neutral benchmark for CLI coding agents | live |
 
 ## Repo layout
 
