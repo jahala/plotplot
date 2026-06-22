@@ -48,7 +48,7 @@ Buttons are restrained, direct, and legible. Primary buttons use growth green (#
 
 Inputs feel like warm archive fields: surface backgrounds, subtle borders, growth-green focus rings, plain labels. Cards group context rather than decorate it: surface backgrounds, hairline borders, a small product-accent marker, clear headings. Navigation uses product accents sparingly as section markers; labels stay lowercase: tilth, tend, petals, pleach, umbel, copeca.
 
-Every page closes with the **garden footer**: a fixed forest band whose **garden row** links to every tool in the garden — one pill per product, each marked with its bloom, the current tool highlighted — so each page points back to the whole plot. Structure and values live in `components.md`.
+Every page closes with the **garden footer**: a fixed forest band whose **garden row** links to every tool in the garden — one pill per product, each marked with its bloom, the current tool highlighted. Product pages add a **plotplot band** on top (mark + wordmark + a plotplot.ai link) so each one points back to the umbrella, not just its siblings. Structure and values live in `components.md`.
 
 ## 7. Iconography
 

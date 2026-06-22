@@ -88,8 +88,9 @@ Every product page closes with the **garden footer**: a fixed forest band that p
 | Divider | `rgba(243, 236, 217, 0.14)` hairline above the bottom bar |
 | Padding | space-xl top, space-lg bottom |
 
-**Structure** — **three columns** (`1.3fr 1fr 1fr`, collapsing to one column at 880), closed by a bottom bar:
+**Structure** — a **plotplot band** on top, then **three columns** (`1.3fr 1fr 1fr`, collapsing to one at 880), closed by a bottom bar:
 
+- **plotplot band** *(product pages only)* — the sprout mark + **plotplot** wordmark, a one-line org descriptor, and a **plotplot.ai →** link, over a hairline divider. It sits above the columns so every product page names and links the umbrella, not just its siblings. The umbrella page (plotplot.ai) **omits** this band — it *is* plotplot.
 1. **Identity** — product name and one line of what it is, plus source / license links.
 2. **The garden** *(required)* — the **garden row**: one pill per tool, each led by a **bloom dot** in that product's accent from the Product Accents table in `colors.md`; the **current** product's pill is tinted with its own bloom (`rgba(<accent>, ~0.18)`). Names stay lowercase (`voice.md`); each links to that tool's home. It MUST list the full garden.
 3. **Nearby** — adjacent projects and a support link.
@@ -98,7 +99,7 @@ Closed by a **bottom bar** — hairline-topped, space-between: `© YEAR · a plo
 
 Rules:
 
-- Required everywhere: the forest surface, the garden row (full garden, bloom dots, current highlighted), and the "a plotplot garden tool" attribution.
+- Required on every **product** page: the **plotplot band** (links back to plotplot.ai), the forest surface, the garden row (full garden, bloom dots, current highlighted), and the "a plotplot garden tool" attribution. The umbrella page keeps the forest footer but omits the band.
 - Default is **three columns** — identity · the garden · nearby — collapsing to one at 880; a page with nothing "nearby" may drop to two. The umbrella page (plotplot.ai) uses the same three columns (identity · the garden · the project).
 - The band is a **shared family surface**: built from fixed family tokens (`--pp-forest`, `--pp-term-text`, `--pp-term-green`) so it renders identically in every theme **and on every product** — never wire it to theme-flipping vars, and never re-tint it to the product's accent. Per-product colour lives only in the garden-row dots and the current-pill highlight.
 - `/petals check` verifies the footer's colors and forest↔cream contrast, not its DOM; the garden row's completeness is a convention the building agent applies and review confirms.
@@ -111,6 +112,22 @@ Copy this verbatim and change only the three marked spots — the **identity** c
 <!-- garden footer · shared family surface. swap ONLY: (1) the identity column, (2) the .is-current pill, (3) the repo links -->
 <footer class="gf">
   <div class="gf-wrap">
+
+    <!-- 0 · plotplot band — same on every product page; links home. (the umbrella page omits this) -->
+    <div class="gf-plot">
+      <a class="gf-plotbrand" href="https://plotplot.ai" aria-label="plotplot home">
+        <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+          <path class="m-stem" d="M14 26 V12"/>
+          <path class="m-leaf" d="M14 18.5 C9 17.5 6 13.5 6.6 9 C11 9.8 14 13.2 14 18.5 Z"/>
+          <path class="m-leaf" d="M14 15.5 C19 14.5 22 10.5 21.4 6 C17 6.8 14 10.2 14 15.5 Z"/>
+          <circle class="m-bloom" cx="14" cy="8" r="3"/>
+        </svg>
+        <span class="wordmark">plotplot</span>
+      </a>
+      <p class="gf-plotline">a garden of small, sharp tools for building with AI.</p>
+      <a class="gf-plotlink" href="https://plotplot.ai">plotplot.ai →</a>
+    </div>
+
     <div class="gf-grid">
 
       <!-- 1 · identity — per product -->
@@ -157,6 +174,19 @@ Copy this verbatim and change only the three marked spots — the **identity** c
 .gf a        { color: var(--pp-term-green); }
 .gf a:hover  { color: var(--pp-term-text); }
 .gf h4       { color: var(--pp-term-text); font-size: 1.05rem; margin: 0 0 var(--pp-space-xs); }
+/* plotplot band (product pages only) */
+.gf .wordmark{ font-family: var(--pp-font-heading); font-weight: 600; color: var(--pp-term-text); }
+.gf .mark    { width: 28px; height: 28px; flex: none; }
+.gf .m-stem  { fill: none; stroke: var(--pp-term-green); stroke-width: 2; stroke-linecap: round; }
+.gf .m-leaf  { fill: var(--pp-term-green); }
+.gf .m-bloom { fill: var(--pp-accent); }
+.gf-plot     { display: flex; flex-wrap: wrap; align-items: center; gap: var(--pp-space-2xs) var(--pp-space-md);
+               padding-bottom: var(--pp-space-md); margin-bottom: var(--pp-space-lg);
+               border-bottom: 1px solid rgba(243,236,217,.14); }
+.gf-plotbrand{ display: inline-flex; align-items: center; gap: var(--pp-space-3xs); }
+.gf-plotbrand .wordmark { font-size: 1.45rem; letter-spacing: -.01em; }
+.gf-plotline { margin: 0; flex: 1; min-width: 18ch; color: var(--pp-term-text); opacity: .8; font-size: 1rem; }
+.gf-plotlink { font-family: var(--pp-font-code); font-size: .82rem; white-space: nowrap; }
 .gf-grid     { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: var(--pp-space-xl); }
 .gf-soft     { margin: var(--pp-space-2xs) 0 0; color: var(--pp-term-text); opacity: .78;
                font-size: .95rem; max-width: 42ch; }
