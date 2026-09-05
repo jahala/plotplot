@@ -35,6 +35,7 @@ C = {
     # blooms / product accents
     "Poppy": "#D6502F", "Sky": "#4E88A6", "Plum": "#97539B", "Petal": "#E588A0",
     "Juniper": "#1F8A7B", "Pollen": "#C8B330", "Pollen-ink": "#7E6A08",
+    "Bramble": "#8E3B5E", "Bramble-night": "#B85C82",
     # soil-night (dark / terminal)
     "Night": "#1C1610", "Night-card": "#262019",
     "Night-text": "#F3ECD9", "Night-soft": "#C9BBA0",
@@ -59,6 +60,8 @@ PAIRS = [
     ("Juniper", "Paper", "labels", 3.0),
     ("Pollen", "Paper", "decorative", 0.0), ("Ink", "Pollen", "reading", 4.5),
     ("Pollen-ink", "Paper", "reading", 4.5),
+    ("Bramble", "Paper", "reading", 4.5), ("Bramble", "Night", "decorative", 0.0),
+    ("Bramble-night", "Night", "labels", 3.0),
     # soil-night
     ("Night-text", "Night", "reading", 4.5), ("Night-soft", "Night", "reading", 4.5),
     ("Night-green", "Night", "reading", 4.5), ("Night-sun", "Night", "reading", 4.5),

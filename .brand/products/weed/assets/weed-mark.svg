@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="weed">
+  <!-- weed mark: one bramble cane leaning against the reading direction, two thorns and a drupelet in bramble -->
+  <path d="M5 21 C7 14, 11 9, 18 4" stroke="#357E2C" stroke-width="2.2"/>
+  <path d="M9.6 14.2 L12.6 14.9" stroke="#8E3B5E" stroke-width="2"/>
+  <path d="M13.2 9.6 L15.9 11.1" stroke="#8E3B5E" stroke-width="2"/>
+  <circle cx="17.2" cy="16.4" r="2.1" fill="#8E3B5E"/>
+</svg>
