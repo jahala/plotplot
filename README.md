@@ -16,6 +16,7 @@ repo holds the **umbrella landing page** and the **canonical brand** for the who
 | [pleach](https://github.com/jahala/pleach) | the conductor — gates agent work, ships only what's verified | soon |
 | [umbel](https://github.com/jahala/rctrl) | fan out agent CLIs (Claude Code, Codex, Gemini) in tmux | live |
 | [copeca](https://github.com/jahala/copeca) | cost per correct answer — a neutral benchmark for CLI coding agents | live |
+| [pollen](https://github.com/jahala/walkie-clawkie) | agent-to-agent messaging — mailboxes between agents, with a human at the gate | soon |
 
 ## Repo layout
 

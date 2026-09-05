@@ -12,7 +12,9 @@ for the garden. Read this before changing the page or the brand.
 - The beds: **tilth** (code intelligence, live), **tend** (feature mapping +
   narration), **petals** (brand intelligence for agents), **pleach** (the conductor —
   gates agent work and ships only what's verified), **umbel** (fan out agent CLIs in
-  tmux — renamed from rctrl).
+  tmux — renamed from rctrl), **copeca** (cost-per-correct benchmarking), **pollen**
+  (agent-to-agent messaging, with a human at the trust gate — adopted from
+  walkie-clawkie; see `docs/pollen-conversion-plan-2026-09.md`).
 
 ## Architecture / tech (decisions)
 

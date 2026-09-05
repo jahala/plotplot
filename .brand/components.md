@@ -146,6 +146,8 @@ Copy this verbatim and change only the three marked spots — the **identity** c
           <a href="https://github.com/jahala/petals" style="--bloom:var(--pp-petals)"><span class="gf-dot"></span>petals</a>
           <a href="https://github.com/jahala/pleach" style="--bloom:var(--pp-pleach)"><span class="gf-dot"></span>pleach</a>
           <a href="https://github.com/jahala/umbel"  style="--bloom:var(--pp-umbel)" class="is-current"><span class="gf-dot"></span>umbel</a>
+          <a href="https://github.com/jahala/copeca" style="--bloom:var(--pp-copeca)"><span class="gf-dot"></span>copeca</a>
+          <a href="https://github.com/jahala/pollen" style="--bloom:var(--pp-pollen)"><span class="gf-dot"></span>pollen</a>
         </nav>
         <p class="gf-soft">small, sharp tools for building with agents.</p>
       </div>
