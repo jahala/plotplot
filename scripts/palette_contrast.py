@@ -34,10 +34,12 @@ C = {
     "Info": "#3F7186", "Muted": "#9A8C72",
     # blooms / product accents
     "Poppy": "#D6502F", "Sky": "#4E88A6", "Plum": "#97539B", "Petal": "#E588A0",
+    "Juniper": "#1F8A7B", "Pollen": "#C8B330", "Pollen-ink": "#7E6A08",
     # soil-night (dark / terminal)
     "Night": "#1C1610", "Night-card": "#262019",
     "Night-text": "#F3ECD9", "Night-soft": "#C9BBA0",
     "Night-green": "#84C56A", "Night-sun": "#F2A93B", "Night-leaf": "#9FD08A",
+    "Night-pollen": "#D9C44A",
 }
 
 # (fg, bg, class, target)
@@ -54,10 +56,14 @@ PAIRS = [
     ("Muted", "Paper", "decorative", 0.0),
     ("Poppy", "Paper", "labels", 3.0), ("Sky", "Paper", "labels", 3.0),
     ("Plum", "Paper", "labels", 3.0), ("Petal", "Paper", "decorative", 0.0),
+    ("Juniper", "Paper", "labels", 3.0),
+    ("Pollen", "Paper", "decorative", 0.0), ("Ink", "Pollen", "reading", 4.5),
+    ("Pollen-ink", "Paper", "reading", 4.5),
     # soil-night
     ("Night-text", "Night", "reading", 4.5), ("Night-soft", "Night", "reading", 4.5),
     ("Night-green", "Night", "reading", 4.5), ("Night-sun", "Night", "reading", 4.5),
     ("Night-leaf", "Night", "reading", 4.5),
+    ("Night-pollen", "Night", "reading", 4.5),
 ]
 
 print(f"{'pair':<34}{'ratio':>7}  {'class':<11} verdict")
