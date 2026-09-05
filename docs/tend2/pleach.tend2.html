@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pleach · plotplot</title>
+<link rel="stylesheet" href="./loop.css">
+<body>
+<noscript>This page renders its markdown payload with JavaScript — enable JS, or read the raw payload in the page source.</noscript>
+<script type="text/markdown" id="loop">
+# pleach — the conductor, gating at the node
+**Goal.** pleach conducts a DAG of verified agent work in isolated worktrees and publishes only what passed its gates. To belong to the tended repository it adopts three things: the test phase commits separately from the implementation, so `weed bite` is a checkout and a run; `weed check --strict` is its default smoke gate, so honesty is judged at the node before the pull request; and every node's handback must carry a Tried entry, so the theory of the program is written by whoever changed it. Its plan schema stays the plan contract. Module work lives in `~/conductor/repos/pleach/docs/tend2/`.
+
+## Tests
+- [ ] (code) fit contract F1, F3, F4, F5, F6 pass for pleach at the pinned version: manifest, standalone install, zero declared context cost, verified-close-rate metric committed, brand layer and footer · scripts/fit/pleach.sh
+- [ ] (code) a phased node commits the red phase as its own commit before the impl phase begins, and the GREEN gate runs against the combined tree · scripts/fit/pleach.sh test-commit
+- [ ] (code) a plan with no `accept.smoke` defaults to `weed check --strict` when weed is on PATH and fails closed with a named reason when it is not · scripts/fit/pleach.sh default-smoke
+- [ ] (code) a node whose worker handback contains no dated Tried line is classified retryable with the evidence naming the missing section, not published · scripts/fit/pleach.sh tried-required
+- [ ] (code) the published `node/<id>` branch carries an in-toto statement naming harness, model, provider, and the gates passed, signed in CI · scripts/fit/pleach.sh attestation
+- [ ] (code) `bunx github:jahala/pleach validate plan.json` works from a public repository on a clean machine · scripts/fit/pleach.sh public
+- [ ] (code) a node whose worker dies carries the tail of the worker's output in the verdict's evidence, so the journal shows why, never a bare "dead" · scripts/fit/pleach.sh dead-evidence
+- [ ] (human) the owner confirms the landing page qualifies the slogan once: code decides what code can decide; the audit is a second model's judgment in a shape code can refuse
+
+## Needs #weed #tend2 #umbel #contracts
+
+## Tried
+- 2026-09-05 pleach stays on Bun; porting it to Node buys nothing a user can feel and the review reversed the single-runtime decision
+- 2026-09-05 the RED and GREEN gates check order, not the final state; `bite` closes that hole and belongs in weed, run by pleach
+- 2026-09-05 structured negctrl on stored verdicts, listed as pleach roadmap in its ledger, is satisfied by `bite` rather than built twice
+- 2026-09-05 the repo is private while its README speaks as if public; the public check stays open until the owner flips it
+- 2026-09-05 queued from tend2 via the channel: the Tried-handback field as a plan-contract v1.3 additive change — pleach owns the schema change, tend2's emitter and pleach's contract land as a coordinated pair, contracts' pins check covers the versions
+- 2026-09-05 from the weed builder's fleet run: workers dying at Claude Code's trust dialog surfaced as "dead" with no reason in pleach's verdicts; the umbel half is umbel's, the evidence half is pleach's — a dead verdict must carry the worker's last output lines; the pleach peer was told on the channel
+- 2026-09-05 the data for dead-evidence already exists: `umbel wait` returns a paneSnapshot on timeout, so pleach need only carry it into the verdict; and pleach's docs should say in one line that the repository passed as --repo-root must be trusted in Claude Code and that trust follows the main checkout, not the worktree
+- 2026-09-05 the bridge worked as advertised in the same run: `pleach validate` on a 14-node plan emitted from weed's map printed eight waves, the map's Needs edges became the DAG with no hand editing
+</script>
+<script src="./loop.js"></script>

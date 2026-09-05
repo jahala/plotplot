@@ -17,6 +17,7 @@ repo holds the **umbrella landing page** and the **canonical brand** for the who
 | [umbel](https://github.com/jahala/rctrl) | fan out agent CLIs (Claude Code, Codex, Gemini) in tmux | live |
 | [copeca](https://github.com/jahala/copeca) | cost per correct answer — a neutral benchmark for CLI coding agents | live |
 | [pollen](https://github.com/jahala/pollen) | agent-to-agent messaging — mailboxes between agents, with a human at the gate | live |
+| [weed](https://github.com/jahala/weed) | the judge of the diff — deterministic gates on tests, stubs, secrets and guardrails in what an agent changed | soon |
 
 ## Repo layout
 

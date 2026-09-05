@@ -14,7 +14,9 @@ for the garden. Read this before changing the page or the brand.
   gates agent work and ships only what's verified), **umbel** (fan out agent CLIs in
   tmux — renamed from rctrl), **copeca** (cost-per-correct benchmarking), **pollen**
   (agent-to-agent messaging, with a human at the trust gate — adopted from
-  walkie-clawkie; see `docs/pollen-conversion-plan-2026-09.md`).
+  walkie-clawkie; see `docs/pollen-conversion-plan-2026-09.md`), **weed** (the judge of the
+  diff — deterministic gates on tests, stubs, secrets and guardrails in an agent's changes;
+  brief in `docs/prompts/weed-build-2026-09.md`).
 
 ## Architecture / tech (decisions)
 

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>weed · plotplot</title>
+<link rel="stylesheet" href="./loop.css">
+<body>
+<noscript>This page renders its markdown payload with JavaScript — enable JS, or read the raw payload in the page source.</noscript>
+<script type="text/markdown" id="loop">
+# weed — the judge of the diff
+**Goal.** A static binary that reads a diff an agent produced and refuses the growth that should not be there: deleted or weakened tests, skips, stubs, swallowed errors, secrets, guardrail edits, dependency-direction violations. Three subcommands: `check` emits SARIF; `guard` is the law at commit and push through git hooks; `bite` proves a test fails without the change. It runs in milliseconds with zero tokens, at pre-commit, pre-push, Stop, in pleach as the smoke gate, and in CI as a GitHub Action posting to code scanning. The build brief is `docs/prompts/weed-build-2026-09.md`, amended here: SARIF not a findings schema, guard replaces hedge, and the crate lives in the tilth workspace.
+
+## Only the unambiguous blocks
+
+A false block costs a retry, and agents learn to add allowances. So a deleted test, an added skip, a stub in production code, a secret, an edited guardrail file, and a conflict marker block; everything else warns, and warnings are for the human at the pull request, not for the agent. Calibration on real history decides whether weed ships at all, and the kill bar is written before the first rule.
+
+## Tests
+- [ ] (code) fit contract F1 to F6 pass for weed at the pinned version: manifest, SARIF from check, standalone install, zero declared context cost, calibration metric committed, brand layer and footer · scripts/fit/weed.sh
+- [ ] (code) each of the eighteen v1 rules fires on its adversarial fixture and stays silent on its neighbour, in TypeScript, Python, Rust, and Go · scripts/fit/weed.sh rules
+- [ ] (code) calibration over the last 200 merged commits in tilth, pleach, tend2, copeca, and umbel shows block-level false positives under two percent per repo, with every blocked commit classified in `docs/calibration-2026-09.md` · scripts/fit/weed.sh calibration
+- [ ] (code) `guard` installed via `core.hooksPath` refuses a commit that deletes a test and a non-fast-forward push to the default branch, and the only bypass, `--no-verify`, is denied by the bundle's harness hook · scripts/fit/weed.sh guard
+- [ ] (code) `bite`, given a pleach node whose test phase committed separately, reports theater when the test passes without the implementation and stays silent when it fails · scripts/fit/weed.sh bite
+- [ ] (code) the GitHub Action posts weed's SARIF to code scanning on a pull request in a fixture repository and the alert renders with rule id, file, and line · scripts/fit/weed.sh action
+- [ ] (code) the Stop hook refuses a premature done with the findings as the reason, and allows it once the tree is clean, on Claude Code and Gemini CLI · scripts/fit/weed.sh stop
+- [ ] (code) the dependency-direction rule, configured from pleach's own doctrine (core imports nothing from seams or faces), flags a fixture violation using tilth-core · scripts/fit/weed.sh deps
+- [ ] (code) `weed scan` reads the tree rather than the diff, never blocks, emits SARIF, and fires its four candidate repo-state rules on fixtures — cited path or symbol missing, dead export, TODO older than the threshold, dependency lag — with tend2's hygiene loop as first consumer · scripts/fit/weed.sh scan
+- [ ] (code) determinism: the same diff, tree and config produce byte-identical SARIF after run timestamps are stripped, across three runs on every fixture and on the calibration corpus, with results sorted by file, line and rule · scripts/fit/weed.sh determinism
+- [ ] (code) recall by mutation injection: real merged commits from the calibration corpus with each anti-pattern injected mechanically are caught at or above 95 percent by the block-level rules per language, warn-level recall reported, both in the calibration file · scripts/fit/weed.sh recall
+- [ ] (code) never panics, fails closed: malformed diffs, binaries, non-UTF-8, CRLF, renames, symlinks, submodules, merge and empty commits, and huge files produce exit 0, 2 or 3 with a reason and never a panic, with a property or fuzz test on the diff parser as evidence · scripts/fit/weed.sh robustness
+- [ ] (code) latency: `weed check --staged` completes under 200 ms on a typical diff in the fixture repos and under 2 s worst case, measured in CI with a regression failure · scripts/fit/weed.sh latency
+- [ ] (agent) the calibration classification is re-graded by an independent party — a pleach audit on a different provider or the owner — on a random sample of at least twenty blocked commits and twenty injected cases, with agreement at or above 90 percent; below that the classification is untrusted and redone · docs/calibration-2026-09.md
+- [ ] (code) the suppression rate, `Weed-allow` trailers per hundred commits on the garden repos since guard was installed, is computed and reported beside precision in the calibration file · scripts/fit/weed.sh suppressions
+- [ ] (human) the owner confirms MIT for weed (the name is confirmed by the owner's request for its brand; the accent bramble #8E3B5E was decided by the umbrella on 2026-09-05 from measured candidates)
+
+## Needs #tilth #contracts
+
+## Tried
+- 2026-09-05 hedge folded in: a deny list of shell patterns loses to `bash -c` and `find -delete`; the boundary moved to git hooks and the sandbox, and what remains of the harness-hook half is a short deny list in the stem's bundle
+- 2026-09-05 thorn folded in as `bite`, and made cheap by pleach committing the test phase separately — no hunk splitting needed
+- 2026-09-05 stake dropped: pleach's audit parser and tend2's verifier already refuse prose; the one remaining slice, "tests pass" with no loop file, is a Stop-hook rule here
+- 2026-09-05 scope-out: no inbound injection quarantine — natural-language injection has no fixed shape, so a deterministic claim would be theater
+- 2026-09-05 scope-out: no spend rules — hooks cannot see token usage on most harnesses
+- 2026-09-05 field taxonomy adopted from the test-rewrite failure-mode literature: deleted assertions, gutted assertions, widened tolerances, skips, regenerated snapshots, weakened error assertions, renamed-uncollected tests
+- 2026-09-05 settled with tend2 on the channel: repo-state hygiene rules (citation checker, dead exports, TODO age, dependency lag) land as a second face `weed scan` that never blocks; `check` alone judges diffs and may block; a scan rule that names no confirmed hot spot in a season is demoted
+- 2026-09-05 settled with tend2 on the channel: `tend2 gate` (are the touched claims still proven) and weed (is the diff honest) are different questions — both SARIF, both concatenated by `plotplot check`, neither absorbs the other
+- 2026-09-05 weed lives in its own repository (builder workspace weed/bandung, peer id bandung on pollen), Rust, depending on `tilth-core` as a git dependency until published; the earlier "crate inside the tilth workspace" placement is withdrawn — separate repos keep the standalone rule honest and the parser is shared as a library, not by co-location
+- 2026-09-05 briefing sent to the builder over pollen (text on record in `docs/prompts/weed-channel-briefing.md`); first milestone is the `tilth-core` extraction proposal in the tilth repo, reported before rules are built on it
+- 2026-09-05 bandung's first status: weed's own map shaped with 14 loops, lint clean; the owner added a process rule for the builder (tend2 loops, pleach conducting, umbel driving, dogfood log) that overrides the brief's no-subagents line; workers produce evidence, the builder audits against the diff, only the verifier stamps
+- 2026-09-05 `--strict` defined with the builder: suppressions reported not honoured, unevaluable files fail closed (exit 3), warn never escalates to block; calibration pools merged commits across the garden repos (rctrl is umbel's directory) with per-repo counts shown
+- 2026-09-05 duplicate-work risk caught: bandung had begun the tilth-core extraction itself against a base it called v0.9.0 while origin/main is v0.10.1; resolved — bandung's branch is the proposal and the API request, almaty rebases, proves byte-identical output, and lands it
+- 2026-09-05 the owner confirmed MIT for weed on the channel; the human check above waits only for the owner's own pen, since an agent may not close a human check
+- 2026-09-05 bandung landed name, accent and MIT and pushed draft PR #1 on jahala/weed at the owner's request; the canonical brand layer lives in the weed repo, and its mark is a pair of open shears in bramble around a growing stem, per the owner's direct instruction to the builder — the umbrella's staging copy mirrors it; the bramble cane first drawn in the umbrella is withdrawn
+- 2026-09-05 milestone 2 (T1, T3, S1, X1, C1, G1 to SARIF) landed on weed's map with one correction pending: the block set as built made weed refuse its own hook installation under C1, which the hooks face would then deny as a bypass; C1 will recognise weed's own bundle
+- 2026-09-05 accent decided: bramble #8E3B5E (the weed that stops you); reads as a word on paper at 6.57:1, display-only on night at 2.51 with bramble-night #B85C82 for words on dark (4.17, 18 ΔE from petal, never adjacent text); nearest blooms plum 26 ΔE and petal 30 ΔE at 38° hue; woad #3D4E8C rejected as the coldest colour in a warm palette, nettle #6F8F1F rejected (3.43 on paper, 21 ΔE from growth green); brand layer authored at .brand/products/weed/ as staging, canonical home is the weed repo; weed wired into the umbrella (accents table, tokens, identity, voice, footer reference, README, CLAUDE.md, the page's eighth card and footer row)
+- 2026-09-05 testing standard added after the owner asked how we know weed is good: determinism as a test, recall by mutation injection beside precision by calibration, never-panic with fail-closed, a latency budget, an independent re-grade of the calibration sample (the builder must not grade its own false positives), and a suppression-rate watch for routing around the gate
+- 2026-09-05 bandung placed the testing standard on weed's own map before rules-block dispatched: a hardening loop (determinism replayed three times under different locale and time-zone environments, the file-line-rule sort law, a proptest over the diff parser and classifier, a hostile-input suite over symlinks, a submodule, merge and empty commits, a 20 MiB file, CRLF, binary and non-UTF-8 files, and a panic hook that turns any panic into exit 3 naming it as a bug); a recall loop driven by `cargo xtask mutate` with every miss named; a calibration-audit loop cast to a second provider with "untrusted" as the failure sentence; the latency budget on the project loop with a CI regression clause; the suppression rate as a check on calibration; the reader seam closed under a codex audit in twenty minutes
+- 2026-09-05 milestone 1 from bandung: tilth-core exists (almaty's PR #210, commit 7f38db5) and weed pins that rev from GitHub with no local bridge; core, sarif, check-face and guard landed and verifier-stamped on weed's own map (21 checks); G1 conflict markers is the first garden gate live end to end; hooks in retry, then the reader seam, rules-block and scan in parallel; `--strict` implemented as agreed; two further tool findings sent to the pleach agent, which closed the first six the same day at master 49c9177
+</script>
+<script src="./loop.js"></script>

@@ -7,3 +7,4 @@ node_modules/
 
 # page screenshots / verification captures (kept locally, not tracked)
 docs/brand/pp-*.png
+.mcp.json

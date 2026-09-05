@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tilth · plotplot</title>
+<link rel="stylesheet" href="./loop.css">
+<body>
+<noscript>This page renders its markdown payload with JavaScript — enable JS, or read the raw payload in the page source.</noscript>
+<script type="text/markdown" id="loop">
+# tilth — the reader, and the eye of the judge
+**Goal.** tilth stays what it is, structural reading of code for agents with a measured cost-per-correct gain, and becomes the parsing substrate the garden's judge is built on: a `tilth-core` library crate exposing tree-sitter outlines, symbol search, test-file classification, and dependency analysis, which weed depends on inside the same Cargo workspace. Its instruction block moves into a skill so it costs nothing at startup. Module work lives in tilth's own repo at `~/CascadeProjects/tilth`.
+
+## Why the substrate matters more than the reader
+
+As context windows grow and cheapen, pure navigation becomes less scarce; the parser does not. Deleted tests, weakened assertions, and dependency-direction violations are structural facts about a diff, and tilth already knows how to see structure in fourteen languages. The reallocation is recorded in Tried and in `docs/garden-2031.md` §6.
+
+## Tests
+- [ ] (code) fit contract F1, F3, F4, F5, F6 pass for tilth at the pinned version: manifest, standalone install, declared context cost, cost-per-correct metric committed, brand layer and footer · scripts/fit/tilth.sh
+- [ ] (code) `tilth-core` builds as a library crate and a second crate in the workspace links it for outlines, symbol search, `is_test_file`, and dependency analysis without pulling in the CLI or MCP faces · scripts/fit/tilth.sh core-crate
+- [ ] (code) tilth's `SKILL.md` description is one sentence and its body contains every instruction the MCP `instructions` block carried; the served instructions block is under 120 tokens · scripts/fit/tilth.sh skill
+- [ ] (code) tilth's `SKILL.md` invoked in a Claude Code and a Codex session yields the same tool-use pattern the instruction block produced, on the copeca navigation tasks, within the pre-registered cost-per-correct bar · scripts/fit/tilth.sh skill-ab
+- [ ] (code) the host installer remains a fallback and no longer the documented install path once the stem's bundles exist · scripts/fit/tilth.sh installer
+- [ ] (code) the release workflow publishes `tilth-core` to crates.io before `tilth`, and a dry run of the workflow proves the order · scripts/fit/tilth.sh release-order
+- [ ] (human) the owner approves tilth's identity widening from "code reading" to "code reading and the parser the judge uses", on the README and the page
+- [ ] (human) the owner rules on the open PRs per almaty's triage: d67fc1b (search determinism) as a fresh PR first; #196's prompt commits superseded by the diet and scout as a CLI subcommand not a ninth MCP tool; #169 closed after the rescue; #193 recreated and merged on green; and reviews PR #209 (map, gitignore, regen script)
+
+## Needs #contracts
+
+## Tried
+- 2026-09-05 winnow (structured reading of build and test output) is not revived: PR #54 built it, and real-session measurement showed no demand; the parsers stay in the branch as a parts bin
+- 2026-09-05 the scout arc closed on evidence in July: a correct hint saved about a fifth on hard tasks and cost about a tenth on easy ones — this is the prior every push-context idea in the garden must beat
+- 2026-09-05 CLI-plus-skill versus MCP for tilth is an open measurement, not a decision; the skill-ab check settles it with copeca
+- 2026-09-05 the local checkout at ~/CascadeProjects/tilth is stale (0.5.7 on feat/glob-filter) while origin/main is v0.10.1 — the tilth agent's brief points at main; open PRs #196 (external, overlaps the context diet), #169, #193 are triaged not merged
+- 2026-09-05 tilth-core's API is requested by weed (peer bandung), landed by tilth with zero behaviour change and a byte-identical output proof; weed depends on a pinned git commit until the owner publishes the crate; brief on record at docs/prompts/tilth-garden-brief-2026-09.md
+- 2026-09-05 the tilth agent is peer almaty on pollen (workspace tilth/almaty, on integration/bench-146-151 with 116 uncommitted paths of July scout and bench work); briefed to add a fresh worktree on origin/main and leave that tree untouched; briefing text on record at docs/prompts/tilth-channel-briefing.md
+- 2026-09-05 almaty told not to start a second extraction: bandung's tilth-core branch is the proposal; almaty reviews, rebases onto origin/main v0.10.1, proves byte-identical CLI and MCP output on the benchmark fixtures, lands it on a named branch, and reports the pinned commit weed depends on
+- 2026-09-05 milestone 1 from almaty: fresh worktree at tilth/almaty/.context/garden on garden/map from f5c0afa, toolchain stable 1.98.1, 654 tests green; four module loops shaped (tilth, core, skill, papers); PR #209 opened (docs, /docs un-ignored for tend2/ab/proof, regen script preserves the tend2 block); split proceeds on garden/tilth-core
+- 2026-09-05 measured context cost of tilth v0.10.1 (the umbrella's baseline): read-only 430 tokens of instructions plus 2,158 of tool schemas over 7 tools; edit mode 507 plus 3,069 over 8 tools; the repo fingerprint is 327 characters of that; the 120-token bar removes about three quarters
+- 2026-09-05 rulings given to almaty and written into the garden brief §3: product layer committed in the bed repo while umbrella-derived .brand files stay pulled; F5 needs a committed metric summary, not raw results; SKILL.md stays at skills/SKILL.md declared in garden.json; tilth-core publishes before tilth
+- 2026-09-05 almaty's triage, endorsed by the umbrella for the owner: land the search-determinism fix d67fc1b as a fresh PR first (identical searches currently return different match sets on main); #196's prompt trim is superseded by the diet and its scout-as-MCP-tool cuts against channels-at-most-three; close #169 after the rescue; recreate and merge #193
+- 2026-09-05 milestone 2, the split: PR #210 on branch garden/tilth-core, pinned commit 7f38db58696e16c2df2be71da985f47097f34920; crates/tilth-core carries lang, types, error, cache, index, outline, imports and the search core with 29 renames; the binary keeps every path via re-exports; public surface is exactly bandung's list plus test_entries; 663 tests (654 old plus 9 acceptance), no new deps; output parity on 128 CLI and MCP cases over four fixture repos, 118 byte-identical and 10 identical modulo hash-map order that v0.10.1 already shows against itself; release.yml publishes tilth-core before tilth
+- 2026-09-05 milestone 3, the diet: PR #211 on garden/skill; served instructions 89 tokens read-only and 109 in edit mode (were 430 and 507), pinned by a unit test at the 120 bar; skill description 147 characters, body carries every old instruction line verbatim; the 327-character fingerprint no longer rides on initialize; tool schemas unchanged at 2,158 and 3,069 tokens, the next largest tax in the garden; one inert `--no-overview` compatibility shim flagged for the owner (default is removal)
+- 2026-09-05 milestone 5, the A/B brief drafted at docs/ab/skill-vs-mcp-2026-09.md (baseline, MCP with pointer, CLI plus skill; Sonnet, 3 reps; B becomes default only within 5% cost per correct of A); the owner hands it to copeca
+- 2026-09-05 milestone 4, the papers: PR #212 on garden/papers; garden.json without $schema until the contracts loop ships the manifest schema; docs/metrics/latest.md carries the v0.5.0 figures with "no interval, no signed artifact yet" stated; .brand/products/tilth committed per ruling 1 with .brand/* otherwise ignored; petals check 0 errors; footer mirrors the umbrella's seven beds, the judge's entry awaits its name; every code check on tilth's map has evidence at scripts/check/*.sh and nothing is stamped
+- 2026-09-05 the umbrella's contracts loop is now the critical path for tilth's fit checks: no manifest schema, no fit runner, no scripts/fit/tilth.sh yet
+</script>
+<script src="./loop.js"></script>
