@@ -84,6 +84,10 @@ configured, one message each way, exact config recorded. Re-check whether MCP ch
 still a research preview.
 *Gate: a named message umbel cannot carry, and one non-Claude host proven. If umbel would have
 sufficed, stop and report it — that is a finding, not a failure.*
+**Outcome — the criterion was retired, not tested.** The owner adopted pollen regardless, so
+the peer-exchange run was never made; the cross-harness half was proven against codex. Recorded
+in the pollen repo's `docs/proof-2026-09.md` and here, so neither the memo nor this plan claims
+a gate that never ran. pollen is live on plotplot.ai on that decision, not on this evidence.
 
 **Phase 1 — rename.** Branch `pollen` off **`origin/main`**. Both files, five tools, five env
 vars, `/tmp/pollen`, `.mcp.json` key, `[pollen]` watch prefix. Every user-facing string reread
@@ -132,7 +136,9 @@ never rotated. State the trade-off only.
 
 ## 6. Decisions left for the owner
 
-Accent, tagline and mark are **settled** and must not be reopened. Remaining: MIT licence ·
-repo rename to `jahala/pollen` · Pages from `main:/` · description, topics, homepage · tag
-`v0.1.0` · delete the two merged remote branches · npm (`@plotplot/pollen` is free; curl
-install works today, so this is a choice) · whether journal state stays under `/tmp`.
+Accent, tagline and mark are **settled** and must not be reopened. Done since: the repo rename
+to `jahala/pollen` and Pages from `main:/` — `jahala.github.io/pollen/` serves the product page,
+and the umbrella's bed card reads **live**. Remaining: MIT licence · description, topics,
+homepage · tag `v0.1.0` · delete the two merged remote branches · npm (`@plotplot/pollen` is
+free; curl install works today, so this is a choice) · whether journal state stays under
+`/tmp`.
