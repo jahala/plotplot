@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>petals · plotplot</title>
+<link rel="stylesheet" href="./loop.css">
+<body>
+<noscript>This page renders its markdown payload with JavaScript — enable JS, or read the raw payload in the page source.</noscript>
+<script type="text/markdown" id="loop">
+# petals — brand and voice as files, checked by code
+**Goal.** petals already has the shape a bed should have: a skill for the judgment work of extracting a brand, and a deterministic check that runs with zero tokens. To belong to the tended repository it emits SARIF from that check, cuts its skill description to one sentence, and goes public. It is also the template every other bed's brand layer copies. Module work lives in `~/conductor/repos/petal/docs/tend2/`.
+
+## Tests
+- [ ] (code) fit contract F1 to F6 pass for petals at the pinned version: manifest, SARIF from check, standalone install, declared context cost at or under 80 tokens, metric committed, brand layer and footer · scripts/fit/petals.sh
+- [ ] (code) `check.sh --format sarif` emits SARIF 2.1.0 with one result per finding carrying rule id, file, line, and the nearest-palette suggestion as the fix text · scripts/fit/petals.sh sarif
+- [ ] (code) the skill description is one sentence under 160 characters and the body carries every workflow the old description listed · scripts/fit/petals.sh skill
+- [ ] (code) the repository is public and `/petals init --from` the plotplot umbrella works from a clean clone · scripts/fit/petals.sh public
+- [ ] (code) the umbrella's own page and every bed's page pass the check with zero errors on the umbrella-plus-product resolution · scripts/fit/petals.sh garden-pass
+
+## Needs #contracts
+
+## Tried
+- 2026-09-05 petals' split, deterministic core plus agent layer, is the template for every bed; the review named it as the pattern and this loop only asks petals to speak SARIF
+- 2026-09-05 measured today: the skill description is about 700 characters, the largest on the machine; the body already loads on demand so the cut is free
+- 2026-09-05 whether petals lives with the umbrella or stays its own repo is the owner's call and does not change these checks
+</script>
+<script src="./loop.js"></script>

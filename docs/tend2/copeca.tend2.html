@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>copeca · plotplot</title>
+<link rel="stylesheet" href="./loop.css">
+<body>
+<noscript>This page renders its markdown payload with JavaScript — enable JS, or read the raw payload in the page source.</noscript>
+<script type="text/markdown" id="loop">
+# copeca — the yardstick, for every repo
+**Goal.** copeca measures the expected dollar cost of a correct answer, with confidence intervals, on fixed axes, and signs the artifact. To belong to the tended repository it ships a manifest and becomes something any team can run on their own code: `copeca init` scaffolds a repo's own eval corpus from its history, so casting a model or a tool is a number about your repository, not a benchmark about someone else's. Module work lives in `~/conductor/workspaces/copeca/cancun/docs/tend2/`.
+
+## Tests
+- [ ] (code) fit contract F1, F3, F5, F6 pass for copeca at the pinned version: manifest, standalone install from PyPI, its own metric committed, brand layer and footer · scripts/fit/copeca.sh
+- [ ] (code) `copeca init` on a repository with history scaffolds a navigation and edit task corpus of at least twenty tasks with ground truth derived from that history, and `copeca run` completes on it · scripts/fit/copeca.sh init
+- [ ] (code) the context-tax scenario exists and runs: the same tasks with the garden planted three ways, cost per correct with confidence intervals, results committed in `evals/` · scripts/fit/copeca.sh context-tax
+- [ ] (code) tilth's skill-versus-MCP A/B and tend2's push-versus-pull orientation A/B are runnable scenarios in the corpus with pre-registered ship and kill bars · scripts/fit/copeca.sh scenarios
+- [ ] (code) `copeca export --tend2-cases` writes a corpus's tasks as FORMAT §7.9 case files a loop can cite as eval evidence, and `tend2 verify` runs one such file to a pass on a fixture · scripts/fit/copeca.sh export
+- [ ] (human) the owner decides PyPI ownership, personal or the plotplot org, before the next release
+
+## Needs #contracts
+
+## Tried
+- 2026-09-05 copeca is one instrument, not the season gate: it cannot see risk, retries, or review burden, which is what weed, tend2, and pleach reduce — each bed declares its own metric
+- 2026-09-05 the lesson from SWE-bench stands: verbatim tasks that name the location never trigger navigation; synthetic navigation tasks are the targeted instrument
+- 2026-09-05 `copeca init` is the productization: the yardstick becomes every repo's own eval harness, which is the durable-independent bet in `docs/garden-2031.md`
+- 2026-09-05 eval boundary settled with tend2 on the channel: tend2 = claim plus gate, copeca = instrument plus corpus; the one seam is copeca's one-way exporter into tend2's case-file shape, so the dependency points at tend2's format and never the other way
+</script>
+<script src="./loop.js"></script>

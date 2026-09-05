@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>umbel · plotplot</title>
+<link rel="stylesheet" href="./loop.css">
+<body>
+<noscript>This page renders its markdown payload with JavaScript — enable JS, or read the raw payload in the page source.</noscript>
+<script type="text/markdown" id="loop">
+# umbel — one unit of agent work, on any provider
+**Goal.** umbel runs one unit of agent work reliably on Claude Code, Codex, Gemini, or OpenCode and hands back a typed result. To belong to the tended repository it stays a channel with a diet: six tools plus help instead of twelve, a headless structured-output adapter alongside tmux for providers that ship one, and its invoke signature kept as the unit contract pleach depends on. Module work lives in `~/conductor/repos/rctrl/docs/tend2/`.
+
+## Tests
+- [ ] (code) fit contract F1, F3, F4, F5, F6 pass for umbel at the pinned version: manifest, standalone install, declared context cost at or under 900 tokens, metric committed, brand layer and footer · scripts/fit/umbel.sh
+- [ ] (code) the MCP server lists at most seven tools, capture, logs, actions, diff, status, and ls folded behind one inspect tool, and the umbel workflow suite still passes · scripts/fit/umbel.sh diet
+- [ ] (code) a headless adapter drives a provider's structured-output mode for one unit and returns the same typed result shape the tmux adapter returns · scripts/fit/umbel.sh headless
+- [ ] (code) the scheduled real-binary smoke runs against each provider's current release and reports drift as a failing check rather than a silent pass · scripts/fit/umbel.sh drift
+- [ ] (code) the metric, units completed per dollar and per provider from the run journal, is computed and committed · scripts/fit/umbel.sh metric
+- [ ] (code) a worker spawned into a fresh, untrusted cwd on the current Claude Code release survives the trust dialog and reaches its first prompt, and the scheduled real-binary smoke includes this case so a changed dialog default fails a check instead of killing fleets silently · scripts/fit/umbel.sh trust-dialog
+
+## Needs #contracts
+
+## Tried
+- 2026-09-05 umbel stays on Bun and stays its own repo; a merge into pleach was considered and rejected because umbel is used alone daily
+- 2026-09-05 measured today: 12 tools, 260 tokens of instructions plus 1,403 of schemas — the diet target is under 900 combined
+- 2026-09-05 headless over tmux as vendors ship worker APIs is umbel's own positioning; this loop only asks for the first adapter
+- 2026-09-05 found in the weed builder's fleet run: umbel dismisses Claude Code's trust dialog with a bare Enter, and on Claude Code 2.1.261 the default is "No, exit", so every worker in a fresh untrusted cwd dies in seconds; workaround is trust accepted for the repository's main checkout in ~/.claude.json (trust follows the main checkout, not the worktree); the drift smoke must cover this class; source rctrl src/core/providers/claude.ts:283-285, fix is Down then Enter or matching the highlighted line
+- 2026-09-05 three more from the same run: umbel does not know Claude Code's "Allow external CLAUDE.md file imports?" dialog (trips nested worktree layouts); `umbel send` returns a constant sinceMtime of 0 rather than a transcript mtime; the `--help` tagline still says "remote-control interactive Claude Code" with four providers supported
+</script>
+<script src="./loop.js"></script>
