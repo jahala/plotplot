@@ -7,7 +7,8 @@ A product layer over the plotplot umbrella. Deltas only; everything absent inher
 | Product | weed |
 | Tagline | tests still mean what they meant. |
 | Accent | #8E3B5E bramble — the weed that stops you (from the umbrella Product Accents table) |
-| Commands | `weed check` · `weed scan` · `weed guard` · `weed bite` |
+| Faces | `weed check` · `weed guard` · `weed hook` · `weed rules` — `scan` and `bite` join when they land |
+| Commands | `weed check --format sarif` · `weed guard install --protect main` |
 
 ## Positioning
 
@@ -27,24 +28,29 @@ the pull request, and every allowance a person grants is itself a visible findin
 
 ## Mark
 
-A single bramble cane in growth green (`#357E2C`), arcing from lower left to upper right the
-way the sprout mark's stem rises, with **two thorns** and **one drupelet** in bramble
-(`#8E3B5E`). The thorns say what the product does: growth that catches what tries to pass.
-The drupelet says it is still a garden plant, not a fence. It is drawn in the garden's diagram
-language, stroked stem and filled accent, so it sits beside pleach's weave and pollen's grains
-as a sibling. The cane leans **against** the direction of reading; a bramble is something you
-meet, not something you follow.
+A pair of shears open around a weed's stem, at the height where the cut is made. The plant is
+growth green (`#357E2C`): a stem, three leaves, still growing. The shears are bramble
+(`#8E3B5E`): two crossed blades and two open handle loops, the only thing in the mark that is
+not alive. The owner asked for this reading on 2026-09-05, and it is the judgement one moment
+before it lands: the plant is whole, the blades are already around it, and nothing has been cut
+yet. That is what `weed check` is, a verdict delivered before the change goes in rather than a
+report on damage afterwards. Drawn in the garden's diagram language, stroked stems and filled
+accent shapes, so it sits beside umbel's inflorescence and pollen's two leaning stalks as a
+sibling.
 
 Files: `assets/weed-mark.svg` (paper) · `assets/weed-mark-night.svg` (soil-night).
 
 ## Logo usage
 
-- Minimum size: 16px mark height (checked at 16 · 20 · 28 · 48). Below 20, drop the drupelet
-  and keep the thorns; below 16, drop one thorn rather than shrink everything.
+- Minimum size: 20px mark height, rendered at 16 · 20 · 28 · 48 and read at each. At 20px the
+  leaves flatten and the handle loops close up, and the shears-on-a-stem reading survives. At
+  16px it does not; use the wordmark below 20.
 - Clear space: half the mark height on every side.
-- Fills are exact — bramble `#8E3B5E` and growth green `#357E2C` on paper; on soil-night the
-  cane brightens to `#84C56A` and bramble stays `#8E3B5E` as a fill while any bramble **word**
-  lifts to `#B85C82` (the night file). Never recolour outside these four values.
-- Never: add a third thorn, curl the cane into a hook or a checkmark, set the thorns in red
-  (that is the error colour's job), outline the wordmark, or set the wordmark in anything but
-  the body face.
+- Fills are exact — growth green `#357E2C` and bramble `#8E3B5E` on paper; on soil-night the
+  plant brightens to `#84C56A` and the shears stay bramble `#8E3B5E` as a fill, while any bramble
+  **word** on night lifts to `#B85C82` (the umbrella's night rule). Never recolour outside those
+  four values.
+- The blades never touch the leaves, and the stem is never drawn already cut. The shears are
+  open, always. A severed stem is a different claim from the one weed makes.
+- Never: colour the plant in bramble, colour the shears green, close the handle loops into
+  filled dots, add a hand holding them, set the blades in error red, or outline the wordmark.

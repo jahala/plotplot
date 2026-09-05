@@ -20,3 +20,13 @@ Measured 2026-09-05: bramble on paper 6.57, on night 2.51, on forest 1.41 (the f
 decorative); nearest claimed blooms plum 26 ΔE and petal 30 ΔE at 38° and 38° of hue.
 
 No other colours are added.
+
+## Measured
+
+The umbrella's method (`scripts/palette_contrast.py`, WCAG 2.x), recomputed by `scripts/check/brand.sh` every time this layer is verified, so a number here is never older than the check.
+
+| Colour | Hex | on Paper #FAF5E9 | on Band #F2EAD6 | with Ink #3A2718 | on Soil-night #1C1610 |
+|---|---|---|---|---|---|
+| bramble | #8E3B5E | 6.57 | 5.96 | 1.98 | 2.51 |
+| bramble-night | #B85C82 | 3.95 | 3.58 | 3.30 | 4.17 |
+| plant on night | #84C56A | 1.90 | 1.72 | 6.86 | 8.69 |
