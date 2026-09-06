@@ -146,7 +146,8 @@ fire and one neighbour where it must stay silent, per language.
 | D2 | dependency direction violated: an import crosses a boundary `[deps]` forbids (pleach's own doctrine: core imports nothing from seams or faces) | block | tilth-core dependency analysis on changed files |
 | X1 | secret-looking string added | block | prefix list plus entropy on assignments to key-like names |
 | X2 | out of scope: a file touched that no scope glob allows | block when scope given | path match; tilth-core callers to name the blast radius |
-| C1 | guardrail edited: `.github/workflows/*`, `.claude/settings*.json`, `.gemini/settings.json`, `.codex/*`, `weed.toml`, `.githooks/*`, the hard-limits section of `AGENTS.md` or `CLAUDE.md` | block | path classification |
+| C1 | guardrail edited, constitution tier: `.claude/settings*.json`, `.gemini/settings.json`, `.codex/*`, `weed.toml`, `.githooks/*`, the hard-limits section of `AGENTS.md` or `CLAUDE.md` (ruled 2026-09-06 after calibration showed 42 of 71 blocks were legitimate workflow edits) | block | path classification |
+| C3 | CI workflow edited: `.github/workflows/*` and equivalents; a repo promotes these to block under `[guardrails] paths` in `weed.toml` | warn | path classification |
 | C2 | ignore broadened to hide source or tests | warn | added patterns matched against source globs |
 | G1 | conflict markers | block | line-start markers |
 | G2 | large or binary file added | warn | size and binary detection |

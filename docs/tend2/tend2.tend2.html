@@ -21,6 +21,7 @@ A hook script records events in the OpenTelemetry GenAI shape — denials per ru
 - [ ] (code) the friction reducer, fed a fixture journal of hook events, ranks the path with the most retries and re-reads first, and `tend2 next` shows it as a hot spot · scripts/fit/tend2.sh friction
 - [ ] (code) `@plotplot/tend2` installs from npm on a clean machine and `tend2 init && tend2 next` runs · scripts/fit/tend2.sh npm
 - [ ] (code) the SessionStart injection is capped at next-up plus a needs-you count, under 300 tokens on the tend2 map that injected 807 today · scripts/fit/tend2.sh injection-cap
+- [ ] (code) `tend2 verify` refuses to stamp a code check whose evidence run executed zero tests, reporting it as vacuous the way it reports mock-only evidence, proven on a fixture whose test file compiles its tests out under the profile the runner used · scripts/fit/tend2.sh empty-run
 - [ ] (human) the owner confirms one friction hot spot named by the ledger on a garden repo was real, after the simplification loop it shaped closed
 
 ## Needs #contracts
@@ -35,6 +36,8 @@ A hook script records events in the OpenTelemetry GenAI shape — denials per ru
 - 2026-09-05 eval boundary accepted verbatim: tend2 owns eval checks as claims (cases and thresholds in the loop, run by the verifier); copeca owns corpora, regression harnesses, and did-it-help over time; copeca owns a one-way exporter into FORMAT §7.9 case files so tend2 never depends on copeca
 - 2026-09-05 metric proposal pending owner: proof freshness (share of stamps re-verifying green at season) with promise-cover as the anti-gaming counterweight; season prints both
 - 2026-09-05 MCP surface cut to three guarded pens (verify, write, next) and eight skills folded into one SKILL.md, decided by the declared context cost cap, never by counting skills
+- 2026-09-06 from weed's close: a latency check was stamped on a CI runner that compiled the timing test in a profile where its tests are compiled out, so the evidence ran zero tests and the stamp was earned on an empty room; the empty-run check above is the response, a sibling of the mock-only refusal — green-but-vacuous never becomes proven
+- 2026-09-06 from weed's audit runs: a check was stamped whose evidence never tested its claim (a cache-independence claim) until a second check with failing evidence caught it — the evidence-fit question ("does this script prove this claim") is the paranoid judge's job in FORMAT §7.13, and a builder that authors both the check and its evidence is the case that needs it most
 - 2026-09-05 from the weed builder's fleet run: `emit-plan` preflight flags loops as unwired-modules when narrative names any existing path (AGENTS.md, CLAUDE.md, `/`, a plan JSON); the heuristic needs a source-extension or src/ filter; and the builder's hand-written dogfood log (weed repo docs/dogfood.md) is the first friction corpus for the reducer
 </script>
 <script src="./loop.js"></script>

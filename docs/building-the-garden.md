@@ -51,6 +51,18 @@ A change that breaks one of these is wrong even if every test passes.
 7. **One idea, one home.** Each contract is defined once and consumed everywhere.
 8. **Independence of slices.** Anything that judges differs from the builder in mechanism,
    information source, and party. A model review sharing the builder's context is not a gate.
+   Independence of information is derived by code and re-derived at verify time, never
+   declared by an agent: an audit packet is what code derives from the pinned corpus, the
+   verbatim hunks git produces, the gate's own printed finding and its catalogue text, and
+   never a word the builder wrote; an audit whose packet differs from what code re-derives,
+   or whose transcript shows any input beyond the packet, is refused. A packet must also be
+   fair: it carries enough of the commit that the auditor can judge whether the rule's claim
+   is true of the change, not merely whether the change looks bad. And an audit asks only
+   that question: whether a true finding was acceptable anyway is a human allowance, never
+   an audited class (ruled 2026-09-06 after two blind runs split evenly on exactly that line).
+   A worker that writes both the evidence and the artefact stamps itself; a conductor reads
+   the artefact and re-runs the evidence rather than trusting either. (Learned 2026-09-06, when a "blind" audit's
+   diffs turned out to be prose the same worker had written after reading the ledger.)
 9. **Everything through the gate.** Repairs, harness changes, and your own work land only
    through verified checks. There is no privileged path.
 
@@ -64,7 +76,10 @@ A change that breaks one of these is wrong even if every test passes.
   a verifier can close, shape one, then build.
 - **Only the verifier writes pass.** `tend2 verify` runs the evidence and stamps it. A
   hand-flipped box is a claim and renders as one. Your work order forbids touching the loop
-  file; you produce evidence, the verifier produces stamps.
+  file; you produce evidence, the verifier produces stamps. Evidence that executed zero tests
+  is not evidence, and neither is evidence that only mocks the unit it claims to cover: a
+  green run on an empty room stamps nothing (learned 2026-09-06 from a CI profile that
+  compiled a timing test out).
 - **Tried is a required output.** Every work order ends with dated `## Tried` lines in the
   loop you worked: what you tried, what you scoped out, what you assumed, what failed. A
   handback without them is incomplete.

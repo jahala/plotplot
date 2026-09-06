@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>friction · plotplot</title>
+<link rel="stylesheet" href="./loop.css">
+<body>
+<noscript>This page renders its markdown payload with JavaScript — enable JS, or read the raw payload in the page source.</noscript>
+<script type="text/markdown" id="loop">
+# friction — where the repo is hard, as numbers
+**Goal.** Denials, failures, retries, re-reads, test loops, edit churn, refused stops and compactions, counted per path from the hooks every harness already fires, reduced into hot spots, and routed by tend2 into simplification loops. Deterministic; nothing in it asks a model anything. The plan is `docs/plans/friction-ledger.md`. This loop carries the fit across beds: the profile lives in contracts, the harness-session emitter is a face of the stem's binary registered by its bundles, pleach and umbel emit their own domains when they choose, and tend2 owns the reducer and the hot spots in `next`.
+
+## What binds the pieces
+
+One record shape, pinned by the profile in [contracts](contracts.tend2.html), using OpenTelemetry GenAI attribute names where they exist and a `plotplot.*` namespace for the rest; one directory, `.plotplot/friction/`, that every emitter appends to; one reducer in [tend2](tend2.tend2.html) that never reads anything but the journals. The emitter rides the [stem](stem.tend2.html)'s bundles so it is installed wherever the garden is planted.
+
+## Tests
+- [ ] (code) the profile in contracts names every kind (denied, failed, retry, reread, fanout, churn, test loop, refused stop, compacted, session ended, gate retry, worker wedged) with an attribute table, and a fixture journal validates against it · contracts/test/friction-profile.test.sh
+- [ ] (code) `plotplot friction emit`, fed each harness's documented payload for each event it handles, appends exactly the profile's fields and nothing else, proven by fixture payloads for Claude Code, Gemini CLI and Codex · scripts/fit/friction.sh emit
+- [ ] (code) the emitter never writes prompt text, tool output, file content or an absolute home path, proven by a fixture payload carrying all four, and it exits 0 on malformed input · scripts/fit/friction.sh redaction
+- [ ] (code) emission at SessionEnd completes under 200 ms on the fixture, inside Claude Code's shared budget · scripts/fit/friction.sh latency
+- [ ] (code) `tend2 friction reduce`, fed a fixture journal, ranks the path with the most denials and re-reads first under the documented weights with minimum support three sessions, writes hotspots.json, and `tend2 next` shows the top hot spot · scripts/fit/friction.sh reduce
+- [ ] (code) `tend2 shape --from-friction <path>` writes a loop whose one check is the path's friction falling below a threshold over the next sessions · scripts/fit/friction.sh shape
+- [ ] (human) one hot spot named by the ledger on a garden repo is confirmed by the simplification loop it shaped; if not, the ledger is cut
+
+## Needs #contracts #stem #tend2
+
+## Tried
+- 2026-09-06 shaped from the plan after the owner asked for comprehensive plans for the three unbuilt tools; the settlement with tend2 on 2026-09-05 (profile in contracts, emitters per bed, reducer and hot spots in tend2) stands
+- 2026-09-06 decision to confirm with tend2 on the channel: the harness-session emitter is a face of the stem's binary and rides its bundles, because the stem is what is installed in every harness; tend2's plugin emits the same lines only until the stem exists
+- 2026-09-06 scope-out: no dashboard, no OTLP exporter, no prompt or output capture, no cross-machine aggregation, no per-person metrics; raw journals ignored by default, the reduced hotspots.json committed if the repo chooses
+- 2026-09-06 OpenTelemetry GenAI conventions are in Development status and moved to their own repository in June; the profile uses only names that exist there today and keeps ours under plotplot.*
+</script>
+<script src="./loop.js"></script>
