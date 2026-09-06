@@ -177,9 +177,9 @@ Dark mode is "soil at night," not a harsh developer theme. Embedded terminal pan
 
   /* the bloom as a word — pollen's amber-ink */
   --pp-pollen-ink: #7E6A08;
-  --pp-weed: #8E3B5E;
+  --pp-weeder: #8E3B5E;
   /* bramble as a word on night */
-  --pp-weed-word: #8E3B5E;
+  --pp-weeder-word: #8E3B5E;
 
   /* soil-night terminal */
   --pp-term-bg:      #1C1610;
@@ -201,6 +201,6 @@ Dark mode is "soil at night," not a harsh developer theme. Embedded terminal pan
   --pp-border:    #403628;
   --pp-pollen:     #D9C44A;
   --pp-pollen-ink: #D9C44A;
-  --pp-weed-word: #B85C82;
+  --pp-weeder-word: #B85C82;
 }
 ```
