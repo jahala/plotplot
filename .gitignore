@@ -8,3 +8,11 @@ node_modules/
 # page screenshots / verification captures (kept locally, not tracked)
 docs/brand/pp-*.png
 .mcp.json
+
+# the stem's build and machine-written trees (docs/prompts/stem-build-2026-09.md §3)
+target/
+.loop-scratch/
+.plotplot/bin/
+.plotplot/beds/
+.plotplot/friction/
+.plotplot/receipts/

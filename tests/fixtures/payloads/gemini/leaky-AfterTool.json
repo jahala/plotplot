@@ -1,0 +1,15 @@
+{
+  "session_id": "3a71f5c8-6e2d-4b90-8137-5cf9d0a4e6b1",
+  "transcript_path": "/Users/someone/.gemini/tmp/3a71f5c8-6e2d-4b90-8137-5cf9d0a4e6b1/logs.json",
+  "cwd": "/Users/someone/code/billing",
+  "hook_event_name": "AfterTool",
+  "tool_name": "write_file",
+  "tool_input": {
+    "file_path": "/Users/someone/code/billing/notes/onboarding.md",
+    "content": "Rewrite the onboarding email so it sounds less corporate, then pull the customer list out of billing and summarise who has not logged in for ninety days. Keep the tone warm."
+  },
+  "tool_response": {
+    "llmContent": "running 24 tests\ntest suite::case_01 ... ok\ntest suite::case_02 ... ok\ntest suite::case_03 ... ok\ntest suite::case_04 ... ok\ntest suite::case_05 ... ok\ntest suite::case_06 ... ok\ntest suite::case_07 ... ok\ntest suite::case_08 ... ok\ntest suite::case_09 ... ok\ntest suite::case_10 ... ok\ntest suite::case_11 ... ok\ntest suite::case_12 ... ok\ntest suite::case_13 ... ok\ntest suite::case_14 ... ok\ntest suite::case_15 ... ok\ntest suite::case_16 ... ok\ntest suite::case_17 ... ok\ntest suite::case_18 ... ok\ntest suite::case_19 ... ok\ntest suite::case_20 ... ok\ntest suite::case_21 ... FAILED\n\nfailures:\n\n---- suite::case_21 stdout ----\nthread 'suite::case_21' panicked at tests/suite.rs:118:5:\nassertion `left == right` failed\n  left: \"onboarding-v2\"\n right: \"onboarding-v1\"\n\nfailures:\n    suite::case_21\n\ntest result: FAILED. 23 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out",
+    "returnDisplay": "Wrote notes/onboarding.md"
+  }
+}

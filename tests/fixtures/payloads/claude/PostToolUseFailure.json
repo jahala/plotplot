@@ -1,0 +1,17 @@
+{
+  "session_id": "6f3c1b2a-8d47-4f0e-9b31-2a5c7e91d044",
+  "transcript_path": "/home/agent/.claude/projects/-work-repo/6f3c1b2a-8d47-4f0e-9b31-2a5c7e91d044.jsonl",
+  "cwd": "/work/repo",
+  "permission_mode": "acceptEdits",
+  "model": "claude-opus-5",
+  "agent_id": "main",
+  "hook_event_name": "PostToolUseFailure",
+  "tool_name": "Edit",
+  "tool_input": {
+    "file_path": "/work/repo/src/lock.rs",
+    "old_string": "pub fn platform() -> &'static str {",
+    "new_string": "pub fn platform() -> &'static str {\n    // the triple cargo built for\n"
+  },
+  "tool_use_id": "toolu_01Zn5Kq7wTd2bJf9cMxR4gHu",
+  "error": "String to replace not found in file."
+}

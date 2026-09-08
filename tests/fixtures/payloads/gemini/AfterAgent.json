@@ -1,0 +1,7 @@
+{
+  "session_id": "b7d90e14-53af-4c62-8e0d-1f47a2b6c308",
+  "transcript_path": "/home/agent/.gemini/tmp/b7d90e14-53af-4c62-8e0d-1f47a2b6c308/logs.json",
+  "cwd": "/work/repo",
+  "hook_event_name": "AfterAgent",
+  "reason": "The model returned a final answer with no further tool calls."
+}

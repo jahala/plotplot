@@ -1,0 +1,32 @@
+[package]
+name = "plotplot"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "The stem of the plotplot garden: plants every bed into any harness and proves it is planted."
+license = "MIT"
+repository = "https://github.com/jahala/plotplot"
+build = "build.rs"
+
+[lib]
+name = "plotplot"
+path = "src/lib.rs"
+
+[[bin]]
+name = "plotplot"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.6.6", features = ["derive"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+toml = "1.1.5"
+sha2 = "0.10.9"
+hex = "0.4.3"
+jsonschema = { version = "0.53.0", default-features = false }
+ureq = "3.3.0"
+
+[dev-dependencies]
+assert_cmd = "2.2.2"
+predicates = "3.1.4"
+tempfile = "3.27.0"

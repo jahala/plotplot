@@ -1,0 +1,23 @@
+{
+  "session_id": "6f3c1b2a-8d47-4f0e-9b31-2a5c7e91d044",
+  "transcript_path": "/home/agent/.claude/projects/-work-repo/6f3c1b2a-8d47-4f0e-9b31-2a5c7e91d044.jsonl",
+  "cwd": "/work/repo",
+  "permission_mode": "acceptEdits",
+  "model": "claude-opus-5",
+  "agent_id": "main",
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Read",
+  "tool_input": {
+    "file_path": "/work/repo/src/layout.rs"
+  },
+  "tool_use_id": "toolu_01Vh2Ld6nQc4tRm8yBpK3wXe",
+  "tool_response": {
+    "type": "text",
+    "file": {
+      "filePath": "/work/repo/src/layout.rs",
+      "numLines": 96,
+      "startLine": 1,
+      "totalLines": 96
+    }
+  }
+}
