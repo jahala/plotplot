@@ -1,0 +1,71 @@
+{
+  "name": "weeder",
+  "summary": "weeder reads what an agent produced and refuses dishonest growth, as SARIF, in milliseconds.",
+  "version": "0.1.0",
+  "install": {
+    "cargo": "weeder",
+    "npm": "@plotplot/weeder",
+    "binaries": {
+      "x86_64-unknown-linux-musl": "https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-x86_64-unknown-linux-musl.tar.gz",
+      "aarch64-unknown-linux-musl": "https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-aarch64-unknown-linux-musl.tar.gz",
+      "x86_64-apple-darwin": "https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-x86_64-apple-darwin.tar.gz",
+      "aarch64-apple-darwin": "https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-aarch64-apple-darwin.tar.gz",
+      "x86_64-pc-windows-msvc": "https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-x86_64-pc-windows-msvc.zip"
+    }
+  },
+  "faces": {
+    "cli": "weeder",
+    "skill": "SKILL.md",
+    "hooks": {
+      "claude": [
+        "PreToolUse:Bash",
+        "Stop"
+      ],
+      "gemini": [
+        "BeforeTool:run_shell_command",
+        "AfterAgent"
+      ],
+      "codex": [
+        "PreToolUse",
+        "Stop"
+      ]
+    },
+    "git": [
+      "pre-commit",
+      "pre-push",
+      "pre-rebase"
+    ]
+  },
+  "check": "weeder check --format sarif",
+  "metric": "bash scripts/check/calibration-bar.sh",
+  "context": {
+    "upfront_tokens": 0
+  },
+  "coverage": {
+    "languages": [
+      "typescript",
+      "javascript",
+      "python",
+      "rust",
+      "go"
+    ],
+    "kinds": [
+      "source",
+      "test"
+    ]
+  },
+  "flagged": [
+    {
+      "what": "provenance",
+      "why": "weeder has already committed a real garden.json at its repository root (git log: \"weed becomes weeder\"), in a shape that predates this schema: faces as a flat array of strings, check and metric as {command,name} objects, context_cost as a bare number, and no coverage block. This fixture is authored independently to match contracts/manifest.schema.json's shape (per the stem plan \u00a74), reusing every real value from weeder's committed file (name, summary, kind, version, the install template with real per-platform asset names, the check command, the metric command, the zero context cost) and from stem.md \u00a74's own worked example, which is explicitly about weeder (the faces.hooks and faces.git values). The two shapes need reconciling with weeder's own agent; see this loop's Tried."
+    },
+    {
+      "what": "install.binaries",
+      "why": "the per-platform URLs are computed by substituting weeder's own committed URL template (install.binary.url) with its own committed per-platform asset filenames (install.binary.targets) and the real version 0.1.0; no URL segment is invented."
+    },
+    {
+      "what": "faces.hooks and faces.git",
+      "why": "not present in weeder's own committed garden.json (which lists faces as [\"check\",\"guard\",\"hook\",\"rules\",\"scan\"]); these values are stem.md \u00a74's own worked example, which names weeder explicitly."
+    }
+  ]
+}

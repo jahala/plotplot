@@ -1,0 +1,26 @@
+{
+  "name": "pollen",
+  "summary": "peer messaging between AI agents, with a human at the gate; one file, zero dependencies",
+  "kind": ["channel"],
+  "version": "0.1.0",
+  "install": {
+    "git": "https://github.com/jahala/pollen.git"
+  },
+  "faces": {
+    "mcp": { "tools": 5 }
+  },
+  "check": null,
+  "metric": "node --test pollen.test.mjs",
+  "context": { "upfront_tokens": null },
+  "coverage": {
+    "languages": [],
+    "kinds": []
+  },
+  "flagged": [
+    { "what": "install", "why": "pollen has no package.json; it ships as a single zero-dependency file (pollen.mjs), so git names the only real install mechanism today." },
+    { "what": "check", "why": "pollen has no gate or judgment face; it moves messages, so check is null." },
+    { "what": "metric", "why": "pollen's declared metric is one message umbel could not carry (docs/plotplot-architecture-review-2026-09.md §11), qualitative and unscripted; this fixture uses pollen's own real test suite (`node --test pollen.test.mjs`, which drives a real MCP server and a real mailbox on disk, nothing mocked) as an honest interim stand-in." },
+    { "what": "context.upfront_tokens", "why": "no measured figure found for the five-tool MCP schema's session-start cost." },
+    { "what": "coverage", "why": "pollen is a messaging layer over mailbox files, not a code reader, so both lists are empty on purpose." }
+  ]
+}

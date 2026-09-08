@@ -1,0 +1,27 @@
+{
+  "name": "tend2",
+  "summary": "loops and evals for agents; a pass only a verifier can write",
+  "kind": ["capability", "channel"],
+  "version": "1.0.0",
+  "install": {
+    "npm": "@plotplot/tend2"
+  },
+  "faces": {
+    "cli": "tend2",
+    "skill": ".claude/skills/tend/SKILL.md",
+    "mcp": { "tools": 6 }
+  },
+  "check": "tend2 lint",
+  "metric": "npm test",
+  "context": { "upfront_tokens": null },
+  "coverage": {
+    "languages": [],
+    "kinds": ["loop"]
+  },
+  "flagged": [
+    { "what": "context.upfront_tokens", "why": "tend2's own plan (docs/tend2-garden-plan.md, item D5) names startup context cost as explicitly not yet measured; left null rather than invented, per invariant 6 (measured or silent)." },
+    { "what": "metric", "why": "tend2's declared metric is proof freshness, the share of stamps that re-verify green at season (docs/tend2-garden-plan.md); no script exists yet, so this fixture uses the repository's real `npm test` command as an honest interim stand-in, not the eventual metric." },
+    { "what": "check", "why": "tend2 lint prints plain text today (src/cli/index.ts, runLint), not SARIF 2.1.0; F2 is not yet satisfied, only F1's shape." },
+    { "what": "coverage.languages", "why": "tend2 is language-agnostic by design, reading .tend2.html loop files rather than source code, so an empty languages list is a declared boundary, not silence." }
+  ]
+}

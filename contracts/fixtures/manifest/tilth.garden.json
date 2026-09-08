@@ -1,0 +1,26 @@
+{
+  "name": "tilth",
+  "summary": "tree-sitter indexed lookups, smart code reading for AI agents",
+  "kind": ["capability", "channel"],
+  "version": "1.0.0",
+  "install": {
+    "cargo": "tilth"
+  },
+  "faces": {
+    "cli": "tilth",
+    "skill": "skills/SKILL.md",
+    "mcp": { "tools": 7 }
+  },
+  "check": null,
+  "metric": "copeca run --task scenarios/full-sonnet.yaml --runner claude",
+  "context": { "upfront_tokens": 2247 },
+  "coverage": {
+    "languages": ["rust", "javascript", "typescript", "python", "go", "java", "c", "cpp", "ruby", "php", "scala", "c-sharp", "swift", "kotlin", "elixir", "bash", "markdown"],
+    "kinds": ["source", "test", "config", "doc"]
+  },
+  "flagged": [
+    { "what": "version", "why": "Cargo.toml (git-tracked, package name \"tilth\") pins 1.0.0; an untracked local cache at .context/garden/garden.json in the tilth checkout instead says 0.10.1. This fixture follows the git-tracked Cargo.toml as the authoritative source." },
+    { "what": "context.upfront_tokens", "why": "2247 is read from the same untracked cache file (.context/garden/garden.json, read-only-mode total); no committed measurement exists in tilth's own repository yet, so treat this number as provisional until tilth ships its own garden.json." },
+    { "what": "check", "why": "tilth has no gate or check face of its own (it is a read bed, not a judge); its own draft garden.json sets check to null, which this fixture follows." }
+  ]
+}

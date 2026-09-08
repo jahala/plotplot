@@ -1,0 +1,25 @@
+{
+  "name": "petals",
+  "summary": "brand intelligence for coding agents; turns brand guidelines into files an agent discovers and uses",
+  "kind": ["gate", "capability"],
+  "version": "0.1.0",
+  "install": {
+    "git": "https://github.com/jahala/petals.git"
+  },
+  "faces": {
+    "skill": "petals/SKILL.md"
+  },
+  "check": "bash petals/scripts/check.sh",
+  "metric": "bash tests/check.spec.sh",
+  "context": { "upfront_tokens": null },
+  "coverage": {
+    "languages": [],
+    "kinds": ["css", "html", "markdown", "jsx", "tsx"]
+  },
+  "flagged": [
+    { "what": "install", "why": "no package.json exists in the petals repository, so there is no published npm identifier yet; git names the repository's real remote (github.com/jahala/petals) as the only install mechanism that exists today." },
+    { "what": "context.upfront_tokens", "why": "no measured figure found; petals' own SKILL.md states the deterministic check spends zero tokens at run time, which is a different cost than the skill's session-start discovery cost, so this fixture does not conflate the two." },
+    { "what": "metric", "why": "no dedicated benchmark script found; this fixture uses petals' own existing shell test spec (tests/check.spec.sh) as an honest interim stand-in for a declared falsifiable metric." },
+    { "what": "check", "why": "petals/scripts/check.sh emits plain text and an exit code today, not SARIF 2.1.0; F2 is not yet satisfied." }
+  ]
+}

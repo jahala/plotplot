@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotplot.ai/contracts/lock.schema.json",
+  "title": "garden.lock",
+  "description": "The judges lockfile a planted repository carries, per docs/plans/stem.md §4. Written in TOML at rest; this schema describes the JSON value a conforming TOML parser produces from it. season is the identity contracts/identifiers.md pins.",
+  "type": "object",
+  "required": ["season", "judges"],
+  "properties": {
+    "season": {
+      "type": "string",
+      "pattern": "^[0-9]{4}\\.(0[1-9]|1[0-2])$",
+      "description": "contracts/identifiers.md's season identity: four-digit year, dot, two-digit month"
+    },
+    "judges": {
+      "type": "object",
+      "description": "one entry per pinned garden tool, keyed by the tool's garden.json name",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["version"],
+        "properties": {
+          "version": {
+            "type": "string",
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+          },
+          "npm": {
+            "type": "string",
+            "minLength": 1,
+            "description": "present when the judge is resolved through npm rather than a fetched, checksummed binary"
+          },
+          "platforms": {
+            "type": "object",
+            "description": "per-platform-triple pinned artifact; required for a judge the fit runner fetches and checksums",
+            "minProperties": 1,
+            "propertyNames": {
+              "pattern": "^[a-z0-9_]+(-[a-z0-9_]+){2,4}$"
+            },
+            "additionalProperties": {
+              "type": "object",
+              "required": ["url", "sha256"],
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "format": "uri",
+                  "pattern": "^https://"
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$",
+                  "description": "lowercase hex, the fit runner refuses to run a fetched artifact whose digest does not match this value"
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "anyOf": [
+          { "required": ["npm"] },
+          { "required": ["platforms"] }
+        ],
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

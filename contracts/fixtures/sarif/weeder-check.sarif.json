@@ -1,0 +1,416 @@
+{
+    "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+    "version": "2.1.0",
+    "runs": [
+        {
+            "tool": {
+                "driver": {
+                    "name": "weeder",
+                    "version": "0.1.0",
+                    "rules": [
+                        {
+                            "id": "T1",
+                            "shortDescription": {
+                                "text": "A test was deleted"
+                            },
+                            "fullDescription": {
+                                "text": "A test file was removed, or a test case disappeared from a changed test file, counted from the file's classification and its test shape at HEAD against the working tree. A case the same change put into another test file moved rather than went, and is left out of the count and of what the finding claims."
+                            },
+                            "defaultConfiguration": {
+                                "level": "error"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#T1"
+                        },
+                        {
+                            "id": "T2",
+                            "shortDescription": {
+                                "text": "Assertions were dropped from a changed test file"
+                            },
+                            "fullDescription": {
+                                "text": "The assertion count of a changed test file fell between HEAD and the working tree, and no allowance carries a reason for it. An assertion the same change makes in another test file moved rather than went, and is left out of the count and of what the finding claims."
+                            },
+                            "defaultConfiguration": {
+                                "level": "error"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#T2"
+                        },
+                        {
+                            "id": "T3",
+                            "shortDescription": {
+                                "text": "A skip or focus marker was added"
+                            },
+                            "fullDescription": {
+                                "text": "An added line in a test file carries a skip, focus or todo marker of the file's test framework, matched as syntax rather than as a substring of a string or a comment."
+                            },
+                            "defaultConfiguration": {
+                                "level": "error"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#T3"
+                        },
+                        {
+                            "id": "T4",
+                            "shortDescription": {
+                                "text": "A tolerance or a timeout was widened"
+                            },
+                            "fullDescription": {
+                                "text": "A removed and an added line in one hunk hold the same approximate assertion or timeout with a larger number, so the test now accepts what it used to refuse."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#T4"
+                        },
+                        {
+                            "id": "T5",
+                            "shortDescription": {
+                                "text": "Expected values were regenerated"
+                            },
+                            "fullDescription": {
+                                "text": "Snapshot, golden or fixture files changed in a diff that also changes production code, so the expectation moved to meet the code."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#T5"
+                        },
+                        {
+                            "id": "T6",
+                            "shortDescription": {
+                                "text": "An error assertion was weakened"
+                            },
+                            "fullDescription": {
+                                "text": "A removed and an added line turned an assertion on a specific error message or type into one that accepts any error."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#T6"
+                        },
+                        {
+                            "id": "T7",
+                            "shortDescription": {
+                                "text": "A rename took a test out of the runner"
+                            },
+                            "fullDescription": {
+                                "text": "A test file or case was renamed out of the naming convention its runner collects, so the test still looks present and no longer runs."
+                            },
+                            "defaultConfiguration": {
+                                "level": "error"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#T7"
+                        },
+                        {
+                            "id": "M1",
+                            "shortDescription": {
+                                "text": "A test mocks the unit under change"
+                            },
+                            "fullDescription": {
+                                "text": "A test in the diff mocks a module whose production file is also in the diff, so the test no longer exercises the change it covers."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#M1"
+                        },
+                        {
+                            "id": "S1",
+                            "shortDescription": {
+                                "text": "A stub or a TODO reached production code"
+                            },
+                            "fullDescription": {
+                                "text": "An added line in a production file carries a stub marker, an unimplemented body, or a function body that only returns nothing."
+                            },
+                            "defaultConfiguration": {
+                                "level": "error"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#S1"
+                        },
+                        {
+                            "id": "S2",
+                            "shortDescription": {
+                                "text": "An error was swallowed"
+                            },
+                            "fullDescription": {
+                                "text": "An added handler in production code discards a failure without logging it, wrapping it, or passing it on."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#S2"
+                        },
+                        {
+                            "id": "S3",
+                            "shortDescription": {
+                                "text": "A debug leftover reached production code"
+                            },
+                            "fullDescription": {
+                                "text": "An added line in a production file prints or breaks for debugging, outside the entry points the config names as command-line faces."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#S3"
+                        },
+                        {
+                            "id": "D1",
+                            "shortDescription": {
+                                "text": "A dependency manifest changed"
+                            },
+                            "fullDescription": {
+                                "text": "A package manifest or its lockfile changed; the change blocks when a scope excludes the manifest."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#D1"
+                        },
+                        {
+                            "id": "D2",
+                            "shortDescription": {
+                                "text": "An import crossed a forbidden boundary"
+                            },
+                            "fullDescription": {
+                                "text": "A changed file imports across a direction that `[deps] allow` does not permit, by the layers `[deps] layers` names."
+                            },
+                            "defaultConfiguration": {
+                                "level": "error"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#D2"
+                        },
+                        {
+                            "id": "X1",
+                            "shortDescription": {
+                                "text": "A secret-looking string was added"
+                            },
+                            "fullDescription": {
+                                "text": "An added line carries a known credential prefix, or a high-entropy literal assigned to a name that reads like a key. A credential a vendor published in its own documentation is named as an example and reported as a note."
+                            },
+                            "defaultConfiguration": {
+                                "level": "error"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#X1"
+                        },
+                        {
+                            "id": "X2",
+                            "shortDescription": {
+                                "text": "A file outside the scope was touched"
+                            },
+                            "fullDescription": {
+                                "text": "A changed file matches no scope glob the run allows, and the finding names what depends on the definitions it changed."
+                            },
+                            "defaultConfiguration": {
+                                "level": "error"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#X2"
+                        },
+                        {
+                            "id": "C1",
+                            "shortDescription": {
+                                "text": "A guardrail file was edited"
+                            },
+                            "fullDescription": {
+                                "text": "A change touched a harness settings file, a git hook, `weeder.toml`, or the hard-limits section of `AGENTS.md` or `CLAUDE.md`."
+                            },
+                            "defaultConfiguration": {
+                                "level": "error"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#C1"
+                        },
+                        {
+                            "id": "C2",
+                            "shortDescription": {
+                                "text": "An ignore file was broadened over source or tests"
+                            },
+                            "fullDescription": {
+                                "text": "An added ignore pattern matches source or test paths of the repository's languages, hiding them from review and from tooling."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#C2"
+                        },
+                        {
+                            "id": "C3",
+                            "shortDescription": {
+                                "text": "A workflow was changed"
+                            },
+                            "fullDescription": {
+                                "text": "A file under `.github/workflows/` was added, edited or taken away; the change blocks where `[guardrails] paths` names the path."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#C3"
+                        },
+                        {
+                            "id": "G1",
+                            "shortDescription": {
+                                "text": "A conflict marker was committed"
+                            },
+                            "fullDescription": {
+                                "text": "An added line is a merge conflict marker, so the file carries both sides of a merge nobody finished."
+                            },
+                            "defaultConfiguration": {
+                                "level": "error"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#G1"
+                        },
+                        {
+                            "id": "G2",
+                            "shortDescription": {
+                                "text": "A large or a binary file was added"
+                            },
+                            "fullDescription": {
+                                "text": "An added file is larger than one mebibyte, or holds binary content, and was not tracked before."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#G2"
+                        },
+                        {
+                            "id": "B1",
+                            "shortDescription": {
+                                "text": "A test passed without the change it covers"
+                            },
+                            "fullDescription": {
+                                "text": "The test command passed with the test commit alone applied to the base, so the cases that commit added were green before the implementation existed."
+                            },
+                            "defaultConfiguration": {
+                                "level": "error"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#B1"
+                        },
+                        {
+                            "id": "R1",
+                            "shortDescription": {
+                                "text": "The docs cite something that no longer exists"
+                            },
+                            "fullDescription": {
+                                "text": "A path, command, flag or symbol cited in the repository's markdown does not resolve against the tree."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#R1"
+                        },
+                        {
+                            "id": "R2",
+                            "shortDescription": {
+                                "text": "A public symbol has no references"
+                            },
+                            "fullDescription": {
+                                "text": "An exported definition is referenced nowhere in the repository, and it is not one of the entry points its language exempts."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#R2"
+                        },
+                        {
+                            "id": "R3",
+                            "shortDescription": {
+                                "text": "A TODO is older than the configured age"
+                            },
+                            "fullDescription": {
+                                "text": "A line carrying `TODO`, `FIXME` or `XXX` was last touched further back than `[thresholds] todo_age_days` allows."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#R3"
+                        },
+                        {
+                            "id": "R4",
+                            "shortDescription": {
+                                "text": "A dependency pin lags the registry"
+                            },
+                            "fullDescription": {
+                                "text": "A manifest pin is further behind the latest release than `[thresholds] dependency_lag` allows, measured against the committed registry snapshot. `weeder scan --refresh-snapshot` is the one path that reaches the registries, and it asks curl to do the reaching."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning"
+                            },
+                            "helpUri": "file:///private/var/folders/cm/by4k0m1171jc_zvm_hzg4s3m0000gn/T/tmp.7ywUCNMvt6/weeder-clone/docs/rules.md#R4"
+                        }
+                    ]
+                }
+            },
+            "invocations": [
+                {
+                    "executionSuccessful": true,
+                    "exitCode": 2
+                }
+            ],
+            "results": [
+                {
+                    "ruleId": "T1",
+                    "ruleIndex": 0,
+                    "level": "error",
+                    "message": {
+                        "text": "1 test case disappeared from this file: it declared 1 and now declares 0. a case that is gone cannot fail, so the behaviour it held the code to is now unwatched. put the cases back, or say in the change which behaviour stopped being worth a test."
+                    },
+                    "locations": [
+                        {
+                            "physicalLocation": {
+                                "artifactLocation": {
+                                    "uri": "sarif-demo/tests/parser.test.ts"
+                                },
+                                "region": {
+                                    "startLine": 4
+                                }
+                            }
+                        }
+                    ],
+                    "properties": {
+                        "path": "sarif-demo/tests/parser.test.ts"
+                    }
+                },
+                {
+                    "ruleId": "T3",
+                    "ruleIndex": 2,
+                    "level": "error",
+                    "message": {
+                        "text": "a skip marker was added to a test: `.skip`. a skipped case reports as a pass, so the suite stays green over code nobody ran. take the marker out, or carry a `weed-allow T3:` naming what stops the test running."
+                    },
+                    "locations": [
+                        {
+                            "physicalLocation": {
+                                "artifactLocation": {
+                                    "uri": "sarif-demo/tests/parser.test.ts"
+                                },
+                                "region": {
+                                    "startLine": 4
+                                }
+                            }
+                        }
+                    ],
+                    "fixes": [
+                        {
+                            "description": {
+                                "text": "delete the line that carries the marker."
+                            },
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "sarif-demo/tests/parser.test.ts"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "startLine": 4
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "properties": {
+                        "path": "sarif-demo/tests/parser.test.ts"
+                    }
+                }
+            ]
+        }
+    ]
+}

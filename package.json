@@ -1,0 +1,16 @@
+{
+  "name": "plotplot-umbrella",
+  "private": true,
+  "description": "plotplot, the umbrella: brand, law, contracts and the map of the garden",
+  "scripts": {
+    "test": "for t in contracts/test/*.test.sh; do bash \"$t\" || exit 1; done",
+    "verify": "tend2 verify docs/tend2/contracts.tend2.html"
+  },
+  "devDependencies": {
+    "ajv": "^8.20.0",
+    "ajv-cli": "^5.0.0",
+    "ajv-draft-04": "^1.0.0",
+    "ajv-formats": "^3.0.1",
+    "smol-toml": "^1.8.0"
+  }
+}
