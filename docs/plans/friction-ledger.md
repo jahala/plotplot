@@ -86,7 +86,7 @@ The kinds, and what produces each:
 | `test.loop` | a test command run again in one session | Bash `tool_input.command` matching the test runners weeder already knows |
 | `stop.refused` | weeder's Stop hook blocked a premature done | our own Stop decision |
 | `context.compacted` | the context was compacted | Claude `PreCompact`; Gemini `PreCompress`; `gen_ai.conversation.compacted=true` |
-| `session.ended` | a session ended, with totals | Claude `SessionEnd`, Gemini `SessionEnd`, Codex `SessionEnd` |
+| `session.ended` | a session ended, with totals | Claude `SessionEnd`, Gemini `SessionEnd`, Codex `Stop` (Codex 0.133 has no SessionEnd hook) |
 | `gate.retry` | a pleach node retried after a gate | pleach's journal (its own emitter, later) |
 | `worker.wedged` | umbel detected a wedged worker | umbel's run journal (its own emitter, later) |
 

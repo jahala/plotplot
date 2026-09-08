@@ -89,7 +89,7 @@ a worker, because forcing a path onto those would invent one.
 | `test.loop` | a test command run again in one session | Bash `tool_input.command` matching a known test runner | yes |
 | `stop.refused` | weeder's Stop hook blocked a premature done | our own Stop decision | no |
 | `context.compacted` | the context was compacted | Claude `PreCompact`; Gemini `PreCompress` | no |
-| `session.ended` | a session ended, with totals | Claude/Gemini/Codex `SessionEnd` | no |
+| `session.ended` | a session ended, with totals | Claude and Gemini `SessionEnd`; Codex `Stop`, since Codex 0.133 has no SessionEnd hook | no |
 | `gate.retry` | a pleach node retried after a gate | pleach's own journal (`event: "gate-retry"`) | no |
 | `worker.wedged` | umbel detected a wedged worker | umbel's own run journal | no |
 | `model.call` | one billed model call | mull's spend log (plotplot-ai#33), per issue 35 | no |
