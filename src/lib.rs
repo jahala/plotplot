@@ -12,6 +12,7 @@ pub mod deny;
 pub mod error;
 pub mod friction;
 pub mod harness;
+pub mod hook;
 pub mod layout;
 pub mod lock;
 pub mod manifest;

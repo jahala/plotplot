@@ -18,7 +18,7 @@
 
 use std::collections::BTreeMap;
 use std::fs;
-use std::io::Write as _;
+use std::io::Write;
 use std::path::{Component, Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -26,8 +26,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
+use crate::cli::{FrictionArgs, FrictionFace};
 use crate::error::{Error, Result};
-use crate::harness::{Harness, Payload};
+use crate::harness::{Harness, Payload, parse_payload};
 use crate::layout;
 
 /// `event.name` on every record this emitter writes.
@@ -1043,6 +1044,29 @@ pub fn emit(root: &Path, payload: &Payload, now: &dyn Now) -> Result<usize> {
         write_state(&state_path, &state)?;
     }
     Ok(records.len())
+}
+
+/// `plotplot friction emit --harness <h>`: the face, from arguments and stdin to an exit code.
+///
+/// It writes nothing on stdout. The face is registered as a hook entry in every bundle, and a
+/// vendor reads a hook's stdout as an answer, so the only thing this face says is its code.
+pub fn run(
+    root: &Path,
+    args: &FrictionArgs,
+    stdin: &str,
+    _stdout: &mut dyn Write,
+    stderr: &mut dyn Write,
+) -> i32 {
+    let FrictionFace::Emit(arg) = &args.face;
+    let written =
+        parse_payload(arg.harness, stdin).and_then(|payload| emit(root, &payload, &SystemClock));
+    match written {
+        Ok(_) => 0,
+        Err(error) => {
+            let _ = writeln!(stderr, "{error}");
+            1
+        }
+    }
 }
 
 /// The session's state as it stands, or a fresh one when the session is new.

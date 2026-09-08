@@ -13,16 +13,18 @@
 
 use std::collections::BTreeMap;
 use std::fs;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest as _, Sha256};
 
+use crate::cli::{ReceiptArgs, ReceiptFace};
 use crate::error::{Error, Result};
 use crate::friction::{
     SessionState, harness_label, harness_version, session_file_name, usage_tokens,
 };
-use crate::harness::Payload;
+use crate::harness::{Payload, parse_payload};
 use crate::layout;
 
 /// The principal a session driven from a terminal has, in tend2's vocabulary.
@@ -158,6 +160,28 @@ pub fn draft(root: &Path, payload: &Payload) -> Result<PathBuf> {
         source,
     })?;
     Ok(path)
+}
+
+/// `plotplot receipt draft --harness <h>`: the face, from arguments and stdin to an exit code.
+///
+/// It writes nothing on stdout. The face is registered as a hook entry in every bundle, and a
+/// vendor reads a hook's stdout as an answer, so the only thing this face says is its code.
+pub fn run(
+    root: &Path,
+    args: &ReceiptArgs,
+    stdin: &str,
+    _stdout: &mut dyn Write,
+    stderr: &mut dyn Write,
+) -> i32 {
+    let ReceiptFace::Draft(arg) = &args.face;
+    let written = parse_payload(arg.harness, stdin).and_then(|payload| draft(root, &payload));
+    match written {
+        Ok(_) => 0,
+        Err(error) => {
+            let _ = writeln!(stderr, "{error}");
+            1
+        }
+    }
 }
 
 #[cfg(test)]

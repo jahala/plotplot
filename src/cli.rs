@@ -3,13 +3,15 @@
 //! A face with work of its own keeps that work in its own module. `version` has none beyond
 //! reading the lock and laying out five lines, so it lives here.
 
-use std::io::Write;
+use std::io::{Read, Write};
 use std::path::Path;
 
-use clap::{Parser, Subcommand};
+use clap::{Args as ClapArgs, Parser, Subcommand};
 
 use crate::VERSION;
+use crate::harness::Harness;
 use crate::lock::{Lock, read_lock};
+use crate::{friction, hook, receipt};
 
 /// `plotplot`, the stem of the garden.
 #[derive(Debug, Parser)]
@@ -28,6 +30,63 @@ pub struct Args {
 pub enum Face {
     /// Print the stem's version, and the season and judges `garden.lock` pins.
     Version,
+    /// Dispatch one hook event to the beds that registered for it (stdin: the payload).
+    Hook(HookArgs),
+    /// The friction emitter on its own (stdin: the payload).
+    Friction(FrictionArgs),
+    /// The receipt writer on its own (stdin: the payload).
+    Receipt(ReceiptArgs),
+}
+
+/// `plotplot hook <harness> <event>`, the call every hook entry in every bundle makes.
+#[derive(Debug, ClapArgs)]
+pub struct HookArgs {
+    /// The harness whose payload is on stdin.
+    #[arg(value_parser = harness_value)]
+    pub harness: Harness,
+    /// The event, spelled the way that harness spells it.
+    pub event: String,
+}
+
+/// `plotplot friction …`.
+#[derive(Debug, ClapArgs)]
+pub struct FrictionArgs {
+    #[command(subcommand)]
+    pub face: FrictionFace,
+}
+
+/// The friction faces the stem answers to.
+#[derive(Debug, Subcommand)]
+pub enum FrictionFace {
+    /// Append this payload's friction records to the month's journal.
+    Emit(HarnessArg),
+}
+
+/// `plotplot receipt …`.
+#[derive(Debug, ClapArgs)]
+pub struct ReceiptArgs {
+    #[command(subcommand)]
+    pub face: ReceiptFace,
+}
+
+/// The receipt faces the stem answers to.
+#[derive(Debug, Subcommand)]
+pub enum ReceiptFace {
+    /// Write this session's unsigned receipt draft.
+    Draft(HarnessArg),
+}
+
+/// The harness a face reading stdin needs told, because a payload does not name its vendor.
+#[derive(Debug, ClapArgs)]
+pub struct HarnessArg {
+    /// claude, gemini or codex.
+    #[arg(long, value_parser = harness_value)]
+    pub harness: Harness,
+}
+
+/// The harness named on the command line, or the error clap prints beside the bad value.
+fn harness_value(value: &str) -> std::result::Result<Harness, String> {
+    value.parse::<Harness>().map_err(|error| error.to_string())
 }
 
 /// Run one face. The only exit codes this returns are the face's own; `main` turns the
@@ -47,7 +106,39 @@ pub fn run(args: Args, root: &Path, stdout: &mut dyn Write, stderr: &mut dyn Wri
                 1
             }
         },
+        Face::Hook(face) => match payload_on_stdin() {
+            Ok(payload) => hook::run(root, &face, &payload, stdout, stderr),
+            Err(error) => {
+                let _ = writeln!(stderr, "stdin: {error}");
+                hook::CANNOT
+            }
+        },
+        Face::Friction(face) => match payload_on_stdin() {
+            Ok(payload) => friction::run(root, &face, &payload, stdout, stderr),
+            Err(error) => {
+                let _ = writeln!(stderr, "stdin: {error}");
+                1
+            }
+        },
+        Face::Receipt(face) => match payload_on_stdin() {
+            Ok(payload) => receipt::run(root, &face, &payload, stdout, stderr),
+            Err(error) => {
+                let _ = writeln!(stderr, "stdin: {error}");
+                1
+            }
+        },
     }
+}
+
+/// The vendor's payload, read whole from stdin.
+///
+/// The three hook-time faces are filters, and [`run`]'s shape has nowhere for their input to
+/// be passed in, so this is where the stem reads it. A payload that is not UTF-8 is not one
+/// of the three vendors' JSON, and the error says so with the reason the reader gave.
+fn payload_on_stdin() -> std::io::Result<String> {
+    let mut payload = String::new();
+    std::io::stdin().read_to_string(&mut payload)?;
+    Ok(payload)
 }
 
 /// What `plotplot version` prints: the binary's own version, then, when the repository is
