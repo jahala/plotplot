@@ -63,6 +63,15 @@ fix; each is a candidate issue on the tool's repository.
   pleach worktree until `pleach clean` sweeps it. Snapshotting the worktree's index by hand
   (`git write-tree`, `git commit-tree`) recovered it this time.
 
+- 2026-09-09 pleach reads the plan once at run start, so a plan edit during a run (an audit
+  provider whose vendor went down, a prompt correction for a node not yet started) cannot
+  reach later nodes; the only path is to stop the run, edit, and re-run on the resume ledger.
+  A `--plan-reload` on wave boundaries, or reading the file at each node start, would let a
+  conductor recast an auditor without an abort.
+- 2026-09-09 `pleach run --runner` casts the builder, but nothing at run time casts the
+  auditor; when codex died mid-evening the only way to keep the integration node's audit was
+  to edit the plan. An `--audit-provider`/`--audit-model` override would match the builder's.
+
 ## umbel
 
 - 2026-09-08 `umbel ls` lists four `smk-trust-*` sessions dead since 2026-09-05 in temp
@@ -77,6 +86,9 @@ fix; each is a candidate issue on the tool's repository.
 - 2026-09-08 `umbel kill` deletes the session's state, including `meta.json` with the cwd,
   so after a mistaken kill nothing says whose session it was. `keepState` exists but the
   default erases the evidence.
+- 2026-09-09 umbel has no wedge detection: a worker idle with a live session is not read as
+  failure, so a wedged node waits out pleach's timeout (30 to 60 minutes here) unless the
+  conductor aborts by hand (cape-town's observation on tend2's run, 2026-09-09).
 - 2026-09-08 `umbel ls` shows `—` in the MODEL column for a freshly spawned claude worker for
   its first minute or so, then `claude-opus-5`; a row with no model looks like a probe or a
   failed spawn rather than a worker that has not reported yet.
