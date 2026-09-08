@@ -86,6 +86,8 @@ declare_negative() {
 
 declare_negative "$fixdir/invalid-missing-kind.garden.json" "a missing kind"
 declare_negative "$fixdir/invalid-git-no-rev.garden.json" "a git install without a pinned commit"
+declare_negative "$fixdir/invalid-smoke-shell-string.garden.json" "a smoke command written as a shell string"
+declare_negative "$fixdir/invalid-repository-as-bed.garden.json" "a bed manifest missing install, faces, check, metric, context and coverage"
 declare_negative "$fixdir/invalid-undeclared-context.garden.json" "an undeclared context cost"
 declare_negative "$fixdir/invalid-no-metric.garden.json" "no metric command"
 

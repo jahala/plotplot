@@ -86,7 +86,7 @@ The kinds, and what produces each:
 | `test.loop` | a test command run again in one session | Bash `tool_input.command` matching the test runners weeder already knows |
 | `stop.refused` | weeder's Stop hook blocked a premature done | our own Stop decision |
 | `context.compacted` | the context was compacted | Claude `PreCompact`; Gemini `PreCompress`; `gen_ai.conversation.compacted=true` |
-| `session.ended` | a session ended, with totals | Claude `SessionEnd`, Gemini `SessionEnd`, Codex `SessionEnd` |
+| `session.ended` | a session ended, with totals | Claude `SessionEnd`, Gemini `SessionEnd`, Codex `Stop` (Codex 0.133 has no SessionEnd hook) |
 | `gate.retry` | a pleach node retried after a gate | pleach's journal (its own emitter, later) |
 | `worker.wedged` | umbel detected a wedged worker | umbel's run journal (its own emitter, later) |
 
@@ -101,7 +101,7 @@ Verified against the vendors' hook references on 2026-09-06.
 |---|---|---|---|
 | Claude Code | project `.claude/settings.json` hooks, or the stem's plugin `hooks/hooks.json` | `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionDenied`, `Stop`, `PreCompact`, `SessionStart`, `SessionEnd` | `session_id`, `cwd`, `hook_event_name`, `tool_name`, `tool_input`, `tool_use_id`, `tool_error`, `agent_id`, `stop_hook_active`, `startup_reason`, `end_reason`, `model` (SessionStart, optional) |
 | Gemini CLI | project `.gemini/settings.json` hooks, or the stem's extension `hooks/hooks.json` | `BeforeTool`, `AfterTool`, `AfterAgent`, `AfterModel`, `PreCompress`, `SessionStart`, `SessionEnd` | `session_id`, `cwd`, `hook_event_name`, `tool_name`, `tool_input`, `tool_response`, `llm_request.model`, `llm_response` (token usage when present), `trigger`, `source`, `reason` |
-| Codex CLI | project or `~/.codex/hooks.json`, or the stem's plugin `hooks.json` | `PreToolUse`, `PostToolUse`, `Stop`, `SessionStart`, `SessionEnd` | `session_id`, `cwd`, `hook_event_name`, `turn_id`, `model`, tool name and command as Codex provides them |
+| Codex CLI | project or `~/.codex/hooks.json`, or the stem's plugin `hooks.json` | `PreToolUse`, `PostToolUse`, `Stop`, `PreCompact`, `PostCompact`, `SessionStart`; no `SessionEnd` in 0.133, so session-end work rides `Stop` | `session_id`, `cwd`, `hook_event_name`, `turn_id`, `model`, tool name and command as Codex provides them |
 
 Constraints that shape the emitter: Claude Code's `SessionEnd` hooks share a 1.5-second
 budget, so the emitter never does more than append lines; Gemini's `AfterTool` can carry the
