@@ -91,11 +91,15 @@ a worker, because forcing a path onto those would invent one.
 | `context.compacted` | the context was compacted | Claude `PreCompact`; Gemini `PreCompress` | no |
 | `session.ended` | a session ended, with totals | Claude and Gemini `SessionEnd`; Codex `Stop`, since Codex 0.133 has no SessionEnd hook | no |
 | `gate.retry` | a pleach node retried after a gate | pleach's own journal (`event: "gate-retry"`) | no |
+| `run.lifecycle` | a pleach run or landing began, ended, or was refused | pleach's own journal (`run-start`, `run-end`, `run-aborted`, `land-start`, `landed`, `land-blocked`, `land-conflict`, `land-setup`, `land-bisect`, `land-culprit`, `land-integrity-failed`) | no |
+| `node.lifecycle` | a pleach node changed state: started, settled, closed, quarantined, receipted | pleach's own journal (`node-start`, `verdict`, `closed`, `not-closed`, `blocked`, `quarantined`, `quarantine-failed`, `receipt`, `receipt-write-failed`, `acceptance-changed`, `acceptance-cascade`, `rebuild-required`, `sha-mismatch`, `dispose-failed`, `audit-egress-unparseable`, `phase-commit`, `gate-artifact`) | no |
+| `gate.result` | a pleach gate reported an outcome other than a retry: red, flaky-then-green, a landing gate's verdict | pleach's own journal (`gate-fail`, `gate-flaky`, `land-gate`, `land-gate-retry`, `land-setup-failed`) | no |
 | `worker.wedged` | umbel detected a wedged worker | umbel's own run journal | no |
 | `model.call` | one billed model call | mull's spend log (plotplot-ai#33), per issue 35 | no |
 
-Adding a fourteenth kind is a change to this table, in a pull request, never a private
-attribute invented by one bed.
+Adding a kind is a change to this table, in a pull request, never a private attribute
+invented by one bed. pleach's three lifecycle kinds were added that way (jahala/pleach#60,
+2026-09-08): one kind per shape of fact, never one per event name.
 
 ## per-kind attributes beyond the envelope
 
@@ -112,8 +116,24 @@ attribute invented by one bed.
 | `context.compacted` | `gen_ai.conversation.compacted` |
 | `session.ended` | `gen_ai.usage.input_tokens`, `gen_ai.usage.output_tokens` (either may be `null`; never estimated) |
 | `gate.retry` | `plotplot.node`, `plotplot.gate` |
+| `run.lifecycle` | none |
+| `node.lifecycle` | `plotplot.node`; on `verdict` lines also `plotplot.runner` (see below) and `gen_ai.request.model` when the plan named a model (omitted, not nulled, otherwise) |
+| `gate.result` | `plotplot.gate`, `plotplot.node` (present; `null` on a landing gate, which spans the sinks, not one node) |
 | `worker.wedged` | `plotplot.worker` |
 | `model.call` | `gen_ai.provider.name`, `gen_ai.request.model`, `gen_ai.usage.input_tokens`, `gen_ai.usage.output_tokens` |
+
+## the runner attribute
+
+`plotplot.runner` is the name of the agent CLI a conductor drove, verbatim as the conductor
+resolved it (`claude`, `codex`, `gemini`, `opencode`, or whatever a custom runner names
+itself). It is a garden attribute because it is the fact pleach holds: the CLI, not the
+model provider behind it. `gen_ai.provider.name` is written only by a domain that actually
+observes the provider (mull's spend log does; a runner would, once it reads the CLI's own
+configuration — Claude Code can be routed through Bedrock or Vertex, and a conductor cannot
+see which). Until then pleach's lines carry `plotplot.runner` and omit
+`gen_ai.provider.name`; when a runner learns to report the provider it fills that key and
+nothing in pleach changes. The casting ledger keys on the runner today, which is what
+pleach's `provider` field has always held.
 
 ## never present
 
@@ -123,8 +143,8 @@ value.
 
 ## the fixture journal
 
-`contracts/fixtures/friction.jsonl` holds three lines, one JSON object each, in this
-order, per issue 35:
+`contracts/fixtures/friction.jsonl` holds six lines, one JSON object each, in this
+order — the first three per issue 35, the last three per jahala/pleach#60:
 
 1. a friction event (`plotplot.kind: "tool.failed"`), the emitter's own shape;
 2. a pleach run-journal line (`plotplot.kind: "gate.retry"`), pleach's existing `event`
@@ -135,6 +155,16 @@ order, per issue 35:
 3. a spend line (`plotplot.kind: "model.call"`), mull's spend log shape born in the
    envelope per issue 35, authored ahead of mull's own `spend.jsonl` landing
    (plotplot-ai#33).
+4. a pleach run-journal line (`plotplot.kind: "run.lifecycle"`, `event: "run-start"`);
+5. a pleach run-journal line (`plotplot.kind: "node.lifecycle"`, `event: "verdict"`),
+   carrying `plotplot.runner` and `gen_ai.request.model` as the runner attribute section
+   describes — and no `gen_ai.provider.name`;
+6. a pleach run-journal line (`plotplot.kind: "gate.result"`, `event: "gate-flaky"`), the
+   outcome of the retry line 2 recorded.
+
+Lines 2 and 4 to 6 keep pleach's own fields verbatim (`event`, `node`, `gate`, `goal`,
+`nodes`, `status`, `attempts`, `telemetry`, `durationMs`, `provider`, `model`) and add the
+envelope beside them, per the journal's stability promise (pleach `docs/journal.md`).
 
 `contracts/test/friction-profile.test.sh` parses the fixture, checks it is one JSON object
 per line, checks every line's `plotplot.kind` is in the pinned list above, checks every
