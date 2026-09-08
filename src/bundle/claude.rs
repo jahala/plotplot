@@ -6,7 +6,8 @@
 //! to the installed plugin's own directory.
 
 use super::{
-    AUTHOR_URL, BundleInput, FileTree, Json, add_skills, hooks_file, manifest_head, mcp_file,
+    AUTHOR_URL, BundleInput, FileTree, Json, add_skills, hooks_file, hooks_path, manifest_head,
+    mcp_file,
 };
 use crate::error::Result;
 use crate::harness::Harness;
@@ -17,7 +18,7 @@ const HARNESS: Harness = Harness::Claude;
 pub(super) fn generate(input: &BundleInput) -> Result<FileTree> {
     let mut tree = FileTree::new();
     tree.insert(".claude-plugin/plugin.json", plugin_json(input));
-    tree.insert("hooks/hooks.json", hooks_file(HARNESS, input.beds)?);
+    tree.insert(hooks_path(HARNESS), hooks_file(HARNESS, input.beds)?);
     if let Some(mcp) = mcp_file(HARNESS, input.beds) {
         tree.insert(".mcp.json", mcp);
     }

@@ -26,6 +26,8 @@ use std::path::{Path, PathBuf};
 use crate::bed::Bed;
 use crate::error::{Error, Result};
 use crate::harness::Harness;
+use crate::lock::read_lock;
+use crate::{layout, manifest};
 
 /// The name every vendor manifest carries, and the name of the installed bundle.
 pub const BUNDLE_NAME: &str = "plotplot";
@@ -247,6 +249,215 @@ fn collect_files(directory: &Path, relative: &Path, files: &mut Vec<PathBuf>) ->
     Ok(())
 }
 
+/// `plotplot bundle build`: regenerate the bundles for `harnesses` from the planted beds.
+///
+/// The season comes from `garden.lock`, the beds and their skills from `.plotplot/beds/`,
+/// and the stem's version from the crate; each bundle is written under
+/// `.plotplot/bundles/<harness>/` with the running binary copied into its `bin/plotplot`.
+/// One line per file written goes to `stdout`; a channel bed the stem cannot plant is named
+/// on `stderr`.
+///
+/// Nothing is written until every input has been read, so a repository with no season keeps
+/// the bundles it already had.
+pub fn run(
+    root: &Path,
+    stem_binary: &Path,
+    harnesses: &[Harness],
+    stdout: &mut dyn std::io::Write,
+    stderr: &mut dyn std::io::Write,
+) -> i32 {
+    let built = match build(root, stem_binary, harnesses) {
+        Ok(built) => built,
+        Err(error) => {
+            let _ = writeln!(stderr, "{error}");
+            return 1;
+        }
+    };
+
+    for bed in &built.unplantable {
+        let _ = writeln!(
+            stderr,
+            "{bed}: declares an MCP face with no launch line, so it is a channel the stem cannot plant yet"
+        );
+    }
+    for path in &built.written {
+        let shown = path.strip_prefix(root).unwrap_or(path);
+        if let Err(error) = writeln!(stdout, "{}", shown.display()) {
+            let _ = writeln!(stderr, "stdout: {error}");
+            return 1;
+        }
+    }
+    0
+}
+
+/// What one `bundle build` did: the files it wrote, and the channels it had to leave out.
+struct Built {
+    written: Vec<PathBuf>,
+    unplantable: Vec<String>,
+}
+
+/// Read every input, generate every tree, and only then write: reading and generating are
+/// what can refuse, and a refusal for one harness must not leave a bundle for another
+/// harness half planted beside it.
+fn build(root: &Path, stem_binary: &Path, harnesses: &[Harness]) -> Result<Built> {
+    let beds = manifest::load_beds(root)?;
+    let unplantable = manifest::unplantable_channels(root)?;
+    let season = season(root)?;
+    let skills = read_skills(root, &beds)?;
+
+    let input = BundleInput {
+        stem_version: crate::VERSION,
+        season: &season,
+        beds: &beds,
+        skills: &skills,
+    };
+
+    let mut trees = Vec::with_capacity(harnesses.len());
+    for harness in harnesses {
+        trees.push((*harness, generate(*harness, &input)?));
+    }
+
+    let mut written = Vec::new();
+    for (harness, tree) in &trees {
+        let bundle = layout::bundle_dir(root, *harness);
+        written.extend(write(tree, &bundle)?);
+        written.push(install_stem(stem_binary, &bundle)?);
+    }
+    Ok(Built {
+        written,
+        unplantable,
+    })
+}
+
+/// The season the lock pins. A bundle names the season it was grown in, so a repository
+/// without a lock has nothing to generate from.
+///
+/// # Errors
+///
+/// [`Error::Io`] naming `garden.lock` when there is none, and whatever
+/// [`crate::lock::read_lock`] refuses.
+fn season(root: &Path) -> Result<String> {
+    match read_lock(root)? {
+        Some(lock) => Ok(lock.season),
+        None => Err(Error::Io {
+            path: layout::garden_lock(root),
+            source: std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                "a bundle names the season it was grown in, and this repository pins none",
+            ),
+        }),
+    }
+}
+
+/// Each bed's `SKILL.md`, read from the path its manifest declares inside its cached
+/// artifact, in the beds' own order.
+///
+/// `doctor` reads them too, to regenerate a bundle and compare it against the one on disk,
+/// so where a bed's skill file lives is spelled once.
+///
+/// # Errors
+///
+/// [`Error::Bed`] naming the path when a bed declares a skill that is not there, and
+/// [`Error::Io`] when the file exists and cannot be read.
+pub fn read_skills(root: &Path, beds: &[Bed]) -> Result<Vec<SkillFile>> {
+    let mut skills = Vec::new();
+    for bed in beds {
+        let Some(relative) = &bed.skill else {
+            continue;
+        };
+        let path = layout::bed_dir(root, &bed.name).join(relative);
+        let content = match fs::read_to_string(&path) {
+            Ok(content) => content,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                return Err(Error::Bed {
+                    bed: bed.name.clone(),
+                    problem: format!("declares a skill at {}, which is not there", path.display()),
+                });
+            }
+            Err(source) => return Err(Error::Io { path, source }),
+        };
+        skills.push(SkillFile {
+            bed: bed.name.clone(),
+            content,
+        });
+    }
+    Ok(skills)
+}
+
+/// The binary now running: what `bundle build` copies into every bundle's `bin/plotplot`,
+/// and what `doctor` compares those copies against.
+///
+/// This is one of the two things the library asks the environment for, and it is asked here
+/// because `bin/plotplot` is a bundle's own idea. Both faces call it at their own edge and
+/// pass the answer down.
+///
+/// # Errors
+///
+/// [`Error::Io`] when the operating system will not say where the running binary is.
+pub fn running_stem() -> Result<PathBuf> {
+    std::env::current_exe().map_err(|source| Error::Io {
+        path: PathBuf::from(env!("CARGO_PKG_NAME")),
+        source,
+    })
+}
+
+/// Copy the running stem into a bundle's `bin/plotplot` and make it runnable, so every hook
+/// entry in that bundle calls the binary that generated it.
+///
+/// # Errors
+///
+/// [`Error::Io`] naming the file that could not be created, copied or made executable.
+fn install_stem(stem_binary: &Path, bundle: &Path) -> Result<PathBuf> {
+    let path = bundle.join(STEM_BINARY);
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|source| Error::Io {
+            path: parent.to_path_buf(),
+            source,
+        })?;
+    }
+    fs::copy(stem_binary, &path).map_err(|source| Error::Io {
+        path: path.clone(),
+        source,
+    })?;
+    make_executable(&path)?;
+    Ok(path)
+}
+
+/// Give a file the bit that lets a harness run it.
+///
+/// # Errors
+///
+/// [`Error::Io`] naming the file whose permissions could not be read or set.
+#[cfg(unix)]
+fn make_executable(path: &Path) -> Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+
+    let mut permissions = fs::metadata(path)
+        .map_err(|source| Error::Io {
+            path: path.to_path_buf(),
+            source,
+        })?
+        .permissions();
+    permissions.set_mode(0o755);
+    fs::set_permissions(path, permissions).map_err(|source| Error::Io {
+        path: path.to_path_buf(),
+        source,
+    })
+}
+
+/// On a platform with no executable bit the stem says it cannot make the binary runnable,
+/// rather than writing a bundle whose hooks will never fire.
+#[cfg(not(unix))]
+fn make_executable(path: &Path) -> Result<()> {
+    Err(Error::Io {
+        path: path.to_path_buf(),
+        source: std::io::Error::new(
+            std::io::ErrorKind::Unsupported,
+            "this platform has no executable bit, so the stem cannot make a bundle's binary runnable",
+        ),
+    })
+}
+
 /// The events every friction kind derives from, per `contracts/friction-profile.md`'s
 /// pinned kinds table, mapped onto each vendor's own event names (§5). The stem registers
 /// these whether or not a bed asked for them: the emitter is the stem's own face.
@@ -313,9 +524,21 @@ fn events_for(harness: Harness, beds: &[Bed]) -> Result<Vec<&'static str>> {
         .collect())
 }
 
+/// Where a vendor keeps its hook file inside a bundle (§5): Claude and Gemini under
+/// `hooks/`, Codex at the plugin's root.
+pub fn hooks_path(harness: Harness) -> &'static str {
+    match harness {
+        Harness::Claude | Harness::Gemini => "hooks/hooks.json",
+        Harness::Codex => "hooks.json",
+    }
+}
+
 /// The one command every hook entry runs: the stem's dispatcher, under the vendor's own
 /// variable for the installed bundle's directory.
-fn hook_command(harness: Harness, event: &str) -> String {
+///
+/// `doctor` reads the entries a bundle carries and compares each against this, so the shape
+/// a hook entry may take is written once.
+pub fn hook_command(harness: Harness, event: &str) -> String {
     format!(
         "\"{}/{STEM_BINARY}\" hook {} {event}",
         harness.bundle_root_variable(),

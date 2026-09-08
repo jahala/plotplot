@@ -4,12 +4,14 @@
 //! reading the lock and laying out five lines, so it lives here.
 
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand};
 
-use crate::VERSION;
+use crate::error::{Error, Result};
+use crate::harness::Harness;
 use crate::lock::{Lock, read_lock};
+use crate::{VERSION, bundle, doctor};
 
 /// `plotplot`, the stem of the garden.
 #[derive(Debug, Parser)]
@@ -28,6 +30,30 @@ pub struct Args {
 pub enum Face {
     /// Print the stem's version, and the season and judges `garden.lock` pins.
     Version,
+    /// The generated vendor bundles.
+    Bundle {
+        #[command(subcommand)]
+        command: BundleFace,
+    },
+    /// Prove the garden is planted: one line per check, exit 0 when every check passes.
+    Doctor,
+}
+
+/// What `plotplot bundle` can be asked to do.
+#[derive(Debug, Subcommand)]
+pub enum BundleFace {
+    /// Regenerate `.plotplot/bundles/<harness>/` from the planted beds' manifests.
+    Build {
+        /// The harness to regenerate for; all three when omitted.
+        #[arg(value_name = "claude|gemini|codex", value_parser = harness)]
+        harness: Option<Harness>,
+    },
+}
+
+/// One harness name from the command line, refused by the same reader a manifest goes
+/// through so the three names are spelled in one place.
+fn harness(name: &str) -> Result<Harness> {
+    name.parse()
 }
 
 /// Run one face. The only exit codes this returns are the face's own; `main` turns the
@@ -47,7 +73,51 @@ pub fn run(args: Args, root: &Path, stdout: &mut dyn Write, stderr: &mut dyn Wri
                 1
             }
         },
+        Face::Bundle {
+            command: BundleFace::Build { harness },
+        } => {
+            let harnesses = match harness {
+                Some(one) => vec![one],
+                None => Harness::ALL.to_vec(),
+            };
+            match bundle::running_stem() {
+                Ok(stem) => bundle::run(root, &stem, &harnesses, stdout, stderr),
+                Err(error) => {
+                    let _ = writeln!(stderr, "{error}");
+                    1
+                }
+            }
+        }
+        Face::Doctor => match home() {
+            Ok(home) => doctor::run(root, &home, stdout, stderr),
+            Err(error) => {
+                let _ = writeln!(stderr, "{error}");
+                1
+            }
+        },
     }
+}
+
+/// The planter's home directory, where Codex records the projects it trusts.
+///
+/// Read here, at the edge, and passed in: `doctor` is told where to look rather than asking
+/// the environment, so a test can point it at a temporary home and the build machine's own
+/// Codex configuration is never read.
+///
+/// # Errors
+///
+/// [`Error::Io`] when `HOME` is not set. `doctor` refuses rather than guessing, because a
+/// guess would report Codex's trust from a place nobody configured.
+fn home() -> Result<PathBuf> {
+    std::env::var_os("HOME")
+        .map(PathBuf::from)
+        .ok_or_else(|| Error::Io {
+            path: PathBuf::from("$HOME"),
+            source: std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                "doctor reads Codex's project trust from the home directory, and HOME is not set",
+            ),
+        })
 }
 
 /// What `plotplot version` prints: the binary's own version, then, when the repository is

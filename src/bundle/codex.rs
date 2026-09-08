@@ -6,7 +6,9 @@
 //! `${CLAUDE_PLUGIN_ROOT}` Claude does. Codex has no `SessionEnd`, so its `Stop` carries the
 //! session's end as well as the turn's.
 
-use super::{BundleInput, FileTree, Json, add_skills, hooks_file, manifest_head, mcp_file};
+use super::{
+    BundleInput, FileTree, Json, add_skills, hooks_file, hooks_path, manifest_head, mcp_file,
+};
 use crate::error::Result;
 use crate::harness::Harness;
 
@@ -20,7 +22,7 @@ pub(super) fn generate(input: &BundleInput) -> Result<FileTree> {
         ".codex-plugin/plugin.json",
         plugin_json(input, mcp.is_some()),
     );
-    tree.insert("hooks.json", hooks_file(HARNESS, input.beds)?);
+    tree.insert(hooks_path(HARNESS), hooks_file(HARNESS, input.beds)?);
     if let Some(mcp) = mcp {
         tree.insert(".mcp.json", mcp);
     }

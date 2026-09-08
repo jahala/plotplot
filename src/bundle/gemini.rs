@@ -5,7 +5,9 @@
 //! Claude, with timeouts in milliseconds, and `${extensionPath}` is what Gemini expands to
 //! the installed extension's own directory.
 
-use super::{BundleInput, FileTree, Json, add_skills, hooks_file, manifest_head, mcp_servers};
+use super::{
+    BundleInput, FileTree, Json, add_skills, hooks_file, hooks_path, manifest_head, mcp_servers,
+};
 use crate::error::Result;
 use crate::harness::Harness;
 
@@ -15,7 +17,7 @@ const HARNESS: Harness = Harness::Gemini;
 pub(super) fn generate(input: &BundleInput) -> Result<FileTree> {
     let mut tree = FileTree::new();
     tree.insert("gemini-extension.json", extension_json(input));
-    tree.insert("hooks/hooks.json", hooks_file(HARNESS, input.beds)?);
+    tree.insert(hooks_path(HARNESS), hooks_file(HARNESS, input.beds)?);
     add_skills(input, &mut tree)?;
     Ok(tree)
 }
