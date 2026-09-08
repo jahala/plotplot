@@ -4,7 +4,7 @@ Kept by the stem builder (agent beirut) during the stem build, September 2026. O
 finding, dated, with the command that showed it. Misunderstandings, faults, missing features
 and bugs in the garden's own tools, as met while using them for real work. Nothing here is a
 fix; each was filed on the tool's repository on 2026-09-09 or matched to an issue already
-open: tend 157, 158, 167, 169 and 175; pleach 61, 63, 64, 66, 68, 69, 70 and 71; umbel 65,
+open: tend 157, 158, 167, 169, 175 and 184; pleach 61, 63, 64, 66, 68, 69, 70, 71 and 77; umbel 65,
 67, 69 and 70. The Conductor finding has no garden repository.
 
 ## tend2
@@ -24,6 +24,14 @@ open: tend 157, 158, 167, 169 and 175; pleach 61, 63, 64, 66, 68, 69, 70 and 71;
 - 2026-09-08 `tend2 next docs/tend2` reports "12 asks held back — their loops have no machine
   evidence to judge yet" without naming which loops or how to surface them; the human check on
   the stem loop is invisible until a code check has evidence.
+
+- 2026-09-09 `tend2 verify` with `{evidence}` in `--runner` expands to the script path alone
+  and drops the evidence line's argument (`scripts/fit/stem.sh bundles` runs as
+  `bash scripts/fit/stem.sh`), and a `.sh` evidence has no default runner; the shape the law
+  prescribes for fit evidence needs `--runner "bash {evidence} bundles"` per check (tend 184).
+- 2026-09-09 `tend2 verify --check N` without `--force` reports `skipped-fresh` for a stamp
+  written in another worktree; correct, since the stamp id is a payload identity and not a
+  commit, but the word "fresh" reads as a claim about time. Not filed.
 
 ## pleach
 
@@ -73,6 +81,15 @@ open: tend 157, 158, 167, 169 and 175; pleach 61, 63, 64, 66, 68, 69, 70 and 71;
 - 2026-09-09 `pleach run --runner` casts the builder, but nothing at run time casts the
   auditor; when codex died mid-evening the only way to keep the integration node's audit was
   to edit the plan. An `--audit-provider`/`--audit-model` override would match the builder's.
+
+- 2026-09-09 an audit cast to opencode (deepseek-v4-pro) ran its command and relayed the
+  output, and pleach recorded `audit-egress-unparseable`: the relay carried no verdict block
+  it could read, the node failed after one attempt with its smoke green, and the work went to
+  quarantine. The egress in the journal shows both fit checks passing. Either the opencode
+  adapter's verdict template is not what pleach parses, or the parse should fall back to the
+  gate's own exit code when the relay carries it; and a `pleach audit <node>` that re-runs
+  only the audit on a quarantined node with a green smoke would have cost one auditor turn
+  instead of a hand landing.
 
 ## umbel
 
