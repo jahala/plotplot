@@ -3,7 +3,9 @@
 Kept by the stem builder (agent beirut) during the stem build, September 2026. One line per
 finding, dated, with the command that showed it. Misunderstandings, faults, missing features
 and bugs in the garden's own tools, as met while using them for real work. Nothing here is a
-fix; each is a candidate issue on the tool's repository.
+fix; each was filed on the tool's repository on 2026-09-09 or matched to an issue already
+open: tend 157, 158, 167, 169 and 175; pleach 61, 63, 64, 66, 68, 69, 70 and 71; umbel 65,
+67, 69 and 70. The Conductor finding has no garden repository.
 
 ## tend2
 
