@@ -8,11 +8,14 @@
 
 pub mod bed;
 pub mod cli;
+pub mod deny;
 pub mod error;
+pub mod friction;
 pub mod harness;
 pub mod layout;
 pub mod lock;
 pub mod manifest;
+pub mod receipt;
 
 /// The stem's own version, the first line of `plotplot version`.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
