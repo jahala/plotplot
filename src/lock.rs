@@ -16,7 +16,7 @@ use crate::error::{Error, Result};
 use crate::layout;
 use crate::manifest::{GitInstall, compile, one_line};
 
-/// The contracts' lock schema, v1.2.0, embedded so the binary carries its own contract.
+/// The contracts' lock schema, v1.3.0, embedded so the binary carries its own contract.
 pub const LOCK_SCHEMA: &str = include_str!("../contracts/lock.schema.json");
 
 /// How a refusal by the contracts opens, as opposed to a TOML syntax failure.
@@ -192,55 +192,49 @@ mod tests {
         assert_eq!(lock.season, "2026.09");
         assert_eq!(
             lock.judges.keys().map(String::as_str).collect::<Vec<_>>(),
-            ["tend2", "tilth", "weeder"]
+            ["tend2", "tilth"]
         );
 
-        let weeder = lock.judges.get("weeder").expect("the weeder judge");
-        assert_eq!(weeder.version, "0.1.0");
-        assert_eq!(weeder.npm, None);
+        let tilth = lock.judges.get("tilth").expect("the tilth judge");
+        assert_eq!(tilth.version, "0.10.1");
+        assert_eq!(tilth.npm, None);
+        assert_eq!(tilth.git, None);
         assert_eq!(
-            weeder
+            tilth
                 .platforms
                 .keys()
                 .map(String::as_str)
                 .collect::<Vec<_>>(),
-            ["aarch64-apple-darwin", "x86_64-unknown-linux-musl"]
+            [
+                "aarch64-apple-darwin",
+                "aarch64-unknown-linux-musl",
+                "x86_64-apple-darwin",
+                "x86_64-unknown-linux-musl",
+            ]
         );
-        let darwin = weeder
+        let darwin = tilth
             .platforms
             .get("aarch64-apple-darwin")
             .expect("the darwin artifact");
         assert_eq!(
             darwin.url,
-            "https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-aarch64-apple-darwin.tar.gz"
+            "https://github.com/jahala/tilth/releases/download/v0.10.1/tilth-aarch64-apple-darwin.tar.gz"
         );
         assert_eq!(
             darwin.sha256,
-            "6ae4f3e626840edcd08b1dea6118c88d01ffabb845a36d19f19c885d47d5095b"
+            "38c36e471f61d5a7101d9e0f9dfd401939c5a363e0f4a96384b86f43a662fa55"
         );
-        let linux = weeder
+        let linux = tilth
             .platforms
             .get("x86_64-unknown-linux-musl")
             .expect("the linux artifact");
         assert_eq!(
             linux.url,
-            "https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-x86_64-unknown-linux-musl.tar.gz"
+            "https://github.com/jahala/tilth/releases/download/v0.10.1/tilth-x86_64-unknown-linux-musl.tar.gz"
         );
         assert_eq!(
             linux.sha256,
-            "1ad2bdae7f784ffc5dc5710896a67321fc4b5a193c49ea3ae4e3131b3cf32d75"
-        );
-
-        let tilth = lock.judges.get("tilth").expect("the tilth judge");
-        assert_eq!(tilth.version, "1.0.0");
-        assert_eq!(tilth.npm, None);
-        assert_eq!(tilth.platforms.len(), 1);
-        assert_eq!(
-            tilth
-                .platforms
-                .get("aarch64-apple-darwin")
-                .map(|artifact| artifact.sha256.as_str()),
-            Some("da865417c06f59ac11bd105f3578014785dd998107b61060b8122d140d45819d")
+            "3df16574ed9fc33e4d9c63107994c78d48f93ab0099a37232b4410223e2ad2ea"
         );
 
         let tend2 = lock.judges.get("tend2").expect("the tend2 judge");
@@ -252,13 +246,13 @@ mod tests {
     #[test]
     fn a_digest_that_is_not_sixty_four_lowercase_hex_is_refused() {
         for bad in [
-            "6AE4F3E626840EDCD08B1DEA6118C88D01FFABB845A36D19F19C885D47D5095B",
-            "6ae4f3e626840edcd08b1dea6118c88d01ffabb845a36d19f19c885d47d5095",
-            "sha256-6ae4f3e626840edcd08b1dea6118c88d01ffabb845a36d19f19c885d47d5095b",
+            "38C36E471F61D5A7101D9E0F9DFD401939C5A363E0F4A96384B86F43A662FA55",
+            "38c36e471f61d5a7101d9e0f9dfd401939c5a363e0f4a96384b86f43a662fa5",
+            "sha256-38c36e471f61d5a7101d9e0f9dfd401939c5a363e0f4a96384b86f43a662fa55",
             "",
         ] {
             let text = fixture().replace(
-                "6ae4f3e626840edcd08b1dea6118c88d01ffabb845a36d19f19c885d47d5095b",
+                "38c36e471f61d5a7101d9e0f9dfd401939c5a363e0f4a96384b86f43a662fa55",
                 bad,
             );
             let message = toml_error(&text);
@@ -316,7 +310,7 @@ mod tests {
             .expect("a readable lock")
             .expect("a lock at the root");
         assert_eq!(lock.season, "2026.09");
-        assert_eq!(lock.judges.len(), 3);
+        assert_eq!(lock.judges.len(), 2);
     }
 
     #[test]

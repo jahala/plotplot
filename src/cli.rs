@@ -92,8 +92,7 @@ mod tests {
                 "plotplot 0.1.0\n",
                 "season 2026.09\n",
                 "tend2 1.0.0 (npm @plotplot/tend2)\n",
-                "tilth 1.0.0\n",
-                "weeder 0.1.0\n",
+                "tilth 0.10.1\n",
             )
         );
     }
@@ -109,7 +108,7 @@ mod tests {
     fn a_judge_with_no_npm_package_carries_no_marker() {
         let lock = fixture_lock();
         let text = version_text(Some(&lock));
-        assert!(text.contains("\nweeder 0.1.0\n"), "{text}");
+        assert!(text.contains("\ntilth 0.10.1\n"), "{text}");
         assert!(
             text.contains("\ntend2 1.0.0 (npm @plotplot/tend2)\n"),
             "{text}"

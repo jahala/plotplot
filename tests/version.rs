@@ -38,8 +38,7 @@ fn version_in_a_planted_repository_prints_the_season_and_every_judge() {
             "plotplot 0.1.0\n",
             "season 2026.09\n",
             "tend2 1.0.0 (npm @plotplot/tend2)\n",
-            "tilth 1.0.0\n",
-            "weeder 0.1.0\n",
+            "tilth 0.10.1\n",
         ))
         .stderr("");
 }

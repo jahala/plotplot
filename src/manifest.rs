@@ -17,8 +17,16 @@ use crate::error::{Error, Result};
 use crate::harness::Harness;
 use crate::layout;
 
-/// The contracts' manifest schema, v1.2.0, embedded so the binary carries its own contract.
+/// The contracts' manifest schema, v1.3.0, embedded so the binary carries its own contract.
 pub const MANIFEST_SCHEMA: &str = include_str!("../contracts/manifest.schema.json");
+
+/// The `kind` a planted repository's own `garden.json` carries (contracts v1.3.0). Such a
+/// manifest is schema-valid and is never a bed; `init` writes it, nothing here reads it.
+pub const REPOSITORY_KIND: &str = "repository";
+
+/// How the stem refuses a repository manifest offered as a bed.
+pub const REPOSITORY_NOT_A_BED: &str =
+    "is a planted repository's own manifest (kind repository), not a bed";
 
 /// How a refusal by the contracts opens, as opposed to one by the stem. The two are
 /// different failures: the first says the manifest is not a manifest, the second says the
@@ -176,10 +184,30 @@ pub fn parse_manifest_at(path: Option<&Path>, json: &str) -> Result<Manifest> {
         });
     }
 
+    if is_repository(&value) {
+        return Err(Error::Manifest {
+            bed,
+            problem: format!("{REPOSITORY_NOT_A_BED}; the stem plants beds from it, never it"),
+        });
+    }
+
     serde_json::from_value(value).map_err(|source| Error::Manifest {
         bed,
         problem: one_line(&format!("the stem could not read it: {source}")),
     })
+}
+
+/// Whether a schema-valid manifest is a planted repository's own (`kind` carries
+/// `repository`, contracts v1.3.0) rather than a bed's.
+fn is_repository(value: &Value) -> bool {
+    value
+        .get("kind")
+        .and_then(Value::as_array)
+        .is_some_and(|kinds| {
+            kinds
+                .iter()
+                .any(|kind| kind.as_str() == Some(REPOSITORY_KIND))
+        })
 }
 
 /// Turn a manifest into the bed the rest of the stem consumes.
@@ -409,7 +437,10 @@ mod tests {
                 .and_then(|n| n.to_str())
                 .expect("a fixture file name")
                 .to_owned();
-            if !name.ends_with(".json") || name.starts_with("invalid-") {
+            if !name.ends_with(".json")
+                || name.starts_with("invalid-")
+                || name == "repository.garden.json"
+            {
                 continue;
             }
             seen += 1;
@@ -456,7 +487,7 @@ mod tests {
             assert!(!problem.is_empty(), "{name}");
             assert!(!problem.contains('\n'), "{name}: {problem}");
         }
-        assert_eq!(seen, 4, "the four invalid manifest fixtures");
+        assert_eq!(seen, 6, "the six invalid manifest fixtures");
     }
 
     #[test]
@@ -532,6 +563,24 @@ mod tests {
         let manifest = parse_manifest(&value.to_string()).expect("a parsed manifest");
         let bed = to_bed(&manifest).expect("a bed");
         assert_eq!(bed.binary.as_deref(), Some("weeder-bin"));
+    }
+
+    #[test]
+    fn a_repository_manifest_is_schema_valid_and_still_not_a_bed() {
+        let (bed, problem) = manifest_error(&fixture("repository.garden.json"));
+        assert_eq!(bed, "plotplot");
+        assert!(
+            !problem.starts_with(SCHEMA_REFUSED),
+            "the contracts accept it; the stem refuses it as a bed: {problem}"
+        );
+        assert!(problem.starts_with(REPOSITORY_NOT_A_BED), "{problem}");
+    }
+
+    #[test]
+    fn a_repository_manifest_with_a_shell_string_smoke_is_refused_by_the_schema() {
+        let (bed, problem) = manifest_error(&fixture("invalid-smoke-shell-string.garden.json"));
+        assert_eq!(bed, "plotplot");
+        assert!(problem.starts_with(SCHEMA_REFUSED), "{problem}");
     }
 
     #[test]
