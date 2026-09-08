@@ -25,7 +25,21 @@ fix; each is a candidate issue on the tool's repository.
 
 ## pleach
 
+- 2026-09-08 `pleach schema` emits `policy` with `required: ["maxAttempts", "onDead",
+  "reauditWhen"]` although each has a default, while `pleach validate` accepts a plan whose
+  policy carries only `timeoutMs` (tend2's emitted plan does exactly that and validates). The
+  emitted schema is stricter than the validator; a planner generating from the schema adds
+  three fields it need not, a planner trusting the validator emits plans the schema rejects.
+- 2026-09-08 the plan schema has no field for a worker's Tried handback although
+  docs/building-the-garden.md §6a says pleach validates it in shape through an additive
+  v1.3 field; `pleach --version` here is 0.0.1 and contracts/pins.json pins the plan schema
+  at 1.1.5, so the field is not there yet and the run's Tried is whatever the worker writes
+  in its final message.
+
 ## umbel
+
+- 2026-09-08 `umbel ls` lists four `smk-trust-*` sessions dead since 2026-09-05 in temp
+  directories that no longer exist; nothing prunes dead sessions, so the list grows forever.
 
 ## conductor (workspace tooling)
 

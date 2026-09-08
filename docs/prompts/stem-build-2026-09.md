@@ -9,7 +9,7 @@ then this page. `docs/plans/friction-ledger.md` §3 and §5 and `docs/plans/rece
 contract so that slices built in parallel fit.
 
 Status: brief, 2026-09-08, written by the stem builder before the first node ran, against
-contracts v1.1.0.
+contracts v1.2.0.
 
 ## 1. Rules that bind every node
 
@@ -168,7 +168,7 @@ module consumes it and never reads a manifest directly.
 pub struct Bed {
     pub name: String,
     pub version: String,
-    pub binary: String,                          // the executable's file name under .plotplot/bin/
+    pub binary: Option<String>,                  // the executable's file name under .plotplot/bin/; None for a bed with no cli and no binary_name
     pub skill: Option<PathBuf>,                  // SKILL.md, relative to the bed's artifact root
     pub hooks: BTreeMap<Harness, Vec<HookEntry>>,
     pub git_hooks: Vec<GitHook>,
@@ -179,14 +179,14 @@ pub struct HookEntry { pub event: String, pub matcher: Option<String> }   // "Pr
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum GitHook { PreCommit, PrePush, PreRebase, PostCommit }
 impl GitHook { pub fn file_name(self) -> &'static str; }   // "pre-commit" …
-pub struct McpServer { pub command: String, pub args: Vec<String>, pub env: BTreeMap<String, String> }
+pub struct McpServer { pub command: String, pub args: Vec<String>, pub env: Vec<String> }   // env: the variable NAMES the server reads
 
 pub fn beds_registered_for(beds: &[Bed], harness: Harness, event: &str) -> Vec<&Bed>;
 ```
 
 ### `manifest.rs` — `garden.json`, the contracts' manifest
 
-The schema is `contracts/manifest.schema.json` (landed 2026-09-08 at a107c14, tag v1.1.0),
+The schema is `contracts/manifest.schema.json` (contracts v1.2.0, commit 0ddfafa),
 embedded with `include_str!` and enforced with `jsonschema` before serde parsing, so a
 manifest the contracts reject never becomes a `Bed`. The fixtures under
 `contracts/fixtures/manifest/` are the test corpus: every positive fixture parses, every
@@ -197,11 +197,11 @@ What the stem reads, and how it maps to `Bed`:
 | manifest | `Bed` |
 |---|---|
 | `name`, `version` | `name`, `version` |
-| `install.binary_name` when present (accepted 2026-09-08, lands in the next contracts hotfix), else `faces.cli` | `binary` (the executable's file name inside the artifact and under `.plotplot/bin/`); a bed with neither has no binary and registers no hooks |
+| `install.binary_name` when present, else `faces.cli` | `binary` (the executable's file name inside the artifact and under `.plotplot/bin/`); a bed with neither has no binary and registers no hooks |
 | `faces.skill` | `skill` |
 | `faces.hooks.<harness>` entries `"Event"` or `"Event:Matcher"` | `hooks[harness]` as `HookEntry { event, matcher }`; a harness name the stem does not know is `Error::Manifest`; an event the harness does not have (§5) is `Error::Manifest` |
 | `faces.git` | `git_hooks`; `reference-transaction` is accepted by the schema but the stem does not install it (`Error::Manifest`, so the gap is loud) |
-| `faces.mcp.command`, `faces.mcp.args`, `faces.mcp.env` (accepted 2026-09-08, land in the next contracts hotfix; read as extra fields until then) | `mcp` (`McpServer { command, args, env: BTreeMap<String, String> }`); when only `tools` is present the bed is a channel the stem cannot plant yet, `mcp` is `None`, and `bundle build` says so on stderr |
+| `faces.mcp.command`, `faces.mcp.args`, `faces.mcp.env` | `mcp` (`McpServer { command, args, env }`, env being the variable names the server reads); when only `tools` is present the bed is a channel the stem cannot plant yet, `mcp` is `None`, and `bundle build` says so on stderr |
 | `check` | `check` (null stays `None`) |
 
 ```rust
@@ -258,6 +258,13 @@ binary, written by the install step, excluded from `generate` and compared by sh
 event: the before-tool event (the deny list), every event a friction kind derives from
 (friction plan §3, table of kinds), and the session-end event (the receipt draft). Beds'
 entries come from `Bed::hooks`; matchers are carried where the vendor has them.
+
+An MCP entry is written as `{"command": <command>, "args": [<args>], "env": {<NAME>: "${<NAME>}"}}`
+with the args as declared (relative to the artifact root, which the install step lays out
+under the bundle's `bin/<bed>/`, so the entry's `cwd`-free form works from any directory
+only when the command resolves on PATH; a relative arg is prefixed with the vendor's root
+variable and `bin/<bed>/`). The `${NAME}` form is what all three vendors expand from the
+planter's environment.
 
 Three bundles must carry identical hook, skill and MCP sets; a test asserts that from the
 generated trees, harness names aside.
@@ -388,11 +395,12 @@ difference is recorded on the stem loop's Tried.
 ## 6. The contracts
 
 `contracts/manifest.schema.json` and `contracts/lock.schema.json` are the contracts' product,
-landed at a107c14 (v1.1.0). The stem reads them, never owns them: embedded with
+at v1.2.0 (0ddfafa). The stem reads them, never owns them: embedded with
 `include_str!`, enforced before parsing, and their fixtures are the stem's test corpus.
 A gap the stem finds in a schema is reported to the umbrella agent (cape-town, on pollen),
-never patched around in the stem; the gaps reported on 2026-09-08 are the MCP command for
-channel beds and the commit pin for git-installed beds.
+never patched around in the stem; the four gaps reported on 2026-09-08 (the MCP launch line,
+the commit pin for git installs, the binary name, the skill path inside the artifact) landed
+as v1.2.0 the same evening.
 
 ## 7. Fit evidence
 
