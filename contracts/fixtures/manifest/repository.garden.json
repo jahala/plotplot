@@ -1,0 +1,18 @@
+{
+  "name": "plotplot",
+  "kind": [
+    "repository"
+  ],
+  "smoke": {
+    "commands": [
+      {
+        "argv": [
+          "tend2",
+          "lint",
+          "docs/tend2/plotplot.tend2.html"
+        ],
+        "timeout_ms": 5000
+      }
+    ]
+  }
+}
