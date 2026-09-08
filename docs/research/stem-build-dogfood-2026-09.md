@@ -35,11 +35,31 @@ fix; each is a candidate issue on the tool's repository.
   v1.3 field; `pleach --version` here is 0.0.1 and contracts/pins.json pins the plan schema
   at 1.1.5, so the field is not there yet and the run's Tried is whatever the worker writes
   in its final message.
+- 2026-09-08 pleach's run journal names workers only as `pl-<hex>`; after a SIGTERM abort the
+  journal says "worker seam error: wait exited 143" and not which umbel session it was, so
+  the operator cannot match sessions to nodes from the journal either.
+- 2026-09-08 retracted: what looked like pleach spawning two workers for one node was two
+  conductors on one machine sharing umbel's global session list (see umbel below). The
+  teardown-leak line above stands corrected the same way: the session I killed after the
+  abort was another run's.
 
 ## umbel
 
 - 2026-09-08 `umbel ls` lists four `smk-trust-*` sessions dead since 2026-09-05 in temp
   directories that no longer exist; nothing prunes dead sessions, so the list grows forever.
+- 2026-09-08 `umbel ls` is global across every conductor on the machine, shows the cwd
+  truncated to its last path segments (`…pleach/worktrees/wt-xny6KM/wt`), and has no filter by
+  repository or spawning process; two pleach runs in two repositories produce
+  indistinguishable `pl-*` rows. I killed two sessions belonging to other agents' runs on the
+  strength of that list. `umbel ls --cwd <prefix>` or an owner column (the spawning pid or
+  a label pleach passes) would have prevented it; pleach should pass `name: <plan>-<node>`
+  instead of an anonymous `pl-<hex>`.
+- 2026-09-08 `umbel kill` deletes the session's state, including `meta.json` with the cwd,
+  so after a mistaken kill nothing says whose session it was. `keepState` exists but the
+  default erases the evidence.
+- 2026-09-08 `umbel ls` shows `—` in the MODEL column for a freshly spawned claude worker for
+  its first minute or so, then `claude-opus-5`; a row with no model looks like a probe or a
+  failed spawn rather than a worker that has not reported yet.
 
 ## conductor (workspace tooling)
 

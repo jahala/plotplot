@@ -65,6 +65,7 @@ stem writes outside `.plotplot/` are the ones a vendor or git requires there.
 
 ```
 garden.lock                       the pinned judges (lock schema); committed
+garden.json                       the planted repository's own manifest, kind ["repository"] (v1.3.0); committed
 AGENTS.md                         the garden block between <!-- plotplot:begin --> and <!-- plotplot:end -->
 .githooks/pre-commit              git hooks; core.hooksPath points here; committed
 .githooks/pre-push
@@ -186,7 +187,9 @@ pub fn beds_registered_for(beds: &[Bed], harness: Harness, event: &str) -> Vec<&
 
 ### `manifest.rs` — `garden.json`, the contracts' manifest
 
-The schema is `contracts/manifest.schema.json` (contracts v1.2.0, commit 0ddfafa),
+The schema is `contracts/manifest.schema.json` (contracts v1.3.0; the bed shape is v1.2.0's,
+v1.3.0 adds the `kind: ["repository"]` case a planted repository's own `garden.json` takes,
+which is never a `Bed`),
 embedded with `include_str!` and enforced with `jsonschema` before serde parsing, so a
 manifest the contracts reject never becomes a `Bed`. The fixtures under
 `contracts/fixtures/manifest/` are the test corpus: every positive fixture parses, every
