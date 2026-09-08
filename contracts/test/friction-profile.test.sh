@@ -39,7 +39,7 @@ fi
 # This file is the small parser and rule set the profile names; there is no separate
 # machine-readable copy of the profile to load, so keeping this list in step with the
 # profile's tables is a manual discipline, checked by review, not by this script.
-pinned_kinds="tool.denied tool.failed tool.retry file.reread search.fanout edit.churn test.loop stop.refused context.compacted session.ended gate.retry worker.wedged model.call"
+pinned_kinds="tool.denied tool.failed tool.retry file.reread search.fanout edit.churn test.loop stop.refused context.compacted session.ended gate.retry run.lifecycle node.lifecycle gate.result worker.wedged model.call"
 path_required_kinds="tool.denied tool.failed file.reread edit.churn test.loop"
 
 is_in_list() {
@@ -63,6 +63,9 @@ extra_required_for() {
     context.compacted) echo 'gen_ai.conversation.compacted' ;;
     session.ended) echo 'gen_ai.usage.input_tokens gen_ai.usage.output_tokens' ;;
     gate.retry) echo 'plotplot.node plotplot.gate' ;;
+    run.lifecycle) echo '' ;;
+    node.lifecycle) echo 'plotplot.node' ;;
+    gate.result) echo 'plotplot.gate plotplot.node' ;;
     worker.wedged) echo 'plotplot.worker' ;;
     model.call) echo 'gen_ai.provider.name gen_ai.request.model gen_ai.usage.input_tokens gen_ai.usage.output_tokens' ;;
     *) echo '' ;;
@@ -173,15 +176,27 @@ while IFS= read -r line || [ -n "$line" ]; do
   fi
 done <"$fixture"
 
-[ "$line_count" -eq 3 ]; assert $? "the fixture has exactly three lines (got $line_count)"
+[ "$line_count" -eq 6 ]; assert $? "the fixture has exactly six lines (got $line_count)"
 
-for demo_kind in tool.failed gate.retry model.call; do
+for demo_kind in tool.failed gate.retry model.call run.lifecycle node.lifecycle gate.result; do
   if is_in_list "$demo_kind" "$seen_kinds"; then
     assert 0 "the fixture includes a $demo_kind line"
   else
     assert 1 "the fixture includes a $demo_kind line"
   fi
 done
+
+verdict_line=$(grep '"event":"verdict"' "$fixture" | head -n 1)
+if [ -n "$verdict_line" ]; then
+  has_nonnull_key "$verdict_line" plotplot.runner; assert $? "the verdict line carries plotplot.runner (the runner attribute)"
+  if jq -e 'has("gen_ai.provider.name") | not' >/dev/null 2>&1 <<<"$verdict_line"; then
+    assert 0 "the verdict line omits gen_ai.provider.name (a conductor cannot observe the provider)"
+  else
+    assert 1 "the verdict line omits gen_ai.provider.name (a conductor cannot observe the provider)"
+  fi
+else
+  assert 1 "the fixture includes a verdict line"
+fi
 
 if [ "$fail" -eq 0 ]; then
   echo "friction-profile.test.sh: all assertions passed"
