@@ -35,31 +35,76 @@ fn is_writing_tool(harness: Harness, tool: &str) -> bool {
     }
 }
 
+/// Which of the two hard limits refused a tool call.
+///
+/// The friction profile's `tool.denied` record carries `plotplot.rule`, so the refusal has to
+/// be nameable and not only explainable: the sentence a vendor shows the agent is prose, and
+/// prose is not something a ledger can count.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Rule {
+    /// A `git commit`, `git push` or `git merge` carrying `--no-verify` or `-n`.
+    SkippedVerification,
+    /// A write to `garden.lock`, `.githooks/`, `.plotplot/bin/` or `.plotplot/beds/`.
+    StemOwnedPath,
+}
+
+impl Rule {
+    /// The rule's name as the friction journal records it, in the `deny.` namespace so a
+    /// reader of the ledger can tell the stem's own refusals from a bed's.
+    pub fn name(self) -> &'static str {
+        match self {
+            Rule::SkippedVerification => "deny.no-verify",
+            Rule::StemOwnedPath => "deny.stem-owned-path",
+        }
+    }
+}
+
+impl std::fmt::Display for Rule {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        out.write_str(self.name())
+    }
+}
+
 /// What the stem says about this tool call.
 ///
 /// [`Answer::Allow`] for every event but the vendor's before-tool event, because a decision
 /// on any other event cannot stop anything and a hook that denies too late is noise.
 pub fn decide(payload: &Payload) -> Answer {
+    decide_with_rule(payload).0
+}
+
+/// The same decision, with the rule that made it when the answer is a refusal.
+///
+/// [`decide`] is the shape the module contract fixes and the shape a caller who only needs an
+/// answer wants; the dispatcher needs the name too, so both come from here and the two can
+/// never disagree.
+pub fn decide_with_rule(payload: &Payload) -> (Answer, Option<Rule>) {
     if payload.event != payload.harness.before_tool_event() {
-        return Answer::Allow;
+        return (Answer::Allow, None);
     }
     let Some(tool) = payload.tool_name.as_deref() else {
-        return Answer::Allow;
+        return (Answer::Allow, None);
     };
 
     if let Some(command) = shell_command(payload) {
         if let Some(verb) = skipped_verification(&command) {
-            return Answer::Deny {
-                reason: skip_reason(&verb),
-            };
+            return (
+                Answer::Deny {
+                    reason: skip_reason(&verb),
+                },
+                Some(Rule::SkippedVerification),
+            );
         }
         let tokens = shell_tokens(&command);
         if let Some(guarded) = guarded_target(payload, redirection_targets(&tokens)) {
-            return Answer::Deny {
-                reason: guarded_reason(&guarded),
-            };
+            return (
+                Answer::Deny {
+                    reason: guarded_reason(&guarded),
+                },
+                Some(Rule::StemOwnedPath),
+            );
         }
-        return Answer::Allow;
+        return (Answer::Allow, None);
     }
 
     if is_writing_tool(payload.harness, tool) {
@@ -69,12 +114,15 @@ pub fn decide(payload: &Payload) -> Answer {
             .map(input_paths)
             .unwrap_or_default();
         if let Some(guarded) = guarded_target(payload, paths) {
-            return Answer::Deny {
-                reason: guarded_reason(&guarded),
-            };
+            return (
+                Answer::Deny {
+                    reason: guarded_reason(&guarded),
+                },
+                Some(Rule::StemOwnedPath),
+            );
         }
     }
-    Answer::Allow
+    (Answer::Allow, None)
 }
 
 /// The git subcommand whose verification this command skips, when it skips one.
@@ -514,5 +562,79 @@ mod tests {
         let json = r#"{"hook_event_name":"PreToolUse","session_id":"s","tool_name":"Write"}"#;
         let payload = parse_payload(Harness::Claude, json).expect("a parsed payload");
         assert_eq!(decide(&payload), Answer::Allow);
+    }
+
+    // -----------------------------------------------------------------------------------
+    // the rule behind the refusal, which the friction ledger records
+    // -----------------------------------------------------------------------------------
+
+    #[test]
+    fn each_refusal_names_the_rule_that_made_it_and_an_allowance_names_none() {
+        assert_eq!(
+            decide_with_rule(&shell(Harness::Claude, "git push --no-verify")).1,
+            Some(Rule::SkippedVerification)
+        );
+        assert_eq!(
+            decide_with_rule(&shell(Harness::Claude, "echo x > .plotplot/bin/weeder")).1,
+            Some(Rule::StemOwnedPath)
+        );
+        assert_eq!(
+            decide_with_rule(&payload(
+                Harness::Claude,
+                "PreToolUse",
+                "Write",
+                json!({ "file_path": "garden.lock" })
+            ))
+            .1,
+            Some(Rule::StemOwnedPath)
+        );
+        assert_eq!(
+            decide_with_rule(&shell(Harness::Claude, "cargo test")).1,
+            None
+        );
+    }
+
+    #[test]
+    fn the_two_rule_names_are_distinct_and_live_in_the_deny_namespace() {
+        for rule in [Rule::SkippedVerification, Rule::StemOwnedPath] {
+            assert!(rule.name().starts_with("deny."), "{rule}");
+            assert_eq!(rule.to_string(), rule.name());
+        }
+        assert_ne!(Rule::SkippedVerification.name(), Rule::StemOwnedPath.name());
+    }
+
+    #[test]
+    fn the_answer_is_the_same_whichever_of_the_two_deciders_is_asked() {
+        for payload in [
+            shell(Harness::Gemini, "git commit -n -m x"),
+            shell(Harness::Codex, "printf x > .githooks/pre-commit"),
+            shell(Harness::Claude, "cargo clippy"),
+            payload(
+                Harness::Claude,
+                "PostToolUse",
+                "Write",
+                json!({ "file_path": "garden.lock" }),
+            ),
+        ] {
+            assert_eq!(decide(&payload), decide_with_rule(&payload).0);
+        }
+    }
+
+    #[test]
+    fn a_refusal_always_carries_a_rule_and_an_allowance_never_does() {
+        for command in [
+            "git commit --no-verify -m x",
+            "git merge -n feature",
+            "echo x >> .plotplot/beds/weeder/garden.json",
+            "cargo test",
+            "git log -n 3",
+        ] {
+            let (answer, rule) = decide_with_rule(&shell(Harness::Claude, command));
+            assert_eq!(
+                matches!(answer, Answer::Deny { .. }),
+                rule.is_some(),
+                "{command}"
+            );
+        }
     }
 }

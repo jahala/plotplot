@@ -138,51 +138,66 @@ pub fn dispatch(root: &Path, harness: Harness, event: &str, payload_json: &str) 
         Err(error) => return Dispatch::cannot(error.to_string()),
     };
 
-    let mut answer = judge(root, harness, event, payload_json, &payload);
-    trail(root, event, &payload, &mut answer.stderr);
+    let (mut answer, refused) = judge(root, harness, event, payload_json, &payload);
+    trail(root, event, &payload, refused, &mut answer.stderr);
     answer
 }
 
-/// The answer itself: the stem's deny list, then the beds that registered for this event.
+/// The answer itself, and the stem's own rule when the stem's own deny list is what refused.
+///
+/// The rule travels out because the ledger needs a name for it: the profile derives
+/// `tool.denied` from this decision, and the decision is not visible in the payload.
 fn judge(
     root: &Path,
     harness: Harness,
     event: &str,
     payload_json: &str,
     payload: &Payload,
-) -> Dispatch {
-    let decision = deny::decide(payload);
+) -> (Dispatch, Option<deny::Rule>) {
+    let (decision, rule) = deny::decide_with_rule(payload);
     if let Answer::Deny { reason } | Answer::Block { reason } | Answer::Cannot { reason } =
         &decision
     {
-        return Dispatch {
-            code: exit_code(&decision),
-            stdout: render_answer(harness, event, &decision),
-            stderr: format!("{reason}\n"),
-        };
+        return (
+            Dispatch {
+                code: exit_code(&decision),
+                stdout: render_answer(harness, event, &decision),
+                stderr: format!("{reason}\n"),
+            },
+            rule,
+        );
     }
 
     let beds = match manifest::load_beds(root) {
         Ok(beds) => beds,
-        Err(error) => return Dispatch::cannot(error.to_string()),
+        Err(error) => return (Dispatch::cannot(error.to_string()), None),
     };
     let registered = registered(root, &beds, harness, event, payload.tool_name.as_deref());
     if registered.is_empty() {
-        return Dispatch::allow();
+        return (Dispatch::allow(), None);
     }
-    merge(&fan_out(
+    let answer = merge(&fan_out(
         harness,
         payload_json,
         &registered,
         timeout_for(harness, event),
-    ))
+    ));
+    (answer, None)
 }
 
 /// The two faces the stem owns, after the answer and never changing it.
 ///
 /// The receipt draft goes first on the session-end event: it counts from the friction state
 /// that [`crate::friction::emit`] prunes there, which is the ordering `receipt.rs` documents.
-fn trail(root: &Path, event: &str, payload: &Payload, stderr: &mut String) {
+/// A refusal by the stem's own deny list earns its `tool.denied` line last, after the records
+/// the payload itself earned, so the journal reads in the order the dispatcher decided in.
+fn trail(
+    root: &Path,
+    event: &str,
+    payload: &Payload,
+    refused: Option<deny::Rule>,
+    stderr: &mut String,
+) {
     if event == payload.harness.session_end_event() {
         if let Err(error) = receipt::draft(root, payload) {
             stderr.push_str(&format!("{error}\n"));
@@ -190,6 +205,11 @@ fn trail(root: &Path, event: &str, payload: &Payload, stderr: &mut String) {
     }
     if let Err(error) = friction::emit(root, payload, &SystemClock) {
         stderr.push_str(&format!("{error}\n"));
+    }
+    if let Some(rule) = refused {
+        if let Err(error) = friction::emit_denied(root, payload, rule.name(), &SystemClock) {
+            stderr.push_str(&format!("{error}\n"));
+        }
     }
 }
 

@@ -280,6 +280,104 @@ fn a_skipped_gate_is_denied_before_any_bed_is_called() {
     );
 }
 
+/// Every `tool.denied` line the journal under `root` holds.
+fn denied_lines(root: &Path) -> Vec<Value> {
+    journal_lines(root)
+        .into_iter()
+        .filter(|line| line["plotplot.kind"] == "tool.denied")
+        .collect()
+}
+
+#[test]
+fn the_stems_own_refusal_earns_one_tool_denied_record_naming_its_rule() {
+    let temp = tempfile::tempdir().expect("a temporary root");
+    let root = temp.path();
+
+    plotplot(root)
+        .args(["hook", "claude", "PreToolUse"])
+        .write_stdin(no_verify())
+        .assert()
+        .code(2);
+
+    let denied = denied_lines(root);
+    assert_eq!(
+        denied.len(),
+        1,
+        "one refusal is one record: {:#?}",
+        journal_lines(root)
+    );
+    let line = &denied[0];
+
+    // The envelope the profile puts on every line of every stream.
+    assert_eq!(line["event.name"], "plotplot.friction");
+    assert_eq!(line["plotplot.harness"], "claude-code");
+    assert_eq!(line["gen_ai.conversation.id"], CLAUDE_SESSION);
+    assert_eq!(line["plotplot.count"], 1);
+    let time = line["time"].as_str().expect("the envelope carries a time");
+    assert!(time.ends_with('Z'), "{time}");
+
+    // The profile's per-kind attributes for `tool.denied`, and the rule that refused.
+    assert_eq!(line["gen_ai.operation.name"], "execute_tool");
+    assert_eq!(line["gen_ai.tool.name"], "Bash");
+    assert_eq!(line["plotplot.rule"], "deny.no-verify");
+
+    // A refused `git commit` names no file, so the two path keys are absent rather than
+    // invented; the emitter's own PATH_GAPS records that gap against the profile.
+    assert!(line.get("plotplot.path").is_none(), "{line}");
+    assert!(line.get("plotplot.path.kind").is_none(), "{line}");
+}
+
+#[test]
+fn a_refused_write_to_a_stem_owned_path_carries_that_path_and_its_rule() {
+    let temp = tempfile::tempdir().expect("a temporary root");
+    let root = temp.path();
+
+    let refused = variant("claude", "PreToolUse", |payload| {
+        payload["cwd"] = Value::String(root.display().to_string());
+        payload["tool_name"] = Value::String("Write".to_owned());
+        payload["tool_input"] = serde_json::json!({
+            "file_path": ".githooks/pre-commit",
+            "content": "exit 0\n"
+        });
+    });
+
+    plotplot(root)
+        .args(["hook", "claude", "PreToolUse"])
+        .write_stdin(refused)
+        .assert()
+        .code(2);
+
+    let denied = denied_lines(root);
+    assert_eq!(denied.len(), 1, "{:#?}", journal_lines(root));
+    assert_eq!(denied[0]["gen_ai.operation.name"], "execute_tool");
+    assert_eq!(denied[0]["gen_ai.tool.name"], "Write");
+    assert_eq!(denied[0]["plotplot.rule"], "deny.stem-owned-path");
+    assert_eq!(denied[0]["plotplot.path"], ".githooks/pre-commit");
+    assert!(
+        denied[0]["plotplot.path.kind"].is_string(),
+        "a path the ledger records carries its kind: {}",
+        denied[0]
+    );
+}
+
+#[test]
+fn an_allowed_tool_call_earns_no_tool_denied_record() {
+    let temp = tempfile::tempdir().expect("a temporary root");
+    let root = temp.path();
+
+    plotplot(root)
+        .args(["hook", "claude", "PreToolUse"])
+        .write_stdin(reading())
+        .assert()
+        .code(0);
+
+    assert!(
+        denied_lines(root).is_empty(),
+        "nothing was refused: {:#?}",
+        journal_lines(root)
+    );
+}
+
 // ---------------------------------------------------------------------------------------
 // the contract with beds
 // ---------------------------------------------------------------------------------------

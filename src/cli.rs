@@ -3,27 +3,15 @@
 //! A face with work of its own keeps that work in its own module. `version` has none beyond
 //! reading the lock and laying out five lines, so it lives here.
 
-<<<<<<< HEAD
 use std::io::{Read, Write};
-use std::path::Path;
-=======
-use std::io::Write;
 use std::path::{Path, PathBuf};
->>>>>>> node/stem.doctor
 
 use clap::{Args as ClapArgs, Parser, Subcommand};
 
-<<<<<<< HEAD
-use crate::VERSION;
-use crate::harness::Harness;
-use crate::lock::{Lock, read_lock};
-use crate::{friction, hook, receipt};
-=======
 use crate::error::{Error, Result};
 use crate::harness::Harness;
 use crate::lock::{Lock, read_lock};
-use crate::{VERSION, bundle, doctor};
->>>>>>> node/stem.doctor
+use crate::{VERSION, bundle, doctor, friction, hook, receipt};
 
 /// `plotplot`, the stem of the garden.
 #[derive(Debug, Parser)]
@@ -42,13 +30,30 @@ pub struct Args {
 pub enum Face {
     /// Print the stem's version, and the season and judges `garden.lock` pins.
     Version,
-<<<<<<< HEAD
     /// Dispatch one hook event to the beds that registered for it (stdin: the payload).
     Hook(HookArgs),
     /// The friction emitter on its own (stdin: the payload).
     Friction(FrictionArgs),
     /// The receipt writer on its own (stdin: the payload).
     Receipt(ReceiptArgs),
+    /// The generated vendor bundles.
+    Bundle {
+        #[command(subcommand)]
+        command: BundleFace,
+    },
+    /// Prove the garden is planted: one line per check, exit 0 when every check passes.
+    Doctor,
+}
+
+/// What `plotplot bundle` can be asked to do.
+#[derive(Debug, Subcommand)]
+pub enum BundleFace {
+    /// Regenerate `.plotplot/bundles/<harness>/` from the planted beds' manifests.
+    Build {
+        /// The harness to regenerate for; all three when omitted.
+        #[arg(value_name = "claude|gemini|codex", value_parser = harness_value)]
+        harness: Option<Harness>,
+    },
 }
 
 /// `plotplot hook <harness> <event>`, the call every hook entry in every bundle makes.
@@ -97,35 +102,10 @@ pub struct HarnessArg {
     pub harness: Harness,
 }
 
-/// The harness named on the command line, or the error clap prints beside the bad value.
+/// One harness name from the command line, read by the same parser a manifest goes through
+/// so the three names are spelled in one place; clap prints the error beside the bad value.
 fn harness_value(value: &str) -> std::result::Result<Harness, String> {
     value.parse::<Harness>().map_err(|error| error.to_string())
-=======
-    /// The generated vendor bundles.
-    Bundle {
-        #[command(subcommand)]
-        command: BundleFace,
-    },
-    /// Prove the garden is planted: one line per check, exit 0 when every check passes.
-    Doctor,
-}
-
-/// What `plotplot bundle` can be asked to do.
-#[derive(Debug, Subcommand)]
-pub enum BundleFace {
-    /// Regenerate `.plotplot/bundles/<harness>/` from the planted beds' manifests.
-    Build {
-        /// The harness to regenerate for; all three when omitted.
-        #[arg(value_name = "claude|gemini|codex", value_parser = harness)]
-        harness: Option<Harness>,
-    },
-}
-
-/// One harness name from the command line, refused by the same reader a manifest goes
-/// through so the three names are spelled in one place.
-fn harness(name: &str) -> Result<Harness> {
-    name.parse()
->>>>>>> node/stem.doctor
 }
 
 /// Run one face. The only exit codes this returns are the face's own; `main` turns the
@@ -145,7 +125,6 @@ pub fn run(args: Args, root: &Path, stdout: &mut dyn Write, stderr: &mut dyn Wri
                 1
             }
         },
-<<<<<<< HEAD
         Face::Hook(face) => match payload_on_stdin() {
             Ok(payload) => hook::run(root, &face, &payload, stdout, stderr),
             Err(error) => {
@@ -164,7 +143,9 @@ pub fn run(args: Args, root: &Path, stdout: &mut dyn Write, stderr: &mut dyn Wri
             Ok(payload) => receipt::run(root, &face, &payload, stdout, stderr),
             Err(error) => {
                 let _ = writeln!(stderr, "stdin: {error}");
-=======
+                1
+            }
+        },
         Face::Bundle {
             command: BundleFace::Build { harness },
         } => {
@@ -184,14 +165,12 @@ pub fn run(args: Args, root: &Path, stdout: &mut dyn Write, stderr: &mut dyn Wri
             Ok(home) => doctor::run(root, &home, stdout, stderr),
             Err(error) => {
                 let _ = writeln!(stderr, "{error}");
->>>>>>> node/stem.doctor
                 1
             }
         },
     }
 }
 
-<<<<<<< HEAD
 /// The vendor's payload, read whole from stdin.
 ///
 /// The three hook-time faces are filters, and [`run`]'s shape has nowhere for their input to
@@ -201,7 +180,8 @@ fn payload_on_stdin() -> std::io::Result<String> {
     let mut payload = String::new();
     std::io::stdin().read_to_string(&mut payload)?;
     Ok(payload)
-=======
+}
+
 /// The planter's home directory, where Codex records the projects it trusts.
 ///
 /// Read here, at the edge, and passed in: `doctor` is told where to look rather than asking
@@ -222,7 +202,6 @@ fn home() -> Result<PathBuf> {
                 "doctor reads Codex's project trust from the home directory, and HOME is not set",
             ),
         })
->>>>>>> node/stem.doctor
 }
 
 /// What `plotplot version` prints: the binary's own version, then, when the repository is

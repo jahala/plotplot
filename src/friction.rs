@@ -1009,10 +1009,71 @@ pub fn emit(root: &Path, payload: &Payload, now: &dyn Now) -> Result<usize> {
     let state_path = layout::friction_state(root, session);
     let mut state = read_state(&state_path)?;
     let records = derive(root, payload, &mut state);
+    append(root, &records, &time, &month)?;
+
+    if payload.event == payload.harness.session_end_event() {
+        prune_state(&state_path)?;
+    } else {
+        write_state(&state_path, &state)?;
+    }
+    Ok(records.len())
+}
+
+/// Record the stem's own refusal of a tool call, naming the rule that refused it.
+///
+/// The profile derives `tool.denied` from "our own PreToolUse decision" as well as from
+/// Claude's `PermissionDenied`, and only the dispatcher knows about the first: [`derive`] sees
+/// the payload alone, and a payload the stem is about to refuse looks exactly like one it is
+/// about to allow. So the dispatcher tells the ledger, and the ledger writes one line.
+///
+/// This touches no session state. The same payload's before-tool records go through [`emit`],
+/// which owns the state; a refusal adds a line, never a second reader and writer of the file.
+///
+/// # Errors
+///
+/// [`Error::Io`] when the journal cannot be written, [`Error::Json`] when a record cannot be
+/// serialized, and [`Error::Harness`] when the clock's own timestamp names no month.
+pub fn emit_denied(root: &Path, payload: &Payload, rule: &str, now: &dyn Now) -> Result<usize> {
+    let time = now.rfc3339_utc();
+    let month = month_of(&time)?;
+    let records = derive_denied(root, payload, rule);
+    append(root, &records, &time, &month)?;
+    Ok(records.len())
+}
+
+/// The one `tool.denied` record a refusal by the stem's own deny list earns.
+///
+/// Pure over its arguments, like [`derive`], and empty for the same two reasons: a payload
+/// with no session id has no `gen_ai.conversation.id`, and a payload naming no tool has none
+/// of the per-kind attributes the profile requires for this kind.
+pub fn derive_denied(root: &Path, payload: &Payload, rule: &str) -> Vec<Record> {
+    let Some(conversation) = payload.session_id.clone() else {
+        return Vec::new();
+    };
+    let envelope = Envelope {
+        payload,
+        base: payload.cwd.clone().unwrap_or_else(|| root.to_path_buf()),
+        conversation,
+    };
+    let mut records = tool_denied(&envelope);
+    for record in &mut records {
+        record.rule = Some(rule.to_owned());
+    }
+    records
+}
+
+/// Append these records to the month's journal, stamped with the time they were derived at.
+///
+/// The one writer of the journal: [`emit`] and [`emit_denied`] both come through here, so the
+/// file is created in one place and a line's shape cannot drift between the two.
+fn append(root: &Path, records: &[Record], time: &str, month: &str) -> Result<()> {
+    if records.is_empty() {
+        return Ok(());
+    }
+    let journal = layout::friction_journal(root, month);
 
     let mut lines = String::new();
-    let journal = layout::friction_journal(root, &month);
-    for record in records.iter().map(|record| record.clone().stamped(&time)) {
+    for record in records.iter().map(|record| record.clone().stamped(time)) {
         let line = serde_json::to_string(&record).map_err(|source| Error::Json {
             path: Some(journal.clone()),
             source,
@@ -1021,29 +1082,20 @@ pub fn emit(root: &Path, payload: &Payload, now: &dyn Now) -> Result<usize> {
         lines.push('\n');
     }
 
-    if !lines.is_empty() {
-        create_dir(&layout::friction_dir(root))?;
-        let mut file = fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&journal)
-            .map_err(|source| Error::Io {
-                path: journal.clone(),
-                source,
-            })?;
-        file.write_all(lines.as_bytes())
-            .map_err(|source| Error::Io {
-                path: journal.clone(),
-                source,
-            })?;
-    }
-
-    if payload.event == payload.harness.session_end_event() {
-        prune_state(&state_path)?;
-    } else {
-        write_state(&state_path, &state)?;
-    }
-    Ok(records.len())
+    create_dir(&layout::friction_dir(root))?;
+    let mut file = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&journal)
+        .map_err(|source| Error::Io {
+            path: journal.clone(),
+            source,
+        })?;
+    file.write_all(lines.as_bytes())
+        .map_err(|source| Error::Io {
+            path: journal.clone(),
+            source,
+        })
 }
 
 /// `plotplot friction emit --harness <h>`: the face, from arguments and stdin to an exit code.
@@ -1916,6 +1968,68 @@ mod tests {
         ] {
             assert_eq!(path_kind(path), kind, "{path}");
         }
+    }
+
+    // -----------------------------------------------------------------------------------
+    // the stem's own refusal
+    // -----------------------------------------------------------------------------------
+
+    #[test]
+    fn the_stems_own_refusal_earns_one_tool_denied_record_carrying_the_rule() {
+        let payload = claude_bash("PreToolUse", "git commit --no-verify -m x");
+        let records = derive_denied(root(), &payload, "deny.no-verify");
+
+        assert_eq!(kinds(&records), ["tool.denied"]);
+        assert_eq!(records[0].rule.as_deref(), Some("deny.no-verify"));
+        assert_eq!(records[0].operation_name.as_deref(), Some("execute_tool"));
+        assert_eq!(records[0].tool_name.as_deref(), Some("Bash"));
+        assert_eq!(records[0].conversation_id, "6f3c1b2a");
+        assert_eq!(records[0].count, 1);
+        assert_eq!(records[0].event_name, EVENT_NAME);
+    }
+
+    #[test]
+    fn a_refused_write_carries_the_path_it_was_refused_for() {
+        let payload = tool_payload(
+            Harness::Claude,
+            "PreToolUse",
+            "Write",
+            json!({ "file_path": "/work/repo/.githooks/pre-commit" }),
+        );
+        let records = derive_denied(root(), &payload, "deny.stem-owned-path");
+
+        assert_eq!(records[0].path.as_deref(), Some(".githooks/pre-commit"));
+        assert!(records[0].path_kind.is_some());
+    }
+
+    #[test]
+    fn a_refusal_the_profile_cannot_name_earns_no_record() {
+        // No session id: the record would have no `gen_ai.conversation.id`, which the
+        // profile requires non-null on every line.
+        let json = r#"{"hook_event_name":"PreToolUse","cwd":"/work/repo","tool_name":"Bash"}"#;
+        let payload = parse_payload(Harness::Claude, json).expect("a parsed payload");
+        assert!(derive_denied(root(), &payload, "deny.no-verify").is_empty());
+
+        // No tool: `gen_ai.tool.name` is required for this kind and cannot be invented.
+        let json = r#"{"hook_event_name":"PreToolUse","session_id":"s","cwd":"/work/repo"}"#;
+        let payload = parse_payload(Harness::Claude, json).expect("a parsed payload");
+        assert!(derive_denied(root(), &payload, "deny.no-verify").is_empty());
+    }
+
+    #[test]
+    fn a_denied_record_carries_the_same_envelope_a_derived_one_does() {
+        let payload = fixture(Harness::Claude, "PermissionDenied");
+        let mut state = SessionState::new();
+        let derived = derive(root(), &payload, &mut state);
+        let denied = derive_denied(root(), &payload, "deny.no-verify");
+
+        assert_eq!(kinds(&derived), kinds(&denied));
+        assert_eq!(derived[0].harness, denied[0].harness);
+        assert_eq!(derived[0].conversation_id, denied[0].conversation_id);
+        assert_eq!(derived[0].model, denied[0].model);
+        // The one difference: the vendor's own denial names no rule of ours, ours does.
+        assert_eq!(derived[0].rule, None);
+        assert_eq!(denied[0].rule.as_deref(), Some("deny.no-verify"));
     }
 
     #[test]
