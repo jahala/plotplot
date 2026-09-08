@@ -8,7 +8,7 @@
 | Vision | Building with AI that feels less like a gold rush and more like tending a garden: calm, crafted, and cumulative. |
 | Audience | Everyone building with AI — agent builders, AI engineers, and developers who live in the terminal. |
 | Founded | 2026 |
-| Brand Version | v2.0.0 |
+| Brand Version | v1.0.0 |
 
 ## Brand Story
 
