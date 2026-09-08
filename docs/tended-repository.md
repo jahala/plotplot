@@ -292,10 +292,10 @@ Profoundly, the vital choices are these, and each is a fence with a cow behind i
   missing instrument.
 - Verifier identity and version in tend2's stamp format, additively.
 - A Tried entry as a machine-checked required output of every work order in pleach and tend2.
-- A dependency-direction rule in weed, using tilth's dependency analysis.
+- A dependency-direction rule in weeder, using tilth's dependency analysis.
 - The judges lockfile and fetch-on-first-use wrapper in the stem, replacing any idea of
   committing binaries or installing globally.
-- The two-tier `AGENTS.md` structure, with Tier A files guarded by weed's guardrail rule.
+- The two-tier `AGENTS.md` structure, with Tier A files guarded by weeder's guardrail rule.
 - The promotion ladder as a named practice, with each promotion recorded in a loop.
 - Scheduled hygiene loops: alarm precision, suppression pile, slice drift on model change.
 

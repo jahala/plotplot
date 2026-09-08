@@ -77,14 +77,14 @@ The kinds, and what produces each:
 
 | `plotplot.kind` | Meaning | Derived from |
 |---|---|---|
-| `tool.denied` | a hook refused a tool call | our own PreToolUse decision (hedge rules, weed on commit); Claude `PermissionDenied` |
+| `tool.denied` | a hook refused a tool call | our own PreToolUse decision (hedge rules, weeder on commit); Claude `PermissionDenied` |
 | `tool.failed` | a tool call errored | Claude `PostToolUseFailure`; Gemini `AfterTool` with an error in `tool_response`; Codex `PostToolUse` with non-zero exit |
 | `tool.retry` | same tool, same input hash, within N calls | any harness, from consecutive `PreToolUse` payloads |
 | `file.reread` | the same path read again in one session | `PostToolUse` for Read, `tilth_read`, `cat`/`sed` in Bash, path from `tool_input` |
 | `search.fanout` | searches before the first edit of a session | `PostToolUse` for Grep, Glob, `tilth_search`, `rg` in Bash |
 | `edit.churn` | the same path edited again in one session | `PostToolUse` for Edit, Write, `tilth_write` |
-| `test.loop` | a test command run again in one session | Bash `tool_input.command` matching the test runners weed already knows |
-| `stop.refused` | weed's Stop hook blocked a premature done | our own Stop decision |
+| `test.loop` | a test command run again in one session | Bash `tool_input.command` matching the test runners weeder already knows |
+| `stop.refused` | weeder's Stop hook blocked a premature done | our own Stop decision |
 | `context.compacted` | the context was compacted | Claude `PreCompact`; Gemini `PreCompress`; `gen_ai.conversation.compacted=true` |
 | `session.ended` | a session ended, with totals | Claude `SessionEnd`, Gemini `SessionEnd`, Codex `SessionEnd` |
 | `gate.retry` | a pleach node retried after a gate | pleach's journal (its own emitter, later) |

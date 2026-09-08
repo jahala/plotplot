@@ -16,7 +16,7 @@ The stem is not an orchestrator (pleach conducts), not a runtime (umbel runs), n
 
 ## The proof run
 
-`scripts/fit/proof.sh` builds a fixture repository with a deliberately flawed feature, plants the garden with `plotplot init`, emits a plan from its loops, runs it through pleach with two umbel workers on two providers, plants a test deletion in one worker's diff, and asserts five things in order: weed refused the deletion as a block-level SARIF result; the surviving node's check was stamped with the verifier's identity and version; `plotplot check` returned one SARIF log containing every gate's results; an in-toto statement for the merged node names the harness, model, and gates; and `plotplot doctor` on a second fresh clone reports every hook live with no global install performed.
+`scripts/fit/proof.sh` builds a fixture repository with a deliberately flawed feature, plants the garden with `plotplot init`, emits a plan from its loops, runs it through pleach with two umbel workers on two providers, plants a test deletion in one worker's diff, and asserts five things in order: weeder refused the deletion as a block-level SARIF result; the surviving node's check was stamped with the verifier's identity and version; `plotplot check` returned one SARIF log containing every gate's results; an in-toto statement for the merged node names the harness, model, and gates; and `plotplot doctor` on a second fresh clone reports every hook live with no global install performed.
 
 ## Tests
 - [ ] (code) `plotplot init` on a fixture repo writes the garden block into `AGENTS.md`, the harness project configs, and sets `core.hooksPath` idempotently — running it twice changes nothing · scripts/fit/stem.sh init
@@ -30,7 +30,7 @@ The stem is not an orchestrator (pleach conducts), not a runtime (umbel runs), n
 - [ ] (code) `plotplot doctor --live` drives one real session per present harness through umbel and proves from the friction journal and a marker file that each registered hook fired, reporting Codex as awaiting trust when it is · scripts/fit/stem.sh doctor-live
 - [ ] (human) the owner confirms the `plotplot` npm name and the `@plotplot/*` scope, whether the stem's repository is `jahala/plotplot`, which beds `init` plants by default, and whether receipts are drafted by default
 
-## Needs #contracts #weed #tend2 #pleach #umbel
+## Needs #contracts #weeder #tend2 #pleach #umbel
 
 ## Tried
 - 2026-09-05 scope-out: no `plotplot run` — a wrapper over `pleach run` adds a name and no capability
@@ -43,5 +43,6 @@ The stem is not an orchestrator (pleach conducts), not a runtime (umbel runs), n
 - 2026-09-06 Gemini CLI's live proof is blocked on this machine: Google retired the personal sign-in the installed 0.46.0 uses, so `doctor --live` can prove Claude Code and Codex, and holds Gemini's hook shapes by test until a sign-in exists
 - 2026-09-06 the stem hosts the two hook-time faces no bed owns, the friction emitter and the receipt writer; their plans are `docs/plans/friction-ledger.md` and `docs/plans/receipts.md`
 - 2026-09-05 measured today for the context check's baseline: tilth ≈2,900 tok, umbel 1,663, tend2 654 plus an 807-token SessionStart injection, walkie 419, skill descriptions ≈1,300; ≈8,300 with everything planted and nothing deferred
+- 2026-09-08 from the placement pass: init profiles, minimal by default (plotplot-ai 36), which is the proposed answer to the default-beds question in the human check above; the footprint rule, human-authored under docs/tend2 and root config, machine-written under .plotplot (37); the platform projection as the fourth job (26, 27) and the front door for pull requests pleach did not conduct (29); verified today against GitHub's docs that self-hosted runners must not be registered on public beds, so builder jobs on the clock live in one private repository that checks the public beds out
 </script>
 <script src="./loop.js"></script>

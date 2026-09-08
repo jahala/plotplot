@@ -24,4 +24,4 @@ Findings say what was found, why it matters, and the next action:
 Restore them, or allow with a reason: Weed-allow: T1 <reason>.`
 
 Product name is lowercase always: `weeder`. The metaphor stays in the mark and the tagline;
-findings never joke, and nothing is ever "weedered out" in interface copy.
+findings never joke, and nothing is ever "weeded out" in interface copy.

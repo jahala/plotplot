@@ -35,7 +35,7 @@ each owned by exactly one bed:
 | Context, truth | Do the docs the agent reads still match the code | graft |
 | Boundary | What may the agent not do, receive, or spend | hedge |
 | Execution | How is one unit of agent work run on any provider | umbel |
-| Evidence | Is the produced diff honest work | weed |
+| Evidence | Is the produced diff honest work | weeder |
 | Conduction | How do many units run isolated, gated, merged only when verified | pleach |
 | Communication | How do agents talk to each other with a human at the gate | pollen |
 | Measurement | Did any of this help, in cost per correct answer | copeca |
@@ -77,7 +77,7 @@ Every design choice below follows from these seven. A proposal that breaks one i
  3  stem         plotplot: init · doctor · orient · check · run · walk · version · mcp
                  wires beds into harnesses; resolves manifests; assembles; aggregates
  ──────────────────────────────────────────────────────────────────────────────────────
- 2  beds         tend2 · tilth · petals · graft · hedge · umbel · weed · pleach · pollen · copeca
+ 2  beds         tend2 · tilth · petals · graft · hedge · umbel · weeder · pleach · pollen · copeca
                  each one concern, each standalone, each speaks the contracts
  ──────────────────────────────────────────────────────────────────────────────────────
  1  contracts    manifest · loop · plan · unit · findings · briefing · receipt · message · rules · brand · artifact
@@ -110,7 +110,7 @@ package, all MIT:
 | **brand** | design and voice | petals' `.brand/` tree: umbrella plus product layers |
 | **artifact** | a measurement | copeca's signed `.copeca` run |
 
-Three of these are new and do the unifying work. **findings** means petals, weed, graft, tend2
+Three of these are new and do the unifying work. **findings** means petals, weeder, graft, tend2
 lint and hedge all emit one shape, so `plotplot check` is concatenation and any CI can read
 any bed. **briefing** means orientation is assembled, not hardcoded: each bed offers a
 fragment with the condition under which it fires, and the stem takes the highest-priority
@@ -129,10 +129,10 @@ Four kinds, by how the agent meets them:
 |---|---|---|---|
 | capability | CLI, with a `SKILL.md` for on-demand instructions | one description line | tilth, petals, copeca, graft |
 | channel | MCP over stdio, at most three tools and one help topic | tool names only where the harness defers; schemas otherwise | umbel, pollen, tend2's pens |
-| gate | CLI emitting findings; exit code is the verdict | zero | weed, petals check, graft check, tend2 lint |
-| hook | harness lifecycle hook; speaks only to deny, refuse, or brief | zero when silent | hedge, weed at Stop, orient |
+| gate | CLI emitting findings; exit code is the verdict | zero | weeder, petals check, graft check, tend2 lint |
+| hook | harness lifecycle hook; speaks only to deny, refuse, or brief | zero when silent | hedge, weeder at Stop, orient |
 
-A bed may be several kinds: weed is a gate and a hook; tend2 is a capability, a channel, and a
+A bed may be several kinds: weeder is a gate and a hook; tend2 is a capability, a channel, and a
 gate. Every bed, whatever its kind, ships:
 
 - a CLI as its primary face, usable with nothing else installed;
@@ -176,7 +176,7 @@ The garden block the stem writes into `AGENTS.md`, in full:
 ```
 ## plotplot garden
 
-This repo is tended with plotplot (season 2026.09). Planted: tend2, tilth, petals, hedge, weed.
+This repo is tended with plotplot (season 2026.09). Planted: tend2, tilth, petals, hedge, weeder.
 Orient: `plotplot orient` (runs at session start). Loops: `tend2 next docs/tend2`.
 Gates: `plotplot check` must pass before a commit. Help: `plotplot help <bed>`.
 Hard limits are enforced by hedge at the tool boundary; a denial comes with its reason.
@@ -193,17 +193,17 @@ One session, on any harness, with the garden planted:
 
 | Moment | Hook | What runs | Contract |
 |---|---|---|---|
-| session starts | SessionStart | `plotplot orient`: tend2's routing, graft's stale count, weed's open findings, hedge's mode, petals only if UI files are in scope | briefing |
+| session starts | SessionStart | `plotplot orient`: tend2's routing, graft's stale count, weeder's open findings, hedge's mode, petals only if UI files are in scope | briefing |
 | a prompt arrives | UserPromptSubmit | tilth's scout fragment, only when its gate is confident | briefing |
-| a tool is about to run | PreToolUse | hedge: allow or deny with reason; weed on `git commit`: staged findings | rules, findings |
+| a tool is about to run | PreToolUse | hedge: allow or deny with reason; weeder on `git commit`: staged findings | rules, findings |
 | a tool has run | PostToolUse | hedge inbound: quarantine instruction-like text in results, where the harness allows suppression | rules |
 | context is about to compact | PreCompact | `plotplot orient` again | briefing |
-| the agent says done | Stop | weed on the working tree; if a loop is active, tend2 verify on its code checks; refuse the stop with findings | findings, loop |
+| the agent says done | Stop | weeder on the working tree; if a loop is active, tend2 verify on its code checks; refuse the stop with findings | findings, loop |
 | session ends | SessionEnd | receipt written; the loop's Tried section gains what was tried | receipt, loop |
 
 A fleet, from one command: `plotplot run plan.json`. pleach isolates each node in a worktree,
 umbel spawns the worker on whatever provider the plan names, the worktree carries the repo's
-hooks so hedge and weed guard every worker exactly as they guard a human's session, pollen
+hooks so hedge and weeder guard every worker exactly as they guard a human's session, pollen
 carries peer questions with the human at the gate, gates run in order (markers, `plotplot
 check --strict`, audit by a different provider), and only a verified `node/<id>` branch
 publishes. tend2 is the ledger that closes the loop.
@@ -220,7 +220,7 @@ open from disk.
 
 **Two kinds of repos.** One monorepo, `plotplot`, holds the contracts, the stem, the umbrella
 brand and site, and every bed that is glue-shaped and TypeScript: tend2, pleach, umbel,
-pollen, weed, hedge, graft. Satellites hold the beds that are products in their own right
+pollen, weeder, hedge, graft. Satellites hold the beds that are products in their own right
 with their own communities and toolchains: tilth (Rust, 339 stars), copeca (Python, PyPI),
 and petals (a skill; it may live in either). Satellites implement the contracts and ship a
 manifest; they never import from the monorepo.
@@ -250,14 +250,14 @@ within a season; a breaking contract change is a new season. Users pin a season.
 |---|---|
 | tilth carries a 480-token instruction block and installs into 20 hosts | instruction block becomes tilth's `SKILL.md` body; install logic moves to the stem's adapters; tilth ships `garden.json` and keeps its own installer only as a fallback |
 | umbel: 12 MCP tools, Bun | 6 tools plus help, Node; moves into the monorepo; its `invoke` signature becomes the `unit` contract |
-| pleach: Bun, `accept.smoke` free-form | Node; moves into the monorepo; default smoke is `plotplot check --strict`; its plan schema becomes the `plan` contract; RED/GREEN gains `weed bite` at the end |
+| pleach: Bun, `accept.smoke` free-form | Node; moves into the monorepo; default smoke is `plotplot check --strict`; its plan schema becomes the `plan` contract; RED/GREEN gains `weeder bite` at the end |
 | tend2: Node, its own plugin with 8 skills and a SessionStart hook | moves into the monorepo; the plugin is generated by the stem; SessionStart becomes a briefing fragment; lint emits findings |
 | petals: bash `check.sh` with its own output | emits findings; vendored copies replaced by the stem installing the skill |
 | walkie-clawkie: 5 tools | pollen: 3 tools, Node, in the monorepo; envelope becomes the `message` contract |
 | mull: dormant, its own MCP server and knowledge store | if it survives its review, a batch writer of the loop's Tried section, no server, no store |
 | copeca: Python satellite | unchanged, plus `garden.json` and the whole-garden scenario |
 | plotplot-ai: landing page and canonical brand in their own repo | `brand/` and `site/` in the monorepo; the site adds the loop story and the walk |
-| hedge, weed, graft: not built | built in the monorepo against the contracts from the start |
+| hedge, weeder, graft: not built | built in the monorepo against the contracts from the start |
 | eight READMEs, eight installs | one `npx plotplot init`; beds still installable alone |
 
 ## 10. Order of work, with kill criteria
@@ -267,12 +267,12 @@ within a season; a breaking contract change is a new season. Users pin a season.
    `conform`. Kill: if two existing beds cannot emit the findings shape without losing
    information they need, the shape is wrong; fix it before anything else.
 2. **Stem, first spark**: `init` for Claude Code and one more harness, `doctor`, `check`,
-   `orient` with tend2 and weed fragments, the garden block. Kill: if driving two harnesses
+   `orient` with tend2 and weeder fragments, the garden block. Kill: if driving two harnesses
    from one manifest needs harness-specific fields in bed manifests, the abstraction is
    wrong.
 3. **Monorepo move** of tend2, pleach, umbel, pollen onto one runtime; the end-to-end proof
    as CI.
-4. **hedge and weed** built against the contracts.
+4. **hedge and weeder** built against the contracts.
 5. **The whole-garden copeca scenario**: tasks with the garden planted versus not, cost per
    correct. Kill: if planting the garden does not lower cost per correct on hard tasks at
    the pre-registered bar, the season does not ship and the memo says why.

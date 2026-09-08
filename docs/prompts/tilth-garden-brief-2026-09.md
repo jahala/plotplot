@@ -1,5 +1,7 @@
 # tilth — garden brief
 
+Note: weed was renamed weeder on 2026-09-06; this is the message as sent.
+
 Brief for the agent working on tilth. Self-contained: you have not seen any prior
 conversation. Read in this order before touching code:
 `~/conductor/workspaces/plotplot-ai/cape-town-v1/docs/building-the-garden.md` (the law every

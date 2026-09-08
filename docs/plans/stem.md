@@ -18,6 +18,10 @@ PATH. A stamp's meaning depends on the judge's version, so pinning is not conven
 what makes proof reproducible. And a hook that silently never fires is the worst failure a
 boundary can have, so "is it planted" must be a command, not a belief.
 
+The stem has a fourth job this plan first left implicit: it projects the law onto the platform,
+writing the workflow files, the CODEOWNERS line and the rulesets it can apply, reporting verbatim
+what it cannot, and doctor proves that half as well (plotplot-ai issue 26).
+
 ## 2. Standards and vendor formats it stands on
 
 Verified 2026-09-06 against the vendors' references.
@@ -56,10 +60,10 @@ silently never fires on a common machine.
 **`garden.json`** at each bed's root, schema in contracts (already on the contracts loop):
 
 ```json
-{"name":"weed","kind":["gate","hook"],"version":"0.1.0",
- "install":{"cargo":"weed","npm":"@plotplot/weed","binaries":{"aarch64-apple-darwin":"https://github.com/jahala/weed/releases/download/v0.1.0/weed-aarch64-apple-darwin.tar.gz"}},
- "faces":{"cli":"weed","skill":"skills/SKILL.md","hooks":{"claude":["PreToolUse:Bash","Stop"],"gemini":["BeforeTool:run_shell_command","AfterAgent"],"codex":["PreToolUse","Stop"]},"git":["pre-commit","pre-push","pre-rebase"]},
- "check":"weed check --format sarif","metric":"scripts/check/calibrate.sh","context":{"upfront_tokens":0}}
+{"name":"weeder","kind":["gate","hook"],"version":"0.1.0",
+ "install":{"cargo":"weeder","npm":"@plotplot/weeder","binaries":{"aarch64-apple-darwin":"https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-aarch64-apple-darwin.tar.gz"}},
+ "faces":{"cli":"weeder","skill":"skills/SKILL.md","hooks":{"claude":["PreToolUse:Bash","Stop"],"gemini":["BeforeTool:run_shell_command","AfterAgent"],"codex":["PreToolUse","Stop"]},"git":["pre-commit","pre-push","pre-rebase"]},
+ "check":"weeder check --format sarif","metric":"scripts/check/calibrate.sh","context":{"upfront_tokens":0}}
 ```
 
 **`garden.lock`** at the planted repository's root, schema in contracts:
@@ -67,12 +71,12 @@ silently never fires on a common machine.
 ```toml
 season = "2026.09"
 
-[judges.weed]
+[judges.weeder]
 version = "0.1.0"
-[judges.weed.platforms."aarch64-apple-darwin"]
-url = "https://github.com/jahala/weed/releases/download/v0.1.0/weed-aarch64-apple-darwin.tar.gz"
+[judges.weeder.platforms."aarch64-apple-darwin"]
+url = "https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-aarch64-apple-darwin.tar.gz"
 sha256 = "…"
-[judges.weed.platforms."x86_64-unknown-linux-musl"]
+[judges.weeder.platforms."x86_64-unknown-linux-musl"]
 url = "…"
 sha256 = "…"
 
@@ -92,7 +96,7 @@ through PATH, so the version that judged is the version the lock names.
 ## 5. What `init` does, exactly, and idempotently
 
 1. Detect harness CLIs on PATH and any project configs present.
-2. Read the manifests of the beds requested (defaults: tend2, tilth, weed, petals).
+2. Read the manifests of the beds requested (defaults: tend2, tilth, weeder, petals).
 3. Write `garden.lock` for the current season, or verify an existing one.
 4. Generate the three bundles under `.plotplot/bundles/<harness>/` from the manifests: every
    bed's hook entries become one dispatcher call each (`plotplot hook claude PreToolUse`), the
@@ -101,7 +105,7 @@ through PATH, so the version that judged is the version the lock names.
    paths) becomes a PreToolUse entry.
 5. Install each bundle through its vendor's mechanism at project scope; where a vendor has no
    project-scope install, write the project config file directly and say so in `doctor`.
-6. Write `.githooks/pre-commit`, `pre-push`, `pre-rebase`, `post-commit` (weed guard, receipt
+6. Write `.githooks/pre-commit`, `pre-push`, `pre-rebase`, `post-commit` (weeder guard, receipt
    seal), set `core.hooksPath .githooks`, add the receipts ref to fetch and push refspecs.
 7. Write or update the garden block in `AGENTS.md` (ten lines: what is planted, the season,
    orient, gates, help, that hard limits are enforced at the boundary). Nothing else in the
@@ -129,12 +133,12 @@ this class). The scheduled real-binary smoke in the proof repository runs `docto
 
 ## 7. What `check` does
 
-Runs every gate the manifests declare (`weed check`, `petals check`, `tend2 lint`, `tend2
-gate` where a map exists, `weed scan` when asked), each producing SARIF, and merges them into
+Runs every gate the manifests declare (`weeder check`, `petals check`, `tend2 lint`, `tend2
+gate` where a map exists, `weeder scan` when asked), each producing SARIF, and merges them into
 one SARIF 2.1.0 log with one `run` per tool. Exit 2 if any run has a block-level result, 3 if
 any gate could not run (fail closed), 0 otherwise. `--strict` passes through to the gates
 that define it. pleach's default smoke is `plotplot check --strict` when the stem is
-planted, else `weed check --strict`.
+planted, else `weeder check --strict`.
 
 ## 8. Context cost
 
@@ -149,7 +153,7 @@ orientation stays an experiment under tend2, gated on a copeca win.
 `scripts/fit/proof.sh` builds a fixture repository with one deliberately flawed feature,
 plants it with `plotplot init`, emits a plan from its loops, runs it through pleach with two
 umbel workers on two providers, plants a test deletion in one worker's diff, and asserts in
-order: weed refused the deletion as a block-level SARIF result; the surviving node's check
+order: weeder refused the deletion as a block-level SARIF result; the surviving node's check
 was stamped with the verifier's identity and version; `plotplot check` returned one SARIF log
 containing every gate's results; a receipt note exists on the merged node's commit and
 verifies; `plotplot doctor --live` on a second fresh clone reports every hook fired with no
@@ -177,7 +181,7 @@ confirms the npm names and the receipts default.
 ## 12. Order of work
 
 1. Lock schema in contracts (with the manifest schema, already there); `plotplot lock`.
-2. `plotplot hook` dispatcher and `check` (merging SARIF from weed, petals, tend2).
+2. `plotplot hook` dispatcher and `check` (merging SARIF from weeder, petals, tend2).
 3. Bundle generation for Claude Code, then Gemini, then Codex; `init`.
 4. `doctor` static, then live via umbel.
 5. Friction emitter face (friction plan, step 2) and receipt draft/seal faces (receipts plan,

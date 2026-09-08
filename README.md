@@ -14,10 +14,10 @@ repo holds the **umbrella landing page** and the **canonical brand** for the who
 | [tend](https://github.com/jahala/tend) | feature mapping & narration across sessions | soon |
 | [petals](https://github.com/jahala/petals) | brand intelligence for agents (extract + check) | soon |
 | [pleach](https://github.com/jahala/pleach) | the conductor — gates agent work, ships only what's verified | soon |
-| [umbel](https://github.com/jahala/rctrl) | fan out agent CLIs (Claude Code, Codex, Gemini) in tmux | live |
+| [umbel](https://github.com/jahala/umbel) | fan out agent CLIs (Claude Code, Codex, Gemini) in tmux | live |
 | [copeca](https://github.com/jahala/copeca) | cost per correct answer — a neutral benchmark for CLI coding agents | live |
 | [pollen](https://github.com/jahala/pollen) | agent-to-agent messaging — mailboxes between agents, with a human at the gate | live |
-| [weed](https://github.com/jahala/weed) | the judge of the diff — refuses deleted tests, stubs and secrets before they land | soon |
+| [weeder](https://github.com/jahala/weeder) | the judge of the diff — refuses deleted tests, stubs and secrets before they land | soon |
 
 ## Repo layout
 

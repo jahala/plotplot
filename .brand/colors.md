@@ -51,7 +51,7 @@ Each tool in the garden claims one accent; the primary palette is shared across 
 | umbel | #E89227 | fan out agent CLIs — sunlight |
 | copeca | #1F8A7B | cost-per-correct benchmarking — juniper |
 | pollen | #C8B330 | agent-to-agent messaging — anther gold |
-| weed | #8E3B5E | the judge of the diff — bramble |
+| weeder | #8E3B5E | the judge of the diff — bramble |
 
 pollen's bloom is **display/fill only** on paper (1.9:1) — the same class as sunlight and
 petal. Where the gold must read as a *word* on paper, use **pollen-ink `#7E6A08`** (4.9:1),
@@ -95,8 +95,8 @@ Color is only on-brand when it is legible. Classes: **reading** ≥ 4.5:1 (body,
 | Night-sun #F2A93B on Night #1C1610 | 9.0 | reading |
 | Night-leaf #9FD08A on Night #1C1610 | 10.1 | reading |
 | Night-pollen #D9C44A on Night #1C1610 | 10.2 | reading |
-| Weed (bramble) #8E3B5E on Paper #FAF5E9 | 6.6 | reading |
-| Weed (bramble) #8E3B5E on Night #1C1610 | 2.5 | decorative |
+| Weeder (bramble) #8E3B5E on Paper #FAF5E9 | 6.6 | reading |
+| Weeder (bramble) #8E3B5E on Night #1C1610 | 2.5 | decorative |
 | Bramble-night #B85C82 on Night #1C1610 | 4.2 | labels |
 
 Pairs that fail their class are off-brand even though both colors are in the palette. Decorative-only traps: Sunlight, Leaf, Petal, Pollen, and Muted as words on paper.
@@ -124,7 +124,7 @@ Charts draw from the family — never library defaults.
 | Border | #E2D8C0 | #403628 |
 | Leaf | #4A9E3F | #9FD08A |
 | Pollen (bloom) | #C8B330 | #D9C44A |
-| Weed (bloom) | #8E3B5E | #8E3B5E as fill · #B85C82 as a word |
+| Weeder (bloom) | #8E3B5E | #8E3B5E as fill · #B85C82 as a word |
 
 ## Soil-Night Surfaces
 

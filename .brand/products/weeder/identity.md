@@ -6,8 +6,8 @@ A product layer over the plotplot umbrella. Deltas only; everything absent inher
 |---|---|
 | Product | weeder |
 | Tagline | tests still mean what they meant. |
-| Accent | #8E3B5E bramble, the weed that stops you (from the umbrella Product Accents table) |
-| Faces | `weeder check` · `weeder guard` · `weeder hook` · `weeder rules`; `scan` and `bite` join when they land |
+| Accent | #8E3B5E bramble — the weed that stops you (from the umbrella Product Accents table) |
+| Faces | `weeder check` · `weeder guard` · `weeder hook` · `weeder rules` — `scan` and `bite` join when they land |
 | Commands | `weeder check --format sarif` · `weeder guard install --protect main` |
 
 ## Positioning
@@ -28,7 +28,7 @@ the pull request, and every allowance a person grants is itself a visible findin
 
 ## Mark
 
-A pair of shears open around a weeder's stem, at the height where the cut is made. The plant is
+A pair of shears open around a weed's stem, at the height where the cut is made. The plant is
 growth green (`#357E2C`): a stem, three leaves, still growing. The shears are bramble
 (`#8E3B5E`): two crossed blades and two open handle loops, the only thing in the mark that is
 not alive. The owner asked for this reading on 2026-09-05, and it is the judgement one moment
@@ -46,7 +46,7 @@ Files: `assets/weeder-mark.svg` (paper) · `assets/weeder-mark-night.svg` (soil-
   leaves flatten and the handle loops close up, and the shears-on-a-stem reading survives. At
   16px it does not; use the wordmark below 20.
 - Clear space: half the mark height on every side.
-- Fills are exact: growth green `#357E2C` and bramble `#8E3B5E` on paper; on soil-night the
+- Fills are exact — growth green `#357E2C` and bramble `#8E3B5E` on paper; on soil-night the
   plant brightens to `#84C56A` and the shears stay bramble `#8E3B5E` as a fill, while any bramble
   **word** on night lifts to `#B85C82` (the umbrella's night rule). Never recolour outside those
   four values.

@@ -52,12 +52,12 @@ Who calls whom, and which contract crosses each seam:
                         │ emit-plan
                         ▼
                     pleach plan ──▶ pleach run ──▶ umbel spawn · send · wait ──▶ agent (any CLI)
-                        ▲                │  gates: conflict markers · weed (smoke) · audit (other provider)
+                        ▲                │  gates: conflict markers · weeder (smoke) · audit (other provider)
                         │                ▼
                         └──── node/<id> branch, published only when verified
 
  what the agent reads      tilth (code) · petals (brand) · graft-checked docs · the loop page
- what stops the agent      hedge (hooks, both directions) · weed (Stop and PreToolUse)
+ what stops the agent      hedge (hooks, both directions) · weeder (Stop and PreToolUse)
  who the agent talks to    pollen (peers, human at the gate) · umbel (its supervisor)
  what proves any of it     copeca, an A/B around any one bed, cost per correct answer
  what is remembered        the loop's Tried section (mull as its writer, if mull survives)
@@ -65,7 +65,7 @@ Who calls whom, and which contract crosses each seam:
 
 The contracts are the garden. Nine of them exist or are drafted: the loop format (tend2
 `FORMAT.md`), the plan schema (pleach), the worker signature (umbel), the harness hook JSON
-(Claude Code, Gemini, Codex), weed's findings JSON, the `.brand/` tree (petals), the
+(Claude Code, Gemini, Codex), weeder's findings JSON, the `.brand/` tree (petals), the
 `.copeca` artifact, pollen's message envelope, and hedge's rules file. The trowel, the
 `plotplot` CLI, is the one program that knows all nine. Everything below follows from
 treating the trowel as the garden's context policy in code, not as an installer.
@@ -85,7 +85,7 @@ What each server pushes into an agent's window before the first prompt:
 | tend2 plugin skills | 8 | eight description lines | | ≈ 500 tok | measured, ≈ 250 chars each |
 | garden practice skills | ≈ 10 | ten description lines | | ≈ 625 tok | measured |
 | mull server, if revived | ≈ 5 | | | ≈ 600 tok | ≈ |
-| hedge, weed, graft, pleach, copeca | 0 | | | 0 | hooks and CLIs carry no schema |
+| hedge, weeder, graft, pleach, copeca | 0 | | | 0 | hooks and CLIs carry no schema |
 
 Fully planted, no deferral, on one harness: **≈ 8,300 tokens** before the agent reads a word
 of the task. Add the harness's own system prompt and built-in tools (≈ 15,000 to 20,000 on
@@ -131,7 +131,7 @@ files not servers, applied to context.
 
 **Tier 2, event-driven.** Hooks that inject only when a deterministic condition says the
 information is relevant now. tend2's SessionStart hook is the model: a repo with a map gets
-its routing; every other repo gets silence. weed speaks at Stop only when it found
+its routing; every other repo gets silence. weeder speaks at Stop only when it found
 something. hedge speaks at PreToolUse only to deny, with a reason. Zero cost when quiet.
 The rule from tilth's scout work applies: a hint that fires on an easy task costs more than
 it saves, so hooks fire on evidence, never by default.
@@ -150,7 +150,7 @@ The mechanism follows from the tier:
   tilth, the largest server: does tilth as a CLI behind a skill lose the cost-per-correct
   gain it measured as an MCP server? Nobody knows. copeca can answer it in one scenario, and
   the answer decides the pattern for every future capability bed.
-- **Hooks for anything the agent should not have to remember.** hedge, weed, graft,
+- **Hooks for anything the agent should not have to remember.** hedge, weeder, graft,
   orientation. These are the beds that cost nothing at startup by construction.
 
 ## 4. Greater intelligence: assemble the briefing from state
@@ -166,7 +166,7 @@ assemble one briefing of ≈ 300 to 800 tokens:
 - a tilth outline of the files the loop names as evidence, if there are few;
 - the brand's one-paragraph summary only if the loop touches UI or copy files;
 - hedge's active rules in one line only if permissions are in bypass mode;
-- weed's findings from the last Stop, if any remain;
+- weeder's findings from the last Stop, if any remain;
 - what the previous session tried and abandoned, from the Tried section.
 
 Nothing about which tools are installed. The briefing is a function of the repo's state,
@@ -195,7 +195,7 @@ request. On Claude Code the gateway is unnecessary; ToolSearch already does this
 | pollen | 5 tools, 419 tok | collapse allow and deny into one gate tool; three tools total | ≈ 250 tok |
 | petals | 700-char skill description | cut the description to one sentence; the body already loads on demand | ≈ 60 tok |
 | practice skills | ten descriptions, ≈ 625 tok | one `plotplot` skill with topics; the procedures become its body | ≈ 200 tok |
-| hedge, weed, graft | not built | hooks and CLIs; zero upfront by design | 0 |
+| hedge, weeder, graft | not built | hooks and CLIs; zero upfront by design | 0 |
 | mull | dormant | batch process, no server; if it lives, it writes files | 0 |
 | copeca, pleach | CLIs | unchanged | 0 |
 | trowel | not built | garden block, orient hook, gateway for non-deferring harnesses | ≈ 400 |
@@ -223,7 +223,7 @@ with a copeca scenario or does not speak.
 3. The copeca scenario for the context tax: same tasks, garden loaded three ways, cost per
    correct. This decides tilth's shape and whether orient ships.
 4. The gateway face, only for harnesses that still load every schema by then.
-5. hedge and weed as designed; they already obey the rule.
+5. hedge and weeder as designed; they already obey the rule.
 
 ## What I could not verify
 
