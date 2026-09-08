@@ -195,3 +195,8 @@ confirms the npm names and the receipts default.
   repository beside the site.
 - Which beds `init` plants by default.
 - Whether receipts are drafted by default (see the receipts plan).
+
+Decided 2026-09-08: the stem's repository is `jahala/plotplot`, the umbrella, beside the contracts it
+plants and enforces (two loops, one repository). The default profile `init` plants is the minimal one
+(jahala/plotplot issue 17): one loop file, weeder with its hooks, the garden block, the lock, the PR
+check workflow, one declared metric; the full profile on request.
