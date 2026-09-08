@@ -129,7 +129,7 @@ resolved it (`claude`, `codex`, `gemini`, `opencode`, or whatever a custom runne
 itself). It is a garden attribute because it is the fact pleach holds: the CLI, not the
 model provider behind it. `gen_ai.provider.name` is written only by a domain that actually
 observes the provider (mull's spend log does; a runner would, once it reads the CLI's own
-configuration — Claude Code can be routed through Bedrock or Vertex, and a conductor cannot
+configuration, Claude Code can be routed through Bedrock or Vertex, and a conductor cannot
 see which). Until then pleach's lines carry `plotplot.runner` and omit
 `gen_ai.provider.name`; when a runner learns to report the provider it fills that key and
 nothing in pleach changes. The casting ledger keys on the runner today, which is what
@@ -144,7 +144,7 @@ value.
 ## the fixture journal
 
 `contracts/fixtures/friction.jsonl` holds six lines, one JSON object each, in this
-order — the first three per issue 35, the last three per jahala/pleach#60:
+order, the first three per issue 35 and the last three per jahala/pleach#60:
 
 1. a friction event (`plotplot.kind: "tool.failed"`), the emitter's own shape;
 2. a pleach run-journal line (`plotplot.kind: "gate.retry"`), pleach's existing `event`
@@ -158,7 +158,7 @@ order — the first three per issue 35, the last three per jahala/pleach#60:
 4. a pleach run-journal line (`plotplot.kind: "run.lifecycle"`, `event: "run-start"`);
 5. a pleach run-journal line (`plotplot.kind: "node.lifecycle"`, `event: "verdict"`),
    carrying `plotplot.runner` and `gen_ai.request.model` as the runner attribute section
-   describes — and no `gen_ai.provider.name`;
+   describes, and no `gen_ai.provider.name`;
 6. a pleach run-journal line (`plotplot.kind: "gate.result"`, `event: "gate-flaky"`), the
    outcome of the retry line 2 recorded.
 
