@@ -95,6 +95,10 @@ A change that breaks one of these is wrong even if every test passes.
   make it.
 - **Delete with `trash`, never `rm`. Never `git reset`. Never touch the git stash. Do not
   push, publish, rename repositories, or enable services.** Those are the owner's actions.
+- **Never kill what you did not start.** Several conductors share one machine. Before you stop
+  a session, a worktree or a process, read who owns it (umbel's `meta.json` names the working
+  directory); if it is not yours, leave it and tell the umbrella on pollen. A kill costs another
+  agent its node and the record of what it was doing (learned 2026-09-08, jahala/umbel 65).
 
 ## 3. What every bed ships: the fit contract
 
