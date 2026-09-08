@@ -13,6 +13,8 @@ schema="contracts/manifest.schema.json"
 fixdir="contracts/fixtures/manifest"
 
 fail=0
+
+put_away() { if command -v trash >/dev/null 2>&1; then trash "$@" 2>/dev/null || true; fi; }
 assert() {
   local status="$1"; shift
   if [ "$status" -eq 0 ]; then
@@ -51,7 +53,7 @@ for f in "$fixdir"/*.garden.json; do
     assert 1 "$base validates against the manifest schema"
     sed 's/^/    /' /tmp/manifest-test-out.$$
   fi
-  rm -f /tmp/manifest-test-out.$$
+  put_away /tmp/manifest-test-out.$$
 done
 
 expected_beds="tilth tend2 petals pleach umbel copeca pollen weeder"
@@ -83,6 +85,7 @@ declare_negative() {
 }
 
 declare_negative "$fixdir/invalid-missing-kind.garden.json" "a missing kind"
+declare_negative "$fixdir/invalid-git-no-rev.garden.json" "a git install without a pinned commit"
 declare_negative "$fixdir/invalid-undeclared-context.garden.json" "an undeclared context cost"
 declare_negative "$fixdir/invalid-no-metric.garden.json" "no metric command"
 

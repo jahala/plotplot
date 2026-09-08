@@ -14,6 +14,8 @@ fixture="contracts/fixtures/garden.lock"
 lib="scripts/fit/lib.sh"
 
 fail=0
+
+put_away() { if command -v trash >/dev/null 2>&1; then trash "$@" 2>/dev/null || true; fi; }
 assert() {
   local status="$1"; shift
   if [ "$status" -eq 0 ]; then
@@ -98,7 +100,7 @@ url = "file://$artifact"
 sha256 = "$wrong_sha"
 EOF
 
-rm -f "$marker_file" 2>/dev/null
+put_away "$marker_file"
 mismatch_output="$(fit_run "$mismatched_lock" lockjudge fixture-test-platform lockjudge -- 2>&1)"
 mismatch_status=$?
 
@@ -122,11 +124,31 @@ version = "1.0.0"
 url = "file://$artifact"
 sha256 = "$real_sha"
 EOF
-rm -f "$marker_file" 2>/dev/null
+put_away "$marker_file"
 fit_run "$correct_lock" lockjudge fixture-test-platform lockjudge -- >/dev/null 2>&1
 correct_status=$?
 [ "$correct_status" -eq 0 ] && [ -f "$marker_file" ]
 assert $? "the same artifact with its real sha256 runs cleanly (control for the mismatch case)"
+
+# A git-pinned judge must name a full commit sha; a short or symbolic rev is refused.
+bad_lock="$work/bad-git.lock.json"
+cat >"$bad_lock" <<'JSON'
+{"season":"2026.09","judges":{"pollen":{"version":"0.1.0","git":{"url":"https://github.com/jahala/pollen.git","rev":"main"}}}}
+JSON
+if npx --no-install ajv validate -s "$schema" -d "$bad_lock" --spec=draft2020 -c ajv-formats >/dev/null 2>&1; then
+  assert 1 "the lock schema refuses a git judge whose rev is not a 40-hex commit sha (it accepted 'main')"
+else
+  assert 0 "the lock schema refuses a git judge whose rev is not a 40-hex commit sha"
+fi
+good_lock="$work/good-git.lock.json"
+cat >"$good_lock" <<'JSON'
+{"season":"2026.09","judges":{"pollen":{"version":"0.1.0","git":{"url":"https://github.com/jahala/pollen.git","rev":"ffb905bf6b3a01335b85f8202be3c250bd0de9e6"}}}}
+JSON
+if npx --no-install ajv validate -s "$schema" -d "$good_lock" --spec=draft2020 -c ajv-formats >/dev/null 2>&1; then
+  assert 0 "the lock schema accepts a git judge pinned to a full commit sha"
+else
+  assert 1 "the lock schema accepts a git judge pinned to a full commit sha"
+fi
 
 if [ "$fail" -eq 0 ]; then
   echo "lock.test.sh: all assertions passed"

@@ -48,3 +48,8 @@ brand:
 
 Tags are `v<major>.<minor>.<patch>`. A change a bed must react to (a renamed token, a new
 required manifest field) moves the major.
+
+The tag is the pin. `Brand Version` in `.brand/identity.md` is the brand's own version and moves
+only when the brand moves, so it can lag the tag when contracts or the vendored check change. A bed's
+fetch holds its checkout to the tag's commit and prints the declared brand version beside it; the
+one refusal is a tree whose declared brand version is newer than its tag, which is a mis-tag.

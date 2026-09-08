@@ -7,10 +7,7 @@
   ],
   "version": "0.1.0",
   "install": {
-    "git": {
-      "url": "https://github.com/jahala/petals.git",
-      "rev": "af3129f2858ce211468d99ff96e74631ac92be71"
-    }
+    "git": "https://github.com/jahala/petals.git"
   },
   "faces": {
     "skill": "petals/SKILL.md"

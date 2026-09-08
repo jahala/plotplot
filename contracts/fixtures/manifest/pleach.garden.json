@@ -1,11 +1,12 @@
 {
   "name": "pleach",
   "summary": "deterministic conductor for DAGs of verified agent work; isolates each plan node in a git worktree and publishes only verified work",
-  "kind": ["conductor"],
+  "kind": [
+    "conductor"
+  ],
   "version": "0.0.1",
   "install": {
-    "npm": "pleach",
-    "git": "https://github.com/jahala/pleach.git"
+    "npm": "pleach"
   },
   "faces": {
     "cli": "pleach",
@@ -13,15 +14,29 @@
   },
   "check": null,
   "metric": "bun run check",
-  "context": { "upfront_tokens": null },
+  "context": {
+    "upfront_tokens": null
+  },
   "coverage": {
     "languages": [],
     "kinds": []
   },
   "flagged": [
-    { "what": "check", "why": "pleach ships no gate of its own; building-the-garden.md mandates pleach adopt `weeder check --strict` as its default smoke rather than judging diffs itself, so check is null here." },
-    { "what": "metric", "why": "pleach's declared metric is verified-close rate and human interventions per feature (docs/plotplot-architecture-review-2026-09.md §11), qualitative and not yet scripted; this fixture uses the repository's real `bun run check` (typecheck, lint, test) as an honest interim stand-in." },
-    { "what": "context.upfront_tokens", "why": "no measured figure found for the pleach-plan skill." },
-    { "what": "coverage", "why": "pleach treats worker output as opaque git diffs and exit codes; it does not parse a target repository's source language, so both lists are empty on purpose." }
+    {
+      "what": "check",
+      "why": "pleach ships no gate of its own; building-the-garden.md mandates pleach adopt `weeder check --strict` as its default smoke rather than judging diffs itself, so check is null here."
+    },
+    {
+      "what": "metric",
+      "why": "pleach's declared metric is verified-close rate and human interventions per feature (docs/plotplot-architecture-review-2026-09.md \u00a711), qualitative and not yet scripted; this fixture uses the repository's real `bun run check` (typecheck, lint, test) as an honest interim stand-in."
+    },
+    {
+      "what": "context.upfront_tokens",
+      "why": "no measured figure found for the pleach-plan skill."
+    },
+    {
+      "what": "coverage",
+      "why": "pleach treats worker output as opaque git diffs and exit codes; it does not parse a target repository's source language, so both lists are empty on purpose."
+    }
   ]
 }
