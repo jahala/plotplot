@@ -1,27 +1,45 @@
 {
   "name": "umbel",
   "summary": "fan out interactive agent CLIs over tmux, subscription-billed",
-  "kind": ["conductor", "channel"],
+  "kind": [
+    "conductor",
+    "channel"
+  ],
   "version": "0.0.1",
   "install": {
-    "npm": "umbel",
-    "git": "https://github.com/jahala/umbel.git"
+    "npm": "umbel"
   },
   "faces": {
     "cli": "umbel",
-    "mcp": { "tools": 12 }
+    "mcp": {
+      "tools": 12
+    }
   },
   "check": null,
   "metric": "bun run test:smoke",
-  "context": { "upfront_tokens": null },
+  "context": {
+    "upfront_tokens": null
+  },
   "coverage": {
     "languages": [],
     "kinds": []
   },
   "flagged": [
-    { "what": "faces.mcp.tools", "why": "umbel's MCP server registers 12 tools today (src/faces/mcp.ts: umbel_spawn, umbel_send, umbel_wait, umbel_status, umbel_ls, umbel_kill, umbel_read, umbel_actions, umbel_diff, umbel_capture, umbel_logs, umbel_help), but building-the-garden.md §5 mandates umbel cut to six tools plus help. This fixture reports the real, uncut count rather than the mandated target, since the cut has not landed." },
-    { "what": "check", "why": "umbel ships no diff-judging gate; its package.json `check` script is its own dev-quality gate (typecheck, lint, test), not a garden check face, so check is null here." },
-    { "what": "metric", "why": "no dedicated benchmark script found; this fixture uses the repository's real `bun run test:smoke` (against real Claude, Codex and Gemini CLIs) as an honest interim stand-in for a declared falsifiable metric." },
-    { "what": "context.upfront_tokens", "why": "no measured figure found; a 12-tool MCP schema is unlikely to be small, which is exactly why this number matters once umbel completes the cut above." }
+    {
+      "what": "faces.mcp.tools",
+      "why": "umbel's MCP server registers 12 tools today (src/faces/mcp.ts: umbel_spawn, umbel_send, umbel_wait, umbel_status, umbel_ls, umbel_kill, umbel_read, umbel_actions, umbel_diff, umbel_capture, umbel_logs, umbel_help), but building-the-garden.md \u00a75 mandates umbel cut to six tools plus help. This fixture reports the real, uncut count rather than the mandated target, since the cut has not landed."
+    },
+    {
+      "what": "check",
+      "why": "umbel ships no diff-judging gate; its package.json `check` script is its own dev-quality gate (typecheck, lint, test), not a garden check face, so check is null here."
+    },
+    {
+      "what": "metric",
+      "why": "no dedicated benchmark script found; this fixture uses the repository's real `bun run test:smoke` (against real Claude, Codex and Gemini CLIs) as an honest interim stand-in for a declared falsifiable metric."
+    },
+    {
+      "what": "context.upfront_tokens",
+      "why": "no measured figure found; a 12-tool MCP schema is unlikely to be small, which is exactly why this number matters once umbel completes the cut above."
+    }
   ]
 }

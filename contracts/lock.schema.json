@@ -2,9 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://plotplot.ai/contracts/lock.schema.json",
   "title": "garden.lock",
-  "description": "The judges lockfile a planted repository carries, per docs/plans/stem.md §4. Written in TOML at rest; this schema describes the JSON value a conforming TOML parser produces from it. season is the identity contracts/identifiers.md pins.",
+  "description": "The judges lockfile a planted repository carries, per docs/plans/stem.md \u00a74. Written in TOML at rest; this schema describes the JSON value a conforming TOML parser produces from it. season is the identity contracts/identifiers.md pins.",
   "type": "object",
-  "required": ["season", "judges"],
+  "required": [
+    "season",
+    "judges"
+  ],
   "properties": {
     "season": {
       "type": "string",
@@ -20,7 +23,9 @@
       },
       "additionalProperties": {
         "type": "object",
-        "required": ["version"],
+        "required": [
+          "version"
+        ],
         "properties": {
           "version": {
             "type": "string",
@@ -40,7 +45,10 @@
             },
             "additionalProperties": {
               "type": "object",
-              "required": ["url", "sha256"],
+              "required": [
+                "url",
+                "sha256"
+              ],
               "properties": {
                 "url": {
                   "type": "string",
@@ -55,11 +63,44 @@
               },
               "additionalProperties": false
             }
+          },
+          "git": {
+            "type": "object",
+            "description": "present when the judge is fetched by cloning at a pinned commit; mirrors install.git in the manifest",
+            "required": [
+              "url",
+              "rev"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "pattern": "^https://"
+              },
+              "rev": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{40}$"
+              }
+            }
           }
         },
         "anyOf": [
-          { "required": ["npm"] },
-          { "required": ["platforms"] }
+          {
+            "required": [
+              "npm"
+            ]
+          },
+          {
+            "required": [
+              "platforms"
+            ]
+          },
+          {
+            "required": [
+              "git"
+            ]
+          }
         ],
         "additionalProperties": true
       }

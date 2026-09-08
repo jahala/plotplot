@@ -1,25 +1,45 @@
 {
   "name": "copeca",
   "summary": "cost per correct answer, a neutral, reproducible, verifiable benchmark for CLI-based coding agents",
-  "kind": ["capability"],
+  "kind": [
+    "capability"
+  ],
   "version": "0.1.0",
   "install": {
-    "pip": "copeca",
-    "git": "https://github.com/jahala/copeca.git"
+    "pip": "copeca"
   },
   "faces": {
     "cli": "copeca"
   },
   "check": null,
   "metric": "pytest",
-  "context": { "upfront_tokens": 0 },
+  "context": {
+    "upfront_tokens": 0
+  },
   "coverage": {
-    "languages": ["rust", "go", "javascript", "python"],
-    "kinds": ["source", "test"]
+    "languages": [
+      "rust",
+      "go",
+      "javascript",
+      "python"
+    ],
+    "kinds": [
+      "source",
+      "test"
+    ]
   },
   "flagged": [
-    { "what": "check", "why": "copeca measures other tools; it does not judge or block a diff of its own, so check is null." },
-    { "what": "metric", "why": "no self-referential cost-per-correct measurement exists for copeca's own code; this fixture uses the repository's real `pytest` (pyproject.toml testpaths) as an honest interim stand-in, distinct from the cost-per-correct metric copeca computes for other tools." },
-    { "what": "coverage", "why": "languages and kinds are the four corpus repositories named in copeca's README (ripgrep, gin, express, fastapi): rust, go, javascript, python, over source and test files." }
+    {
+      "what": "check",
+      "why": "copeca measures other tools; it does not judge or block a diff of its own, so check is null."
+    },
+    {
+      "what": "metric",
+      "why": "no self-referential cost-per-correct measurement exists for copeca's own code; this fixture uses the repository's real `pytest` (pyproject.toml testpaths) as an honest interim stand-in, distinct from the cost-per-correct metric copeca computes for other tools."
+    },
+    {
+      "what": "coverage",
+      "why": "languages and kinds are the four corpus repositories named in copeca's README (ripgrep, gin, express, fastapi): rust, go, javascript, python, over source and test files."
+    }
   ]
 }

@@ -10,6 +10,8 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 lib="$repo_root/scripts/fit/lib.sh"
 
 fail=0
+
+put_away() { if command -v trash >/dev/null 2>&1; then trash "$@" 2>/dev/null || true; fi; }
 assert() {
   local status="$1"; shift
   if [ "$status" -eq 0 ]; then
@@ -80,7 +82,7 @@ scratch_snapshot() {
 }
 
 # --- good run: correct checksum, must run the judge with a clean PATH ----------------
-rm -f "$marker_file" 2>/dev/null
+put_away "$marker_file"
 before_good="$(scratch_snapshot)"
 good_output="$(fit_run "$good_lock" fakejudge fixture-test-platform fakejudge -- --probe 2>&1)"
 good_status=$?
@@ -100,7 +102,7 @@ after_good="$(scratch_snapshot)"
 [ "$before_good" = "$after_good" ]; assert $? "the fit runner leaves no new scratch directory behind after a good run"
 
 # --- bad run: wrong checksum, must refuse and never execute the judge ----------------
-rm -f "$marker_file" 2>/dev/null
+put_away "$marker_file"
 bad_lock="$work/bad.lock"
 wrong_sha="$(printf '%s' "$good_sha" | tr '0-9a-f' '1-9a-f0')" # a different, still 64-hex value
 cat >"$bad_lock" <<EOF
