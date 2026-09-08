@@ -43,6 +43,26 @@ fix; each is a candidate issue on the tool's repository.
   teardown-leak line above stands corrected the same way: the session I killed after the
   abort was another run's.
 
+- 2026-09-08 pleach executes `accept.smoke` and `accept.audit.command` as an argv array
+  with no shell, so a smoke of three commands joined by `&&` fails with "command contains
+  bare shell operator(s)". `pleach validate` accepted that plan without a word, so the first
+  the conductor heard of it was after a full opus attempt of the crate node (about fifteen
+  minutes of work, complete and green by hand) was thrown at a gate that could never run.
+  validate should refuse or warn on a bare shell operator in a gate string, since the
+  failure is deterministic and costs one attempt per node.
+- 2026-09-08 on a gate failure pleach re-prompts the worker with "previous attempt failed;
+  fix this and continue" and the gate's output tail. When the failure is in the plan (the
+  gate string itself), the worker cannot fix it from its worktree and burns a second
+  attempt confirming the code is green. A gate that fails before running any command
+  (exit -1, "cannot exec") should fail the node without a retry and name the plan.
+- 2026-09-08 the run journal records `gate-retry` with no output; the gate's stdout and
+  stderr live only in the worker's re-prompt. The conductor's operator has to open the
+  worker's transcript to learn why a gate failed.
+- 2026-09-08 a SIGTERM abort ends with "failed after 0 attempt(s)" and no quarantine
+  branch for a node whose worker had finished its slice; the work survives only in the
+  pleach worktree until `pleach clean` sweeps it. Snapshotting the worktree's index by hand
+  (`git write-tree`, `git commit-tree`) recovered it this time.
+
 ## umbel
 
 - 2026-09-08 `umbel ls` lists four `smk-trust-*` sessions dead since 2026-09-05 in temp
