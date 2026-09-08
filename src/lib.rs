@@ -7,6 +7,7 @@
 //! nothing here reads the current directory, and nothing here panics on input.
 
 pub mod bed;
+pub mod bundle;
 pub mod cli;
 pub mod error;
 pub mod harness;
