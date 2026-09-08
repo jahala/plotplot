@@ -31,6 +31,9 @@ pub enum Error {
     Git { command: String, stderr: String },
     /// A planted bed that cannot do what its manifest claims.
     Bed { bed: String, problem: String },
+    /// An `AGENTS.md` whose plotplot markers do not make one replaceable block, so the stem
+    /// cannot say which bytes the garden block owns.
+    Agents { problem: String },
 }
 
 /// The crate's result type; failure always lives here rather than in a panic.
@@ -48,7 +51,7 @@ impl fmt::Display for Error {
             Error::Manifest { bed, problem } | Error::Bed { bed, problem } => {
                 write!(f, "{bed}: {problem}")
             }
-            Error::Harness { problem } => write!(f, "{problem}"),
+            Error::Harness { problem } | Error::Agents { problem } => write!(f, "{problem}"),
             Error::Git { command, stderr } => write!(f, "{command}: {stderr}"),
         }
     }
@@ -63,7 +66,8 @@ impl std::error::Error for Error {
             | Error::Manifest { .. }
             | Error::Harness { .. }
             | Error::Git { .. }
-            | Error::Bed { .. } => None,
+            | Error::Bed { .. }
+            | Error::Agents { .. } => None,
         }
     }
 }
@@ -149,6 +153,18 @@ mod tests {
     }
 
     #[test]
+    fn a_malformed_marker_pair_displays_its_problem_alone() {
+        let agents = Error::Agents {
+            problem: "AGENTS.md has <!-- plotplot:begin --> without <!-- plotplot:end -->"
+                .to_owned(),
+        };
+        assert_eq!(
+            agents.to_string(),
+            "AGENTS.md has <!-- plotplot:begin --> without <!-- plotplot:end -->"
+        );
+    }
+
+    #[test]
     fn every_display_is_one_line() {
         let errors = [
             Error::Io {
@@ -172,6 +188,9 @@ mod tests {
             },
             Error::Bed {
                 bed: "a".to_owned(),
+                problem: "b".to_owned(),
+            },
+            Error::Agents {
                 problem: "b".to_owned(),
             },
         ];

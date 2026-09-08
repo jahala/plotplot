@@ -297,6 +297,49 @@ pub fn to_bed(manifest: &Manifest) -> Result<Bed> {
 /// [`Error::Io`] when a cached manifest cannot be read, [`Error::Bed`] when a bed directory
 /// carries no manifest, and whatever [`parse_manifest_at`] and [`to_bed`] refuse.
 pub fn load_beds(root: &Path) -> Result<Vec<Bed>> {
+    let mut beds = Vec::new();
+    for manifest in load_manifests(root)? {
+        beds.push(to_bed(&manifest)?);
+    }
+    beds.sort_by(|left, right| left.name.cmp(&right.name));
+    Ok(beds)
+}
+
+/// The planted beds that declare an MCP face without a launch line, sorted by name.
+///
+/// The contracts let a channel bed declare only how many tools it has. Such a bed becomes a
+/// [`Bed`] with no `mcp`, which is indistinguishable from a bed with no channel at all, so
+/// the fact lives here where the manifest is still whole: `bundle build` names these beds on
+/// stderr rather than dropping a channel in silence.
+///
+/// # Errors
+///
+/// As [`load_beds`], minus what [`to_bed`] refuses: this reads manifests and does not plant
+/// them.
+pub fn unplantable_channels(root: &Path) -> Result<Vec<String>> {
+    let mut names: Vec<String> = load_manifests(root)?
+        .into_iter()
+        .filter(|manifest| {
+            manifest
+                .faces
+                .mcp
+                .as_ref()
+                .is_some_and(|face| face.command.is_none())
+        })
+        .map(|manifest| manifest.name)
+        .collect();
+    names.sort();
+    Ok(names)
+}
+
+/// Every `.plotplot/beds/*/garden.json` under `root`, parsed, in the order the filesystem
+/// lists them. An absent beds directory is an unplanted repository, not a failure.
+///
+/// # Errors
+///
+/// [`Error::Io`] when a cached manifest cannot be read, [`Error::Bed`] when a bed directory
+/// carries no manifest, and whatever [`parse_manifest_at`] refuses.
+fn load_manifests(root: &Path) -> Result<Vec<Manifest>> {
     let dir = layout::beds_dir(root);
     let entries = match std::fs::read_dir(&dir) {
         Ok(entries) => entries,
@@ -304,7 +347,7 @@ pub fn load_beds(root: &Path) -> Result<Vec<Bed>> {
         Err(source) => return Err(Error::Io { path: dir, source }),
     };
 
-    let mut beds = Vec::new();
+    let mut manifests = Vec::new();
     for entry in entries {
         let entry = entry.map_err(|source| Error::Io {
             path: dir.clone(),
@@ -339,10 +382,9 @@ pub fn load_beds(root: &Path) -> Result<Vec<Bed>> {
                 });
             }
         };
-        beds.push(to_bed(&parse_manifest_at(Some(&manifest_path), &json)?)?);
+        manifests.push(parse_manifest_at(Some(&manifest_path), &json)?);
     }
-    beds.sort_by(|left, right| left.name.cmp(&right.name));
-    Ok(beds)
+    Ok(manifests)
 }
 
 /// `"Event"` or `"Event:Matcher"`, checked against the events the harness really fires.
@@ -692,6 +734,40 @@ mod tests {
         assert_eq!(
             beds.iter().map(|bed| bed.name.as_str()).collect::<Vec<_>>(),
             ["tend2", "weeder"]
+        );
+    }
+
+    /// tilth and pollen both declare a channel; only pollen says how to launch it. The one
+    /// that does not is the gap `bundle build` has to name, and it is invisible in a `Bed`.
+    #[test]
+    fn a_channel_with_no_launch_line_is_named_and_one_with_a_launch_line_is_not() {
+        let root = tempfile::tempdir().expect("a temp root");
+        for bed in ["tilth", "pollen", "weeder"] {
+            let dir = crate::layout::bed_dir(root.path(), bed);
+            std::fs::create_dir_all(&dir).expect("the bed directory");
+            std::fs::write(
+                dir.join("garden.json"),
+                fixture(&format!("{bed}.garden.json")),
+            )
+            .expect("the cached manifest");
+        }
+
+        assert_eq!(
+            unplantable_channels(root.path()).expect("the channels"),
+            ["tilth"]
+        );
+        let beds = load_beds(root.path()).expect("the planted beds");
+        for bed in &beds {
+            assert_eq!(bed.mcp.is_some(), bed.name == "pollen", "{}", bed.name);
+        }
+    }
+
+    #[test]
+    fn a_root_with_no_beds_has_no_unplantable_channels() {
+        let root = tempfile::tempdir().expect("a temp root");
+        assert_eq!(
+            unplantable_channels(root.path()).expect("no channels"),
+            Vec::<String>::new()
         );
     }
 
