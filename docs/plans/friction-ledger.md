@@ -101,7 +101,7 @@ Verified against the vendors' hook references on 2026-09-06.
 |---|---|---|---|
 | Claude Code | project `.claude/settings.json` hooks, or the stem's plugin `hooks/hooks.json` | `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionDenied`, `Stop`, `PreCompact`, `SessionStart`, `SessionEnd` | `session_id`, `cwd`, `hook_event_name`, `tool_name`, `tool_input`, `tool_use_id`, `tool_error`, `agent_id`, `stop_hook_active`, `startup_reason`, `end_reason`, `model` (SessionStart, optional) |
 | Gemini CLI | project `.gemini/settings.json` hooks, or the stem's extension `hooks/hooks.json` | `BeforeTool`, `AfterTool`, `AfterAgent`, `AfterModel`, `PreCompress`, `SessionStart`, `SessionEnd` | `session_id`, `cwd`, `hook_event_name`, `tool_name`, `tool_input`, `tool_response`, `llm_request.model`, `llm_response` (token usage when present), `trigger`, `source`, `reason` |
-| Codex CLI | project or `~/.codex/hooks.json`, or the stem's plugin `hooks.json` | `PreToolUse`, `PostToolUse`, `Stop`, `SessionStart`, `SessionEnd` | `session_id`, `cwd`, `hook_event_name`, `turn_id`, `model`, tool name and command as Codex provides them |
+| Codex CLI | project or `~/.codex/hooks.json`, or the stem's plugin `hooks.json` | `PreToolUse`, `PostToolUse`, `Stop`, `PreCompact`, `PostCompact`, `SessionStart`; no `SessionEnd` in 0.133, so session-end work rides `Stop` | `session_id`, `cwd`, `hook_event_name`, `turn_id`, `model`, tool name and command as Codex provides them |
 
 Constraints that shape the emitter: Claude Code's `SessionEnd` hooks share a 1.5-second
 budget, so the emitter never does more than append lines; Gemini's `AfterTool` can carry the

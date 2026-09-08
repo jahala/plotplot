@@ -1,22 +1,25 @@
+# Every digest here is a published GitHub release asset digest, read from the platform on
+# 2026-09-08. A bed with no release (weeder) has no entry until its first release exists.
 season = "2026.09"
 
-[judges.weeder]
-version = "0.1.0"
-
-[judges.weeder.platforms."aarch64-apple-darwin"]
-url = "https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-aarch64-apple-darwin.tar.gz"
-sha256 = "6ae4f3e626840edcd08b1dea6118c88d01ffabb845a36d19f19c885d47d5095b"
-
-[judges.weeder.platforms."x86_64-unknown-linux-musl"]
-url = "https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-x86_64-unknown-linux-musl.tar.gz"
-sha256 = "1ad2bdae7f784ffc5dc5710896a67321fc4b5a193c49ea3ae4e3131b3cf32d75"
-
 [judges.tilth]
-version = "1.0.0"
+version = "0.10.1"
 
 [judges.tilth.platforms."aarch64-apple-darwin"]
-url = "https://github.com/jahala/tilth/releases/download/v1.0.0/tilth-aarch64-apple-darwin.tar.gz"
-sha256 = "da865417c06f59ac11bd105f3578014785dd998107b61060b8122d140d45819d"
+url = "https://github.com/jahala/tilth/releases/download/v0.10.1/tilth-aarch64-apple-darwin.tar.gz"
+sha256 = "38c36e471f61d5a7101d9e0f9dfd401939c5a363e0f4a96384b86f43a662fa55"
+
+[judges.tilth.platforms."aarch64-unknown-linux-musl"]
+url = "https://github.com/jahala/tilth/releases/download/v0.10.1/tilth-aarch64-unknown-linux-musl.tar.gz"
+sha256 = "d054263a201ed924d809582b0d13c3eae3e34b65baad941acba44386a913b9e6"
+
+[judges.tilth.platforms."x86_64-apple-darwin"]
+url = "https://github.com/jahala/tilth/releases/download/v0.10.1/tilth-x86_64-apple-darwin.tar.gz"
+sha256 = "3858cfc804a9667a2bceec27b61cf625c7835cd1c77d69a1aba15ecfcb2dad6f"
+
+[judges.tilth.platforms."x86_64-unknown-linux-musl"]
+url = "https://github.com/jahala/tilth/releases/download/v0.10.1/tilth-x86_64-unknown-linux-musl.tar.gz"
+sha256 = "3df16574ed9fc33e4d9c63107994c78d48f93ab0099a37232b4410223e2ad2ea"
 
 [judges.tend2]
 version = "1.0.0"
