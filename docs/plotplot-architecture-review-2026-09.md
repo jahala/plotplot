@@ -12,7 +12,7 @@ file format with a grand name. Applying that test to the eleven:
 
 | Contract | Producers | Consumers | Verdict |
 |---|---|---|---|
-| findings | weed, petals, graft, tend2 lint, hedge | check, pleach smoke, CI, Stop hook, PR comment | real, the keystone |
+| findings | weeder, petals, graft, tend2 lint, hedge | check, pleach smoke, CI, Stop hook, PR comment | real, the keystone |
 | manifest | every bed | the stem | real only if the stem exists (see §4) |
 | briefing | several beds | one assembler | real only if push orientation is proven (see §5) |
 | loop | tend2 | pleach, next, walk | real, exists |
@@ -68,7 +68,7 @@ installed it for something else. A hook that needs a runtime the harness does no
 hook that silently never fires, which is the worst failure mode for a boundary.
 
 **Finding.** The premise was wrong, and the decision reverses. Anything that runs as a hook,
-hedge, weed, orientation, must be a **static binary**. tilth already has that toolchain and
+hedge, weeder, orientation, must be a **static binary**. tilth already has that toolchain and
 release pipeline: Rust, multi-platform binaries, crates.io, an npm wrapper. Glue that runs
 inside an already-Node process, tend2 and pollen, may stay Node. umbel and pleach stay on
 whatever they are; porting them off Bun buys nothing a user can feel and risks umbel's
@@ -87,12 +87,12 @@ keeps its own stars, issues, and landing page, which is how tilth got found.
 
 **Finding.** The monorepo recommendation reverses. Keep separate repos. Add one small
 `@plotplot/contracts` package and one `proof` repo holding the end-to-end run, the version
-lockfile, and the generated bundles. The exception is the Rust side: weed and hedge share
+lockfile, and the generated bundles. The exception is the Rust side: weeder and hedge share
 tilth's tree-sitter parsing and release pipeline, so they belong as separate crates in the
 tilth **Cargo workspace**, each with its own binary and identity, depending on a `tilth-core`
 library. That is a library dependency, not shared state, and standalone holds.
 
-Then count again. The target surface is **tilth, weed (with guard inside it, see §6), tend2,
+Then count again. The target surface is **tilth, weeder (with guard inside it, see §6), tend2,
 pleach, umbel, pollen, petals, copeca**, plus contracts and proof. Eight beds, two support
 repos. graft, mull, walk, receipts, and the gateway are gone or absorbed (§8).
 
@@ -121,7 +121,7 @@ does not stop an agent that wants to get around it.
 
 The out-of-the-box move is to put the boundary where it cannot be talked around:
 
-- **git hooks.** `pre-commit` runs weed. `pre-push` runs weed strict and refuses non
+- **git hooks.** `pre-commit` runs weeder. `pre-push` runs weeder strict and refuses non
   fast-forward pushes to protected branches. `pre-rebase` and a `reference-transaction` hook
   refuse history rewrites. These are universal across every harness and every human, and the
   only bypass is `--no-verify`, which is one pattern to deny at the harness hook. The
@@ -137,34 +137,34 @@ Two other hedge features do not survive contact. Inbound quarantine of tool resu
 deterministic; natural-language injection has no fixed shape, so the claim would be theater.
 Spend rules cannot see token usage from a hook on most harnesses. Both are cut.
 
-**Finding.** hedge stops being a bed. Its git-hook half is weed's `guard` subcommand, since
-weed already sits at commit and push and already classifies the diff. Its sandbox half is a
+**Finding.** hedge stops being a bed. Its git-hook half is weeder's `guard` subcommand, since
+weeder already sits at commit and push and already classifies the diff. Its sandbox half is a
 configuration the bundle installs. Its harness-hook half is a short deny list inside the
 bundle. Boundary and evidence were one concern all along: code judging the agent's actions.
 
-## 7. Lens: Goodhart. Will weed be gamed, and will it be trusted?
+## 7. Lens: Goodhart. Will weeder be gamed, and will it be trusted?
 
-Every false block costs a retry, and agents learn. If weed blocks five percent of honest
-commits, `Weed-allow` trailers become reflex and the gate becomes noise. Two consequences
+Every false block costs a retry, and agents learn. If weeder blocks five percent of honest
+commits, `Weeder-allow` trailers become reflex and the gate becomes noise. Two consequences
 the design did not draw:
 
 - Only unambiguous rules may block: a deleted test, an added skip, a stub in production
   code, a secret, a guardrail file edited, a conflict marker. Everything else warns.
 - The consumer of a warning is a **human reviewer**, not the agent. An agent argues with a
   warning; a reviewer acts on it. Warnings belong in the pull request as one "garden check",
-  posted by a plain GitHub Action running `weed check`. tend2's pr-gate loop already points
+  posted by a plain GitHub Action running `weeder check`. tend2's pr-gate loop already points
   there. This makes the PR, not a walk page, the attention surface for everyone who is not
   the garden's author.
 
-`weed bite` is the strongest rule and needs the least code once pleach adopts one policy the
+`weeder bite` is the strongest rule and needs the least code once pleach adopts one policy the
 field already recommends: **the test phase commits separately from the implementation**.
 With tests in their own commit, "does the test fail without the change" is a checkout and a
-run, no hunk splitting. bite becomes a pleach policy plus a ten-line weed subcommand.
+run, no hunk splitting. bite becomes a pleach policy plus a ten-line weeder subcommand.
 
 ## 8. Lens: subtraction. What is absorbed?
 
 - **graft** (doc truth): deciding what counts as a claim is judgment, so it is a skill that
-  proposes anchors, plus a checker small enough to be one weed rule: "a path or symbol this
+  proposes anchors, plus a checker small enough to be one weeder rule: "a path or symbol this
   doc names no longer exists". No bed.
 - **mull**: if its review says it lives, its viable form is "write the loop's Tried section
   from this session's transcript". That is one judgment call at SessionEnd, a skill invoking
@@ -175,7 +175,7 @@ run, no hunk splitting. bite becomes a pleach policy plus a ten-line weed subcom
 - **the gateway**: cut, §2.
 - **the ten-concern taxonomy** was a scaffold for design, not a truth. Four concerns are
   enough and make a better landing page: **plan** (tend2), **read** (tilth, petals), **run**
-  (umbel, pleach, pollen), **judge** (weed, copeca).
+  (umbel, pleach, pollen), **judge** (weeder, copeca).
 
 ## 9. Lens: where a skill beats a CLI, and where neither
 
@@ -212,12 +212,12 @@ long shot, and the cost of trying is one page.
 
 The architecture doc gated the season on a whole-garden copeca scenario. That repeats the
 mistake already learned once with SWE-bench: the wrong instrument for a tool's value. copeca
-measures cost per correct answer on navigation and edit tasks. weed, hedge, tend2 and pleach
+measures cost per correct answer on navigation and edit tasks. weeder, hedge, tend2 and pleach
 do not lower that number; they lower risk, retries, and review burden, which copeca cannot
 see. A null result would be likely and would mean nothing.
 
 **Finding.** Invariant six stands, "measured or silent", but each bed declares its own
-falsifiable metric: tilth, cost per correct; weed, calibration precision and incidents
+falsifiable metric: tilth, cost per correct; weeder, calibration precision and incidents
 caught; tend2 and pleach, verified-close rate and human interventions per feature; pollen,
 one message umbel could not carry. copeca is one instrument, not the gate.
 
@@ -225,7 +225,7 @@ one message umbel could not carry. copeca is one instrument, not the gate.
 
 pleach's audit verdict is JSON written by a second agent on a different provider. Code
 parses it and refuses anything that is not the fenced block, but the verdict itself is a
-model's judgment. The deterministic gates are conflict markers, the test command, and weed.
+model's judgment. The deterministic gates are conflict markers, the test command, and weeder.
 The audit is a second opinion with model diversity as its safeguard. That is a good design
 and pleach's docs say it precisely. The garden's slogan overstates it, and the people this
 garden is for will notice.
@@ -240,7 +240,7 @@ refuse.
   One small npm package with schemas and fixtures. No registry, no seasons ceremony.
 - **Stem**: three generated harness bundles, `doctor`, `check`. `init` as a convenience.
   Nothing else.
-- **Beds**: tilth · weed (check, bite, guard) · tend2 · pleach · umbel · pollen · petals ·
+- **Beds**: tilth · weeder (check, bite, guard) · tend2 · pleach · umbel · pollen · petals ·
   copeca. Four rows on the page: plan, read, run, judge.
 - **Runtime**: hooks are static binaries in the tilth Cargo workspace. Everything else stays
   as it is.
@@ -265,5 +265,5 @@ loop, and a surface a single maintainer can carry.
   PR; it did not move intent there. That question deserves its own session with real users.
 - Whether umbel's future runner is headless structured output rather than tmux, now that
   vendors ship SDKs. umbel's positioning doc anticipates it; nobody has built the adapter.
-- How a feedback loop from false blocks, the `Weed-allow` trailers, flows back into rule
+- How a feedback loop from false blocks, the `Weeder-allow` trailers, flows back into rule
   changes without a human reading every one.

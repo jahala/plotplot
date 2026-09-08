@@ -35,8 +35,8 @@
 
   /* color — the bloom as a word (pollen is display-only on paper) */
   --pp-pollen-ink: #7E6A08;
-  --pp-weed:      #8E3B5E;
-  --pp-weed-word: #8E3B5E;
+  --pp-weeder:      #8E3B5E;
+  --pp-weeder-word: #8E3B5E;
 
   /* color — soil-night terminal */
   --pp-term-bg:      #1C1610;
@@ -105,5 +105,5 @@
   --pp-border:    #403628;
   --pp-pollen:     #D9C44A;
   --pp-pollen-ink: #D9C44A;
-  --pp-weed-word: #B85C82;
+  --pp-weeder-word: #B85C82;
 }

@@ -18,7 +18,7 @@ For one commit (or one merged pull request), in machine-readable form:
   tend2's vocabulary (`cli`, `ci:<run-id>`, `judge:<provider>`, `human:<name>` only when a
   person signs);
 - **what it touched**: the files changed, with the tree hash;
-- **what verified it**: weed's result summary (block and warn counts, the SARIF log's digest),
+- **what verified it**: weeder's result summary (block and warn counts, the SARIF log's digest),
   tend2 stamps written in this change (check ids and their `@sha`), pleach gates passed,
   test commands run with exit codes;
 - **what it cost**: tokens where the harness reported them, wall time, tool-call counts by
@@ -56,7 +56,7 @@ person's name unless they signed.
 {
   "_type": "https://in-toto.io/Statement/v1",
   "subject": [
-    {"name": "github.com/jahala/weed", "digest": {"gitCommit": "3f2a…", "gitTree": "9c1d…"}}
+    {"name": "github.com/jahala/weeder", "digest": {"gitCommit": "3f2a…", "gitTree": "9c1d…"}}
   ],
   "predicateType": "https://plotplot.ai/receipt/v1",
   "predicate": {
@@ -69,7 +69,7 @@ person's name unless they signed.
     "conductor": {"tool": "pleach", "plan": "plans/rules-block.plan.json", "node": "rules-block"},
     "changed": ["src/rules/t1.rs", "tests/rules_t1.rs"],
     "verification": {
-      "weed": {"sarif": {"sha256": "…"}, "block": 0, "warn": 2},
+      "weeder": {"sarif": {"sha256": "…"}, "block": 0, "warn": 2},
       "tend2": [{"check": "rules-block:c3", "sha": "9853abb"}],
       "pleach": {"gates": ["markers", "smoke", "audit"], "auditProvider": "openai"},
       "commands": [{"command": "cargo test --workspace", "exit": 0}]
@@ -90,8 +90,8 @@ writes an unsigned draft from counters the friction emitter and the hooks alread
 `.plotplot/receipts/drafts/<session_id>.json`. Fast, append-only, no network.
 
 **Seal at commit.** `plotplot receipt seal`, run from the pre-commit git hook the stem
-installs beside `weed guard`, gathers the drafts of the sessions that touched the staged
-files, folds in weed's SARIF digest and any tend2 stamps in the diff, builds the Statement
+installs beside `weeder guard`, gathers the drafts of the sessions that touched the staged
+files, folds in weeder's SARIF digest and any tend2 stamps in the diff, builds the Statement
 with the commit-to-be's tree hash, and attaches it after the commit as a note on
 `refs/notes/plotplot/receipts` (a `post-commit` hook writes the note once the commit hash
 exists). Unsigned in v0: the note carries the statement and its sha256.
@@ -125,7 +125,7 @@ All faces of the stem binary; no separate tool.
 
 | Bed | Contributes | Through |
 |---|---|---|
-| weed | SARIF digest and counts for the change | `weed check --format sarif` at seal time |
+| weeder | SARIF digest and counts for the change | `weeder check --format sarif` at seal time |
 | tend2 | stamps in the diff, principal vocabulary | reading the loop files in the diff |
 | pleach | plan, node, gates passed, audit provider, worker minutes | its journal; receipts fix the gap its handback exposed (no token counts) by carrying umbel's `telemetry.tokens` when present |
 | umbel | tokens, context percentage, compaction flag per worker | the unit result |

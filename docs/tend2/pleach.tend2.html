@@ -8,12 +8,12 @@
 <noscript>This page renders its markdown payload with JavaScript — enable JS, or read the raw payload in the page source.</noscript>
 <script type="text/markdown" id="loop">
 # pleach — the conductor, gating at the node
-**Goal.** pleach conducts a DAG of verified agent work in isolated worktrees and publishes only what passed its gates. To belong to the tended repository it adopts three things: the test phase commits separately from the implementation, so `weed bite` is a checkout and a run; `weed check --strict` is its default smoke gate, so honesty is judged at the node before the pull request; and every node's handback must carry a Tried entry, so the theory of the program is written by whoever changed it. Its plan schema stays the plan contract. Module work lives in `~/conductor/repos/pleach/docs/tend2/`.
+**Goal.** pleach conducts a DAG of verified agent work in isolated worktrees and publishes only what passed its gates. To belong to the tended repository it adopts three things: the test phase commits separately from the implementation, so `weeder bite` is a checkout and a run; `weeder check --strict` is its default smoke gate, so honesty is judged at the node before the pull request; and every node's handback must carry a Tried entry, so the theory of the program is written by whoever changed it. Its plan schema stays the plan contract. Module work lives in `~/conductor/repos/pleach/docs/tend2/`.
 
 ## Tests
 - [ ] (code) fit contract F1, F3, F4, F5, F6 pass for pleach at the pinned version: manifest, standalone install, zero declared context cost, verified-close-rate metric committed, brand layer and footer · scripts/fit/pleach.sh
 - [ ] (code) a phased node commits the red phase as its own commit before the impl phase begins, and the GREEN gate runs against the combined tree · scripts/fit/pleach.sh test-commit
-- [ ] (code) a plan with no `accept.smoke` defaults to `weed check --strict` when weed is on PATH and fails closed with a named reason when it is not · scripts/fit/pleach.sh default-smoke
+- [ ] (code) a plan with no `accept.smoke` defaults to `weeder check --strict` when weeder is on PATH and fails closed with a named reason when it is not · scripts/fit/pleach.sh default-smoke
 - [ ] (code) a node whose worker handback contains no dated Tried line is classified retryable with the evidence naming the missing section, not published · scripts/fit/pleach.sh tried-required
 - [ ] (code) the published `node/<id>` branch carries an in-toto statement naming harness, model, provider, and the gates passed, signed in CI · scripts/fit/pleach.sh attestation
 - [ ] (code) `bunx github:jahala/pleach validate plan.json` works from a public repository on a clean machine · scripts/fit/pleach.sh public
@@ -24,7 +24,7 @@
 - [ ] (code) the journal redacts secret-shaped strings in anything it quotes from a worker, a commit message or a tool result, so a quoted example credential cannot fail a hygiene gate downstream · scripts/fit/pleach.sh journal-redaction
 - [ ] (human) the owner confirms the landing page qualifies the slogan once: code decides what code can decide; the audit is a second model's judgment in a shape code can refuse
 
-## Needs #weed #tend2 #umbel #contracts
+## Needs #weeder #tend2 #umbel #contracts
 
 ## Tried
 - 2026-09-05 pleach stays on Bun; porting it to Node buys nothing a user can feel and the review reversed the single-runtime decision
@@ -41,5 +41,6 @@
 - 2026-09-06 two more from the weed builder's calibration worker: a scratch journal quoting a corpus commit message carried a documented example AWS key and the hygiene gate refused the delivery (the journal must redact what it quotes; weed's X1 learns published example credentials separately); with scratch un-ignored as the P8 workaround, the collector staged 836 MB of it and the gate judged it (a collected scratch is not scratch) — the two checks above are the response
 - 2026-09-06 from the weed builder's fleet run (P8 in the weed repo's docs/dogfood-report-2026-09-05.md): after a node finished with all four checks stamped, pleach destroyed its worktree at the staging step over two ignored scratch files and the work was recovered from the worker's transcript; the stage-safety check above is the response, and the pleach peer was told
 - 2026-09-05 the bridge worked as advertised in the same run: `pleach validate` on a 14-node plan emitted from weed's map printed eight waves, the map's Needs edges became the DAG with no hand editing
+- 2026-09-08 from the placement pass: pleach 59 keeps the smoke gate's SARIF and the worktree's friction journal beside the receipt with one hash binding the kept bytes, and pleach 60 puts the run journal in the friction envelope additively; the separate test-phase commit above is still unbuilt and is the dependency copeca 23 and slice coverage (plotplot-ai 25) both stand on
 </script>
 <script src="./loop.js"></script>

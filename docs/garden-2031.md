@@ -92,7 +92,7 @@ Three outcomes, and all three will happen to different pieces:
 - **Absorbed.** The obvious deterministic checks (test tampering, stubs, secrets) become
   native platform features. Our versions become the reference implementations that nudged the
   shape, and survive as the local-first, neutral option. Reputation compounds; tilth's arc
-  is the template. High probability for weed's static rules.
+  is the template. High probability for weeder's static rules.
 - **Standardized.** One tiny piece becomes a convention harnesses adopt, the way AGENTS.md
   did. The candidate is the **stamp**: a checkbox grammar for verified claims,
   `[x] claim · evidence @sha · by verifier@version`, renderable by any markdown viewer,
@@ -115,11 +115,11 @@ What, how, why. Each leans on a standard rather than inventing one.
 | Tool | What | How | Why |
 |---|---|---|---|
 | **tend2** | intent with proof: loops of goal, checks, tried; state derived; stamps only a verifier writes | markdown in a thin HTML shell, rendered from disk; a verifier CLI; stamps carry evidence SHA and verifier version and may be emitted as in-toto statements; two-way sync with issues | the fitness function must live in the repo and outlive the vendor; issues are not fitness functions |
-| **weed** | the judge of the diff: deleted or weakened tests, skips, stubs, swallowed errors, secrets, guardrail edits, dependency-direction violations; `bite` proves a test fails without the change; `guard` protects history and remotes | a static binary in the tilth workspace; runs at pre-commit, pre-push, Stop, and in CI; **emits SARIF** | honesty of work is checkable by code; the platform cannot check inside the loop; SARIF makes every finding native in GitHub and every editor |
-| **tilth** | structural reading of code for agents, and the tree-sitter substrate weed judges with | binary, CLI and MCP, skill; measured by cost per correct | reading by syntax tree beats grep on a measured number; as context gets cheap its value shifts to being the eye of the judge |
+| **weeder** | the judge of the diff: deleted or weakened tests, skips, stubs, swallowed errors, secrets, guardrail edits, dependency-direction violations; `bite` proves a test fails without the change; `guard` protects history and remotes | a static binary in the tilth workspace; runs at pre-commit, pre-push, Stop, and in CI; **emits SARIF** | honesty of work is checkable by code; the platform cannot check inside the loop; SARIF makes every finding native in GitHub and every editor |
+| **tilth** | structural reading of code for agents, and the tree-sitter substrate weeder judges with | binary, CLI and MCP, skill; measured by cost per correct | reading by syntax tree beats grep on a measured number; as context gets cheap its value shifts to being the eye of the judge |
 | **petals** | brand and voice as files, checked deterministically | a skill plus a check that emits SARIF | design truth agents read before generating, and a gate after |
 | **umbel** | one unit of agent work on any provider, with a typed result | adapters: tmux today, headless structured output as vendors ship it; the unit contract | no vendor can run its competitors; someone neutral must |
-| **pleach** | a DAG of verified nodes in worktrees, gated, audited by a different provider, published only when verified | git worktrees; gates are weed, tests, markers; ledger is tend2; runnable in Actions; the test phase commits separately | fleets need gating at the node, before the PR |
+| **pleach** | a DAG of verified nodes in worktrees, gated, audited by a different provider, published only when verified | git worktrees; gates are weeder, tests, markers; ledger is tend2; runnable in Actions; the test phase commits separately | fleets need gating at the node, before the PR |
 | **pollen** | agent-to-agent messages with a human at the gate | file mailboxes, a relay, MCP with three tools | fleets need lateral talk; the local Unix version of A2A |
 | **copeca** | cost per correct answer with confidence intervals on fixed axes, signed | runs harness CLIs on a task corpus; `copeca init` scaffolds a repo's own corpus from its history | measurement is how slices earn their keep and how teams choose hands; nobody neutral does it |
 | **friction ledger** | where the repo is hard, as numbers: denials, retries, re-reads, test loops, churn per path | hook events recorded in OpenTelemetry GenAI shape, reduced per path, routed by tend2 into simplification loops | the instrument that turns "agent confusion is diagnostic" into a self-improving loop; deterministic, never model-extracted |
@@ -134,7 +134,7 @@ orchestration UI. Each was argued and cut in the review.
 1. **Repo-owned proof beats vendor-owned judgment.** Portability, compliance, and the
    multi-vendor reality all push the same way. The stamp and the attestation are the bet.
 2. **Deterministic honesty gates become required checks everywhere.** The flood of
-   agent-authored pull requests forces it on maintainers first. weed, SARIF-native, local and
+   agent-authored pull requests forces it on maintainers first. weeder, SARIF-native, local and
    in CI, is the bet; the risk is native absorption, and the answer is running inside the loop
    and staying neutral.
 3. **Neutral measurement becomes how teams buy.** Cost per correct on your own repo, per model
@@ -152,11 +152,11 @@ tilth's reader value erodes; its parser value does not. Reallocate accordingly.
 
 In order, each step usable on its own:
 
-1. **Adopt the standards on day one.** weed emits SARIF. receipts are in-toto statements.
+1. **Adopt the standards on day one.** weeder emits SARIF. receipts are in-toto statements.
    friction events use the OpenTelemetry GenAI shape. No new schema where one exists.
 2. **Ship the three unshipped beds.** tend2 to npm, petals and pleach public. The loop must
    be installable before anything else is credible.
-3. **Build weed** in the tilth workspace: static rules to SARIF first, `guard` via git hooks
+3. **Build weeder** in the tilth workspace: static rules to SARIF first, `guard` via git hooks
    second, `bite` via pleach's separate-test-commit policy third. Its first wedge is a GitHub
    Action, "garden check", posting SARIF to code scanning for maintainers drowning in agent
    PRs. That is distribution the platform pays for.
@@ -170,7 +170,7 @@ In order, each step usable on its own:
 8. **Dogfood on the garden's own repos**, publish the numbers, and let the site tell the loop
    with real output.
 
-Kill criteria travel with each step: weed ships only under two percent false blocks on real
+Kill criteria travel with each step: weeder ships only under two percent false blocks on real
 history; the friction ledger ships only if a hot spot it names is confirmed by the next
 simplification loop; the stamp proposal is dropped if no adopter appears in a season.
 

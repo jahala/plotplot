@@ -45,7 +45,7 @@ Five things, all files, all in git, all readable by a person:
    answer with a confidence interval, on fixed axes, so a model, a harness change, or a
    tool can be compared honestly.
 
-The beds are the reference implementation of those five: tend2 for intent and proof, weed
+The beds are the reference implementation of those five: tend2 for intent and proof, weeder
 for law, tilth and petals for structure, the findings contract for the channel, copeca for
 the yardstick, umbel and pleach to run and conduct workers against all of it, pollen for
 the workers to talk with a human at the gate.
@@ -72,7 +72,7 @@ Because they are the hands and the cockpit, and this is the ground they work on.
 runs your sessions in parallel worktrees; every one of those worktrees inherits the repo's
 hooks, so the law holds inside Conductor without Conductor knowing. Claude Code is the best
 worker; pleach can conduct ten of them and have Codex audit the result. Cursor edits; the
-commit still passes weed. Nothing here replaces a harness. It makes the harness
+commit still passes weeder. Nothing here replaces a harness. It makes the harness
 interchangeable.
 
 What you get that they cannot give you: your judgment is owned, not rented. Switching models
@@ -87,7 +87,7 @@ runtime:
 - **git** is the ledger, the isolation (worktrees), the enforcement point (hooks shipped
   with the repo via `core.hooksPath`), and the proof primitive (content SHAs).
 - **the OS sandbox** (seatbelt, bubblewrap, the harnesses' own) is the filesystem fence.
-- **tree-sitter** is the eye: structural reading for tilth, structural judgment for weed.
+- **tree-sitter** is the eye: structural reading for tilth, structural judgment for weeder.
 - **static binaries** run the hooks in milliseconds with no runtime to be missing.
 - **the filesystem** is the bus: mailboxes, journals, loop pages that render from disk.
 - **the harness's lifecycle hooks** are used only for what git and the sandbox cannot see.
@@ -100,7 +100,7 @@ The durable artifact is not a tool. It is **the convention of a tended repositor
 things above, specified as small file formats and hook behaviours that anyone can
 implement. git, npm, AGENTS.md and SKILL.md were built upon because each was a tiny
 convention with tools around it. plotplot publishes the convention and ships the reference
-tools, and the extension points already exist in each: loop check methods, weed rules,
+tools, and the extension points already exist in each: loop check methods, weeder rules,
 pleach runners and ledgers, tilth languages, copeca runners and tasks, petals extractors.
 
 So the long-term shape is: a one-page spec of the tended repository; a handful of

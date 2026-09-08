@@ -8,11 +8,11 @@
 <noscript>This page renders its markdown payload with JavaScript — enable JS, or read the raw payload in the page source.</noscript>
 <script type="text/markdown" id="loop">
 # receipts — what produced a change and what verified it
-**Goal.** A signed statement per commit: the harness and model that produced it, the conductor and node if any, the files it touched, what verified it (weed's SARIF digest, tend2 stamps, pleach gates, test commands), what it cost, and a friction summary, as an in-toto Statement whose subject is the commit's own git hash, stored as a git note, signed keyless through Sigstore in CI. Provenance is compliance now and trust always; a receipt outlives the vendor. The plan is `docs/plans/receipts.md`. v0 (draft, seal, verify, notes) is built with the stem; v1 (signing, the PR check, the GitHub mirror) waits for a second reader or a policy that requires it.
+**Goal.** A signed statement per commit: the harness and model that produced it, the conductor and node if any, the files it touched, what verified it (weeder's SARIF digest, tend2 stamps, pleach gates, test commands), what it cost, and a friction summary, as an in-toto Statement whose subject is the commit's own git hash, stored as a git note, signed keyless through Sigstore in CI. Provenance is compliance now and trust always; a receipt outlives the vendor. The plan is `docs/plans/receipts.md`. v0 (draft, seal, verify, notes) is built with the stem; v1 (signing, the PR check, the GitHub mirror) waits for a second reader or a policy that requires it.
 
 ## What binds the pieces
 
-The predicate schema lives in [contracts](contracts.tend2.html); every face is on the [stem](stem.tend2.html)'s binary; [weed](weed.tend2.html) contributes its SARIF digest, [tend2](tend2.tend2.html) its stamps and principal vocabulary, [pleach](pleach.tend2.html) its plan, node and gates, and [umbel](umbel.tend2.html) its token telemetry, which is also how pleach's handback gap on spend gets filled.
+The predicate schema lives in [contracts](contracts.tend2.html); every face is on the [stem](stem.tend2.html)'s binary; [weeder](weeder.tend2.html) contributes its SARIF digest, [tend2](tend2.tend2.html) its stamps and principal vocabulary, [pleach](pleach.tend2.html) its plan, node and gates, and [umbel](umbel.tend2.html) its token telemetry, which is also how pleach's handback gap on spend gets filled.
 
 ## Tests
 - [ ] (code) the receipt predicate schema in contracts validates the plan's example and rejects predicates carrying prompt text, tool output or an absolute home path · contracts/test/receipt-schema.test.sh

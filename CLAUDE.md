@@ -14,9 +14,9 @@ for the garden. Read this before changing the page or the brand.
   gates agent work and ships only what's verified), **umbel** (fan out agent CLIs in
   tmux — renamed from rctrl), **copeca** (cost-per-correct benchmarking), **pollen**
   (agent-to-agent messaging, with a human at the trust gate — adopted from
-  walkie-clawkie; see `docs/pollen-conversion-plan-2026-09.md`), **weed** (the judge of the
+  walkie-clawkie; see `docs/pollen-conversion-plan-2026-09.md`), **weeder** (the judge of the
   diff, refusing deleted tests, stubs and secrets before they land; brief in
-  `docs/prompts/weed-build-2026-09.md`).
+  `docs/prompts/weeder-build-2026-09.md`).
 
 ## Architecture / tech (decisions)
 
@@ -92,3 +92,5 @@ for the garden. Read this before changing the page or the brand.
 - Edit `.brand/*.md` (canonical) → regenerate tokens → update `public/index.html` to use
   the vars → `npm run check` → preview.
 - Reports/plans go in `docs/`; scripts go in `scripts/`.
+- Unplanned work is a GitHub issue; planned work is a loop in `docs/tend2/` with checks written
+  first (plus a plan file in `docs/plans/` when it needs pages), and the issue points at the loop.

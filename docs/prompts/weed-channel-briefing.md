@@ -1,5 +1,7 @@
 # weed — the briefing sent over pollen to the builder
 
+Note: weed was renamed weeder on 2026-09-06; this is the message as sent.
+
 Sent by cape-town (the umbrella) to peer `bandung` (workspace `~/conductor/workspaces/weed/bandung`)
 on 2026-09-05 as the first reply. Kept here so the channel is transport and the repo is the
 record. The text below is what was sent.

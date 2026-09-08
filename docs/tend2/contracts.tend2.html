@@ -17,7 +17,7 @@ Two new schemas, `manifest` and `lock`, small enough to read in a minute. No fin
 ## Tests
 - [ ] (code) `contracts/manifest.schema.json` validates every bed's committed `garden.json` and rejects each of the negative fixtures (missing kind, undeclared context cost, no metric command) · contracts/test/manifest.test.sh
 - [ ] (code) `contracts/lock.schema.json` validates `garden.lock` and the fit runner refuses a pinned artifact whose checksum does not match · contracts/test/lock.test.sh
-- [ ] (code) every gate in the garden emits SARIF 2.1.0 that validates against the official schema, checked on one fixture per bed with a check face (weed, petals, tend2 lint) · contracts/test/sarif.test.sh
+- [ ] (code) every gate in the garden emits SARIF 2.1.0 that validates against the official schema, checked on one fixture per bed with a check face (weeder, petals, tend2 lint) · contracts/test/sarif.test.sh
 - [ ] (code) the fit runner fetches a pinned bed into a clean temp directory and runs a named check, with no other garden tool on PATH · contracts/test/fit-runner.test.sh
 - [ ] (code) the loop format version tend2 ships and the plan schema version pleach ships match the versions this repo pins · contracts/test/pins.test.sh
 - [ ] (code) `contracts/friction-profile.md` pins the OpenTelemetry GenAI event names and attributes the garden uses, including one required path attribute, and a fixture journal validates against it · contracts/test/friction-profile.test.sh
@@ -30,5 +30,6 @@ Two new schemas, `manifest` and `lock`, small enough to read in a minute. No fin
 - 2026-09-05 the fit runner lives here rather than in the stem because it verifies beds from the umbrella; the stem consumes the lock, this loop defines it
 - 2026-09-05 settled with tend2 on the channel: friction is federated — contracts pins an OpenTelemetry profile (not a schema of our own), each bed emits its own domain's events, tend2 owns the reducer and hot spots; rides step 1
 - 2026-09-05 settled with tend2 on the channel: time is deliberately external — no bed grows a scheduler; cadence commands are idempotent CLIs; scheduler configuration lives in the repo as workflow files or a local cron layer
+- 2026-09-08 from the placement pass, joining the work here: an identifiers profile (session id, commit sha, loop id and check ordinal, proposal marker; the season is garden.lock's season) beside the friction profile (plotplot-ai 34); the friction envelope as the shape of every append-only stream, additively, still a profile and not a schema of our own (35, pleach 60); a coverage block per bed in garden.json so silence on an unsupported language is declared, not read as clean (31)
 </script>
 <script src="./loop.js"></script>
