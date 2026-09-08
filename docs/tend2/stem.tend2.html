@@ -23,10 +23,10 @@ The stem is not an orchestrator (pleach conducts), not a runtime (umbel runs), n
 - [ ] (code) `plotplot doctor` proves each installed hook fires by triggering it on Claude Code and Gemini CLI with real binaries, and reports Codex honestly as awaiting project trust · scripts/fit/stem.sh doctor
 - [ ] (code) `plotplot check` runs every gate the manifests declare and emits one valid SARIF 2.1.0 log; exit 2 on any block-level result, 3 when a gate could not run · scripts/fit/stem.sh check
 - [ ] (code) the lockfile wrapper fetches a pinned judge into an ignored directory, verifies its checksum, refuses a mismatch, and no binary is committed anywhere in the repo · scripts/fit/stem.sh lock
-- [ ] (code) the three generated bundles install through each vendor's own mechanism on a clean machine and carry identical hooks, skills, and MCP entries · scripts/fit/stem.sh bundles
+- [x] (code) the three generated bundles install through each vendor's own mechanism on a clean machine and carry identical hooks, skills, and MCP entries · scripts/fit/stem.sh bundles @9b48921 · by cli
 - [ ] (code) the garden block plus the skill description lines cost under 400 tokens on a deferring harness, measured by the same probe that measured 8,300 today · scripts/fit/stem.sh context
 - [ ] (code) the proof run passes end to end on the pinned season · scripts/fit/proof.sh
-- [ ] (code) every generated bundle carries the friction emitter and the receipt draft face as hook entries on the events the plans name, and `plotplot hook <harness> <event>` dispatches each event to the right face in under 50 ms · scripts/fit/stem.sh hook-faces
+- [x] (code) every generated bundle carries the friction emitter and the receipt draft face as hook entries on the events the plans name, and `plotplot hook <harness> <event>` dispatches each event to the right face in under 50 ms · scripts/fit/stem.sh hook-faces @eb84ed9 · by cli
 - [ ] (code) `plotplot doctor --live` drives one real session per present harness through umbel and proves from the friction journal and a marker file that each registered hook fired, reporting Codex as awaiting trust when it is · scripts/fit/stem.sh doctor-live
 - [ ] (human) the owner confirms the `plotplot` npm name and the `@plotplot/*` scope, whether the stem's repository is `jahala/plotplot`, which beds `init` plants by default, and whether receipts are drafted by default
 
