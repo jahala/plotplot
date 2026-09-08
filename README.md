@@ -2,9 +2,12 @@
 
 **Grow what matters.** A garden of small, sharp tools for building with AI.
 
-[plotplot.ai](https://plotplot.ai) is the umbrella for a family of tools — code
-intelligence, orchestration, brand, planning — that agents and humans share. This
-repo holds the **umbrella landing page** and the **canonical brand** for the whole garden.
+This repository is the garden's root, the umbrella: the canonical brand every bed's page is
+checked against, the law bed agents follow, the contracts every bed speaks, and the map of loops
+that say whether a bed belongs. The stem, the `plotplot` binary that plants the garden into any
+repository, will live here too. The website, [plotplot.ai](https://plotplot.ai), lives in
+[jahala/plotplot-ai](https://github.com/jahala/plotplot-ai) and pulls the brand from here by tag,
+like every bed's page does.
 
 ## The garden
 
@@ -19,38 +22,29 @@ repo holds the **umbrella landing page** and the **canonical brand** for the who
 | [pollen](https://github.com/jahala/pollen) | agent-to-agent messaging — mailboxes between agents, with a human at the gate | live |
 | [weeder](https://github.com/jahala/weeder) | the judge of the diff — refuses deleted tests, stubs and secrets before they land | soon |
 
-## Repo layout
+## What this repository holds
 
-- `public/` — the deployed site (`index.html` + favicon). No build step.
-- `.brand/` — the canonical plotplot brand. Markdown is the source of truth; `tokens.css` / `tokens.json` are derived. Colors, type, voice, layout, surface/motion, identity, DESIGN, assets.
-- `petals/` — vendored [petals](https://github.com/jahala/petals) skill: the brand tooling (`/petals` workflows + `scripts/check.sh`).
-- `scripts/palette_contrast.py` — measures WCAG contrast for the palette and emits the Contrast Pairings table.
-- `docs/` — [`deploy.md`](docs/deploy.md) runbook; `brand/` preview + reference shots.
-- `CLAUDE.md` — project notes, decisions, and conventions for agents working here.
+| Path | What it is |
+|------|------------|
+| `.brand/` | the canonical brand in petals' structure; `tokens.css` and `tokens.json` are derived |
+| `docs/building-the-garden.md` | the law every bed agent follows: invariants, the fit contract, mandates, anti-goals |
+| `docs/tend2/` | the umbrella map: one fit loop per bed, plus contracts, stem, friction, receipts |
+| `docs/plans/` | plans for the unbuilt tools |
+| `docs/prompts/` | the briefs bed agents were started from, and transcripts of channel messages |
+| `contracts/` | the bed manifest and lockfile schemas, the friction and identifiers profiles, fixtures and tests |
+| `scripts/fit/` | the fit runner that verifies a pinned bed against the contracts |
 
-## Develop
+## Pinning the umbrella
 
-```bash
-npm install
-npm run dev      # local preview (Cloudflare-accurate) at http://localhost:8787
-npm run check    # audit the page against the brand (petals check) — must be 0 errors
+A bed pins one umbrella version for brand, law and contracts together, by tag:
+
+```yaml
+# .petalsrc at a bed's root
+brand:
+  source: https://github.com/jahala/plotplot.git
+  version: v1.0.0
+  product: <bed>
 ```
 
-## Deploy
-
-Static site on **Cloudflare Workers (Static Assets)**. Merges to the default branch
-auto-deploy via `.github/workflows/deploy.yml` (runs `wrangler deploy`). Manual:
-`npm run deploy`. See [`docs/deploy.md`](docs/deploy.md) for the API-token secret and
-the custom-domain steps (plotplot.ai + plotplot.io).
-
-## Brand
-
-The brand lives in `.brand/` and is enforced by petals — every page must pass
-`/petals check`. Warm paper + deep-brown ink, vibrant growth green, a sunlight
-accent, a bloom per tool, and a soil-night dark mode; Fraunces × Hanken Grotesk ×
-JetBrains Mono; calm "unfold" motion. Full rules in `.brand/DESIGN.md` and
-`.brand/voice.md`.
-
----
-
-Part of the plotplot garden · built with [petals](https://github.com/jahala/petals)
+Tags are `v<major>.<minor>.<patch>`. A change a bed must react to (a renamed token, a new
+required manifest field) moves the major.
