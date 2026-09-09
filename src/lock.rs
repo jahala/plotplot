@@ -131,6 +131,25 @@ pub fn platform() -> &'static str {
     env!("PLOTPLOT_TARGET")
 }
 
+/// The artifact a judge pins for `platform`, and the key it was found under.
+///
+/// The exact triple first. A stem built for a glibc Linux (`*-unknown-linux-gnu`) then
+/// takes the musl sibling: every Linux artifact the garden publishes is a static musl
+/// binary, which runs on a glibc system, and the fit runner (`scripts/fit/lib.sh`) names
+/// Linux by the musl triple for the same reason. Nothing else is substituted: a different
+/// architecture or operating system is a different machine.
+pub fn artifact_for<'a>(judge: &'a Judge, platform: &str) -> Option<(&'a str, &'a Artifact)> {
+    if let Some((key, artifact)) = judge.platforms.get_key_value(platform) {
+        return Some((key.as_str(), artifact));
+    }
+    let musl = platform.strip_suffix("-unknown-linux-gnu")?;
+    let sibling = format!("{musl}-unknown-linux-musl");
+    judge
+        .platforms
+        .get_key_value(&sibling)
+        .map(|(key, artifact)| (key.as_str(), artifact))
+}
+
 /// The compiled lock schema, built once.
 fn lock_validator() -> &'static std::result::Result<jsonschema::Validator, String> {
     static VALIDATOR: OnceLock<std::result::Result<jsonschema::Validator, String>> =
@@ -258,7 +277,7 @@ fn from_artifact(
     platform: &str,
     fetch: &dyn Fetch,
 ) -> Result<JudgeState> {
-    let Some(artifact) = judge.platforms.get(platform) else {
+    let Some((_, artifact)) = artifact_for(judge, platform) else {
         return Ok(JudgeState::Missing(format!(
             "the lock pins no artifact for {platform}"
         )));
@@ -891,6 +910,34 @@ mod tests {
         assert_eq!(platform, triple_from_cfg());
         let parts = platform.split('-').count();
         assert!((3..=5).contains(&parts), "{platform}");
+    }
+
+    #[test]
+    fn an_artifact_is_found_under_its_exact_triple_first() {
+        let lock = parse_lock(&fixture()).expect("the fixture lock");
+        let tilth = lock.judges.get("tilth").expect("the tilth judge");
+        let (key, artifact) =
+            artifact_for(tilth, "aarch64-apple-darwin").expect("the darwin artifact");
+        assert_eq!(key, "aarch64-apple-darwin");
+        assert!(artifact.url.ends_with("tilth-aarch64-apple-darwin.tar.gz"));
+    }
+
+    #[test]
+    fn a_glibc_linux_build_takes_the_musl_sibling_and_nothing_else_is_substituted() {
+        let lock = parse_lock(&fixture()).expect("the fixture lock");
+        let tilth = lock.judges.get("tilth").expect("the tilth judge");
+        let (key, artifact) =
+            artifact_for(tilth, "x86_64-unknown-linux-gnu").expect("the musl sibling");
+        assert_eq!(key, "x86_64-unknown-linux-musl");
+        assert!(
+            artifact
+                .url
+                .ends_with("tilth-x86_64-unknown-linux-musl.tar.gz")
+        );
+        assert!(artifact_for(tilth, "x86_64-pc-windows-msvc").is_none());
+        assert!(artifact_for(tilth, "riscv64gc-unknown-linux-gnu").is_none());
+        let tend2 = lock.judges.get("tend2").expect("the tend2 judge");
+        assert!(artifact_for(tend2, "aarch64-apple-darwin").is_none());
     }
 
     #[test]

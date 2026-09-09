@@ -464,7 +464,7 @@ fn judges(root: &Path, lock: &Lock, beds: &[Bed]) -> Result<Finding> {
         let binary = layout::judge_binary(root, file_name);
         let present = binary.exists();
 
-        match judge.platforms.get(platform) {
+        match lock::artifact_for(judge, platform).map(|(_, artifact)| artifact) {
             Some(artifact) if is_archive(&artifact.url) => {
                 checked.push(format!("{name} {}", judge.version));
                 if !present {
