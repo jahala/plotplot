@@ -31,8 +31,9 @@ pub const VERSION: &str = "2.1.0";
 /// The level a result carries when it blocks.
 pub const BLOCK_LEVEL: &str = "error";
 
-/// The level SARIF gives a failing result whose rule declares no default (§3.27.10).
-const WARNING_LEVEL: &str = "warning";
+/// The level SARIF gives a failing result whose rule declares no default (§3.27.10), and the
+/// level a result carries when it warns rather than blocks.
+pub const WARNING_LEVEL: &str = "warning";
 
 /// The level SARIF gives a result that reports something other than a failure.
 const NO_LEVEL: &str = "none";
@@ -91,10 +92,17 @@ pub fn merge(logs: &[Value]) -> Value {
 /// gate that leans on its own rule defaults block nothing, which is the one way this count
 /// could fail open.
 pub fn block_count(log: &Value) -> usize {
+    level_count(log, BLOCK_LEVEL)
+}
+
+/// How many of a log's results carry `level`, each result read the way [`block_count`] reads
+/// it: its own level, else its rule's default, else the level SARIF gives a result of its
+/// kind.
+pub fn level_count(log: &Value, level: &str) -> usize {
     runs(log)
         .map(|run| {
             results(run)
-                .filter(|result| effective_level(run, result) == BLOCK_LEVEL)
+                .filter(|result| effective_level(run, result) == level)
                 .count()
         })
         .sum()
