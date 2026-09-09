@@ -4,7 +4,7 @@
   "maxConcurrency": 1,
   "nodes": [
     {
-      "id": "stem.audit.bundles",
+      "id": "stem.audit.init",
       "worker": {
         "provider": "claude",
         "model": "claude-opus-5"
@@ -16,7 +16,7 @@
       "accept": {
         "smoke": "bash -lc 'cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test'",
         "audit": {
-          "command": "bash -lc 'tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress --check 5 --runner \"bash {evidence} bundles\"'",
+          "command": "bash -lc 'tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress --check 1 --runner \"bash {evidence} init\"'",
           "provider": "opencode",
           "model": "deepseek/deepseek-v4-pro"
         }
@@ -31,7 +31,7 @@
       }
     },
     {
-      "id": "stem.audit.hook-faces",
+      "id": "stem.audit.check",
       "worker": {
         "provider": "claude",
         "model": "claude-opus-5"
@@ -43,7 +43,34 @@
       "accept": {
         "smoke": "bash -lc 'cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test'",
         "audit": {
-          "command": "bash -lc 'tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress --check 8 --runner \"bash {evidence} hook-faces\"'",
+          "command": "bash -lc 'tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress --check 3 --runner \"bash {evidence} check\"'",
+          "provider": "opencode",
+          "model": "deepseek/deepseek-v4-pro"
+        }
+      },
+      "policy": {
+        "maxAttempts": 1,
+        "timeoutMs": 1800000,
+        "onDead": "resume",
+        "reauditWhen": [
+          "compacted"
+        ]
+      }
+    },
+    {
+      "id": "stem.audit.lock",
+      "worker": {
+        "provider": "claude",
+        "model": "claude-opus-5"
+      },
+      "work": {
+        "command": "bash -lc 'cargo build --release 2>&1 | tail -1'"
+      },
+      "needs": [],
+      "accept": {
+        "smoke": "bash -lc 'cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test'",
+        "audit": {
+          "command": "bash -lc 'tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress --check 4 --runner \"bash {evidence} lock\"'",
           "provider": "opencode",
           "model": "deepseek/deepseek-v4-pro"
         }

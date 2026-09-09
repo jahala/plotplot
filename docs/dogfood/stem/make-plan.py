@@ -13,6 +13,7 @@ pleach executes them as an argv array with no shell.
 """
 
 import json
+import sys
 
 GATE_SHELL = "cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test"
 # pleach execs gate commands as an argv array without a shell, so a shell line is wrapped.
@@ -299,7 +300,11 @@ plan = {
 # does, one check per invocation, so one node per stamped check. A command node has no
 # builder and is exempt from the hygiene gate; nothing is rebuilt, only the gates settle.
 VERIFY = "tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress"
-REAUDIT_CHECKS = [("bundles", 5), ("hook-faces", 8)]
+# Every stamped check, one relay-only node each; `--reaudit` re-audits the ones named after
+# it (`--reaudit init check lock`), or all of them when none is named.
+ALL_CHECKS = [("init", 1), ("check", 3), ("lock", 4), ("bundles", 5), ("hook-faces", 8)]
+_wanted = [a for a in sys.argv[sys.argv.index("--reaudit") + 1:] if not a.startswith("--")] if "--reaudit" in sys.argv else []
+REAUDIT_CHECKS = [(n, i) for n, i in ALL_CHECKS if not _wanted or n in _wanted]
 reaudit = {
     "goal": "Settle the integration node's audit for the landed stem stack (jahala/plotplot 20): tend2 verify with audit egress on the two stamped checks, relayed by an auditor on another provider, no builder.",
     "source": "docs/dogfood/stem/reaudit.plan.json",
@@ -356,7 +361,6 @@ second = {
     ],
 }
 
-import sys
 if "--second" in sys.argv:
     print(json.dumps(second, indent=2, ensure_ascii=False))
 elif "--reaudit" in sys.argv:
