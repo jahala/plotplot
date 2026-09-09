@@ -277,4 +277,28 @@ plan = {
     ],
 }
 
-print(json.dumps(plan, indent=2, ensure_ascii=False))
+# `--reaudit`: one node only, re-running the integration node's gates (the same smoke and
+# a codex audit) on the repository HEAD, where the integration work already landed by hand
+# after the opencode auditor's relay came back unparseable. A command node has no builder
+# and is exempt from the hygiene gate, so nothing is rebuilt; only the gates settle.
+reaudit = {
+    "goal": "Settle the integration node's audit on codex for the landed stem stack (jahala/plotplot 20): the same smoke and audit command, no builder.",
+    "source": "docs/plans/stem-reaudit.plan.json",
+    "maxConcurrency": 1,
+    "nodes": [
+        {
+            "id": "stem.integrate",
+            "worker": dict(WORKER),
+            "work": {"command": "bash -lc 'cargo build --release 2>&1 | tail -1'"},
+            "needs": [],
+            "accept": {"smoke": SMOKE_INTEGRATE, "audit": {"command": AUDIT_INTEGRATE, "provider": "codex"}},
+            "policy": {"maxAttempts": 1, "timeoutMs": 1_800_000, "onDead": "resume", "reauditWhen": ["compacted"]},
+        }
+    ],
+}
+
+import sys
+if "--reaudit" in sys.argv:
+    print(json.dumps(reaudit, indent=2, ensure_ascii=False))
+else:
+    print(json.dumps(plan, indent=2, ensure_ascii=False))

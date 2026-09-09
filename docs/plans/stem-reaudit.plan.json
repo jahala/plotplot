@@ -1,0 +1,33 @@
+{
+  "goal": "Settle the integration node's audit on codex for the landed stem stack (jahala/plotplot 20): the same smoke and audit command, no builder.",
+  "source": "docs/plans/stem-reaudit.plan.json",
+  "maxConcurrency": 1,
+  "nodes": [
+    {
+      "id": "stem.integrate",
+      "worker": {
+        "provider": "claude",
+        "model": "claude-opus-5"
+      },
+      "work": {
+        "command": "bash -lc 'cargo build --release 2>&1 | tail -1'"
+      },
+      "needs": [],
+      "accept": {
+        "smoke": "bash -lc 'cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test && bash scripts/fit/stem.sh bundles && bash scripts/fit/stem.sh hook-faces'",
+        "audit": {
+          "command": "bash -lc 'cargo test 2>&1 | tail -20 && bash scripts/fit/stem.sh hook-faces && bash scripts/fit/stem.sh bundles && git diff --stat HEAD~1 -- docs/tend2/stem.tend2.html'",
+          "provider": "codex"
+        }
+      },
+      "policy": {
+        "maxAttempts": 1,
+        "timeoutMs": 1800000,
+        "onDead": "resume",
+        "reauditWhen": [
+          "compacted"
+        ]
+      }
+    }
+  ]
+}
