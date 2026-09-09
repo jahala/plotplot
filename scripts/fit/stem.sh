@@ -7,6 +7,9 @@
 #   scripts/fit/stem.sh hook-faces   every bundle registers the dispatcher on every event a
 #                                    friction kind derives from and on the session-end event,
 #                                    and `plotplot hook` answers each in under 50 ms
+#   scripts/fit/stem.sh lock         `plotplot lock verify` fetches a real pinned release into
+#                                    an ignored directory, verifies its checksum, refuses a
+#                                    mismatch, and no judge is committed anywhere
 #
 # Exit 0 on pass, non-zero with a reason on failure. Every check builds the crate in release
 # mode once, then runs in a fresh temporary directory with HOME and CODEX_HOME pointed at a
@@ -692,12 +695,139 @@ check_hook_faces() {
 }
 
 # ---------------------------------------------------------------------------------------
+# the lockfile wrapper, against a real release
+# ---------------------------------------------------------------------------------------
+
+# The judge this check pins. tilth is the one bed of the garden with a published release, so
+# it is the only real artifact a lock can name today; its per-platform digests live in the
+# contracts' own `contracts/fixtures/garden.lock`, read from the platform on 2026-09-08.
+LOCK_JUDGE="tilth"
+LOCK_VERSION="0.10.1"
+
+# A lock naming one judge for one platform, written into a fixture repository, never here.
+write_lock() {
+  local repo="$1" platform="$2" url="$3" sha="$4"
+  mkdir -p "$repo" || fail "could not make the fixture repository at $repo"
+  cat > "$repo/garden.lock" <<LOCK
+season = "2026.09"
+
+[judges.$LOCK_JUDGE]
+version = "$LOCK_VERSION"
+
+[judges.$LOCK_JUDGE.platforms."$platform"]
+url = "$url"
+sha256 = "$sha"
+LOCK
+}
+
+# One digit of a digest changed, and still 64 lowercase hex, so what the lock refuses is the
+# bytes and never its own shape.
+bend_digest() {
+  local sha="$1" head rest
+  head="${sha:0:1}"
+  rest="${sha:1}"
+  case "$head" in
+    0) echo "1$rest" ;;
+    *) echo "0$rest" ;;
+  esac
+}
+
+check_lock() {
+  require git jq node
+  build_stem
+
+  # fit_lock_lookup is the fit runner's own lock reader, and it reads TOML through
+  # smol-toml. An absent node_modules is a machine that has not run `npm ci`, which is a
+  # different thing from a platform with no asset, and the two must not read the same.
+  [ -d "$ROOT/node_modules/smol-toml" ] \
+    || fail "the fit runner's lock reader needs smol-toml; run 'npm ci' in $ROOT first"
+
+  local platform lookup url sha
+  platform="$(fit_platform)"
+  note "platform: $platform"
+
+  # The artifact comes from the contracts' own lock fixture, so this check pins whatever the
+  # contracts pin and never a URL invented here. A platform the fixture has no asset for is
+  # said out loud and fails, rather than passing on a judge nobody fetched.
+  lookup="$(fit_lock_lookup "$ROOT/contracts/fixtures/garden.lock" "$LOCK_JUDGE" "$platform" 2>&1)" \
+    || fail "contracts/fixtures/garden.lock names no $LOCK_JUDGE artifact for $platform, so this check cannot run on this machine: $lookup"
+  url="$(echo "$lookup" | jq -r '.url')"
+  sha="$(echo "$lookup" | jq -r '.sha256')"
+  { [ -n "$url" ] && [ "$url" != "null" ]; } || fail "the fixture lock gave no url for $LOCK_JUDGE on $platform"
+  { [ -n "$sha" ] && [ "$sha" != "null" ]; } || fail "the fixture lock gave no sha256 for $LOCK_JUDGE on $platform"
+  note "pinned: $url"
+
+  local tmp good bad status
+  tmp="$(scratch)"
+  good="$tmp/planted"
+  bad="$tmp/bent"
+
+  # 1. The pinned bytes are fetched, verified and placed.
+  write_lock "$good" "$platform" "$url" "$sha"
+  ( cd "$good" && "$STEM" lock verify ) >"$tmp/good.out" 2>"$tmp/good.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { echo "--- plotplot lock verify ---" >&2; cat "$tmp/good.out" "$tmp/good.err" >&2; \
+         fail "plotplot lock verify exited $status against the real $LOCK_JUDGE $LOCK_VERSION release"; }
+  grep -q "^$LOCK_JUDGE $LOCK_VERSION fetched" "$tmp/good.out" \
+    || { cat "$tmp/good.out" >&2; fail "lock verify did not report $LOCK_JUDGE as fetched"; }
+
+  local placed="$good/.plotplot/bin/$LOCK_JUDGE"
+  [ -x "$placed" ] || fail "$placed is not there or not executable after a verify that exited 0"
+
+  local reported
+  reported="$("$placed" --version 2>&1)" || fail "the fetched $LOCK_JUDGE could not be run: $reported"
+  case "$reported" in
+    *"$LOCK_VERSION"*) : ;;
+    *) fail "the fetched $LOCK_JUDGE reports \"$reported\", not $LOCK_VERSION" ;;
+  esac
+
+  local recorded
+  recorded="$(tr -d '[:space:]' < "$placed.sha256")" || fail "no digest companion beside $placed"
+  [ "$recorded" = "$sha" ] \
+    || fail "the companion at $placed.sha256 records $recorded, not the $sha the lock pins"
+  note "fetched, verified and runnable: $(head -1 "$tmp/good.out")"
+
+  # 2. A lock whose digest is off by one digit is refused, and nothing is placed.
+  local bent
+  bent="$(bend_digest "$sha")"
+  [ "$bent" != "$sha" ] || fail "the bent digest came out the same as the pinned one"
+  write_lock "$bad" "$platform" "$url" "$bent"
+  ( cd "$bad" && "$STEM" lock verify ) >"$tmp/bad.out" 2>"$tmp/bad.err"
+  status=$?
+  [ "$status" -eq 3 ] \
+    || { cat "$tmp/bad.out" "$tmp/bad.err" >&2; fail "a bent digest made lock verify exit $status, not 3"; }
+  grep -q "^$LOCK_JUDGE $LOCK_VERSION mismatch: expected $bent, got $sha$" "$tmp/bad.out" \
+    || { cat "$tmp/bad.out" >&2; fail "lock verify did not name the mismatch and both digests"; }
+  if [ -d "$bad/.plotplot/bin" ] && [ -n "$(ls -A "$bad/.plotplot/bin" 2>/dev/null)" ]; then
+    fail "a refused judge left files under $bad/.plotplot/bin: $(ls -A "$bad/.plotplot/bin")"
+  fi
+  note "refused: $(head -1 "$tmp/bad.out")"
+
+  # 3. What was fetched is ignored by git, under this repository's own .gitignore.
+  cp "$ROOT/.gitignore" "$good/.gitignore" || fail "could not copy this repository's .gitignore"
+  git init -q "$good" || fail "git could not make a repository at $good"
+  ( cd "$good" && git check-ignore -q ".plotplot/bin/$LOCK_JUDGE" ) \
+    || fail "this repository's .gitignore does not ignore .plotplot/bin/$LOCK_JUDGE"
+  note "ignored by this repository's .gitignore: .plotplot/bin/$LOCK_JUDGE"
+
+  # 4. And nothing under .plotplot is committed here either.
+  local tracked
+  tracked="$(git -C "$ROOT" ls-files -- .plotplot)"
+  [ -z "$tracked" ] || fail "this repository tracks files under .plotplot: $tracked"
+  note "no file under .plotplot is tracked in this repository"
+
+  echo "stem.sh lock: pass"
+}
+
+# ---------------------------------------------------------------------------------------
 
 case "${1:-}" in
   bundles) check_bundles ;;
   hook-faces) check_hook_faces ;;
+  lock) check_lock ;;
   *)
-    echo "usage: stem.sh {bundles | hook-faces}" >&2
+    echo "usage: stem.sh {bundles | hook-faces | lock}" >&2
     exit 2
     ;;
 esac

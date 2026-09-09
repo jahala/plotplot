@@ -34,6 +34,17 @@ pub enum Error {
     /// An `AGENTS.md` whose plotplot markers do not make one replaceable block, so the stem
     /// cannot say which bytes the garden block owns.
     Agents { problem: String },
+    /// A url that did not give up its bytes: a status outside 2xx, or a transport that
+    /// failed before any status arrived.
+    Fetch { url: String, problem: String },
+    /// Bytes whose digest is not the digest the lock pins. The stem refuses to run them.
+    Checksum {
+        judge: String,
+        expected: String,
+        actual: String,
+    },
+    /// An artifact the stem could not unpack, or one in a format it does not unpack.
+    Archive { path: PathBuf, problem: String },
 }
 
 /// The crate's result type; failure always lives here rather than in a panic.
@@ -53,6 +64,13 @@ impl fmt::Display for Error {
             }
             Error::Harness { problem } | Error::Agents { problem } => write!(f, "{problem}"),
             Error::Git { command, stderr } => write!(f, "{command}: {stderr}"),
+            Error::Fetch { url, problem } => write!(f, "{url}: {problem}"),
+            Error::Checksum {
+                judge,
+                expected,
+                actual,
+            } => write!(f, "{judge}: expected {expected}, got {actual}"),
+            Error::Archive { path, problem } => write!(f, "{}: {problem}", path.display()),
         }
     }
 }
@@ -67,7 +85,10 @@ impl std::error::Error for Error {
             | Error::Harness { .. }
             | Error::Git { .. }
             | Error::Bed { .. }
-            | Error::Agents { .. } => None,
+            | Error::Agents { .. }
+            | Error::Fetch { .. }
+            | Error::Checksum { .. }
+            | Error::Archive { .. } => None,
         }
     }
 }
@@ -165,6 +186,40 @@ mod tests {
     }
 
     #[test]
+    fn a_fetch_failure_names_the_url_first_and_then_what_happened() {
+        let error = Error::Fetch {
+            url: "https://example.invalid/weeder.tar.gz".to_owned(),
+            problem: "the server answered 404".to_owned(),
+        };
+        assert_eq!(
+            error.to_string(),
+            "https://example.invalid/weeder.tar.gz: the server answered 404"
+        );
+    }
+
+    #[test]
+    fn a_checksum_failure_names_the_judge_and_both_digests() {
+        let error = Error::Checksum {
+            judge: "tilth".to_owned(),
+            expected: "38c36e".to_owned(),
+            actual: "d05426".to_owned(),
+        };
+        assert_eq!(error.to_string(), "tilth: expected 38c36e, got d05426");
+    }
+
+    #[test]
+    fn an_archive_failure_displays_the_path_first() {
+        let error = Error::Archive {
+            path: PathBuf::from("https://example.invalid/weeder.zip"),
+            problem: "zip is not unpacked on this platform".to_owned(),
+        };
+        assert_eq!(
+            error.to_string(),
+            "https://example.invalid/weeder.zip: zip is not unpacked on this platform"
+        );
+    }
+
+    #[test]
     fn every_display_is_one_line() {
         let errors = [
             Error::Io {
@@ -191,6 +246,19 @@ mod tests {
                 problem: "b".to_owned(),
             },
             Error::Agents {
+                problem: "b".to_owned(),
+            },
+            Error::Fetch {
+                url: "a".to_owned(),
+                problem: "b".to_owned(),
+            },
+            Error::Checksum {
+                judge: "a".to_owned(),
+                expected: "b".to_owned(),
+                actual: "c".to_owned(),
+            },
+            Error::Archive {
+                path: PathBuf::from("a"),
                 problem: "b".to_owned(),
             },
         ];

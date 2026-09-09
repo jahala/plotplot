@@ -16,3 +16,4 @@ target/
 .plotplot/beds/
 .plotplot/friction/
 .plotplot/receipts/
+.plotplot/npm/
