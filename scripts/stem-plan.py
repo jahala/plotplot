@@ -286,7 +286,7 @@ plan = {
 VERIFY = "tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress"
 REAUDIT_CHECKS = [("bundles", 5), ("hook-faces", 8)]
 reaudit = {
-    "goal": "Settle the integration node's audit for the landed stem stack (jahala/plotplot 20): tend2 verify with audit egress on the two stamped checks, relayed by a codex auditor, no builder.",
+    "goal": "Settle the integration node's audit for the landed stem stack (jahala/plotplot 20): tend2 verify with audit egress on the two stamped checks, relayed by an auditor on another provider, no builder.",
     "source": "docs/plans/stem-reaudit.plan.json",
     "maxConcurrency": 1,
     "nodes": [
