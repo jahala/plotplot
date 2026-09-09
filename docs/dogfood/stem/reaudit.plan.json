@@ -4,7 +4,7 @@
   "maxConcurrency": 1,
   "nodes": [
     {
-      "id": "stem.audit.check",
+      "id": "stem.audit.doctor-live",
       "worker": {
         "provider": "claude",
         "model": "claude-opus-5"
@@ -17,7 +17,7 @@
       "accept": {
         "smoke": "bash -lc 'cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test'",
         "audit": {
-          "command": "bash -lc 'tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress --check 3 --runner \"bash {evidence} check\"'",
+          "command": "bash -lc 'tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress --check 9 --runner \"bash {evidence} doctor-live\"'",
           "provider": "opencode",
           "model": "deepseek/deepseek-v4-pro"
         }
@@ -32,7 +32,7 @@
       }
     },
     {
-      "id": "stem.audit.judges",
+      "id": "receipts.audit.seal",
       "worker": {
         "provider": "claude",
         "model": "claude-opus-5"
@@ -45,7 +45,35 @@
       "accept": {
         "smoke": "bash -lc 'cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test'",
         "audit": {
-          "command": "bash -lc 'tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress --check 4 --runner \"bash {evidence} lock\"'",
+          "command": "bash -lc 'tend2 verify docs/tend2/receipts.tend2.html --repo-root . --force --audit-egress --check 3 --runner \"bash {evidence} seal\"'",
+          "provider": "opencode",
+          "model": "deepseek/deepseek-v4-pro"
+        }
+      },
+      "policy": {
+        "maxAttempts": 1,
+        "timeoutMs": 1800000,
+        "onDead": "resume",
+        "reauditWhen": [
+          "compacted"
+        ]
+      }
+    },
+    {
+      "id": "receipts.audit.verify",
+      "worker": {
+        "provider": "claude",
+        "model": "claude-opus-5"
+      },
+      "work": {
+        "command": "bash -lc 'cargo build --release 2>&1 | tail -1'"
+      },
+      "setup": "npm ci",
+      "needs": [],
+      "accept": {
+        "smoke": "bash -lc 'cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test'",
+        "audit": {
+          "command": "bash -lc 'tend2 verify docs/tend2/receipts.tend2.html --repo-root . --force --audit-egress --check 4 --runner \"bash {evidence} verify\"'",
           "provider": "opencode",
           "model": "deepseek/deepseek-v4-pro"
         }

@@ -330,11 +330,15 @@ plan = {
 # does, one check per invocation, so one node per stamped check. A command node has no
 # builder and is exempt from the hygiene gate; nothing is rebuilt, only the gates settle.
 VERIFY = "tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress"
+RECEIPTS_VERIFY = "tend2 verify docs/tend2/receipts.tend2.html --repo-root . --force --audit-egress"
 # Every stamped check, one relay-only node each; `--reaudit` re-audits the ones named after
 # it (`--reaudit init check lock`), or all of them when none is named.
-ALL_CHECKS = [("init", 1), ("check", 3), ("lock", 4), ("bundles", 5), ("hook-faces", 8)]
+ALL_CHECKS = [("init", 1), ("check", 3), ("lock", 4), ("bundles", 5), ("hook-faces", 8), ("doctor-live", 9)]
+# The receipts loop's checks the stem's fit script for receipts closes, relayed the same way.
+RECEIPT_CHECKS = [("seal", 3), ("verify", 4)]
 _wanted = [a for a in sys.argv[sys.argv.index("--reaudit") + 1:] if not a.startswith("--")] if "--reaudit" in sys.argv else []
 REAUDIT_CHECKS = [(n, i) for n, i in ALL_CHECKS if not _wanted or n in _wanted]
+REAUDIT_RECEIPTS = [(n, i) for n, i in RECEIPT_CHECKS if n in _wanted]
 reaudit = {
     "goal": "Settle the integration node's audit for the landed stem stack (jahala/plotplot 20): tend2 verify with audit egress on the two stamped checks, relayed by an auditor on another provider, no builder.",
     "source": "docs/dogfood/stem/reaudit.plan.json",
@@ -362,6 +366,25 @@ reaudit = {
             "policy": {"maxAttempts": 1, "timeoutMs": 1_800_000, "onDead": "resume", "reauditWhen": ["compacted"]},
         }
         for name, number in REAUDIT_CHECKS
+    ]
+    + [
+        {
+            "id": f"receipts.audit.{name}",
+            "worker": dict(WORKER),
+            "work": {"command": "bash -lc 'cargo build --release 2>&1 | tail -1'"},
+            "setup": "npm ci",
+            "needs": [],
+            "accept": {
+                "smoke": GATES,
+                "audit": {
+                    "command": f"bash -lc '{RECEIPTS_VERIFY} --check {number} --runner \"bash {{evidence}} {name}\"'",
+                    "provider": "opencode",
+                    "model": "deepseek/deepseek-v4-pro",
+                },
+            },
+            "policy": {"maxAttempts": 1, "timeoutMs": 1_800_000, "onDead": "resume", "reauditWhen": ["compacted"]},
+        }
+        for name, number in REAUDIT_RECEIPTS
     ],
 }
 
