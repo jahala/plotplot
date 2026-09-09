@@ -16,6 +16,11 @@
 #   scripts/fit/stem.sh init         `plotplot init` plants a fixture repository: the garden
 #                                    block, the harness project configs, the git law and the
 #                                    pull request gate, and a second run changes nothing
+#   scripts/fit/stem.sh doctor-live  `plotplot doctor --live` drives one real session per
+#                                    harness through umbel and proves from the friction
+#                                    journal and the receipt drafts that the before-tool,
+#                                    session-end and draft faces fired, reporting a harness
+#                                    that would not run with what it said
 #
 # Exit 0 on pass, non-zero with a reason on failure. Every check builds the crate in release
 # mode once, then runs in a fresh temporary directory with HOME and CODEX_HOME pointed at a
@@ -42,6 +47,9 @@ MARKETPLACE="plotplot-fit"
 # Every temporary directory this run minted, cleaned up by the EXIT trap in the order they
 # were made. bash 3.2 has no associative arrays and no `mapfile`; a plain array is enough.
 SCRATCH_DIRS=()
+
+# The last directory `scratch` minted. See `scratch` for why it is a variable and not stdout.
+SCRATCH_DIR=""
 
 # Where the installer that just ran put the bundle. Written by `install_through_*`, read by
 # `check_bundles`; see the comment there for why this is not a return value.
@@ -76,11 +84,18 @@ vendor_fail() {
 # scratch, and the temporary user scope every check runs against
 # ---------------------------------------------------------------------------------------
 
+# Mint a fresh temporary directory and leave its path in SCRATCH_DIR.
+#
+# It answers in a variable rather than on stdout on purpose: read through a command
+# substitution the function runs in a subshell, the entry it adds to SCRATCH_DIRS dies with
+# that subshell, and the EXIT trap has nothing to put away. Every check's scratch survived
+# its run that way, temporary home and all. Found 2026-09-09 by the doctor-live check, whose
+# temporary home holds a copy of a credential and is the one scratch that must never be left
+# lying in the temp root.
 scratch() {
-  local dir
-  dir="$(mktemp -d "${TMPDIR:-/tmp}/plotplot-fit.XXXXXX")" || fail "could not make a temp directory"
-  SCRATCH_DIRS+=("$dir")
-  echo "$dir"
+  SCRATCH_DIR="$(mktemp -d "${TMPDIR:-/tmp}/plotplot-fit.XXXXXX")" \
+    || fail "could not make a temp directory"
+  SCRATCH_DIRS+=("$SCRATCH_DIR")
 }
 
 discard_scratch() {
@@ -463,7 +478,8 @@ check_bundles() {
   build_stem
 
   local tmp repo home
-  tmp="$(scratch)"
+  scratch
+  tmp="$SCRATCH_DIR"
   repo="$tmp/repo"
   home="$(make_home "$tmp")"
 
@@ -622,7 +638,8 @@ check_hook_faces() {
   note "clock: $STEM_CLOCK"
 
   local tmp repo
-  tmp="$(scratch)"
+  scratch
+  tmp="$SCRATCH_DIR"
   repo="$tmp/repo"
 
   note "planting the fixture repository at $repo"
@@ -764,7 +781,8 @@ check_lock() {
   note "pinned: $url"
 
   local tmp good bad status
-  tmp="$(scratch)"
+  scratch
+  tmp="$SCRATCH_DIR"
   good="$tmp/planted"
   bad="$tmp/bent"
 
@@ -920,7 +938,8 @@ check_check() {
   note "judge on the build machine: $judge ($("$judge" --version))"
 
   local tmp repo status
-  tmp="$(scratch)"
+  scratch
+  tmp="$SCRATCH_DIR"
   repo="$tmp/repo"
 
   note "planting the fixture repository at $repo"
@@ -1078,7 +1097,8 @@ check_init() {
   build_stem
 
   local tmp repo home template status
-  tmp="$(scratch)"
+  scratch
+  tmp="$SCRATCH_DIR"
   repo="$tmp/repo"
   home="$(make_home "$tmp")"
   template="$tmp/template.lock"
@@ -1250,7 +1270,8 @@ check_context() {
   build_stem
 
   local tmp repo home template status always_on block_chars block_tokens total
-  tmp="$(scratch)"
+  scratch
+  tmp="$SCRATCH_DIR"
   repo="$tmp/repo"
   home="$(make_home "$tmp")"
   template="$tmp/template.lock"
@@ -1292,6 +1313,209 @@ check_context() {
 }
 
 # ---------------------------------------------------------------------------------------
+# check: doctor-live
+# ---------------------------------------------------------------------------------------
+
+# Every harness `doctor --live` is asked to drive.
+LIVE_HARNESSES="claude,gemini,codex"
+
+# How long one worker has to answer one tool call. A worker whose pane stops moving is hung
+# up on well before this by the doctor's own idle net, so this is only the outer deadline;
+# it is kept under two minutes because `tend2 verify` gives an evidence script 120 seconds
+# and a check that cannot be stamped is not evidence.
+LIVE_TIMEOUT=90
+
+# The one harness this check requires proof from. Claude Code is the harness this machine can
+# authenticate into a temporary home; the other two are driven all the same and reported with
+# whatever they said, which is the honest half of the claim.
+LIVE_PROVED=claude
+
+# Give the temporary home what Claude Code needs to authenticate, and say exactly what was
+# copied, because a check that borrows a credential has to be legible about it.
+#
+# On macOS the account token is not in a file at all: it is a generic password in the login
+# keychain, and the keychain search list is resolved from HOME, so a temporary home with no
+# `Library/Keychains` reports "Not logged in" however many files are copied beside it. The
+# link is to the directory the real home already has; nothing is written into it.
+lend_claude_credentials() {
+  local home="$1" copied=0
+  mkdir -p "$home/.claude" || fail "could not make the temporary claude directory"
+  if [ -f "$HOME/.claude/.credentials.json" ]; then
+    cp "$HOME/.claude/.credentials.json" "$home/.claude/.credentials.json" \
+      || fail "could not copy ~/.claude/.credentials.json into the temporary home"
+    note "copied ~/.claude/.credentials.json into the temporary home"
+    copied=$((copied + 1))
+  fi
+  if [ -f "$HOME/.claude.json" ]; then
+    cp "$HOME/.claude.json" "$home/.claude.json" \
+      || fail "could not copy ~/.claude.json into the temporary home"
+    note "copied ~/.claude.json into the temporary home"
+    copied=$((copied + 1))
+  fi
+  if [ -d "$HOME/Library/Keychains" ]; then
+    mkdir -p "$home/Library" || fail "could not make the temporary Library directory"
+    ln -sfn "$HOME/Library/Keychains" "$home/Library/Keychains" \
+      || fail "could not link the login keychain into the temporary home"
+    note "linked ~/Library/Keychains into the temporary home: on macOS the account token is a keychain item and the keychain search list is resolved from HOME"
+    copied=$((copied + 1))
+  fi
+  [ "$copied" -gt 0 ] \
+    || fail "this machine has neither ~/.claude/.credentials.json, ~/.claude.json nor a login keychain, so no temporary home can authenticate Claude Code"
+}
+
+# One field of one row of the live table, found by the row's check name.
+#
+# The name itself carries a space ("claude session"), so the match is anchored at the start
+# of the line and needs the space the table pads with after it; that is also what keeps
+# "claude session" from matching "claude session-end".
+live_field() {
+  local file="$1" check="$2" field="$3"
+  awk -v want="$check" -v field="$field" '
+    index($0, want " ") == 1 {
+      rest = substr($0, length(want) + 1)
+      sub(/^ +/, "", rest)
+      if (field == "verdict") { sub(/ .*$/, "", rest) } else { sub(/^[^ ]+ +/, "", rest) }
+      print rest
+      exit
+    }
+  ' "$file"
+}
+
+live_verdict() { live_field "$1" "$2" verdict; }
+live_detail() { live_field "$1" "$2" detail; }
+
+# What a harness that is not the proved one is allowed to say: proved like the others, or
+# unavailable with a reason it observed. Never `fail`, never absent.
+assert_reported_honestly() {
+  local out="$1" harness="$2" verdict detail
+  verdict="$(live_verdict "$out" "$harness session")"
+  detail="$(live_detail "$out" "$harness session")"
+  [ -n "$verdict" ] \
+    || { cat "$out" >&2; fail "the live table carries no line for $harness at all"; }
+  case "$verdict" in
+    unavailable)
+      [ -n "$detail" ] \
+        || { cat "$out" >&2; fail "$harness is unavailable with no reason, which is a silent skip"; }
+      note "$harness: unavailable — $detail"
+      ;;
+    ok)
+      assert_proved "$out" "$harness"
+      note "$harness: proved as well as $LIVE_PROVED, which the plan did not expect on this machine"
+      ;;
+    *)
+      cat "$out" >&2
+      fail "$harness reported \"$verdict\", which is neither a proof nor an observed reason"
+      ;;
+  esac
+}
+
+# The three event classes one harness must prove: the before-tool hook refused, the
+# session-end hook fired, the receipt draft was written.
+assert_proved() {
+  local out="$1" harness="$2" class verdict detail
+  for class in "before-tool" "session-end" "receipt draft"; do
+    verdict="$(live_verdict "$out" "$harness $class")"
+    detail="$(live_detail "$out" "$harness $class")"
+    [ -n "$verdict" ] \
+      || { cat "$out" >&2; fail "the live table carries no $harness $class line"; }
+    [ "$verdict" = "ok" ] \
+      || { cat "$out" >&2; fail "$harness $class is \"$verdict\": $detail"; }
+    note "$harness $class: $detail"
+  done
+}
+
+# The session id the doctor said the harness reported, out of its session line.
+live_session_id() {
+  local out="$1" harness="$2"
+  live_detail "$out" "$harness session" | sed -n 's/.*which the harness called \([^ ]*\).*/\1/p'
+}
+
+check_doctor_live() {
+  require git jq claude umbel
+  build_stem
+
+  local tmp repo home template status out err session
+  scratch
+  tmp="$SCRATCH_DIR"
+  repo="$tmp/repo"
+  home="$(make_home "$tmp")"
+  template="$tmp/template.lock"
+  out="$tmp/live.out"
+  err="$tmp/live.err"
+
+  note "planting the fixture repository at $repo"
+  plant_init_fixture "$repo" "$template"
+  lend_claude_credentials "$home"
+
+  ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" \
+      "$STEM" init --harness "$LIVE_HARNESSES" --lock "$template" ) >"$tmp/init.out" 2>"$tmp/init.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/init.out" "$tmp/init.err" >&2; fail "plotplot init exited $status, not 0"; }
+  note "planted $LIVE_HARNESSES; $(grep -c . "$tmp/init.out") files and settings changed"
+
+  note "driving one real session per harness through umbel; each worker has ${LIVE_TIMEOUT}s"
+  ( cd "$repo" && HOME="$home" \
+      "$STEM" doctor --live --harness "$LIVE_HARNESSES" --timeout "$LIVE_TIMEOUT" ) >"$out" 2>"$err"
+  status=$?
+  echo "--- doctor --live said ---"
+  cat "$out"
+  echo "--- and on stderr ---"
+  cat "$err"
+  echo "--------------------------"
+
+  # 1. Every static finding still passes, so a live failure is never a stale bundle.
+  local statics
+  statics="$(sed -n '1,/^$/p' "$out" | grep -c '  ok  ')"
+  [ "$statics" -eq 9 ] \
+    || { cat "$out" >&2; fail "only $statics of the nine static findings are ok"; }
+  note "the nine static findings are ok"
+
+  # 2. The harness this machine can authenticate proves all three event classes.
+  assert_proved "$out" "$LIVE_PROVED"
+
+  # 3. The other two are reported with what they said, never skipped and never failed.
+  local harness
+  for harness in gemini codex; do
+    assert_reported_honestly "$out" "$harness"
+  done
+
+  # 4. A vendor that will not run is not a broken stem.
+  [ "$status" -eq 0 ] \
+    || { cat "$out" "$err" >&2; fail "doctor --live exited $status, not 0"; }
+  note "doctor --live exited 0"
+
+  # 5. And the proof itself, read from the journal rather than from the doctor's own table.
+  session="$(live_session_id "$out" "$LIVE_PROVED")"
+  [ -n "$session" ] \
+    || { cat "$out" >&2; fail "the doctor named no session id for $LIVE_PROVED"; }
+  note "$LIVE_PROVED reported session $session"
+
+  local journal kind line
+  journal="$tmp/journal.jsonl"
+  cat "$repo"/.plotplot/friction/*.jsonl > "$journal" 2>/dev/null \
+    || fail "the friction journal under $repo/.plotplot/friction/ is not there at all"
+  for kind in tool.denied session.ended; do
+    line="$(jq -c --arg s "$session" --arg k "$kind" \
+      'select(.["gen_ai.conversation.id"] == $s and .["plotplot.kind"] == $k)' "$journal")"
+    [ -n "$line" ] \
+      || { cat "$journal" >&2; fail "the journal holds no $kind record for $session"; }
+    note "journal $kind: $line"
+  done
+  [ "$(jq -r --arg s "$session" \
+      'select(.["gen_ai.conversation.id"] == $s and .["plotplot.kind"] == "tool.denied") | .["plotplot.rule"]' \
+      "$journal")" = "deny.no-verify" ] \
+    || { cat "$journal" >&2; fail "the refusal for $session names another rule than deny.no-verify"; }
+  note "the refusal names the rule deny.no-verify"
+
+  local draft="$repo/.plotplot/receipts/drafts/$session.json"
+  [ -f "$draft" ] || fail "no receipt draft at $draft"
+  note "receipt draft: $(jq -c '{harness: .harness.name, sessions: .sessions}' "$draft")"
+
+  echo "stem.sh doctor-live: pass"
+}
+
+# ---------------------------------------------------------------------------------------
 
 case "${1:-}" in
   bundles) check_bundles ;;
@@ -1300,8 +1524,9 @@ case "${1:-}" in
   check) check_check ;;
   init) check_init ;;
   context) check_context ;;
+  doctor-live) check_doctor_live ;;
   *)
-    echo "usage: stem.sh {bundles | hook-faces | lock | check | init | context}" >&2
+    echo "usage: stem.sh {bundles | hook-faces | lock | check | init | context | doctor-live}" >&2
     exit 2
     ;;
 esac

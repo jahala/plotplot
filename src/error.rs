@@ -53,6 +53,8 @@ pub enum Error {
         harness: crate::harness::Harness,
         problem: String,
     },
+    /// A receipt the stem could not seal, read or believe, named by the commit it is about.
+    Receipt { commit: String, problem: String },
 }
 
 /// The crate's result type; failure always lives here rather than in a panic.
@@ -81,6 +83,7 @@ impl fmt::Display for Error {
             } => write!(f, "{judge}: expected {expected}, got {actual}"),
             Error::Archive { path, problem } => write!(f, "{}: {problem}", path.display()),
             Error::Install { harness, problem } => write!(f, "{harness}: {problem}"),
+            Error::Receipt { commit, problem } => write!(f, "{commit}: {problem}"),
         }
     }
 }
@@ -100,7 +103,8 @@ impl std::error::Error for Error {
             | Error::Fetch { .. }
             | Error::Checksum { .. }
             | Error::Archive { .. }
-            | Error::Install { .. } => None,
+            | Error::Install { .. }
+            | Error::Receipt { .. } => None,
         }
     }
 }
@@ -286,6 +290,10 @@ mod tests {
                 harness: crate::harness::Harness::Gemini,
                 problem: "b".to_owned(),
             },
+            Error::Receipt {
+                commit: "a".to_owned(),
+                problem: "b".to_owned(),
+            },
         ];
         for error in &errors {
             assert!(!error.to_string().contains('\n'), "{error}");
@@ -302,6 +310,15 @@ mod tests {
             error.to_string(),
             "claude: `claude plugin install` exited 1: no such marketplace"
         );
+    }
+
+    #[test]
+    fn a_receipt_failure_names_the_commit_first() {
+        let error = Error::Receipt {
+            commit: "3f2a1b4".to_owned(),
+            problem: "carries no receipt".to_owned(),
+        };
+        assert_eq!(error.to_string(), "3f2a1b4: carries no receipt");
     }
 
     #[test]
