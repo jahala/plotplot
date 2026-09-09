@@ -241,6 +241,35 @@ The whole first wave is in this worktree. Read src/deny.rs, src/hook.rs, src/fri
 (3) Nothing else: no new faces, no changes to public shapes beyond what (1) and (2) need. State in your final message which S2 findings remain in those files, if any, and why each is a counted drop.
 """
 
+RECEIPT = PREAMBLE + """
+## Your slice: `plotplot receipt seal`, `verify` and `show`, the v0 receipt in git notes (`src/receipt.rs`, the git plumbing)
+
+The stem is whole in this worktree: read src/receipt.rs (the draft face), src/friction.rs, src/plant/gitconfig.rs, src/plant/githooks.rs (post-commit already calls `.plotplot/bin/plotplot receipt seal`), src/cli.rs and scripts/fit/stem.sh before writing anything. The plan is docs/plans/receipts.md §1 to §5 and §7; the loop is docs/tend2/receipts.tend2.html (read-only), whose seal and verify checks name `scripts/fit/receipts.sh seal` and `scripts/fit/receipts.sh verify` as evidence. The predicate schema in contracts has not landed; write the statement to the plan's §3 shape exactly, keys in that order, and say so in your final message.
+
+`plotplot receipt seal [--commit <rev>]` (default HEAD): builds an in-toto Statement v1 (`_type` `https://in-toto.io/Statement/v1`; `subject` with the repository's canonical URL from `remote.origin.url` normalised to `github.com/<owner>/<repo>` when it is a GitHub URL and otherwise the URL as given, and a digest set of `gitCommit` and `gitTree` from `git rev-parse <rev>` and `<rev>^{tree}`; `predicateType` `https://plotplot.ai/receipt/v1`; the predicate per §3: producer plotplot with crate::VERSION, createdAt from the system clock in UTC ending in Z, harness and models and principal and sessions from the drafts under .plotplot/receipts/drafts/ (every draft present is folded in; with none the fields are null and the sessions list empty), conductor null, changed from `git diff-tree --no-commit-id --name-only -r <rev>`, verification with weeder's SARIF digest and counts only when `.plotplot/bin/weeder` exists and `weeder check --format sarif --base <rev>^` runs (else null, never a guess), tend2 stamps as the `@<id>` tokens the diff adds to docs/tend2/*.tend2.html lines that also gain `[x]`, pleach null, commands from the drafts' tool counts as the plan spells, cost from the drafts, friction summary as the sha256 over the drafts' friction summary digests in order). The note carries the statement JSON followed by one line `sha256: <hex of the statement bytes>`, attached with `git notes --ref refs/notes/plotplot/receipts add -f -F <file> <commit>`; a second seal of the same commit whose statement bytes equal the note's changes nothing and says `unchanged`; a second seal that would differ replaces the note and says so. Drafts folded into a sealed receipt are moved under .plotplot/receipts/sealed/<commit>/ so they are not folded twice.
+
+`plotplot receipt verify (<rev> | --range <a>..<b>) [--require-signed]`: for each commit, reads the note, re-derives gitCommit and gitTree from git, checks both against the subject, recomputes the statement's sha256 against the trailing line, and prints one line per commit (`<short sha> receipt ok` or the reason); exit 0 when every commit in the range carries a valid receipt, 3 when any is missing or invalid, 1 on a git failure; `--require-signed` exits 3 with `unsigned (v0)` on every v0 note, since signing is not this slice. `plotplot receipt show <rev>` prints the predicate pretty-printed.
+
+Add `Error::Receipt { commit: String, problem: String }` additively. Add `scripts/fit/receipts.sh` with subcommands `seal` and `verify` composing scripts/fit/lib.sh and the helpers in scripts/fit/stem.sh where they help (source it or copy the two you need; do not fork the whole file): `seal` builds a fixture repository with two commits and a draft under .plotplot/receipts/drafts/, seals HEAD, reads the note back with `git notes --ref refs/notes/plotplot/receipts show HEAD`, recomputes `git rev-parse HEAD` and `HEAD^{tree}` independently in the script and asserts they equal the subject's digests, asserts the trailing sha256 equals `shasum -a 256` of the statement bytes, seals again and asserts the note is byte-identical and the stem said `unchanged`; `verify` seals one of two commits, asserts `verify --range` over both exits 3 naming the unsealed commit, seals the other, asserts exit 0, then runs `plotplot init` on the fixture (with a pre-placed judge as scripts/fit/stem.sh's init check does; read it), clones the fixture with `git clone` and asserts the clone's `git fetch origin` brings `refs/notes/plotplot/receipts` because init set the fetch refspec.
+
+Tests you write first (unit beside the code with a temp git repository; tests/receipt.rs with assert_cmd): the statement's keys in §3's order; the subject digests equal git's; the trailing sha256; seal twice is unchanged; verify passes, verify on a commit without a note exits 3, verify on a tampered note (one byte of the predicate changed) exits 3 naming the digest mismatch; `--range` with a gap; show prints the predicate; `--require-signed` refuses a v0 note; the canonical URL normalisation for https and ssh GitHub remotes and a non-GitHub remote left as given. Then run the verifier for the two receipts checks and paste its output: `tend2 verify docs/tend2/receipts.tend2.html --repo-root . --check 3 --force --runner "bash {evidence} seal"` and the same with `--check 4` and `verify`; if the numbering differs, read the file and use the right ones; do not edit either loop file.
+
+Do NOT change existing public shapes; add only. Do NOT implement `sign`.
+"""
+
+DOCTOR_LIVE = PREAMBLE + """
+## Your slice: `plotplot doctor --live` through umbel, Claude Code proven, the others reported honestly
+
+The stem is whole in this worktree: read src/doctor.rs, src/hook.rs, src/friction.rs, src/install.rs, src/cli.rs and scripts/fit/stem.sh (its init and hook-faces checks) before writing anything. The plan is docs/plans/stem.md §6 (live mode). umbel is on PATH (`umbel --help`, `umbel spawn --help`; its MCP help says: claude workers take hook config inline through `--settings`, Codex through `<cwd>/.codex/hooks.json`, Gemini through `<cwd>/.gemini/settings.json`; `umbel wait` returns 126 when a worker is blocked on input and 125 when it died). On this machine tonight: Claude Code starts a session; Codex sessions fail at their prompt with a 404 from the provider on the account's default model (a bare `codex exec` answers, a real session does not); Gemini is unauthenticated. `doctor --live` must prove Claude Code and report the other two as unavailable with the reason it observed, never as a failure of the stem and never by skipping silently.
+
+`plotplot doctor --live [--harness claude,gemini,codex] [--timeout <s>]`, after the static findings: for each chosen harness that is planted here (its bundle installed at project scope, as `doctor`'s static findings already know), spawn one real session through umbel in the repository root (`umbel spawn --provider <harness> --cwd <root>` with umbel's unattended flag, then `umbel send` with a scripted prompt, then `umbel wait`, then `umbel kill`; read `umbel spawn --help` for the exact flags and name the session `plotplot-doctor-<harness>-<pid>` so a conductor can tell whose it is), where the prompt asks the worker to run one shell command that the deny list refuses (`git commit --no-verify -m probe`, which never commits) and then to stop; the dispatcher's own hooks are what fire. Proof comes from files the dispatcher writes, never from the worker's words: the friction journal under .plotplot/friction/ gains, for the session id the harness reported, a `tool.denied` record with `plotplot.rule` `deny.skipped-verification` (the before-tool hook fired and refused) and a `session.ended` record (the session-end hook fired), and the receipt draft for that session exists (the draft face fired). One finding per event class proved: before-tool, session-end, receipt draft, each `ok` with the record that proved it, or `fail` with what was missing. A harness whose session cannot start or whose worker is blocked at a prompt within the timeout (umbel's 126 or 125, a 404 in the pane) is reported as `unavailable: <what umbel or the pane said>`, and the doctor says so in its table; the exit code is 3 only when a harness that did start failed a proof. The Codex trust finding stays as it is. Implement the umbel driving as a small seam (`src/doctor/live.rs`, or a `Driver` trait in src/doctor.rs with the real umbel implementation and a test double that plays back recorded umbel outputs; the double is for the parsing and the verdict logic, never for the proof itself).
+
+Then add the fit subcommand `doctor-live` to scripts/fit/stem.sh: plant the init fixture (with the pre-placed judge and Claude installed as the init check does), run `plotplot doctor --live --harness claude,gemini,codex` with a temp HOME that still lets Claude Code authenticate (copy the build machine's `~/.claude/.credentials.json` and `~/.claude.json` into the temp home when they exist; say so on stdout), and assert from the doctor's output that Claude's three proofs are ok, that Gemini and Codex are reported unavailable with a reason, and that the exit code is 0; then assert directly from .plotplot/friction/ that the `tool.denied` and `session.ended` records exist for Claude's session. Print the session ids and the records. Then run the verifier for the loop's doctor-live line and paste its output: `tend2 verify docs/tend2/stem.tend2.html --repo-root . --check 9 --force --runner "bash {evidence} doctor-live"` (check 9 is the `doctor --live` line, counting the `- [ ]` lines of the Tests section from 1; confirm by reading the file). Do not edit the loop file. Check 2 (Claude Code and Gemini with real binaries) cannot be closed on this machine; do not try.
+
+Do NOT change existing public shapes; add only. Read the rule in docs/building-the-garden.md §2: kill only the sessions this doctor spawned, by their name.
+"""
+
+
 SMOKE_INTEGRATE = f"bash -lc '{GATE_SHELL} && bash scripts/fit/stem.sh bundles && bash scripts/fit/stem.sh hook-faces'"
 
 AUDIT_INTEGRATE = (
@@ -301,11 +330,15 @@ plan = {
 # does, one check per invocation, so one node per stamped check. A command node has no
 # builder and is exempt from the hygiene gate; nothing is rebuilt, only the gates settle.
 VERIFY = "tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress"
+RECEIPTS_VERIFY = "tend2 verify docs/tend2/receipts.tend2.html --repo-root . --force --audit-egress"
 # Every stamped check, one relay-only node each; `--reaudit` re-audits the ones named after
 # it (`--reaudit init check lock`), or all of them when none is named.
-ALL_CHECKS = [("init", 1), ("check", 3), ("lock", 4), ("bundles", 5), ("hook-faces", 8)]
+ALL_CHECKS = [("init", 1), ("check", 3), ("lock", 4), ("bundles", 5), ("hook-faces", 8), ("doctor-live", 9)]
+# The receipts loop's checks the stem's fit script for receipts closes, relayed the same way.
+RECEIPT_CHECKS = [("seal", 3), ("verify", 4)]
 _wanted = [a for a in sys.argv[sys.argv.index("--reaudit") + 1:] if not a.startswith("--")] if "--reaudit" in sys.argv else []
 REAUDIT_CHECKS = [(n, i) for n, i in ALL_CHECKS if not _wanted or n in _wanted]
+REAUDIT_RECEIPTS = [(n, i) for n, i in RECEIPT_CHECKS if n in _wanted]
 reaudit = {
     "goal": "Settle the integration node's audit for the landed stem stack (jahala/plotplot 20): tend2 verify with audit egress on the two stamped checks, relayed by an auditor on another provider, no builder.",
     "source": "docs/dogfood/stem/reaudit.plan.json",
@@ -333,6 +366,25 @@ reaudit = {
             "policy": {"maxAttempts": 1, "timeoutMs": 1_800_000, "onDead": "resume", "reauditWhen": ["compacted"]},
         }
         for name, number in REAUDIT_CHECKS
+    ]
+    + [
+        {
+            "id": f"receipts.audit.{name}",
+            "worker": dict(WORKER),
+            "work": {"command": "bash -lc 'cargo build --release 2>&1 | tail -1'"},
+            "setup": "npm ci",
+            "needs": [],
+            "accept": {
+                "smoke": GATES,
+                "audit": {
+                    "command": f"bash -lc '{RECEIPTS_VERIFY} --check {number} --runner \"bash {{evidence}} {name}\"'",
+                    "provider": "opencode",
+                    "model": "deepseek/deepseek-v4-pro",
+                },
+            },
+            "policy": {"maxAttempts": 1, "timeoutMs": 1_800_000, "onDead": "resume", "reauditWhen": ["compacted"]},
+        }
+        for name, number in REAUDIT_RECEIPTS
     ],
 }
 
@@ -366,7 +418,44 @@ second = {
     ],
 }
 
-if "--second" in sys.argv:
+# `--third`: receipts v0 and doctor --live, two root nodes in parallel, each audited by a
+# relay of the verifier's own egress on the check it closes.
+third = {
+    "goal": (
+        "The stem's third run: receipt seal, verify and show as an unsigned in-toto statement in git notes, "
+        "and doctor --live through umbel proving Claude Code and reporting Codex and Gemini honestly. "
+        "Brief: docs/prompts/stem-build-2026-09.md."
+    ),
+    "source": "docs/dogfood/stem/third.plan.json",
+    "maxConcurrency": 2,
+    "nodes": [
+        node(
+            "stem.receipt",
+            RECEIPT,
+            smoke=f"bash -lc '{GATE_SHELL} && bash scripts/fit/receipts.sh seal && bash scripts/fit/receipts.sh verify'",
+            audit={
+                "command": "bash -lc 'tend2 verify docs/tend2/receipts.tend2.html --repo-root . --force --audit-egress --check 3 --runner \"bash {evidence} seal\"'",
+                "provider": "opencode",
+                "model": "deepseek/deepseek-v4-pro",
+            },
+        ),
+        node(
+            "stem.doctor-live",
+            DOCTOR_LIVE,
+            smoke=f"bash -lc '{GATE_SHELL} && bash scripts/fit/stem.sh doctor-live'",
+            audit={
+                "command": "bash -lc 'tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress --check 9 --runner \"bash {evidence} doctor-live\"'",
+                "provider": "opencode",
+                "model": "deepseek/deepseek-v4-pro",
+            },
+            timeout_ms=5_400_000,
+        ),
+    ],
+}
+
+if "--third" in sys.argv:
+    print(json.dumps(third, indent=2, ensure_ascii=False))
+elif "--second" in sys.argv:
     print(json.dumps(second, indent=2, ensure_ascii=False))
 elif "--reaudit" in sys.argv:
     print(json.dumps(reaudit, indent=2, ensure_ascii=False))

@@ -328,6 +328,30 @@ fn the_stems_own_refusal_earns_one_tool_denied_record_naming_its_rule() {
     assert!(line.get("plotplot.path.kind").is_none(), "{line}");
 }
 
+/// The payload Codex 0.133.0 actually sends, captured from a live session on 2026-09-09 by
+/// `doctor --live`: its shell tool is called `Bash` and its script is one string, not the
+/// `shell` with an argv array its hook documentation shows. The stem read only the
+/// documented name until then, so this hard limit let the commit through on a real session.
+#[test]
+fn codexs_live_bash_call_is_refused_and_recorded_like_any_other_shell_call() {
+    let temp = tempfile::tempdir().expect("a temporary root");
+    let root = temp.path();
+
+    let assert = plotplot(root)
+        .args(["hook", "codex", "PreToolUse"])
+        .write_stdin(payload("codex", "bash-PreToolUse"))
+        .assert()
+        .code(2);
+    let stderr = String::from_utf8_lossy(&assert.get_output().stderr).into_owned();
+    assert!(stderr.contains("--no-verify"), "{stderr}");
+
+    let denied = denied_lines(root);
+    assert_eq!(denied.len(), 1, "{:#?}", journal_lines(root));
+    assert_eq!(denied[0]["plotplot.harness"], "codex-cli");
+    assert_eq!(denied[0]["gen_ai.tool.name"], "Bash");
+    assert_eq!(denied[0]["plotplot.rule"], "deny.no-verify");
+}
+
 #[test]
 fn a_refused_write_to_a_stem_owned_path_carries_that_path_and_its_rule() {
     let temp = tempfile::tempdir().expect("a temporary root");
@@ -744,32 +768,49 @@ fn a_bed_past_the_timeout_is_killed_and_reported_as_unable_to_judge() {
 fn two_beds_run_at_the_same_time() {
     let temp = tempfile::tempdir().expect("a temporary root");
     let root = temp.path();
-    plant(root, "first", &[("claude", &["PreToolUse"])], "sleep 0.3");
-    plant(root, "second", &[("claude", &["PreToolUse"])], "sleep 0.3");
+    // Each bed records when it started and when it ended, in seconds since the epoch with
+    // microsecond precision from perl's high-resolution clock, which every platform the
+    // gate runs on carries. Overlap is the proof: each bed started before the other ended.
+    // A wall-clock bound would measure the machine, and a shared runner is slower than any
+    // bound every so often.
+    for name in ["first", "second"] {
+        let body = format!(
+            "perl -MTime::HiRes=time -e 'print time' > '{start}'; sleep 0.3; \
+             perl -MTime::HiRes=time -e 'print time' > '{end}'",
+            start = root.join("markers").join(format!("{name}.start")).display(),
+            end = root.join("markers").join(format!("{name}.end")).display(),
+        );
+        plant(root, name, &[("claude", &["PreToolUse"])], &body);
+    }
 
     // macOS scans an executable the first time it is run, which costs a few hundred
-    // milliseconds per freshly written file and is the operating system's, not the
-    // dispatcher's. One dispatch pays it; the one that is timed measures the fan-out.
-    plotplot(root)
-        .args(["hook", "claude", "PreToolUse"])
-        .write_stdin(payload("claude", "PreToolUse"))
-        .assert()
-        .code(0);
+    // milliseconds per freshly written file and serialises the two beds' first starts.
+    // That is the operating system's, not the dispatcher's: one dispatch pays it, and the
+    // one whose stamps are read measures the fan-out.
+    for _ in 0..2 {
+        plotplot(root)
+            .args(["hook", "claude", "PreToolUse"])
+            .write_stdin(payload("claude", "PreToolUse"))
+            .assert()
+            .code(0);
+    }
 
-    let start = Instant::now();
-    plotplot(root)
-        .args(["hook", "claude", "PreToolUse"])
-        .write_stdin(payload("claude", "PreToolUse"))
-        .assert()
-        .code(0);
-    let elapsed = start.elapsed();
+    let stamp = |name: &str, which: &str| -> f64 {
+        let path = root.join("markers").join(format!("{name}.{which}"));
+        let text = fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+        text.trim()
+            .parse::<f64>()
+            .unwrap_or_else(|e| panic!("{}: {e}: {text:?}", path.display()))
+    };
+    let (first_start, first_end) = (stamp("first", "start"), stamp("first", "end"));
+    let (second_start, second_end) = (stamp("second", "start"), stamp("second", "end"));
 
-    assert!(
-        elapsed < Duration::from_millis(500),
-        "two beds sleeping 300 ms each took {elapsed:?}, so they ran one after the other"
-    );
     assert!(marker(root, "first").exists());
     assert!(marker(root, "second").exists());
+    assert!(
+        second_start < first_end && first_start < second_end,
+        "the beds did not overlap: first {first_start}..{first_end}, second {second_start}..{second_end}"
+    );
 }
 
 // ---------------------------------------------------------------------------------------

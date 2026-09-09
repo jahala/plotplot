@@ -20,7 +20,7 @@ use plotplot::{layout, lock, manifest};
 /// line, which is the channel `bundle build` must name on stderr.
 const BEDS: [&str; 2] = ["tilth", "weeder"];
 
-/// The season `contracts/fixtures/garden.lock` pins.
+/// The season the stem's lock fixture (tests/fixtures/garden.lock) pins.
 const SEASON: &str = "2026.09";
 
 fn contracts(relative: &str) -> PathBuf {
@@ -132,8 +132,11 @@ fn seeded() -> tempfile::TempDir {
         ],
     );
 
-    std::fs::copy(contracts("fixtures/garden.lock"), layout::garden_lock(path))
-        .expect("the contracts' lock fixture");
+    std::fs::copy(
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/garden.lock"),
+        layout::garden_lock(path),
+    )
+    .expect("the stem's lock fixture");
 
     for bed in BEDS {
         let manifest_path = layout::bed_manifest(path, bed);
@@ -608,4 +611,112 @@ fn the_fixture_is_what_the_renderers_produce() {
         );
     }
     assert!(read(&layout::agents_md(root.path())).contains(&garden_block::render(SEASON, &beds)));
+}
+
+// ------------------------------------------------------------------- doctor --live
+
+/// A search path holding `git`, which `doctor` needs to read the repository's configuration,
+/// and nothing else. What it deliberately does not hold is `umbel`: a probe that started a
+/// session would fail to find the driver and say something other than "not planted here".
+fn only_git() -> tempfile::TempDir {
+    let bin = tempfile::tempdir().expect("a temporary bin directory");
+    let git = std::process::Command::new("sh")
+        .args(["-c", "command -v git"])
+        .output()
+        .expect("a shell that can look for git");
+    let git = String::from_utf8_lossy(&git.stdout).trim().to_owned();
+    assert!(!git.is_empty(), "git is on the build machine's path");
+    std::os::unix::fs::symlink(&git, bin.path().join("git")).expect("a link to git");
+    bin
+}
+
+/// `doctor --live`'s two tables and its exit code, with a `PATH` that holds no `umbel`.
+///
+/// Nothing here starts a session: the fixture is planted but nothing is installed at project
+/// scope, so live mode has no harness to drive and says so. That the driver is never reached
+/// is asserted by emptying `PATH`; a probe that spawned anything would fail to find `umbel`
+/// and say something else than "not planted here".
+fn doctor_live(root: &Path, home: &Path, args: &[&str]) -> (i32, String, String) {
+    let bin = only_git();
+    let output = plotplot(root, home)
+        .arg("doctor")
+        .arg("--live")
+        .args(args)
+        .env("PATH", bin.path())
+        .output()
+        .expect("doctor --live ran");
+    (
+        output.status.code().expect("doctor exited"),
+        String::from_utf8(output.stdout).expect("doctor writes utf-8"),
+        String::from_utf8_lossy(&output.stderr).into_owned(),
+    )
+}
+
+#[test]
+fn live_mode_prints_the_static_table_first_and_a_line_for_every_harness_after_it() {
+    let (root, home) = planted();
+    let (code, stdout, stderr) = doctor_live(root.path(), home.path(), &[]);
+
+    let (statics, live) = stdout
+        .split_once("\n\n")
+        .unwrap_or_else(|| panic!("two tables, one blank line between them: {stdout}"));
+    let names: Vec<String> = statics.lines().map(|line| columns(line).0).collect();
+    assert_eq!(names, plotplot::doctor::CHECKS, "{stdout}");
+
+    let rows: Vec<(String, String, String)> = live.lines().map(columns).collect();
+    assert_eq!(
+        rows.iter()
+            .map(|(name, _, _)| name.as_str())
+            .collect::<Vec<_>>(),
+        ["claude session", "gemini session", "codex session"],
+        "{stdout}"
+    );
+    for (name, verdict, detail) in &rows {
+        assert_eq!(verdict, "unavailable", "{name}: {detail}");
+        assert!(detail.contains("not planted here"), "{name}: {detail}");
+    }
+
+    // A vendor that is not planted is not a broken stem.
+    assert_eq!(code, 0, "{stdout}{stderr}");
+}
+
+#[test]
+fn live_mode_drives_only_the_harnesses_asked_for() {
+    let (root, home) = planted();
+    let (code, stdout, _) = doctor_live(root.path(), home.path(), &["--harness", "codex,claude"]);
+
+    let live = stdout.split_once("\n\n").expect("two tables").1;
+    let names: Vec<String> = live.lines().map(|line| columns(line).0).collect();
+    assert_eq!(names, ["claude session", "codex session"], "{stdout}");
+    assert_eq!(code, 0);
+}
+
+#[test]
+fn a_project_file_registering_somebody_elses_hook_is_not_planted() {
+    let (root, home) = planted();
+    write(
+        &root.path().join(".codex/hooks.json"),
+        r#"{"hooks": {"PreToolUse": [{"hooks": [{"type": "command", "command": "/usr/bin/true"}]}]}}"#,
+    );
+
+    let (code, stdout, _) = doctor_live(root.path(), home.path(), &["--harness", "codex"]);
+    let live = stdout.split_once("\n\n").expect("two tables").1;
+    let (name, verdict, detail) = columns(live.lines().next().expect("one live line"));
+    assert_eq!(
+        (name.as_str(), verdict.as_str()),
+        ("codex session", "unavailable")
+    );
+    assert!(detail.contains("plotplot hook codex"), "{detail}");
+    assert_eq!(code, 0);
+}
+
+#[test]
+fn live_mode_on_an_unplanted_repository_says_so_once_and_drives_nothing() {
+    let root = tempfile::tempdir().expect("a temporary root");
+    let home = tempfile::tempdir().expect("a temporary home");
+
+    let (code, stdout, _) = doctor_live(root.path(), home.path(), &[]);
+    assert_eq!(code, 3);
+    assert_eq!(stdout.lines().count(), 1, "{stdout}");
+    assert!(stdout.starts_with("not planted: "), "{stdout}");
 }

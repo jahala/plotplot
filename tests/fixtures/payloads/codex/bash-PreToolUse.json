@@ -1,0 +1,14 @@
+{
+  "session_id": "01a08619-2cdd-7780-a6d9-6139effef5a0",
+  "turn_id": "01a08619-3150-7713-b0ef-181633c6545e",
+  "transcript_path": "/home/agent/.codex/sessions/2026/09/09/rollout-2026-09-09T14-16-31-01a08619-2cdd-7780-a6d9-6139effef5a0.jsonl",
+  "cwd": "/work/repo",
+  "hook_event_name": "PreToolUse",
+  "model": "gpt-5.5",
+  "permission_mode": "bypassPermissions",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "git commit --no-verify -m probe"
+  },
+  "tool_use_id": "call_IRZX9lObm1GhV5DhXrilCl6a"
+}

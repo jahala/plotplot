@@ -717,9 +717,23 @@ mod tests {
 
     use super::*;
 
+    /// The stem's own snapshot of a real lock (tests/fixtures/garden.lock), so these tests
+    /// pin what the stem reads and not the contracts' test data, which moves with every
+    /// release; one test below still parses the contracts' fixture as it stands.
     fn fixture() -> String {
-        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("contracts/fixtures/garden.lock");
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/garden.lock");
         std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()))
+    }
+
+    #[test]
+    fn the_contracts_own_lock_fixture_parses_as_it_stands() {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("contracts/fixtures/garden.lock");
+        let text =
+            std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+        let lock =
+            parse_lock_at(&path, &text).expect("the contracts' fixture is a lock the stem reads");
+        assert!(!lock.judges.is_empty());
+        assert!(lock.judges.values().all(|judge| !judge.version.is_empty()));
     }
 
     fn toml_error(text: &str) -> String {
@@ -771,7 +785,7 @@ mod tests {
         assert_eq!(lock.season, "2026.09");
         assert_eq!(
             lock.judges.keys().map(String::as_str).collect::<Vec<_>>(),
-            ["tend2", "tilth"]
+            ["tend2", "tilth", "weeder"]
         );
 
         let tilth = lock.judges.get("tilth").expect("the tilth judge");
@@ -889,7 +903,7 @@ mod tests {
             .expect("a readable lock")
             .expect("a lock at the root");
         assert_eq!(lock.season, "2026.09");
-        assert_eq!(lock.judges.len(), 2);
+        assert_eq!(lock.judges.len(), 3);
     }
 
     #[test]

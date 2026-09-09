@@ -11,7 +11,7 @@ fn plotplot(cwd: &Path) -> Command {
 }
 
 fn fixture_lock() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("contracts/fixtures/garden.lock")
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/garden.lock")
 }
 
 #[test]
@@ -39,6 +39,7 @@ fn version_in_a_planted_repository_prints_the_season_and_every_judge() {
             "season 2026.09\n",
             "tend2 1.0.0 (npm @plotplot/tend2)\n",
             "tilth 0.10.1\n",
+            "weeder 0.1.0\n",
         ))
         .stderr("");
 }

@@ -143,6 +143,21 @@ pub fn receipt_draft(root: &Path, session_id: &str) -> PathBuf {
     receipt_drafts_dir(root).join(format!("{session_id}.json"))
 }
 
+/// `.plotplot/receipts/sealed/<commit>/`, the drafts one commit's receipt folded in.
+///
+/// A draft moves here the moment it is sealed, so the next commit does not fold the same
+/// session's counts in a second time. Sealing the same commit again reads this directory
+/// beside the drafts, which is what makes a second seal of a commit say `unchanged` rather
+/// than reseal it with everything the first seal took away.
+pub fn receipt_sealed_dir(root: &Path, commit: &str) -> PathBuf {
+    receipts_dir(root).join("sealed").join(commit)
+}
+
+/// One sealed draft, under the commit whose receipt folded it in.
+pub fn receipt_sealed(root: &Path, commit: &str, session_id: &str) -> PathBuf {
+    receipt_sealed_dir(root, commit).join(format!("{session_id}.json"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -230,6 +245,27 @@ mod tests {
             assert_eq!(produced, root.join(relative), "{relative}");
             assert!(produced.starts_with(plotplot_dir(root)), "{relative}");
         }
+    }
+
+    /// What `receipt seal` writes beyond §3's table: the drafts it folded in, moved under
+    /// the commit whose receipt carries them.
+    #[test]
+    fn a_sealed_draft_sits_under_the_commit_that_sealed_it() {
+        let root = Path::new("/work/repo");
+        let commit = "3f2a1b4c5d6e7f8091a2b3c4d5e6f708192a3b4c";
+        assert_eq!(
+            receipt_sealed_dir(root, commit),
+            receipts_dir(root).join("sealed").join(commit)
+        );
+        assert_eq!(
+            receipt_sealed(root, commit, "6f3c1b2a"),
+            receipt_sealed_dir(root, commit).join("6f3c1b2a.json")
+        );
+        assert!(receipt_sealed_dir(root, commit).starts_with(plotplot_dir(root)));
+        assert_ne!(
+            receipt_sealed(root, commit, "6f3c1b2a"),
+            receipt_draft(root, "6f3c1b2a")
+        );
     }
 
     /// The digest companion sits beside its judge and keeps the judge's whole file name, so

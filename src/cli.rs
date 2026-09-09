@@ -6,10 +6,12 @@
 use std::ffi::OsString;
 use std::io::{IsTerminal, Read, Write};
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 
 use clap::{Args as ClapArgs, Parser, Subcommand};
 
 use crate::check::Format;
+use crate::doctor::live;
 use crate::error::{Error, Result};
 use crate::harness::Harness;
 use crate::lock::{Lock, read_lock};
@@ -48,7 +50,7 @@ pub enum Face {
     /// Run every gate the planted manifests declare and merge their findings into one log.
     Check(CheckArgs),
     /// Prove the garden is planted: one line per check, exit 0 when every check passes.
-    Doctor,
+    Doctor(DoctorArgs),
     /// The pinned judges `garden.lock` names.
     Lock {
         #[command(subcommand)]
@@ -108,6 +110,46 @@ pub enum Profile {
     Full,
 }
 
+/// `plotplot doctor [--live] [--harness claude,gemini,codex] [--timeout <s>]`.
+#[derive(Debug, ClapArgs)]
+pub struct DoctorArgs {
+    /// After the static findings, drive one real session per harness through umbel and prove
+    /// from the friction journal and the receipt drafts that each hook fired.
+    #[arg(long)]
+    pub live: bool,
+    /// The harnesses live mode drives; all three when this is not given, each reported as
+    /// unavailable when it is not planted here.
+    #[arg(
+        long,
+        value_name = "claude,gemini,codex",
+        value_delimiter = ',',
+        value_parser = harness_value
+    )]
+    pub harness: Option<Vec<Harness>>,
+    /// How long one worker has to answer, in seconds.
+    #[arg(long, value_name = "s")]
+    pub timeout: Option<u64>,
+}
+
+impl DoctorArgs {
+    /// The harnesses live mode drives, in `Harness::ALL`'s order and without repeats.
+    pub fn harnesses(&self) -> Vec<Harness> {
+        match &self.harness {
+            None => Harness::ALL.to_vec(),
+            Some(asked) => Harness::ALL
+                .into_iter()
+                .filter(|harness| asked.contains(harness))
+                .collect(),
+        }
+    }
+
+    /// How long one worker has to answer.
+    pub fn timeout(&self) -> Duration {
+        self.timeout
+            .map_or(live::DEFAULT_TIMEOUT, Duration::from_secs)
+    }
+}
+
 /// `plotplot check [--strict] [--format sarif|table]`.
 #[derive(Debug, ClapArgs)]
 pub struct CheckArgs {
@@ -155,6 +197,45 @@ pub struct ReceiptArgs {
 pub enum ReceiptFace {
     /// Write this session's unsigned receipt draft.
     Draft(HarnessArg),
+    /// Attach a commit's receipt to `refs/notes/plotplot/receipts`.
+    Seal(SealArgs),
+    /// Recompute a commit's receipt, or every receipt in a range.
+    Verify(VerifyArgs),
+    /// Print the predicate a commit's receipt carries.
+    Show(ShowArgs),
+}
+
+/// `plotplot receipt seal [--commit <rev>]`.
+#[derive(Debug, ClapArgs)]
+pub struct SealArgs {
+    /// The commit to seal; `HEAD` when it is not given, which is what the post-commit hook
+    /// means by the commit that just happened.
+    #[arg(long, value_name = "rev", default_value = "HEAD")]
+    pub commit: String,
+}
+
+/// `plotplot receipt verify (<rev> | --range <a>..<b>) [--require-signed]`.
+#[derive(Debug, ClapArgs)]
+#[command(group(clap::ArgGroup::new("commits").required(true).args(["rev", "range"])))]
+pub struct VerifyArgs {
+    /// The commit whose receipt to recompute.
+    #[arg(value_name = "rev")]
+    pub rev: Option<String>,
+    /// Every commit a range holds, as git spells one.
+    #[arg(long, value_name = "a..b")]
+    pub range: Option<String>,
+    /// Refuse a receipt that carries no signature. Every v0 receipt is unsigned, so this
+    /// refuses all of them until signing lands.
+    #[arg(long)]
+    pub require_signed: bool,
+}
+
+/// `plotplot receipt show <rev>`.
+#[derive(Debug, ClapArgs)]
+pub struct ShowArgs {
+    /// The commit whose receipt to print.
+    #[arg(value_name = "rev")]
+    pub rev: String,
 }
 
 /// The harness a face reading stdin needs told, because a payload does not name its vendor.
@@ -208,11 +289,19 @@ pub fn run(args: Args, root: &Path, stdout: &mut dyn Write, stderr: &mut dyn Wri
                 1
             }
         },
-        Face::Receipt(face) => match payload_on_stdin() {
-            Ok(payload) => receipt::run(root, &face, &payload, stdout, stderr),
-            Err(error) => {
-                let _ = writeln!(stderr, "stdin: {error}");
-                1
+        // Only `draft` is a hook face, and only a hook face has a payload waiting on stdin.
+        // Seal, verify and show are run from a git hook or a terminal, where reading stdin
+        // would block on nothing.
+        Face::Receipt(face) => match &face.face {
+            ReceiptFace::Draft(_) => match payload_on_stdin() {
+                Ok(payload) => receipt::run(root, &face, &payload, stdout, stderr),
+                Err(error) => {
+                    let _ = writeln!(stderr, "stdin: {error}");
+                    1
+                }
+            },
+            ReceiptFace::Seal(_) | ReceiptFace::Verify(_) | ReceiptFace::Show(_) => {
+                receipt::run(root, &face, "", stdout, stderr)
             }
         },
         Face::Bundle {
@@ -236,7 +325,16 @@ pub fn run(args: Args, root: &Path, stdout: &mut dyn Write, stderr: &mut dyn Wri
             check::run_face(root, &face, format, stdout, stderr)
         }
         Face::Lock { command } => lock::run(root, &command, stdout, stderr),
-        Face::Doctor => match home() {
+        Face::Doctor(face) => match home() {
+            Ok(home) if face.live => live::run(
+                root,
+                &home,
+                &face.harnesses(),
+                face.timeout(),
+                &live::Umbel,
+                stdout,
+                stderr,
+            ),
             Ok(home) => doctor::run(root, &home, stdout, stderr),
             Err(error) => {
                 let _ = writeln!(stderr, "{error}");
@@ -325,7 +423,7 @@ mod tests {
 
     fn fixture_lock() -> Lock {
         let path =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("contracts/fixtures/garden.lock");
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/garden.lock");
         let toml = std::fs::read_to_string(&path).expect("the fixture lock");
         crate::lock::parse_lock_at(&path, &toml).expect("a parsed lock")
     }
@@ -344,6 +442,7 @@ mod tests {
                 "season 2026.09\n",
                 "tend2 1.0.0 (npm @plotplot/tend2)\n",
                 "tilth 0.10.1\n",
+                "weeder 0.1.0\n",
             )
         );
     }
