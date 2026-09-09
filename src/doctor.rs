@@ -171,7 +171,7 @@ pub fn run_static(root: &Path, home: &Path) -> Result<Vec<Finding>> {
         git_hooks(root, &beds)?,
         block(root, &lock, &beds)?,
         receipts_refspec(root, &configured),
-        judges(root, &lock)?,
+        judges(root, &lock, &beds)?,
         codex_trust(root, home)?,
     ])
 }
@@ -437,18 +437,34 @@ fn receipts_refspec(root: &Path, configured: &[(String, String)]) -> Finding {
     )
 }
 
+/// What a judge is called under `.plotplot/bin/`: the file name its cached manifest declares
+/// (`install.binary_name`, else `faces.cli`), and the lock's key for a judge whose manifest
+/// is not cached or which declares neither.
+///
+/// `lock verify` places the judge under that name and `hook` and the git hooks call it under
+/// that name, so `doctor` has to look for it under that name too. Looking under the lock's
+/// key alone reports a bed whose executable is not called what the bed is called as absent
+/// when it is right there.
+fn judge_file_name<'a>(beds: &'a [Bed], judge: &'a str) -> &'a str {
+    beds.iter()
+        .find(|bed| bed.name == judge)
+        .and_then(|bed| bed.binary.as_deref())
+        .unwrap_or(judge)
+}
+
 /// Every judge the lock pins for this platform is in `.plotplot/bin/` with the bytes the
 /// lock names, so the version that judges is the version the lock says judged.
-fn judges(root: &Path, lock: &Lock) -> Result<Finding> {
+fn judges(root: &Path, lock: &Lock, beds: &[Bed]) -> Result<Finding> {
     let platform = lock::platform();
     let mut problems = Vec::new();
     let mut checked = Vec::new();
 
     for (name, judge) in &lock.judges {
-        let binary = layout::judge_binary(root, name);
+        let file_name = judge_file_name(beds, name);
+        let binary = layout::judge_binary(root, file_name);
         let present = binary.exists();
 
-        match judge.platforms.get(platform) {
+        match lock::artifact_for(judge, platform).map(|(_, artifact)| artifact) {
             Some(artifact) if is_archive(&artifact.url) => {
                 checked.push(format!("{name} {}", judge.version));
                 if !present {
@@ -458,7 +474,7 @@ fn judges(root: &Path, lock: &Lock) -> Result<Finding> {
                 // The bytes on disk came out of the archive, so what is compared is the
                 // digest of the archive the lock pins, recorded beside the binary when it
                 // was fetched.
-                let recorded = layout::judge_binary(root, &format!("{name}.sha256"));
+                let recorded = layout::judge_digest(root, file_name);
                 match fs::read_to_string(&recorded) {
                     Ok(found) if found.trim() == artifact.sha256 => {}
                     Ok(_) => problems.push(format!(
@@ -775,6 +791,70 @@ mod tests {
         assert_eq!(commands(&groups), ["first", "second"]);
         assert!(commands(&Value::Null).is_empty());
         assert!(commands(&serde_json::json!([{"hooks": "not an array"}])).is_empty());
+    }
+
+    /// A bed whose executable is not called what the bed is called: the manifest's
+    /// `install.binary_name` names the file, and that is where `lock verify` puts it.
+    fn bed_named(name: &str, binary: Option<&str>) -> Bed {
+        Bed {
+            name: name.to_owned(),
+            version: "0.1.0".to_owned(),
+            binary: binary.map(str::to_owned),
+            skill: None,
+            hooks: std::collections::BTreeMap::new(),
+            git_hooks: Vec::new(),
+            mcp: None,
+            check: None,
+        }
+    }
+
+    #[test]
+    fn a_judges_file_name_comes_from_its_manifest_and_falls_back_to_the_lock_key() {
+        let beds = [
+            bed_named("weeder", Some("weeder-cli")),
+            bed_named("petals", None),
+        ];
+        assert_eq!(judge_file_name(&beds, "weeder"), "weeder-cli");
+        assert_eq!(judge_file_name(&beds, "petals"), "petals");
+        assert_eq!(judge_file_name(&beds, "tilth"), "tilth");
+        assert_eq!(judge_file_name(&[], "tilth"), "tilth");
+    }
+
+    #[test]
+    fn the_judges_check_finds_a_judge_placed_under_the_name_its_manifest_gave_it() {
+        let root = tempfile::tempdir().expect("a temporary root");
+        let lock = lock::parse_lock(
+            "season = \"2026.09\"\n\n[judges.weeder]\nversion = \"0.1.0\"\n\n\
+             [judges.weeder.platforms.\"PLATFORM\"]\n\
+             url = \"https://example.invalid/weeder.tar.gz\"\n\
+             sha256 = \"aa11bb22cc33dd44ee55ff6600778899aa11bb22cc33dd44ee55ff6600778899\"\n"
+                .replace("PLATFORM", lock::platform())
+                .as_str(),
+        )
+        .expect("a lock pinning weeder here");
+        let digest = "aa11bb22cc33dd44ee55ff6600778899aa11bb22cc33dd44ee55ff6600778899";
+
+        let beds = [bed_named("weeder", Some("weeder-cli"))];
+        fs::create_dir_all(layout::bin_dir(root.path())).expect("the bin directory");
+        fs::write(
+            layout::judge_binary(root.path(), "weeder-cli"),
+            "#!/bin/sh\n",
+        )
+        .expect("the judge");
+        fs::write(
+            layout::judge_digest(root.path(), "weeder-cli"),
+            format!("{digest}\n"),
+        )
+        .expect("its companion");
+
+        let finding = judges(root.path(), &lock, &beds).expect("a finding");
+        assert!(finding.ok, "{}", finding.detail);
+
+        // Looking under the lock's key alone is what this check used to do, and it would
+        // have called a judge that is right there absent.
+        let finding = judges(root.path(), &lock, &[]).expect("a finding");
+        assert!(!finding.ok);
+        assert!(finding.detail.contains("weeder"), "{}", finding.detail);
     }
 
     #[test]

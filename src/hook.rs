@@ -10,8 +10,8 @@
 //! own hard-limit deny list decides; a refusal there answers the vendor and no bed is called.
 //! After the merge, and never changing its code: the friction emitter, always, and the
 //! receipt draft on the harness's session-end event. Those two write files; a failure in
-//! either is a line on stderr, because a ledger that cannot be written is not a reason to
-//! block an agent's work.
+//! either, and every gap either of them leaves, is a line on stderr, because a ledger that
+//! cannot be written is not a reason to block an agent's work and is every reason to say so.
 //!
 //! Nothing here reads the current directory: the repository root is a parameter, and every
 //! path under it comes from [`crate::layout`].
@@ -191,6 +191,12 @@ fn judge(
 /// that [`crate::friction::emit`] prunes there, which is the ordering `receipt.rs` documents.
 /// A refusal by the stem's own deny list earns its `tool.denied` line last, after the records
 /// the payload itself earned, so the journal reads in the order the dispatcher decided in.
+///
+/// Neither face may change the code, so every failure and every gap either of them has comes
+/// out here, on stderr, named. That is the whole of the rule: a face that writes files is
+/// allowed to fail without stopping the agent, and is not allowed to fail quietly. The two
+/// gaps that are not errors are counted the same way — a payload the profile cannot key at
+/// all, and a refusal whose `tool.denied` line therefore never got written.
 fn trail(
     root: &Path,
     event: &str,
@@ -198,17 +204,27 @@ fn trail(
     refused: Option<deny::Rule>,
     stderr: &mut String,
 ) {
+    let mut say = |line: String| stderr.push_str(&format!("{line}\n"));
+
     if event == payload.harness.session_end_event() {
         if let Err(error) = receipt::draft(root, payload) {
-            stderr.push_str(&format!("{error}\n"));
+            say(error.to_string());
         }
     }
     if let Err(error) = friction::emit(root, payload, &SystemClock) {
-        stderr.push_str(&format!("{error}\n"));
+        say(error.to_string());
+    }
+    if let Some(gap) = friction::unrecorded_reason(payload) {
+        say(gap);
     }
     if let Some(rule) = refused {
-        if let Err(error) = friction::emit_denied(root, payload, rule.name(), &SystemClock) {
-            stderr.push_str(&format!("{error}\n"));
+        match friction::emit_denied(root, payload, rule.name(), &SystemClock) {
+            Ok(0) => say(format!(
+                "plotplot: the refusal by {rule} reached the journal as no tool.denied \
+                 record, so this boundary held without being counted"
+            )),
+            Ok(_) => {}
+            Err(error) => say(error.to_string()),
         }
     }
 }

@@ -168,7 +168,7 @@ fn seed_judges(root: &Path) {
         let binary = layout::judge_binary(root, name);
         write(&binary, &format!("#!/bin/sh\n# {name} {}\n", judge.version));
         make_executable(&binary);
-        if let Some(artifact) = judge.platforms.get(lock::platform()) {
+        if let Some((_, artifact)) = lock::artifact_for(judge, lock::platform()) {
             write(
                 &binary.with_extension("sha256"),
                 &format!("{}\n", artifact.sha256),

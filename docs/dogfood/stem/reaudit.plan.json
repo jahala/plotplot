@@ -1,10 +1,10 @@
 {
   "goal": "Settle the integration node's audit for the landed stem stack (jahala/plotplot 20): tend2 verify with audit egress on the two stamped checks, relayed by an auditor on another provider, no builder.",
-  "source": "docs/plans/stem-reaudit.plan.json",
+  "source": "docs/dogfood/stem/reaudit.plan.json",
   "maxConcurrency": 1,
   "nodes": [
     {
-      "id": "stem.audit.bundles",
+      "id": "stem.audit.check",
       "worker": {
         "provider": "claude",
         "model": "claude-opus-5"
@@ -12,11 +12,12 @@
       "work": {
         "command": "bash -lc 'cargo build --release 2>&1 | tail -1'"
       },
+      "setup": "npm ci",
       "needs": [],
       "accept": {
         "smoke": "bash -lc 'cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test'",
         "audit": {
-          "command": "bash -lc 'tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress --check 5 --runner \"bash {evidence} bundles\"'",
+          "command": "bash -lc 'tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress --check 3 --runner \"bash {evidence} check\"'",
           "provider": "opencode",
           "model": "deepseek/deepseek-v4-pro"
         }
@@ -31,7 +32,7 @@
       }
     },
     {
-      "id": "stem.audit.hook-faces",
+      "id": "stem.audit.judges",
       "worker": {
         "provider": "claude",
         "model": "claude-opus-5"
@@ -39,11 +40,12 @@
       "work": {
         "command": "bash -lc 'cargo build --release 2>&1 | tail -1'"
       },
+      "setup": "npm ci",
       "needs": [],
       "accept": {
         "smoke": "bash -lc 'cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test'",
         "audit": {
-          "command": "bash -lc 'tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress --check 8 --runner \"bash {evidence} hook-faces\"'",
+          "command": "bash -lc 'tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress --check 4 --runner \"bash {evidence} lock\"'",
           "provider": "opencode",
           "model": "deepseek/deepseek-v4-pro"
         }

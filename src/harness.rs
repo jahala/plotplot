@@ -340,9 +340,9 @@ mod tests {
 
     #[test]
     fn from_str_accepts_exactly_the_three_names() {
-        assert_eq!("claude".parse::<Harness>().ok(), Some(Harness::Claude));
-        assert_eq!("gemini".parse::<Harness>().ok(), Some(Harness::Gemini));
-        assert_eq!("codex".parse::<Harness>().ok(), Some(Harness::Codex));
+        assert!(matches!("claude".parse::<Harness>(), Ok(Harness::Claude)));
+        assert!(matches!("gemini".parse::<Harness>(), Ok(Harness::Gemini)));
+        assert!(matches!("codex".parse::<Harness>(), Ok(Harness::Codex)));
         for refused in [
             "",
             "Claude",
@@ -363,7 +363,10 @@ mod tests {
     fn name_and_display_agree_and_round_trip() {
         for harness in Harness::ALL {
             assert_eq!(harness.to_string(), harness.name());
-            assert_eq!(harness.name().parse::<Harness>().ok(), Some(harness));
+            match harness.name().parse::<Harness>() {
+                Ok(round_tripped) => assert_eq!(round_tripped, harness),
+                Err(error) => panic!("{harness} did not round trip: {error}"),
+            }
         }
         assert_eq!(Harness::ALL.len(), 3);
     }
@@ -441,7 +444,12 @@ mod tests {
                     .file_stem()
                     .and_then(|s| s.to_str())
                     .expect("a fixture file name");
-                let expected_event = stem.strip_prefix("leaky-").unwrap_or(stem);
+                // A fixture is named by the event it carries; a variant of that event
+                // prefixes the name with what makes it a variant.
+                let expected_event = match stem.rsplit_once('-') {
+                    Some((_, event)) => event,
+                    None => stem,
+                };
 
                 assert_eq!(payload.harness, harness);
                 assert_eq!(payload.event, expected_event, "{}", path.display());
@@ -478,21 +486,22 @@ mod tests {
                 assert_eq!(payload.raw, raw);
 
                 assert!(payload.session_id.is_some(), "{}", path.display());
-                assert_eq!(
-                    payload.cwd.as_deref(),
-                    Some(Path::new(if stem.starts_with("leaky-") {
-                        "/Users/someone/code/billing"
-                    } else {
-                        "/work/repo"
-                    })),
-                    "{}",
-                    path.display()
-                );
+                // A fixture's name says which working directory it carries: the leaky ones
+                // a path outside the repository, the `no-cwd-` variant none at all.
+                let expected_cwd = if stem.starts_with("no-cwd-") {
+                    None
+                } else if stem.starts_with("leaky-") {
+                    Some(Path::new("/Users/someone/code/billing"))
+                } else {
+                    Some(Path::new("/work/repo"))
+                };
+                assert_eq!(payload.cwd.as_deref(), expected_cwd, "{}", path.display());
             }
         }
         assert_eq!(
-            seen, 24,
-            "one fixture per harness event, plus one leaky each"
+            seen, 26,
+            "one fixture per harness event, one leaky each, and the two a write cannot be \
+             judged from"
         );
     }
 

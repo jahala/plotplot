@@ -3,15 +3,17 @@
 //! A face with work of its own keeps that work in its own module. `version` has none beyond
 //! reading the lock and laying out five lines, so it lives here.
 
-use std::io::{Read, Write};
+use std::ffi::OsString;
+use std::io::{IsTerminal, Read, Write};
 use std::path::{Path, PathBuf};
 
 use clap::{Args as ClapArgs, Parser, Subcommand};
 
+use crate::check::Format;
 use crate::error::{Error, Result};
 use crate::harness::Harness;
 use crate::lock::{Lock, read_lock};
-use crate::{VERSION, bundle, doctor, friction, hook, receipt};
+use crate::{VERSION, bundle, check, doctor, friction, hook, init, lock, receipt};
 
 /// `plotplot`, the stem of the garden.
 #[derive(Debug, Parser)]
@@ -30,6 +32,8 @@ pub struct Args {
 pub enum Face {
     /// Print the stem's version, and the season and judges `garden.lock` pins.
     Version,
+    /// Plant the garden in this repository: the lock, the bundles, the hooks, the block.
+    Init(InitArgs),
     /// Dispatch one hook event to the beds that registered for it (stdin: the payload).
     Hook(HookArgs),
     /// The friction emitter on its own (stdin: the payload).
@@ -41,8 +45,23 @@ pub enum Face {
         #[command(subcommand)]
         command: BundleFace,
     },
+    /// Run every gate the planted manifests declare and merge their findings into one log.
+    Check(CheckArgs),
     /// Prove the garden is planted: one line per check, exit 0 when every check passes.
     Doctor,
+    /// The pinned judges `garden.lock` names.
+    Lock {
+        #[command(subcommand)]
+        command: LockFace,
+    },
+}
+
+/// What `plotplot lock` can be asked to do.
+#[derive(Debug, Subcommand)]
+pub enum LockFace {
+    /// Resolve every judge for this platform, fetching what is absent and refusing bytes
+    /// whose digest is not the one the lock pins.
+    Verify,
 }
 
 /// What `plotplot bundle` can be asked to do.
@@ -54,6 +73,50 @@ pub enum BundleFace {
         #[arg(value_name = "claude|gemini|codex", value_parser = harness_value)]
         harness: Option<Harness>,
     },
+}
+
+/// `plotplot init [--harness …] [--beds …] [--profile …] [--lock <path>]`.
+#[derive(Debug, ClapArgs)]
+pub struct InitArgs {
+    /// The harnesses to plant; what is detected on PATH and already configured here when
+    /// this is not given.
+    #[arg(
+        long,
+        value_name = "claude,gemini,codex",
+        value_delimiter = ',',
+        value_parser = harness_value
+    )]
+    pub harness: Option<Vec<Harness>>,
+    /// The beds to plant, overriding the profile's list.
+    #[arg(long, value_name = "a,b", value_delimiter = ',')]
+    pub beds: Option<Vec<String>>,
+    /// Which beds the profile plants: weeder alone, or every judge the lock pins.
+    #[arg(long, value_name = "minimal|full", default_value = "minimal")]
+    pub profile: Profile,
+    /// The `garden.lock` template to copy from, needed when this repository pins none yet.
+    #[arg(long, value_name = "path")]
+    pub lock: Option<PathBuf>,
+}
+
+/// Which beds `init` plants when `--beds` does not say.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, clap::ValueEnum)]
+pub enum Profile {
+    /// weeder with its hooks, the garden block, the lock, the git hooks and the PR gate
+    /// (jahala/plotplot issue 17).
+    Minimal,
+    /// Every judge the lock pins.
+    Full,
+}
+
+/// `plotplot check [--strict] [--format sarif|table]`.
+#[derive(Debug, ClapArgs)]
+pub struct CheckArgs {
+    /// Ask for the strictest judgement of every gate that declares it takes one.
+    #[arg(long)]
+    pub strict: bool,
+    /// How to write the answer; a table at a terminal and SARIF everywhere else.
+    #[arg(long, value_name = "sarif|table", value_parser = format_value)]
+    pub format: Option<Format>,
 }
 
 /// `plotplot hook <harness> <event>`, the call every hook entry in every bundle makes.
@@ -106,6 +169,12 @@ pub struct HarnessArg {
 /// so the three names are spelled in one place; clap prints the error beside the bad value.
 fn harness_value(value: &str) -> std::result::Result<Harness, String> {
     value.parse::<Harness>().map_err(|error| error.to_string())
+}
+
+/// One format name from the command line, read by the same parser the two names are spelled
+/// in; clap prints the error beside the bad value.
+fn format_value(value: &str) -> std::result::Result<Format, String> {
+    value.parse::<Format>()
 }
 
 /// Run one face. The only exit codes this returns are the face's own; `main` turns the
@@ -161,6 +230,12 @@ pub fn run(args: Args, root: &Path, stdout: &mut dyn Write, stderr: &mut dyn Wri
                 }
             }
         }
+        Face::Init(face) => init::run(root, &face, search_path().as_deref(), stdout, stderr),
+        Face::Check(face) => {
+            let format = face.format.unwrap_or_else(chosen_format);
+            check::run_face(root, &face, format, stdout, stderr)
+        }
+        Face::Lock { command } => lock::run(root, &command, stdout, stderr),
         Face::Doctor => match home() {
             Ok(home) => doctor::run(root, &home, stdout, stderr),
             Err(error) => {
@@ -180,6 +255,28 @@ fn payload_on_stdin() -> std::io::Result<String> {
     let mut payload = String::new();
     std::io::stdin().read_to_string(&mut payload)?;
     Ok(payload)
+}
+
+/// The directories a command name is looked for in, as the process was started with.
+///
+/// Read here, at the edge, beside the payload on stdin and the planter's home: `init` is
+/// told where to look for the three harness CLIs rather than asking the environment itself,
+/// so a test can hand it a directory of its own.
+fn search_path() -> Option<OsString> {
+    std::env::var_os("PATH")
+}
+
+/// What `--format` defaults to: a table for a person at a terminal, SARIF for anything that
+/// reads the answer rather than looks at it.
+///
+/// Read here, at the edge, beside the other two facts this process learns from around it:
+/// the payload on stdin and the planter's home. The face itself is told the format.
+fn chosen_format() -> Format {
+    if std::io::stdout().is_terminal() {
+        Format::Table
+    } else {
+        Format::Sarif
+    }
 }
 
 /// The planter's home directory, where Codex records the projects it trusts.

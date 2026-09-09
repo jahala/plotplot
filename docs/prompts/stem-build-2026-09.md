@@ -1,4 +1,4 @@
-# The stem build — the brief every stem worker reads
+# The stem build: the brief every stem worker reads
 
 You are building one part of `plotplot`, the stem: the Rust binary at the root of this
 repository that plants the garden into any harness and proves it is planted. Read, in this
@@ -107,7 +107,7 @@ impl std::fmt::Display for Error   // one line, the path first when there is one
 impl std::error::Error for Error
 ```
 
-### `harness.rs` — the three vendors as the stem sees them
+### `harness.rs`: the three vendors as the stem sees them
 
 ```rust
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -160,7 +160,7 @@ pub fn render_answer(harness: Harness, event: &str, answer: &Answer) -> String;
 pub fn exit_code(answer: &Answer) -> i32;     // Allow 0, Deny 2, Block 2, Cannot 3
 ```
 
-### `bed.rs` — what the stem needs to know about a planted bed
+### `bed.rs`: what the stem needs to know about a planted bed
 
 This is the stem's internal view. `manifest.rs` produces it from `garden.json`; every other
 module consumes it and never reads a manifest directly.
@@ -185,7 +185,7 @@ pub struct McpServer { pub command: String, pub args: Vec<String>, pub env: Vec<
 pub fn beds_registered_for(beds: &[Bed], harness: Harness, event: &str) -> Vec<&Bed>;
 ```
 
-### `manifest.rs` — `garden.json`, the contracts' manifest
+### `manifest.rs`: `garden.json`, the contracts' manifest
 
 The schema is `contracts/manifest.schema.json` (contracts v1.3.0; the bed shape is v1.2.0's,
 v1.3.0 adds the `kind: ["repository"]` case a planted repository's own `garden.json` takes,
@@ -214,7 +214,7 @@ pub fn to_bed(manifest: &Manifest) -> Result<Bed>;
 pub fn load_beds(root: &Path) -> Result<Vec<Bed>>;       // every .plotplot/beds/*/garden.json, sorted by name
 ```
 
-### `lock.rs` — `garden.lock`, the pinned judges
+### `lock.rs`: `garden.lock`, the pinned judges
 
 The schema is `contracts/lock.schema.json`, embedded and enforced the same way after the
 TOML is parsed to a JSON value. Fixture: `contracts/fixtures/garden.lock`.
@@ -231,7 +231,7 @@ pub fn platform() -> &'static str;                        // the Rust target tri
 Fetching and verifying judges (`plotplot lock verify`) is a later node; this wave reads
 the lock for `version` and `doctor`.
 
-### `bundle/` — the three vendor bundles from one input
+### `bundle/`: the three vendor bundles from one input
 
 ```rust
 pub struct SkillFile { pub bed: String, pub content: String }
@@ -272,7 +272,7 @@ planter's environment.
 Three bundles must carry identical hook, skill and MCP sets; a test asserts that from the
 generated trees, harness names aside.
 
-### `deny.rs` — the hard-limit deny list
+### `deny.rs`: the hard-limit deny list
 
 A pure decision over a `Payload` for the before-tool event: `git commit`, `git push` or
 `git merge` carrying `--no-verify` or `-n`; a `Write`/`Edit`/`tilth_write`/shell redirection
@@ -283,7 +283,7 @@ The reason names the rule and the fix.
 pub fn decide(payload: &Payload) -> Answer;
 ```
 
-### `friction.rs` — the emitter face
+### `friction.rs`: the emitter face
 
 The record shape, the envelope, the pinned kinds and the per-kind required attributes are
 `contracts/friction-profile.md`, exactly; `docs/plans/friction-ledger.md` §3 to §5 is the
@@ -306,7 +306,7 @@ pub fn emit(root: &Path, payload: &Payload, now: OffsetDateTimeLike) -> Result<u
 `.plotplot/friction/state/<session_id>.json`, prunes the state at the session-end event, and
 never returns an error that would block a hook: the dispatcher logs and continues.
 
-### `receipt.rs` — the draft face (v0)
+### `receipt.rs`: the draft face (v0)
 
 ```rust
 pub struct Draft { /* the counters a SessionEnd can know: harness, version if the payload has it, model, session id, tool-call counts by name, wall seconds when derivable, friction summary digest */ }
@@ -316,7 +316,7 @@ pub fn draft(root: &Path, payload: &Payload) -> Result<PathBuf>;   // writes .pl
 Fields follow `docs/plans/receipts.md` §3; anything the payload cannot supply is `null`,
 never an estimate.
 
-### `hook.rs` — the dispatcher
+### `hook.rs`: the dispatcher
 
 ```rust
 pub struct Registered { pub bed: String, pub program: PathBuf }   // resolved to .plotplot/bin/<binary>
@@ -333,7 +333,7 @@ it cannot judge. The dispatcher's own overhead, measured from process start to e
 beds registered and the friction and receipt faces running, is under 50 ms; an integration
 test asserts it.
 
-### `doctor.rs` — static mode
+### `doctor.rs`: static mode
 
 ```rust
 pub struct Finding { pub check: &'static str, pub ok: bool, pub detail: String }
@@ -349,7 +349,7 @@ repository (`<home>/.codex/config.toml`, `[projects."<abs path>"] trust_level = 
 reported as awaiting trust when absent, never as failure of the stem. Judges against the
 lock are added once `lock.rs` exists.
 
-### `plant/` — the pieces `init` writes, as pure renderers
+### `plant/`: the pieces `init` writes, as pure renderers
 
 ```rust
 pub mod garden_block;   // render(season, beds) -> String; replace_in(agents_md: &str, block: &str) -> String  (markers, in place; untouched elsewhere)
@@ -394,6 +394,15 @@ difference is recorded on the stem loop's Tried.
 | Payload fields | `session_id`, `cwd`, `hook_event_name`, `transcript_path`, `permission_mode`, `tool_name`, `tool_input`, `tool_use_id`, `tool_response`, `error` (PostToolUseFailure), `stop_hook_active`, `trigger`, `source`, `reason`, `model`, `agent_id` | `session_id`, `cwd`, `hook_event_name`, `transcript_path`, `tool_name`, `tool_input`, `tool_response`, `llm_request`, `llm_response`, `trigger`, `source`, `reason` | `session_id`, `cwd`, `hook_event_name`, `transcript_path`, `permission_mode`, `turn_id`, `model`, `tool_name`, `tool_input`, `tool_use_id`, `tool_response`, `trigger`, `source`, `prompt` |
 | Project-scope install | `claude plugin install <name>@<marketplace> --scope project` from a local marketplace directory | `gemini extensions install <path>` (user scope only; `gemini extensions validate <path>` checks a bundle) | `codex plugin marketplace add <dir>` (a directory holding `marketplace.json` with `plugins: [{name, source: {source: "local", path: "./plugins/<name>"}}]`; the personal one is `<home>/.agents/plugins/marketplace.json`) then `codex plugin add <name>`; hooks load only when the project is trusted (`[projects."<abs path>"] trust_level = "trusted"` in `<home>/.codex/config.toml`) |
 | Budget | Stop and SessionEnd hooks share 1.5 s | | |
+
+Added 2026-09-09, verified against the installed Codex 0.133.0 binary: every model profile it
+ships sets `"apply_patch_tool_type": "freeform"` (six of six), so Codex's `apply_patch` reaches
+a hook as patch text and not as an object with a field the stem can name. The text may be the
+whole `tool_input`, or sit under `input`, or under `patch`, or inside a `command` array. What
+the vendor's own grammar does fix is the patch: its file operations are `*** Add File:`,
+`*** Update File:` and `*** Delete File:` headers inside a `*** Begin Patch` / `*** End Patch`
+envelope. A rule that has to know which file an `apply_patch` touches reads those headers out
+of the strings in the input, and does not bet on the shape around them.
 
 ## 6. The contracts
 

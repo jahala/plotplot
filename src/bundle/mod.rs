@@ -423,13 +423,13 @@ fn install_stem(stem_binary: &Path, bundle: &Path) -> Result<PathBuf> {
     Ok(path)
 }
 
-/// Give a file the bit that lets a harness run it.
+/// Give a file the bit that lets a harness, git or the dispatcher run it.
 ///
 /// # Errors
 ///
 /// [`Error::Io`] naming the file whose permissions could not be read or set.
 #[cfg(unix)]
-fn make_executable(path: &Path) -> Result<()> {
+pub(crate) fn make_executable(path: &Path) -> Result<()> {
     use std::os::unix::fs::PermissionsExt;
 
     let mut permissions = fs::metadata(path)
@@ -445,15 +445,16 @@ fn make_executable(path: &Path) -> Result<()> {
     })
 }
 
-/// On a platform with no executable bit the stem says it cannot make the binary runnable,
-/// rather than writing a bundle whose hooks will never fire.
+/// On a platform with no executable bit the stem says it cannot make the file runnable,
+/// rather than writing a bundle whose hooks will never fire or placing a judge nothing can
+/// call.
 #[cfg(not(unix))]
-fn make_executable(path: &Path) -> Result<()> {
+pub(crate) fn make_executable(path: &Path) -> Result<()> {
     Err(Error::Io {
         path: path.to_path_buf(),
         source: std::io::Error::new(
             std::io::ErrorKind::Unsupported,
-            "this platform has no executable bit, so the stem cannot make a bundle's binary runnable",
+            "this platform has no executable bit, so the stem cannot make this file runnable",
         ),
     })
 }

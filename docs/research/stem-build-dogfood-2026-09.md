@@ -4,7 +4,7 @@ Kept by the stem builder (agent beirut) during the stem build, September 2026. O
 finding, dated, with the command that showed it. Misunderstandings, faults, missing features
 and bugs in the garden's own tools, as met while using them for real work. Nothing here is a
 fix; each was filed on the tool's repository on 2026-09-09 or matched to an issue already
-open: tend 157, 158, 167, 169, 175 and 184; pleach 61, 63, 64, 66, 68, 69, 70, 71 and 77; umbel 65,
+open: tend 157, 158, 167, 169, 175 and 184; pleach 61, 63, 64, 66, 68, 69, 70, 71, 77 and 79; umbel 65,
 67, 69 and 70. The Conductor finding has no garden repository.
 
 ## tend2
@@ -21,7 +21,7 @@ open: tend 157, 158, 167, 169, 175 and 184; pleach 61, 63, 64, 66, 68, 69, 70, 7
   their `## Needs` tags, with no way to select a subset (`--only stem`); the stem node needs
   contracts, weeder, tend2, pleach and umbel, none of which this repository can verify, so the
   emitted plan cannot run here at all.
-- 2026-09-08 `tend2 next docs/tend2` reports "12 asks held back — their loops have no machine
+- 2026-09-08 `tend2 next docs/tend2` reports "12 asks held back, their loops have no machine
   evidence to judge yet" without naming which loops or how to surface them; the human check on
   the stem loop is invisible until a code check has evidence.
 
@@ -92,6 +92,12 @@ open: tend 157, 158, 167, 169, 175 and 184; pleach 61, 63, 64, 66, 68, 69, 70, 7
   `validate` could warn when an audit command is not a `tend2 verify … --audit-egress` form
   (pleach 77 amended). A `pleach audit <node>` face would still have saved the hand landing.
 
+- 2026-09-09 collection ran `git add -A -- <touched paths>` including the worker's
+  `.loop-scratch/` files, which `.gitignore` ignores; git refused, pleach called it a
+  catastrophic isolate failure, the node failed after zero attempts with no quarantine, and
+  the worktree was gone. Forty minutes of opus work recovered only by replaying the worker's
+  transcript (pleach 79). pleach's own prompt promises that directory is never collected.
+
 ## umbel
 
 - 2026-09-08 `umbel ls` lists four `smk-trust-*` sessions dead since 2026-09-05 in temp
@@ -109,9 +115,17 @@ open: tend 157, 158, 167, 169, 175 and 184; pleach 61, 63, 64, 66, 68, 69, 70, 7
 - 2026-09-09 umbel has no wedge detection: a worker idle with a live session is not read as
   failure, so a wedged node waits out pleach's timeout (30 to 60 minutes here) unless the
   conductor aborts by hand (cape-town's observation on tend2's run, 2026-09-09).
-- 2026-09-08 `umbel ls` shows `—` in the MODEL column for a freshly spawned claude worker for
+- 2026-09-08 `umbel ls` shows a dash in the MODEL column for a freshly spawned claude worker for
   its first minute or so, then `claude-opus-5`; a row with no model looks like a probe or a
   failed spawn rather than a worker that has not reported yet.
+
+## weeder
+
+- 2026-09-09 `weeder check --strict --base origin/master` blocked (T2) on src/harness.rs
+  because a test's three explicit `assert_eq!` calls became one assertion inside a loop over
+  the same three cases; the count of assertion sites fell from 81 to 79 while the cases
+  checked stayed three. A static site count reads a loop as a loss. Restored the three
+  explicit assertions to pass the gate; one false block for weeder's calibration ledger.
 
 ## conductor (workspace tooling)
 
