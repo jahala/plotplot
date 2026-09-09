@@ -25,6 +25,8 @@ sha2 = "0.10.9"
 hex = "0.4.3"
 jsonschema = { version = "0.53.0", default-features = false }
 ureq = "3.3.0"
+tar = { version = "0.4.46", default-features = false }
+flate2 = "1.1.10"
 
 [dev-dependencies]
 assert_cmd = "2.2.2"

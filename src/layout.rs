@@ -56,6 +56,18 @@ pub fn judge_binary(root: &Path, binary: &str) -> PathBuf {
     bin_dir(root).join(binary)
 }
 
+/// The digest of the artifact one fetched judge came out of, beside the judge itself.
+///
+/// The bytes in `.plotplot/bin/` come out of an archive, so their own digest is not the
+/// digest the lock pins. This file is what lets a later run, and `doctor`, say whether the
+/// judge on disk is the one the lock names without fetching the archive again.
+pub fn judge_digest(root: &Path, binary: &str) -> PathBuf {
+    bin_dir(root).join(format!("{binary}.{DIGEST_SUFFIX}"))
+}
+
+/// The suffix of the file recording which archive a judge came out of.
+pub const DIGEST_SUFFIX: &str = "sha256";
+
 /// `.plotplot/beds/`, the manifests read out of each verified artifact. Ignored by git.
 pub fn beds_dir(root: &Path) -> PathBuf {
     plotplot_dir(root).join("beds")
@@ -69,6 +81,21 @@ pub fn bed_dir(root: &Path, bed: &str) -> PathBuf {
 /// One planted bed's `garden.json`.
 pub fn bed_manifest(root: &Path, bed: &str) -> PathBuf {
     bed_dir(root, bed).join(GARDEN_JSON)
+}
+
+/// One planted bed's unpacked release artifact, or the clone a git-pinned judge came from.
+pub fn bed_artifact(root: &Path, bed: &str) -> PathBuf {
+    bed_dir(root, bed).join("artifact")
+}
+
+/// `.plotplot/npm/`, the prefixes npm installs judges into. Ignored by git.
+pub fn npm_dir(root: &Path) -> PathBuf {
+    plotplot_dir(root).join("npm")
+}
+
+/// One npm-resolved judge's install prefix.
+pub fn npm_prefix(root: &Path, bed: &str) -> PathBuf {
+    npm_dir(root).join(bed)
 }
 
 /// `.plotplot/bundles/`, the three generated vendor bundles.
@@ -186,6 +213,37 @@ mod tests {
     #[test]
     fn the_table_covers_every_path_section_three_names() {
         assert_eq!(table(Path::new("/work/repo")).len(), 24);
+    }
+
+    /// What `lock verify` writes beyond §3's table: the unpacked artifact a judge came out
+    /// of, the record of which archive it came out of, and npm's install prefixes. All of it
+    /// under `.plotplot/`, which is what the footprint rule asks.
+    #[test]
+    fn what_the_lockfile_wrapper_writes_sits_under_the_plotplot_directory() {
+        let root = Path::new("/work/repo");
+        for (relative, produced) in [
+            (".plotplot/beds/tilth/artifact", bed_artifact(root, "tilth")),
+            (".plotplot/bin/tilth.sha256", judge_digest(root, "tilth")),
+            (".plotplot/npm", npm_dir(root)),
+            (".plotplot/npm/tend2", npm_prefix(root, "tend2")),
+        ] {
+            assert_eq!(produced, root.join(relative), "{relative}");
+            assert!(produced.starts_with(plotplot_dir(root)), "{relative}");
+        }
+    }
+
+    /// The digest companion sits beside its judge and keeps the judge's whole file name, so
+    /// a judge whose executable carries an extension does not overwrite its own record.
+    #[test]
+    fn the_digest_companion_is_the_judges_name_with_the_suffix_added() {
+        let root = Path::new("/work/repo");
+        for binary in ["tilth", "weeder-cli", "tend2.js"] {
+            assert_eq!(
+                judge_digest(root, binary),
+                bin_dir(root).join(format!("{binary}.{DIGEST_SUFFIX}"))
+            );
+            assert_ne!(judge_digest(root, binary), judge_binary(root, binary));
+        }
     }
 
     #[test]

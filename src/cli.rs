@@ -11,7 +11,7 @@ use clap::{Args as ClapArgs, Parser, Subcommand};
 use crate::error::{Error, Result};
 use crate::harness::Harness;
 use crate::lock::{Lock, read_lock};
-use crate::{VERSION, bundle, doctor, friction, hook, receipt};
+use crate::{VERSION, bundle, doctor, friction, hook, lock, receipt};
 
 /// `plotplot`, the stem of the garden.
 #[derive(Debug, Parser)]
@@ -43,6 +43,19 @@ pub enum Face {
     },
     /// Prove the garden is planted: one line per check, exit 0 when every check passes.
     Doctor,
+    /// The pinned judges `garden.lock` names.
+    Lock {
+        #[command(subcommand)]
+        command: LockFace,
+    },
+}
+
+/// What `plotplot lock` can be asked to do.
+#[derive(Debug, Subcommand)]
+pub enum LockFace {
+    /// Resolve every judge for this platform, fetching what is absent and refusing bytes
+    /// whose digest is not the one the lock pins.
+    Verify,
 }
 
 /// What `plotplot bundle` can be asked to do.
@@ -161,6 +174,7 @@ pub fn run(args: Args, root: &Path, stdout: &mut dyn Write, stderr: &mut dyn Wri
                 }
             }
         }
+        Face::Lock { command } => lock::run(root, &command, stdout, stderr),
         Face::Doctor => match home() {
             Ok(home) => doctor::run(root, &home, stdout, stderr),
             Err(error) => {

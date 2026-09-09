@@ -13,6 +13,7 @@ pub mod cli;
 pub mod deny;
 pub mod doctor;
 pub mod error;
+pub mod fetch;
 pub mod friction;
 pub mod harness;
 pub mod hook;
