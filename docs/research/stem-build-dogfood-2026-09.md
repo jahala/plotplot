@@ -119,6 +119,14 @@ open: tend 157, 158, 167, 169, 175 and 184; pleach 61, 63, 64, 66, 68, 69, 70, 7
   its first minute or so, then `claude-opus-5`; a row with no model looks like a probe or a
   failed spawn rather than a worker that has not reported yet.
 
+## weeder
+
+- 2026-09-09 `weeder check --strict --base origin/master` blocked (T2) on src/harness.rs
+  because a test's three explicit `assert_eq!` calls became one assertion inside a loop over
+  the same three cases; the count of assertion sites fell from 81 to 79 while the cases
+  checked stayed three. A static site count reads a loop as a loss. Restored the three
+  explicit assertions to pass the gate; one false block for weeder's calibration ledger.
+
 ## conductor (workspace tooling)
 
 - 2026-09-08 the Conductor workspace was seeded on an empty "Initial commit" root with no

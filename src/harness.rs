@@ -340,16 +340,9 @@ mod tests {
 
     #[test]
     fn from_str_accepts_exactly_the_three_names() {
-        for (name, expected) in [
-            ("claude", Harness::Claude),
-            ("gemini", Harness::Gemini),
-            ("codex", Harness::Codex),
-        ] {
-            match name.parse::<Harness>() {
-                Ok(harness) => assert_eq!(harness, expected),
-                Err(error) => panic!("{name} was refused: {error}"),
-            }
-        }
+        assert!(matches!("claude".parse::<Harness>(), Ok(Harness::Claude)));
+        assert!(matches!("gemini".parse::<Harness>(), Ok(Harness::Gemini)));
+        assert!(matches!("codex".parse::<Harness>(), Ok(Harness::Codex)));
         for refused in [
             "",
             "Claude",
