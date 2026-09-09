@@ -31,9 +31,28 @@ pub enum Error {
     Git { command: String, stderr: String },
     /// A planted bed that cannot do what its manifest claims.
     Bed { bed: String, problem: String },
+    /// Output a gate offered as SARIF that the SARIF 2.1.0 schema will not accept.
+    Sarif { gate: String, problem: String },
     /// An `AGENTS.md` whose plotplot markers do not make one replaceable block, so the stem
     /// cannot say which bytes the garden block owns.
     Agents { problem: String },
+    /// A url that did not give up its bytes: a status outside 2xx, or a transport that
+    /// failed before any status arrived.
+    Fetch { url: String, problem: String },
+    /// Bytes whose digest is not the digest the lock pins. The stem refuses to run them.
+    Checksum {
+        judge: String,
+        expected: String,
+        actual: String,
+    },
+    /// An artifact the stem could not unpack, or one in a format it does not unpack.
+    Archive { path: PathBuf, problem: String },
+    /// A harness that would not take the bundle `init` generated for it, or a project-scope
+    /// configuration file of that harness's that the stem could not read or merge into.
+    Install {
+        harness: crate::harness::Harness,
+        problem: String,
+    },
 }
 
 /// The crate's result type; failure always lives here rather than in a panic.
@@ -51,8 +70,17 @@ impl fmt::Display for Error {
             Error::Manifest { bed, problem } | Error::Bed { bed, problem } => {
                 write!(f, "{bed}: {problem}")
             }
+            Error::Sarif { gate, problem } => write!(f, "{gate}: {problem}"),
             Error::Harness { problem } | Error::Agents { problem } => write!(f, "{problem}"),
             Error::Git { command, stderr } => write!(f, "{command}: {stderr}"),
+            Error::Fetch { url, problem } => write!(f, "{url}: {problem}"),
+            Error::Checksum {
+                judge,
+                expected,
+                actual,
+            } => write!(f, "{judge}: expected {expected}, got {actual}"),
+            Error::Archive { path, problem } => write!(f, "{}: {problem}", path.display()),
+            Error::Install { harness, problem } => write!(f, "{harness}: {problem}"),
         }
     }
 }
@@ -67,7 +95,12 @@ impl std::error::Error for Error {
             | Error::Harness { .. }
             | Error::Git { .. }
             | Error::Bed { .. }
-            | Error::Agents { .. } => None,
+            | Error::Sarif { .. }
+            | Error::Agents { .. }
+            | Error::Fetch { .. }
+            | Error::Checksum { .. }
+            | Error::Archive { .. }
+            | Error::Install { .. } => None,
         }
     }
 }
@@ -134,6 +167,11 @@ mod tests {
             problem: "is not on disk".to_owned(),
         };
         assert_eq!(bed.to_string(), "weeder: is not on disk");
+        let sarif = Error::Sarif {
+            gate: "weeder".to_owned(),
+            problem: "its output is not JSON".to_owned(),
+        };
+        assert_eq!(sarif.to_string(), "weeder: its output is not JSON");
     }
 
     #[test]
@@ -165,6 +203,40 @@ mod tests {
     }
 
     #[test]
+    fn a_fetch_failure_names_the_url_first_and_then_what_happened() {
+        let error = Error::Fetch {
+            url: "https://example.invalid/weeder.tar.gz".to_owned(),
+            problem: "the server answered 404".to_owned(),
+        };
+        assert_eq!(
+            error.to_string(),
+            "https://example.invalid/weeder.tar.gz: the server answered 404"
+        );
+    }
+
+    #[test]
+    fn a_checksum_failure_names_the_judge_and_both_digests() {
+        let error = Error::Checksum {
+            judge: "tilth".to_owned(),
+            expected: "38c36e".to_owned(),
+            actual: "d05426".to_owned(),
+        };
+        assert_eq!(error.to_string(), "tilth: expected 38c36e, got d05426");
+    }
+
+    #[test]
+    fn an_archive_failure_displays_the_path_first() {
+        let error = Error::Archive {
+            path: PathBuf::from("https://example.invalid/weeder.zip"),
+            problem: "zip is not unpacked on this platform".to_owned(),
+        };
+        assert_eq!(
+            error.to_string(),
+            "https://example.invalid/weeder.zip: zip is not unpacked on this platform"
+        );
+    }
+
+    #[test]
     fn every_display_is_one_line() {
         let errors = [
             Error::Io {
@@ -190,13 +262,46 @@ mod tests {
                 bed: "a".to_owned(),
                 problem: "b".to_owned(),
             },
+            Error::Sarif {
+                gate: "a".to_owned(),
+                problem: "b".to_owned(),
+            },
             Error::Agents {
+                problem: "b".to_owned(),
+            },
+            Error::Fetch {
+                url: "a".to_owned(),
+                problem: "b".to_owned(),
+            },
+            Error::Checksum {
+                judge: "a".to_owned(),
+                expected: "b".to_owned(),
+                actual: "c".to_owned(),
+            },
+            Error::Archive {
+                path: PathBuf::from("a"),
+                problem: "b".to_owned(),
+            },
+            Error::Install {
+                harness: crate::harness::Harness::Gemini,
                 problem: "b".to_owned(),
             },
         ];
         for error in &errors {
             assert!(!error.to_string().contains('\n'), "{error}");
         }
+    }
+
+    #[test]
+    fn an_install_failure_names_the_harness_first() {
+        let error = Error::Install {
+            harness: crate::harness::Harness::Claude,
+            problem: "`claude plugin install` exited 1: no such marketplace".to_owned(),
+        };
+        assert_eq!(
+            error.to_string(),
+            "claude: `claude plugin install` exited 1: no such marketplace"
+        );
     }
 
     #[test]

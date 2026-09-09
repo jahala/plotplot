@@ -7,6 +7,15 @@
 #   scripts/fit/stem.sh hook-faces   every bundle registers the dispatcher on every event a
 #                                    friction kind derives from and on the session-end event,
 #                                    and `plotplot hook` answers each in under 50 ms
+#   scripts/fit/stem.sh lock         `plotplot lock verify` fetches a real pinned release into
+#                                    an ignored directory, verifies its checksum, refuses a
+#                                    mismatch, and no judge is committed anywhere
+#   scripts/fit/stem.sh check        `plotplot check` runs the gate the manifests declare and
+#                                    emits one valid SARIF 2.1.0 log; exit 2 on a block-level
+#                                    result, 3 when the judge could not run
+#   scripts/fit/stem.sh init         `plotplot init` plants a fixture repository: the garden
+#                                    block, the harness project configs, the git law and the
+#                                    pull request gate, and a second run changes nothing
 #
 # Exit 0 on pass, non-zero with a reason on failure. Every check builds the crate in release
 # mode once, then runs in a fresh temporary directory with HOME and CODEX_HOME pointed at a
@@ -692,12 +701,536 @@ check_hook_faces() {
 }
 
 # ---------------------------------------------------------------------------------------
+# the lockfile wrapper, against a real release
+# ---------------------------------------------------------------------------------------
+
+# The judge this check pins. tilth is the one bed of the garden with a published release, so
+# it is the only real artifact a lock can name today; its per-platform digests live in the
+# contracts' own `contracts/fixtures/garden.lock`, read from the platform on 2026-09-08.
+LOCK_JUDGE="tilth"
+LOCK_VERSION="0.10.1"
+
+# A lock naming one judge for one platform, written into a fixture repository, never here.
+write_lock() {
+  local repo="$1" platform="$2" url="$3" sha="$4"
+  mkdir -p "$repo" || fail "could not make the fixture repository at $repo"
+  cat > "$repo/garden.lock" <<LOCK
+season = "2026.09"
+
+[judges.$LOCK_JUDGE]
+version = "$LOCK_VERSION"
+
+[judges.$LOCK_JUDGE.platforms."$platform"]
+url = "$url"
+sha256 = "$sha"
+LOCK
+}
+
+# One digit of a digest changed, and still 64 lowercase hex, so what the lock refuses is the
+# bytes and never its own shape.
+bend_digest() {
+  local sha="$1" head rest
+  head="${sha:0:1}"
+  rest="${sha:1}"
+  case "$head" in
+    0) echo "1$rest" ;;
+    *) echo "0$rest" ;;
+  esac
+}
+
+check_lock() {
+  require git jq node
+  build_stem
+
+  # fit_lock_lookup is the fit runner's own lock reader, and it reads TOML through
+  # smol-toml. An absent node_modules is a machine that has not run `npm ci`, which is a
+  # different thing from a platform with no asset, and the two must not read the same.
+  [ -d "$ROOT/node_modules/smol-toml" ] \
+    || fail "the fit runner's lock reader needs smol-toml; run 'npm ci' in $ROOT first"
+
+  local platform lookup url sha
+  platform="$(fit_platform)"
+  note "platform: $platform"
+
+  # The artifact comes from the contracts' own lock fixture, so this check pins whatever the
+  # contracts pin and never a URL invented here. A platform the fixture has no asset for is
+  # said out loud and fails, rather than passing on a judge nobody fetched.
+  lookup="$(fit_lock_lookup "$ROOT/contracts/fixtures/garden.lock" "$LOCK_JUDGE" "$platform" 2>&1)" \
+    || fail "contracts/fixtures/garden.lock names no $LOCK_JUDGE artifact for $platform, so this check cannot run on this machine: $lookup"
+  url="$(echo "$lookup" | jq -r '.url')"
+  sha="$(echo "$lookup" | jq -r '.sha256')"
+  { [ -n "$url" ] && [ "$url" != "null" ]; } || fail "the fixture lock gave no url for $LOCK_JUDGE on $platform"
+  { [ -n "$sha" ] && [ "$sha" != "null" ]; } || fail "the fixture lock gave no sha256 for $LOCK_JUDGE on $platform"
+  note "pinned: $url"
+
+  local tmp good bad status
+  tmp="$(scratch)"
+  good="$tmp/planted"
+  bad="$tmp/bent"
+
+  # 1. The pinned bytes are fetched, verified and placed.
+  write_lock "$good" "$platform" "$url" "$sha"
+  ( cd "$good" && "$STEM" lock verify ) >"$tmp/good.out" 2>"$tmp/good.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { echo "--- plotplot lock verify ---" >&2; cat "$tmp/good.out" "$tmp/good.err" >&2; \
+         fail "plotplot lock verify exited $status against the real $LOCK_JUDGE $LOCK_VERSION release"; }
+  grep -q "^$LOCK_JUDGE $LOCK_VERSION fetched" "$tmp/good.out" \
+    || { cat "$tmp/good.out" >&2; fail "lock verify did not report $LOCK_JUDGE as fetched"; }
+
+  local placed="$good/.plotplot/bin/$LOCK_JUDGE"
+  [ -x "$placed" ] || fail "$placed is not there or not executable after a verify that exited 0"
+
+  local reported
+  reported="$("$placed" --version 2>&1)" || fail "the fetched $LOCK_JUDGE could not be run: $reported"
+  case "$reported" in
+    *"$LOCK_VERSION"*) : ;;
+    *) fail "the fetched $LOCK_JUDGE reports \"$reported\", not $LOCK_VERSION" ;;
+  esac
+
+  local recorded
+  recorded="$(tr -d '[:space:]' < "$placed.sha256")" || fail "no digest companion beside $placed"
+  [ "$recorded" = "$sha" ] \
+    || fail "the companion at $placed.sha256 records $recorded, not the $sha the lock pins"
+  note "fetched, verified and runnable: $(head -1 "$tmp/good.out")"
+
+  # 2. A lock whose digest is off by one digit is refused, and nothing is placed.
+  local bent
+  bent="$(bend_digest "$sha")"
+  [ "$bent" != "$sha" ] || fail "the bent digest came out the same as the pinned one"
+  write_lock "$bad" "$platform" "$url" "$bent"
+  ( cd "$bad" && "$STEM" lock verify ) >"$tmp/bad.out" 2>"$tmp/bad.err"
+  status=$?
+  [ "$status" -eq 3 ] \
+    || { cat "$tmp/bad.out" "$tmp/bad.err" >&2; fail "a bent digest made lock verify exit $status, not 3"; }
+  grep -q "^$LOCK_JUDGE $LOCK_VERSION mismatch: expected $bent, got $sha$" "$tmp/bad.out" \
+    || { cat "$tmp/bad.out" >&2; fail "lock verify did not name the mismatch and both digests"; }
+  if [ -d "$bad/.plotplot/bin" ] && [ -n "$(ls -A "$bad/.plotplot/bin" 2>/dev/null)" ]; then
+    fail "a refused judge left files under $bad/.plotplot/bin: $(ls -A "$bad/.plotplot/bin")"
+  fi
+  note "refused: $(head -1 "$tmp/bad.out")"
+
+  # 3. What was fetched is ignored by git, under this repository's own .gitignore.
+  cp "$ROOT/.gitignore" "$good/.gitignore" || fail "could not copy this repository's .gitignore"
+  git init -q "$good" || fail "git could not make a repository at $good"
+  ( cd "$good" && git check-ignore -q ".plotplot/bin/$LOCK_JUDGE" ) \
+    || fail "this repository's .gitignore does not ignore .plotplot/bin/$LOCK_JUDGE"
+  note "ignored by this repository's .gitignore: .plotplot/bin/$LOCK_JUDGE"
+
+  # 4. And nothing under .plotplot is committed here either.
+  local tracked
+  tracked="$(git -C "$ROOT" ls-files -- .plotplot)"
+  [ -z "$tracked" ] || fail "this repository tracks files under .plotplot: $tracked"
+  note "no file under .plotplot is tracked in this repository"
+
+  echo "stem.sh lock: pass"
+}
+
+# ---------------------------------------------------------------------------------------
+# `plotplot check`, against the real judge
+# ---------------------------------------------------------------------------------------
+
+# The judge this check runs. weeder is the garden's gate, and it is the one bed whose check
+# face emits SARIF today; it has no release yet (the comment at the head of
+# `contracts/fixtures/garden.lock` says so), so there is no artifact for `lock verify` to
+# fetch and this check takes the binary the build machine already carries.
+CHECK_JUDGE="weeder"
+
+# A fixture repository with one feature and its test, committed, and weeder planted as its
+# only gate. The manifest is `contracts/fixtures/manifest/weeder.garden.json`, unedited, so
+# the gate command the stem runs is the one the contracts declare.
+plant_check_fixture() {
+  local repo="$1" judge="$2" digest
+  mkdir -p "$repo" || fail "could not make the fixture repository at $repo"
+  git init -q "$repo" || fail "git init failed in $repo"
+  git -C "$repo" config user.email "fit@plotplot.invalid" || fail "could not configure git"
+  git -C "$repo" config user.name "plotplot fit" || fail "could not configure git"
+
+  mkdir -p "$repo/src" "$repo/tests"
+  cat > "$repo/src/parser.ts" <<'SOURCE'
+export function parse(text: string): number {
+  return text.length;
+}
+SOURCE
+  cat > "$repo/tests/parser.test.ts" <<'TEST'
+import { test, expect } from "vitest";
+
+import { parse } from "../src/parser";
+
+test("parses an empty string", () => {
+  expect(parse("")).toBe(0);
+});
+TEST
+  git -C "$repo" add -A || fail "could not stage the fixture's first commit"
+  git -C "$repo" commit -qm "the feature and its test" || fail "could not commit the fixture"
+
+  mkdir -p "$repo/.plotplot/beds/$CHECK_JUDGE" "$repo/.plotplot/bin"
+  cp "$ROOT/contracts/fixtures/manifest/$CHECK_JUDGE.garden.json" \
+     "$repo/.plotplot/beds/$CHECK_JUDGE/garden.json" \
+    || fail "could not copy the $CHECK_JUDGE manifest"
+
+  # weeder has no release, so nothing can be fetched and verified against a pinned digest.
+  # The binary on this machine is placed by hand, its own sha256 recorded in the companion
+  # `lock verify` would have written, and `garden.lock` pinned to the same digest, so the
+  # fixture is coherent with what a planted repository looks like and the one thing that is
+  # not real about it is said out loud, here and on stdout.
+  cp "$judge" "$repo/.plotplot/bin/$CHECK_JUDGE" || fail "could not place $judge"
+  chmod +x "$repo/.plotplot/bin/$CHECK_JUDGE"
+  digest="$(fit_sha256 "$repo/.plotplot/bin/$CHECK_JUDGE")" \
+    || fail "could not hash the placed judge"
+  printf '%s\n' "$digest" > "$repo/.plotplot/bin/$CHECK_JUDGE.sha256"
+  cat > "$repo/garden.lock" <<LOCK
+season = "2026.09"
+
+[judges.$CHECK_JUDGE]
+version = "$("$judge" --version | awk '{print $2}')"
+
+[judges.$CHECK_JUDGE.platforms."$(fit_platform)"]
+url = "file://$repo/.plotplot/bin/$CHECK_JUDGE"
+sha256 = "$digest"
+LOCK
+
+  note "the judge was pre-placed from the build machine because $CHECK_JUDGE has no release: $judge, sha256 $digest, pinned in garden.lock and recorded beside it"
+}
+
+# The names of the tools a merged log's runs carry, one to a line.
+log_tools() {
+  jq -r '.runs[] | .tool.driver.name' "$1"
+}
+
+# How many block-level results a merged log carries.
+log_blocks() {
+  jq '[.runs[] | .results // [] | .[] | select(.level == "error")] | length' "$1"
+}
+
+check_check() {
+  require git jq node
+  build_stem
+
+  # The vendored SARIF schema is validated through the contracts' own validator, which reads
+  # the schema's checksum out of contracts/pins.json first. An absent node_modules is a
+  # machine that has not run `npm ci`, not a log that failed to validate, and the two must
+  # not read the same.
+  [ -d "$ROOT/node_modules/ajv-draft-04" ] \
+    || fail "the contracts' SARIF validator needs ajv-draft-04; run 'npm ci' in $ROOT first"
+
+  local judge
+  judge="$(command -v "$CHECK_JUDGE")" \
+    || fail "$CHECK_JUDGE is not on this machine's PATH, and it has no release for the lock to fetch, so this check has no judge to run; install $CHECK_JUDGE and run this again"
+  note "judge on the build machine: $judge ($("$judge" --version))"
+
+  local tmp repo status
+  tmp="$(scratch)"
+  repo="$tmp/repo"
+
+  note "planting the fixture repository at $repo"
+  plant_check_fixture "$repo" "$judge"
+
+  # 1. A clean tree: every gate ran, nothing blocks, and the log is SARIF 2.1.0.
+  ( cd "$repo" && "$STEM" check ) >"$tmp/clean.json" 2>"$tmp/clean.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/clean.err" >&2; fail "plotplot check exited $status on a clean tree, not 0"; }
+  node "$ROOT/contracts/test/lib/validate-sarif.mjs" "$tmp/clean.json" >/dev/null \
+    || { node "$ROOT/contracts/test/lib/validate-sarif.mjs" "$tmp/clean.json" >&2; \
+         fail "the log from a clean tree is not SARIF 2.1.0 by the contracts' vendored schema"; }
+  [ "$(log_tools "$tmp/clean.json")" = "$CHECK_JUDGE" ] \
+    || { cat "$tmp/clean.json" >&2; fail "the clean tree's log does not carry exactly $CHECK_JUDGE's run"; }
+  [ "$(log_blocks "$tmp/clean.json")" -eq 0 ] \
+    || { cat "$tmp/clean.json" >&2; fail "the clean tree's log carries a block-level result"; }
+  note "clean tree: exit 0, one run by $CHECK_JUDGE, valid SARIF 2.1.0, no block"
+
+  # 2. A change the judge blocks: a deleted test file.
+  git -C "$repo" rm -q tests/parser.test.ts || fail "could not delete the fixture's test file"
+  ( cd "$repo" && "$STEM" check ) >"$tmp/blocked.json" 2>"$tmp/blocked.err"
+  status=$?
+  [ "$status" -eq 2 ] \
+    || { cat "$tmp/blocked.json" "$tmp/blocked.err" >&2; \
+         fail "plotplot check exited $status on a deleted test file, not 2"; }
+  node "$ROOT/contracts/test/lib/validate-sarif.mjs" "$tmp/blocked.json" >/dev/null \
+    || { node "$ROOT/contracts/test/lib/validate-sarif.mjs" "$tmp/blocked.json" >&2; \
+         fail "the log from a blocked change is not SARIF 2.1.0"; }
+  [ "$(log_tools "$tmp/blocked.json")" = "$CHECK_JUDGE" ] \
+    || { cat "$tmp/blocked.json" >&2; fail "the blocked change's log does not carry exactly $CHECK_JUDGE's run"; }
+  [ "$(log_blocks "$tmp/blocked.json")" -ge 1 ] \
+    || { cat "$tmp/blocked.json" >&2; fail "the blocked change's log carries no block-level result"; }
+  note "deleted test file: exit 2, one run by $CHECK_JUDGE, $(log_blocks "$tmp/blocked.json") block-level result(s)"
+
+  # 3. And with the judge gone, the answer is missing rather than permissive.
+  mv "$repo/.plotplot/bin/$CHECK_JUDGE" "$tmp/$CHECK_JUDGE.withdrawn" \
+    || fail "could not take the judge out of the fixture"
+  ( cd "$repo" && "$STEM" check ) >"$tmp/gone.json" 2>"$tmp/gone.err"
+  status=$?
+  [ "$status" -eq 3 ] \
+    || { cat "$tmp/gone.json" "$tmp/gone.err" >&2; \
+         fail "plotplot check exited $status with the judge removed, not 3 (fail closed)"; }
+  grep -q "^$CHECK_JUDGE: " "$tmp/gone.err" \
+    || { cat "$tmp/gone.err" >&2; fail "plotplot check did not name $CHECK_JUDGE as the gate that could not run"; }
+  [ "$(jq '.runs | length' "$tmp/gone.json")" -eq 0 ] \
+    || { cat "$tmp/gone.json" >&2; fail "a gate that could not run still contributed a run to the log"; }
+  note "judge removed: exit 3, no run in the log, $(head -1 "$tmp/gone.err")"
+
+  echo "stem.sh check: pass"
+}
+
+# ---------------------------------------------------------------------------------------
+# check: init
+# ---------------------------------------------------------------------------------------
+
+# The bed `plotplot init --profile minimal` plants (jahala/plotplot issue 17).
+INIT_JUDGE="weeder"
+INIT_VERSION="0.1.0"
+
+# A fixture repository and the lock template init copies from.
+#
+# weeder has no release (the comment at the head of contracts/fixtures/garden.lock says so)
+# and the lock schema takes only https urls, so there is no artifact any lock could name that
+# `lock verify` could fetch here. The judge is placed by hand instead, with its own digest in
+# the companion `lock verify` writes and the same digest pinned in the template, which is
+# exactly the state a resolved lock leaves behind: verify answers "verified" and fetches
+# nothing. That is the one thing about this fixture that is not real, and it is said here and
+# on stdout. Everything init does with it afterwards is the real code path.
+plant_init_fixture() {
+  local repo="$1" template="$2" platform digest
+  mkdir -p "$repo" || fail "could not make the fixture repository at $repo"
+  git init -q "$repo" || fail "git init failed in $repo"
+  git -C "$repo" config user.email "fit@plotplot.invalid" || fail "could not configure git"
+  git -C "$repo" config user.name "plotplot fit" || fail "could not configure git"
+  git -C "$repo" remote add origin "https://example.invalid/jahala/fixture.git" \
+    || fail "could not give the fixture an origin remote"
+
+  mkdir -p "$repo/.plotplot/beds/$INIT_JUDGE" "$repo/.plotplot/bin"
+  cp "$ROOT/contracts/fixtures/manifest/$INIT_JUDGE.garden.json" \
+     "$repo/.plotplot/beds/$INIT_JUDGE/garden.json" \
+    || fail "could not copy the $INIT_JUDGE manifest"
+  cat > "$repo/.plotplot/beds/$INIT_JUDGE/SKILL.md" <<'SKILL'
+# weeder
+
+The judge of the diff: reads what an agent produced and refuses dishonest growth, as SARIF.
+SKILL
+
+  cat > "$repo/.plotplot/bin/$INIT_JUDGE" <<'JUDGE'
+#!/bin/sh
+# The fixture judge. The bed contract, and nothing more: read the payload, allow.
+cat >/dev/null
+exit 0
+JUDGE
+  chmod +x "$repo/.plotplot/bin/$INIT_JUDGE"
+  digest="$(fit_sha256 "$repo/.plotplot/bin/$INIT_JUDGE")" || fail "could not hash the judge"
+  printf '%s\n' "$digest" > "$repo/.plotplot/bin/$INIT_JUDGE.sha256"
+
+  platform="$(fit_platform)"
+  cat > "$template" <<LOCK
+season = "2026.09"
+
+[judges.$INIT_JUDGE]
+version = "$INIT_VERSION"
+
+[judges.$INIT_JUDGE.platforms."$platform"]
+url = "https://github.com/jahala/$INIT_JUDGE/releases/download/v$INIT_VERSION/$INIT_JUDGE-$platform.tar.gz"
+sha256 = "$digest"
+
+[judges.tilth]
+version = "0.10.1"
+npm = "tilth"
+LOCK
+
+  note "the judge was pre-placed because $INIT_JUDGE has no release and the lock schema takes only https urls: sha256 $digest, pinned in the template and recorded beside the judge, so verify resolves it without a fetch"
+  note "the template also pins tilth, which the minimal profile drops; that is what the filter has to prove"
+}
+
+# Every file under a tree, its sha256 and its path, one to a line, git's own bookkeeping left
+# out. Two of these, before and after a second run, are what idempotence means here.
+tree_hash() {
+  local dir="$1" f
+  ( cd "$dir" && find . -type f -not -path './.git/*' | LC_ALL=C sort | while read -r f; do
+      printf '%s  %s\n' "$(fit_sha256 "$f")" "$f"
+    done )
+}
+
+# The dispatcher call a project-scope entry has to carry for one harness and one event.
+assert_dispatcher_entry() {
+  local file="$1" filter="$2" harness="$3" event="$4" command
+  command="$(jq -r "$filter" "$file")" \
+    || { cat "$file" >&2; fail "$file carries no entry for $harness $event"; }
+  { [ -n "$command" ] && [ "$command" != "null" ]; } \
+    || { cat "$file" >&2; fail "$file registers nothing on $harness $event"; }
+  case "$command" in
+    *"hook $harness $event") : ;;
+    *) fail "$file's $event entry is \"$command\", not one dispatcher call" ;;
+  esac
+  case "$command" in
+    *'${CLAUDE_PLUGIN_ROOT}'*|*'${extensionPath}'*)
+      fail "$file's $event entry still names a bundle root variable nothing expands at project scope: $command" ;;
+  esac
+}
+
+check_init() {
+  require git jq claude
+  build_stem
+
+  local tmp repo home template status
+  tmp="$(scratch)"
+  repo="$tmp/repo"
+  home="$(make_home "$tmp")"
+  template="$tmp/template.lock"
+
+  note "planting the fixture repository at $repo"
+  plant_init_fixture "$repo" "$template"
+
+  # 1. The first run plants, and names every file and setting it changed.
+  ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" \
+      "$STEM" init --harness gemini,codex --lock "$template" ) >"$tmp/first.out" 2>"$tmp/first.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/first.out" "$tmp/first.err" >&2; fail "plotplot init exited $status, not 0"; }
+  note "init reported $(grep -c . "$tmp/first.out") changes"
+
+  # 2. The lock it wrote is the template filtered to the minimal profile's one bed.
+  grep -q "^\[judges\.$INIT_JUDGE\]" "$repo/garden.lock" \
+    || { cat "$repo/garden.lock" >&2; fail "the written lock does not pin $INIT_JUDGE"; }
+  if grep -q "^\[judges\.tilth\]" "$repo/garden.lock"; then
+    cat "$repo/garden.lock" >&2
+    fail "the written lock still pins tilth, which the minimal profile drops"
+  fi
+  note "garden.lock: $INIT_JUDGE $INIT_VERSION, and nothing else"
+
+  # 3. The garden block is in AGENTS.md, and it names what is planted.
+  grep -q '<!-- plotplot:begin -->' "$repo/AGENTS.md" \
+    || { cat "$repo/AGENTS.md" >&2; fail "AGENTS.md carries no garden block"; }
+  grep -q '<!-- plotplot:end -->' "$repo/AGENTS.md" \
+    || fail "AGENTS.md's garden block has no end marker"
+  grep -q "$INIT_JUDGE $INIT_VERSION" "$repo/AGENTS.md" \
+    || { cat "$repo/AGENTS.md" >&2; fail "the garden block does not name $INIT_JUDGE $INIT_VERSION"; }
+  note "AGENTS.md: the garden block names $INIT_JUDGE $INIT_VERSION"
+
+  # 4. The repository's own manifest, which is never a bed.
+  [ -f "$repo/garden.json" ] || fail "init wrote no garden.json beside the lock"
+  [ "$(jq -r '.kind | join(",")' "$repo/garden.json")" = "repository" ] \
+    || { cat "$repo/garden.json" >&2; fail "the repository's own manifest is not kind [\"repository\"]"; }
+  note "garden.json: $(jq -r '.name' "$repo/garden.json"), kind repository"
+
+  # 5. Gemini's project settings, which is where its hooks live because it has no project
+  #    scope of its own.
+  [ -f "$repo/.gemini/settings.json" ] || fail "init wrote no $repo/.gemini/settings.json"
+  assert_dispatcher_entry "$repo/.gemini/settings.json" \
+    '.hooks.BeforeTool[0].hooks[0].command' gemini BeforeTool
+  assert_dispatcher_entry "$repo/.gemini/settings.json" \
+    '.hooks.SessionEnd[0].hooks[0].command' gemini SessionEnd
+  note "gemini: $(jq -r '.hooks | keys | join(", ")' "$repo/.gemini/settings.json")"
+
+  # 6. Codex's project hook file.
+  [ -f "$repo/.codex/hooks.json" ] || fail "init wrote no $repo/.codex/hooks.json"
+  assert_dispatcher_entry "$repo/.codex/hooks.json" \
+    '.hooks.PreToolUse[0].hooks[0].command' codex PreToolUse
+  assert_dispatcher_entry "$repo/.codex/hooks.json" \
+    '.hooks.Stop[0].hooks[0].command' codex Stop
+  note "codex: $(jq -r '.hooks | keys | join(", ")' "$repo/.codex/hooks.json")"
+  grep -q "trust" "$tmp/first.err" \
+    || { cat "$tmp/first.err" >&2; fail "init did not say that codex waits on project trust"; }
+
+  # 7. The git law: the four hooks, runnable, and the configuration that runs them.
+  local hook
+  for hook in pre-commit pre-push pre-rebase post-commit; do
+    [ -f "$repo/.githooks/$hook" ] || fail "init wrote no .githooks/$hook"
+    [ -x "$repo/.githooks/$hook" ] || fail ".githooks/$hook is not executable"
+  done
+  [ "$(git -C "$repo" config --local core.hooksPath)" = ".githooks" ] \
+    || fail "core.hooksPath is \"$(git -C "$repo" config --local core.hooksPath)\", not .githooks"
+  git -C "$repo" config --local --get-all remote.origin.fetch \
+    | grep -q '^+refs/notes/plotplot/receipts:refs/notes/plotplot/receipts$' \
+    || fail "the receipts fetch refspec is not set"
+  git -C "$repo" config --local --get-all remote.origin.push \
+    | grep -q '^refs/notes/plotplot/receipts:refs/notes/plotplot/receipts$' \
+    || fail "the receipts push refspec is not set"
+  note "git: core.hooksPath .githooks, four runnable hooks, both receipts refspecs"
+
+  # 8. The gate every pull request passes, on a hosted runner and no other.
+  local workflow="$repo/.github/workflows/plotplot-check.yml"
+  [ -f "$workflow" ] || fail "init wrote no pull request workflow"
+  grep -q 'plotplot check --strict' "$workflow" \
+    || fail "the workflow does not run plotplot check --strict"
+  grep -q 'pull_request' "$workflow" || fail "the workflow does not run on pull_request"
+  grep -q 'runs-on: ubuntu-latest' "$workflow" || fail "the workflow names no hosted runner"
+  if grep -q 'self-hosted' "$workflow"; then
+    fail "the workflow names a runner of the repository's own, which a public bed never registers (jahala/plotplot issue 7)"
+  fi
+  note "the pull request gate runs plotplot check --strict on a hosted runner"
+
+  # 9. And a second run changes nothing, and says so.
+  tree_hash "$repo" > "$tmp/before.hashes"
+  ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" \
+      "$STEM" init --harness gemini,codex --lock "$template" ) >"$tmp/second.out" 2>"$tmp/second.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/second.out" "$tmp/second.err" >&2; fail "the second init exited $status, not 0"; }
+  [ "$(cat "$tmp/second.out")" = "nothing to do" ] \
+    || { cat "$tmp/second.out" >&2; fail "the second init did not print exactly 'nothing to do'"; }
+  tree_hash "$repo" > "$tmp/after.hashes"
+  diff "$tmp/before.hashes" "$tmp/after.hashes" >/dev/null \
+    || { diff "$tmp/before.hashes" "$tmp/after.hashes" >&2; fail "the second init changed files"; }
+  note "second run: nothing to do, and every file byte for byte as it was"
+
+  # 10. Claude's own install, through claude's own mechanism, against the temporary home.
+  check_init_claude "$tmp" "$repo" "$home" "$template"
+
+  echo "stem.sh init: pass"
+}
+
+# Claude Code's half of the check: the same repository, planted again with --harness claude,
+# asserted through what claude itself wrote at project scope. HOME is the temporary one, so
+# the marketplace claude records for itself is recorded there and nowhere else.
+check_init_claude() {
+  local tmp="$1" repo="$2" home="$3" template="$4" status
+  note "planting claude through claude's own marketplace mechanism"
+
+  ( cd "$repo" && HOME="$home" \
+      "$STEM" init --harness claude --lock "$template" ) >"$tmp/claude.out" 2>"$tmp/claude.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/claude.out" "$tmp/claude.err" >&2; fail "plotplot init --harness claude exited $status, not 0"; }
+
+  local market="$repo/.plotplot/marketplace/.claude-plugin/marketplace.json"
+  [ -f "$market" ] || fail "init wrote no local marketplace for claude"
+  [ "$(jq -r '.plugins[0].name' "$market")" = "$PLUGIN" ] \
+    || { cat "$market" >&2; fail "the marketplace does not list $PLUGIN"; }
+
+  # What project scope means for claude: the plugin enabled in the project's own settings.
+  [ -f "$repo/.claude/settings.json" ] || fail "claude wrote no project settings"
+  [ "$(jq -r --arg id "$PLUGIN@plotplot-local" '.enabledPlugins[$id] // false' "$repo/.claude/settings.json")" = "true" ] \
+    || { cat "$repo/.claude/settings.json" >&2; fail "claude did not enable $PLUGIN@plotplot-local at project scope"; }
+
+  # And nothing of the stem's went outside the repository: the only user-scope file is the
+  # marketplace list claude keeps for itself, which init names on stderr.
+  [ -f "$home/.claude/settings.json" ] \
+    || fail "claude recorded no marketplace in the temporary home, so this check proved nothing about scope"
+  grep -q "user scope" "$tmp/claude.err" \
+    || { cat "$tmp/claude.err" >&2; fail "init did not say what claude records outside the repository"; }
+
+  tree_hash "$repo" > "$tmp/claude-before.hashes"
+  ( cd "$repo" && HOME="$home" \
+      "$STEM" init --harness claude --lock "$template" ) >"$tmp/claude2.out" 2>"$tmp/claude2.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/claude2.out" "$tmp/claude2.err" >&2; fail "the second claude init exited $status, not 0"; }
+  [ "$(cat "$tmp/claude2.out")" = "nothing to do" ] \
+    || { cat "$tmp/claude2.out" >&2; fail "the second claude init did not print exactly 'nothing to do'"; }
+  tree_hash "$repo" > "$tmp/claude-after.hashes"
+  diff "$tmp/claude-before.hashes" "$tmp/claude-after.hashes" >/dev/null \
+    || { diff "$tmp/claude-before.hashes" "$tmp/claude-after.hashes" >&2; fail "the second claude init changed files"; }
+  note "claude: installed at project scope from $repo/.plotplot/marketplace, and a second run changed nothing"
+}
+
+# ---------------------------------------------------------------------------------------
 
 case "${1:-}" in
   bundles) check_bundles ;;
   hook-faces) check_hook_faces ;;
+  lock) check_lock ;;
+  check) check_check ;;
+  init) check_init ;;
   *)
-    echo "usage: stem.sh {bundles | hook-faces}" >&2
+    echo "usage: stem.sh {bundles | hook-faces | lock | check | init}" >&2
     exit 2
     ;;
 esac

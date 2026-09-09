@@ -41,9 +41,10 @@ fn payload(harness: &str, event: &str) -> String {
 
 /// One fixture payload with one field changed.
 ///
-/// The corpus under `tests/fixtures/payloads/` keeps one payload per harness event, and its
-/// own tests assert that shape, so a variant one dispatcher test needs is made here from the
-/// real payload rather than added beside it as a second `PreToolUse`.
+/// The corpus under `tests/fixtures/payloads/` keeps one payload per harness event, plus the
+/// named variants a boundary has to refuse, and its own tests assert that shape; a variant
+/// only one dispatcher test needs is made here from the real payload rather than added
+/// beside it as a second `PreToolUse`.
 fn variant(harness: &str, event: &str, edit: impl FnOnce(&mut Value)) -> String {
     let mut payload: Value =
         serde_json::from_str(&payload(harness, event)).expect("the fixture is JSON");
@@ -358,6 +359,149 @@ fn a_refused_write_to_a_stem_owned_path_carries_that_path_and_its_rule() {
         "a path the ledger records carries its kind: {}",
         denied[0]
     );
+}
+
+/// What tells the two blindfolded refusals apart on the wire. The sentences themselves are
+/// the deny list's own contract and are pinned there, word for word, by its unit tests.
+const CANNOT_JUDGE: &str = "cannot judge the target of a write";
+
+/// A write the boundary cannot see the target of, from the fixture that carries the gap.
+///
+/// Both cases are one refusal with one name: the vendor is told why, no bed is asked, and the
+/// ledger gets one line naming the rule, so a boundary that had to fail closed is countable
+/// rather than only felt.
+#[test]
+fn a_write_whose_target_cannot_be_judged_is_refused_and_recorded() {
+    for (fixture, expected) in [
+        ("no-input-PreToolUse", "names no path"),
+        (
+            "no-cwd-PreToolUse",
+            "no working directory to judge /work/repo/garden.lock against",
+        ),
+    ] {
+        let temp = tempfile::tempdir().expect("a temporary root");
+        let root = temp.path();
+        plant(root, "eager", &[("claude", &["PreToolUse"])], "exit 0");
+
+        let assert = plotplot(root)
+            .args(["hook", "claude", "PreToolUse"])
+            .write_stdin(payload("claude", fixture))
+            .assert()
+            .code(2);
+        let output = assert.get_output();
+
+        let answer: Value =
+            serde_json::from_slice(&output.stdout).expect("the deny answer is the vendor's JSON");
+        assert_eq!(
+            answer["hookSpecificOutput"]["hookEventName"], "PreToolUse",
+            "{fixture}"
+        );
+        assert_eq!(
+            answer["hookSpecificOutput"]["permissionDecision"], "deny",
+            "{fixture}"
+        );
+        let told = answer["hookSpecificOutput"]["permissionDecisionReason"]
+            .as_str()
+            .unwrap_or_else(|| panic!("{fixture}: the vendor is told a reason"))
+            .to_owned();
+        assert!(told.starts_with("plotplot: "), "{fixture}: {told}");
+        assert!(told.contains(CANNOT_JUDGE), "{fixture}: {told}");
+        assert!(told.contains(expected), "{fixture}: {told}");
+
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(stderr.contains(&told), "{fixture}: {stderr}");
+
+        assert!(
+            !marker(root, "eager").exists(),
+            "{fixture}: a denied tool call never reaches a bed"
+        );
+
+        let denied = denied_lines(root);
+        assert_eq!(denied.len(), 1, "{fixture}: {:#?}", journal_lines(root));
+        assert_eq!(
+            denied[0]["plotplot.rule"], "deny.write-target-unjudged",
+            "{fixture}"
+        );
+        assert_eq!(
+            denied[0]["gen_ai.operation.name"], "execute_tool",
+            "{fixture}"
+        );
+        assert_eq!(denied[0]["gen_ai.tool.name"], "Write", "{fixture}");
+        assert_eq!(
+            denied[0]["gen_ai.conversation.id"], CLAUDE_SESSION,
+            "{fixture}"
+        );
+    }
+}
+
+/// The same payload with its `session_id` taken out: the one field every record is keyed by.
+fn unkeyed(edit: impl FnOnce(&mut Value)) -> String {
+    variant("claude", "PreToolUse", |payload| {
+        edit(payload);
+        if let Some(object) = payload.as_object_mut() {
+            object.remove("session_id");
+        }
+    })
+}
+
+#[test]
+fn a_payload_the_ledger_cannot_key_is_named_on_stderr_rather_than_dropped_in_silence() {
+    let temp = tempfile::tempdir().expect("a temporary root");
+    let root = temp.path();
+
+    let assert = plotplot(root)
+        .args(["hook", "claude", "PreToolUse"])
+        .write_stdin(unkeyed(|_| {}))
+        .assert()
+        .code(0);
+
+    let stderr = String::from_utf8_lossy(&assert.get_output().stderr).into_owned();
+    assert!(stderr.contains("session_id"), "{stderr}");
+    assert!(stderr.contains("gen_ai.conversation.id"), "{stderr}");
+    assert!(
+        journal_lines(root).is_empty(),
+        "nothing was written: {:#?}",
+        journal_lines(root)
+    );
+}
+
+#[test]
+fn a_refusal_the_ledger_cannot_key_names_the_line_it_could_not_write() {
+    let temp = tempfile::tempdir().expect("a temporary root");
+    let root = temp.path();
+
+    let assert = plotplot(root)
+        .args(["hook", "claude", "PreToolUse"])
+        .write_stdin(unkeyed(|payload| {
+            payload["tool_input"]["command"] = Value::String("git push --no-verify".to_owned());
+        }))
+        .assert()
+        // The ledger's own gap never changes the answer the boundary gives.
+        .code(2);
+
+    let stderr = String::from_utf8_lossy(&assert.get_output().stderr).into_owned();
+    assert!(stderr.contains("--no-verify"), "{stderr}");
+    assert!(stderr.contains("deny.no-verify"), "{stderr}");
+    assert!(stderr.contains("tool.denied"), "{stderr}");
+    assert!(stderr.contains("session_id"), "{stderr}");
+    assert!(
+        denied_lines(root).is_empty(),
+        "the record could not be keyed, so there is none: {:#?}",
+        journal_lines(root)
+    );
+}
+
+#[test]
+fn a_payload_the_ledger_can_key_says_nothing_about_the_ledger() {
+    let temp = tempfile::tempdir().expect("a temporary root");
+    let root = temp.path();
+
+    plotplot(root)
+        .args(["hook", "claude", "PreToolUse"])
+        .write_stdin(no_verify())
+        .assert()
+        .code(2)
+        .stderr(predicate::str::contains("session_id").not());
 }
 
 #[test]
