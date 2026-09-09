@@ -299,7 +299,10 @@ reaudit = {
                 "smoke": GATES,
                 "audit": {
                     "command": f"bash -lc '{VERIFY} --check {number} --runner \"bash {{evidence}} {name}\"'",
-                    "provider": "codex",
+                    # codex sessions 404 at their prompt on this account (a bare exec answers,
+                    # a real session does not), so the relay runs on the bring-any-model lane.
+                    "provider": "opencode",
+                    "model": "deepseek/deepseek-v4-pro",
                 },
             },
             "policy": {"maxAttempts": 1, "timeoutMs": 1_800_000, "onDead": "resume", "reauditWhen": ["compacted"]},

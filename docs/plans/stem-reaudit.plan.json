@@ -17,7 +17,8 @@
         "smoke": "bash -lc 'cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test'",
         "audit": {
           "command": "bash -lc 'tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress --check 5 --runner \"bash {evidence} bundles\"'",
-          "provider": "codex"
+          "provider": "opencode",
+          "model": "deepseek/deepseek-v4-pro"
         }
       },
       "policy": {
@@ -43,7 +44,8 @@
         "smoke": "bash -lc 'cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test'",
         "audit": {
           "command": "bash -lc 'tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress --check 8 --runner \"bash {evidence} hook-faces\"'",
-          "provider": "codex"
+          "provider": "opencode",
+          "model": "deepseek/deepseek-v4-pro"
         }
       },
       "policy": {
