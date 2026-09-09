@@ -3,8 +3,8 @@
 //! A hook that silently never fires is the worst failure a boundary can have, so "is it
 //! planted" has to be a command rather than a belief. This is the half of that command that
 //! needs no harness running: it reads what is on disk, regenerates what the stem would write
-//! today, and compares. Live mode, which drives a real session and proves each hook fires,
-//! is a later node and is not here.
+//! today, and compares. Live mode, which drives a real session through umbel and proves each
+//! hook fires by firing it, is [`live`].
 //!
 //! Every check produces one [`Finding`], whether it passed or not, so the table is the same
 //! nine lines every time and a check can never go quiet. Nothing here repairs anything:
@@ -26,6 +26,8 @@ use crate::lock::{self, Lock};
 use crate::manifest::one_line;
 use crate::plant::{garden_block, gitconfig, githooks};
 use crate::{layout, manifest};
+
+pub mod live;
 
 /// What `doctor` asks, in the order it prints the answers. The nine names are the table's
 /// first column and the only names a caller has to match on.
@@ -120,7 +122,7 @@ pub fn run(root: &Path, home: &Path, stdout: &mut dyn Write, stderr: &mut dyn Wr
 
 /// The file whose absence says this repository was never planted, or `None` when both the
 /// lock and the cached beds are there.
-fn unplanted(root: &Path) -> Option<PathBuf> {
+pub fn unplanted(root: &Path) -> Option<PathBuf> {
     [layout::garden_lock(root), layout::beds_dir(root)]
         .into_iter()
         .find(|path| !path.exists())

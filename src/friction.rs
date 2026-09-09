@@ -371,12 +371,18 @@ pub fn shell_command(payload: &Payload) -> Option<String> {
 }
 
 /// Whether this vendor calls its shell tool by this name.
+///
+/// Codex has two names for one tool: its hook documentation shows `shell` with an argv
+/// array, and the installed 0.133.0 sends `Bash` with the script as one string (captured
+/// from a live session on 2026-09-09; `tests/fixtures/payloads/codex/bash-PreToolUse.json`).
+/// Both are read, because a shell call the stem does not recognise is a hard limit that
+/// never fires.
 pub fn is_shell_tool(harness: Harness, tool: &str) -> bool {
     matches!(
         (harness, tool),
         (Harness::Claude, "Bash")
             | (Harness::Gemini, "run_shell_command")
-            | (Harness::Codex, "shell")
+            | (Harness::Codex, "shell" | "Bash")
     )
 }
 
@@ -2141,6 +2147,20 @@ mod tests {
 
         let payload = claude_post("Read", json!({"file_path": "a"}));
         assert_eq!(shell_command(&payload), None);
+    }
+
+    /// Codex 0.133.0 calls its shell tool `Bash` and passes the script as one string, which
+    /// is not the `shell` with an argv array its own hook documentation shows. The payload
+    /// this reads was captured from the installed binary on 2026-09-09 by `doctor --live`;
+    /// a `Bash` the stem does not recognise is a hard limit that never fires.
+    #[test]
+    fn codex_calls_its_shell_tool_bash_and_the_stem_reads_it() {
+        let payload = fixture(Harness::Codex, "bash-PreToolUse");
+        assert_eq!(payload.tool_name.as_deref(), Some("Bash"));
+        assert_eq!(
+            shell_command(&payload).as_deref(),
+            Some("git commit --no-verify -m probe")
+        );
     }
 
     #[test]

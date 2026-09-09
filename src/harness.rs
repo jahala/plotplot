@@ -499,9 +499,9 @@ mod tests {
             }
         }
         assert_eq!(
-            seen, 26,
-            "one fixture per harness event, one leaky each, and the two a write cannot be \
-             judged from"
+            seen, 27,
+            "one fixture per harness event, one leaky each, the two a write cannot be \
+             judged from, and Codex's live `Bash` shell call"
         );
     }
 

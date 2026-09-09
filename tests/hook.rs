@@ -328,6 +328,30 @@ fn the_stems_own_refusal_earns_one_tool_denied_record_naming_its_rule() {
     assert!(line.get("plotplot.path.kind").is_none(), "{line}");
 }
 
+/// The payload Codex 0.133.0 actually sends, captured from a live session on 2026-09-09 by
+/// `doctor --live`: its shell tool is called `Bash` and its script is one string, not the
+/// `shell` with an argv array its hook documentation shows. The stem read only the
+/// documented name until then, so this hard limit let the commit through on a real session.
+#[test]
+fn codexs_live_bash_call_is_refused_and_recorded_like_any_other_shell_call() {
+    let temp = tempfile::tempdir().expect("a temporary root");
+    let root = temp.path();
+
+    let assert = plotplot(root)
+        .args(["hook", "codex", "PreToolUse"])
+        .write_stdin(payload("codex", "bash-PreToolUse"))
+        .assert()
+        .code(2);
+    let stderr = String::from_utf8_lossy(&assert.get_output().stderr).into_owned();
+    assert!(stderr.contains("--no-verify"), "{stderr}");
+
+    let denied = denied_lines(root);
+    assert_eq!(denied.len(), 1, "{:#?}", journal_lines(root));
+    assert_eq!(denied[0]["plotplot.harness"], "codex-cli");
+    assert_eq!(denied[0]["gen_ai.tool.name"], "Bash");
+    assert_eq!(denied[0]["plotplot.rule"], "deny.no-verify");
+}
+
 #[test]
 fn a_refused_write_to_a_stem_owned_path_carries_that_path_and_its_rule() {
     let temp = tempfile::tempdir().expect("a temporary root");
