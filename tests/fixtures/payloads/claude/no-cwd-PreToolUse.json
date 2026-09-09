@@ -1,0 +1,14 @@
+{
+  "session_id": "6f3c1b2a-8d47-4f0e-9b31-2a5c7e91d044",
+  "transcript_path": "/home/agent/.claude/projects/-work-repo/6f3c1b2a-8d47-4f0e-9b31-2a5c7e91d044.jsonl",
+  "permission_mode": "acceptEdits",
+  "model": "claude-opus-5",
+  "agent_id": "main",
+  "hook_event_name": "PreToolUse",
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "/work/repo/garden.lock",
+    "content": "season = \"2026.09\"\n"
+  },
+  "tool_use_id": "toolu_01Hs3kLm9nBv6dQx1yTc4uFg"
+}

@@ -466,7 +466,7 @@ pub fn input_paths(input: &Value) -> Vec<String> {
 }
 
 /// The files a Codex `apply_patch` names, from its `*** … File:` lines and nothing else.
-fn patch_paths(patch: &str) -> Vec<String> {
+pub fn patch_paths(patch: &str) -> Vec<String> {
     patch
         .lines()
         .filter_map(|line| {
@@ -532,10 +532,12 @@ pub fn path_kind(relative: &str) -> PathKind {
     {
         return PathKind::Test;
     }
-    let extension = name
-        .rsplit_once('.')
-        .map(|(_, ext)| ext)
-        .unwrap_or_default();
+    let extension = match name.rsplit_once('.') {
+        Some((_, extension)) => extension,
+        // A name with no dot has no extension. That is what the file is called, not a
+        // reading that failed, so it falls through to the kinds that do not need one.
+        None => "",
+    };
     let at_root = directories.is_empty();
     if matches!(extension, "md" | "txt" | "html")
         && (at_root || directories.first() == Some(&"docs"))
@@ -677,12 +679,13 @@ fn before_tool(envelope: &Envelope, state: &mut SessionState) -> Vec<Record> {
     let Some(tool) = envelope.tool() else {
         return Vec::new();
     };
-    let input = envelope
-        .payload
-        .tool_input
-        .as_ref()
-        .map(ToString::to_string)
-        .unwrap_or_default();
+    // A payload carrying no input hashes as the empty string, which no JSON value's own
+    // rendering can produce, so "this call named no input" stays a value of its own and is
+    // never confused with some input that happened to be short.
+    let input = match envelope.payload.tool_input.as_ref() {
+        Some(input) => input.to_string(),
+        None => String::new(),
+    };
     let hash = hex::encode(Sha256::digest(format!("{tool}\u{0}{input}").as_bytes()));
 
     let repeated = state.recent_inputs.iter().any(|seen| seen == &hash);
@@ -817,11 +820,20 @@ fn tool_paths(payload: &Payload) -> Vec<String> {
         }
         return paths;
     }
-    payload
-        .tool_input
-        .as_ref()
-        .map(input_paths)
-        .unwrap_or_default()
+    input_paths_of(payload)
+}
+
+/// The paths this payload's tool input names, and none when it carries no input.
+///
+/// Nothing is dropped here: a payload with no `tool_input` names no path, and no path is a
+/// value the ledger has a meaning for, not a reading that failed. Where the difference
+/// matters — a write whose target the boundary has to see — the caller reads `tool_input`
+/// itself rather than this, which is what [`crate::deny`] does.
+fn input_paths_of(payload: &Payload) -> Vec<String> {
+    match payload.tool_input.as_ref() {
+        Some(input) => input_paths(input),
+        None => Vec::new(),
+    }
 }
 
 /// The `error.type` for a failed tool call, or `None` when the call succeeded.
@@ -886,18 +898,11 @@ fn action(payload: &Payload) -> Action {
         return command_action(&command);
     }
     let bare = bare_tool_name(tool);
-    let paths = || {
-        payload
-            .tool_input
-            .as_ref()
-            .map(input_paths)
-            .unwrap_or_default()
-    };
     if READ_TOOLS.contains(&bare) {
-        return Action::Read(paths());
+        return Action::Read(input_paths_of(payload));
     }
     if EDIT_TOOLS.contains(&bare) {
-        return Action::Edit(paths());
+        return Action::Edit(input_paths_of(payload));
     }
     if SEARCH_TOOLS.contains(&bare) {
         return Action::Search;
@@ -1019,6 +1024,27 @@ pub fn emit(root: &Path, payload: &Payload, now: &dyn Now) -> Result<usize> {
     Ok(records.len())
 }
 
+/// Why nothing this payload did can reach the journal, when the payload is the reason.
+///
+/// [`emit`] answers `Ok(0)` for two very different payloads: one that earned no record
+/// because nothing about it was friction, and one that could earn none at all because the
+/// profile keys every record by `gen_ai.conversation.id` and the harness sent no
+/// `session_id`. A count cannot tell those apart, so the second says so here and the
+/// dispatcher's trail puts it on stderr. Nothing about the answer to the harness changes:
+/// a ledger that cannot write is not a reason to stop an agent, but it is a reason to say
+/// out loud that the ledger is missing this session.
+pub fn unrecorded_reason(payload: &Payload) -> Option<String> {
+    if payload.session_id.is_some() {
+        return None;
+    }
+    Some(format!(
+        "plotplot: the {} {} payload carries no session_id, so nothing it did reaches the \
+         friction journal; every record the profile allows is keyed by \
+         gen_ai.conversation.id",
+        payload.harness, payload.event
+    ))
+}
+
 /// Record the stem's own refusal of a tool call, naming the rule that refused it.
 ///
 /// The profile derives `tool.denied` from "our own PreToolUse decision" as well as from
@@ -1115,6 +1141,9 @@ pub fn run(
     match written {
         Ok(_) => 0,
         Err(error) => {
+            // The failure leaves on the code whether or not the sentence does: a caller that
+            // has already closed this stream cannot be told anything, and nothing else here
+            // can act on a stream that is gone.
             let _ = writeln!(stderr, "{error}");
             1
         }
@@ -1366,7 +1395,7 @@ mod tests {
 
     #[test]
     fn every_fixture_payload_earns_exactly_the_kinds_the_profile_names() {
-        let table: [(Harness, &str, &[&str]); 24] = [
+        let table: [(Harness, &str, &[&str]); 26] = [
             (Harness::Claude, "PermissionDenied", &["tool.denied"]),
             (Harness::Claude, "PostToolUse", &[]),
             (Harness::Claude, "PostToolUseFailure", &["tool.failed"]),
@@ -1377,6 +1406,8 @@ mod tests {
             (Harness::Claude, "Stop", &[]),
             (Harness::Claude, "UserPromptSubmit", &[]),
             (Harness::Claude, "leaky-PostToolUse", &[]),
+            (Harness::Claude, "no-cwd-PreToolUse", &[]),
+            (Harness::Claude, "no-input-PreToolUse", &[]),
             (Harness::Gemini, "AfterAgent", &[]),
             (Harness::Gemini, "AfterTool", &[]),
             (Harness::Gemini, "BeforeTool", &[]),
@@ -1866,6 +1897,66 @@ mod tests {
     // -----------------------------------------------------------------------------------
 
     #[test]
+    fn a_payload_the_profile_cannot_key_says_why_rather_than_counting_zero_in_silence() {
+        for harness in Harness::ALL {
+            let json = json!({
+                "hook_event_name": harness.before_tool_event(),
+                "cwd": "/work/repo",
+                "tool_name": "Write",
+                "tool_input": {"file_path": "src/lock.rs"},
+            })
+            .to_string();
+            let payload = parse_payload(harness, &json).expect("a parsed payload");
+
+            let reason = unrecorded_reason(&payload).unwrap_or_else(|| {
+                panic!("{harness}: a payload with no session_id names no reason")
+            });
+            assert!(reason.contains("session_id"), "{reason}");
+            assert!(reason.contains("gen_ai.conversation.id"), "{reason}");
+            assert!(reason.contains(harness.name()), "{reason}");
+            assert!(reason.contains(harness.before_tool_event()), "{reason}");
+
+            // And the count alone cannot say it: derive earns nothing either way.
+            assert!(derive(root(), &payload, &mut SessionState::new()).is_empty());
+            assert!(derive_denied(root(), &payload, "deny.no-verify").is_empty());
+        }
+    }
+
+    #[test]
+    fn a_payload_the_profile_can_key_leaves_no_reason_to_report() {
+        for (harness, name) in [
+            (Harness::Claude, "PreToolUse"),
+            (Harness::Claude, "SessionEnd"),
+            (Harness::Gemini, "BeforeTool"),
+            (Harness::Codex, "Stop"),
+        ] {
+            assert_eq!(
+                unrecorded_reason(&fixture(harness, name)),
+                None,
+                "{harness}/{name}"
+            );
+        }
+    }
+
+    #[test]
+    fn emitting_a_payload_the_profile_cannot_key_writes_nothing_and_fails_at_nothing() {
+        let temp = tempfile::tempdir().expect("a temporary root");
+        let root = temp.path();
+        let json = json!({
+            "hook_event_name": "SessionEnd",
+            "cwd": "/work/repo",
+        })
+        .to_string();
+        let payload = parse_payload(Harness::Claude, &json).expect("a parsed payload");
+
+        let clock = || "2026-09-09T12:00:00.402Z".to_owned();
+        let written = emit(root, &payload, &clock).expect("emitting is not an error");
+        assert_eq!(written, 0);
+        assert!(!layout::friction_dir(root).exists(), "nothing was written");
+        assert!(unrecorded_reason(&payload).is_some(), "and it says why");
+    }
+
+    #[test]
     fn a_record_leaves_derive_unstamped_and_emit_stamps_it() {
         let mut state = SessionState::new();
         let records = derive(root(), &fixture(Harness::Claude, "SessionEnd"), &mut state);
@@ -1900,8 +1991,8 @@ mod tests {
     #[test]
     fn the_month_comes_from_the_timestamp_and_a_broken_clock_is_an_error() {
         assert_eq!(
-            month_of("2026-09-09T12:00:00.402Z").ok(),
-            Some("2026-09".to_owned())
+            month_of("2026-09-09T12:00:00.402Z").expect("a well-shaped timestamp"),
+            "2026-09"
         );
         for broken in [
             "",

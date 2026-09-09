@@ -395,6 +395,15 @@ difference is recorded on the stem loop's Tried.
 | Project-scope install | `claude plugin install <name>@<marketplace> --scope project` from a local marketplace directory | `gemini extensions install <path>` (user scope only; `gemini extensions validate <path>` checks a bundle) | `codex plugin marketplace add <dir>` (a directory holding `marketplace.json` with `plugins: [{name, source: {source: "local", path: "./plugins/<name>"}}]`; the personal one is `<home>/.agents/plugins/marketplace.json`) then `codex plugin add <name>`; hooks load only when the project is trusted (`[projects."<abs path>"] trust_level = "trusted"` in `<home>/.codex/config.toml`) |
 | Budget | Stop and SessionEnd hooks share 1.5 s | | |
 
+Added 2026-09-09, verified against the installed Codex 0.133.0 binary: every model profile it
+ships sets `"apply_patch_tool_type": "freeform"` (six of six), so Codex's `apply_patch` reaches
+a hook as patch text and not as an object with a field the stem can name. The text may be the
+whole `tool_input`, or sit under `input`, or under `patch`, or inside a `command` array. What
+the vendor's own grammar does fix is the patch: its file operations are `*** Add File:`,
+`*** Update File:` and `*** Delete File:` headers inside a `*** Begin Patch` / `*** End Patch`
+envelope. A rule that has to know which file an `apply_patch` touches reads those headers out
+of the strings in the input, and does not bet on the shape around them.
+
 ## 6. The contracts
 
 `contracts/manifest.schema.json` and `contracts/lock.schema.json` are the contracts' product,
