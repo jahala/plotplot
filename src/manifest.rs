@@ -332,6 +332,57 @@ pub fn unplantable_channels(root: &Path) -> Result<Vec<String>> {
     Ok(names)
 }
 
+/// The key a bed's manifest carries to say its check face takes `--strict`.
+///
+/// The contracts have no field for it at v1.3.0, and the manifest schema accepts unknown
+/// top-level keys, so the declaration lands in [`Manifest::extra`]. When the umbrella adds
+/// the field to the schema, this reads the same key from its typed home and the beds that
+/// already declare it are unaffected.
+pub const CHECK_STRICT: &str = "check_strict";
+
+/// Whether this bed's check face takes `--strict`.
+///
+/// Absent is false: a gate the stem knows nothing about is asked for its ordinary judgement
+/// rather than for a flag it might refuse to parse.
+///
+/// # Errors
+///
+/// [`Error::Manifest`] when the key is there and is not a boolean. A bed that meant to say
+/// yes and said something else is told so, rather than read as having said no.
+pub fn takes_strict(manifest: &Manifest) -> Result<bool> {
+    match manifest.extra.get(CHECK_STRICT) {
+        None => Ok(false),
+        Some(Value::Bool(declared)) => Ok(*declared),
+        Some(other) => Err(Error::Manifest {
+            bed: manifest.name.clone(),
+            problem: format!(
+                "declares {CHECK_STRICT} as {other}, which is not true or false, so the stem \
+                 cannot tell whether its check face takes --strict"
+            ),
+        }),
+    }
+}
+
+/// The planted beds whose check face takes `--strict`, sorted by name.
+///
+/// This lives here, where the manifest is still whole, for the reason
+/// [`unplantable_channels`] does: [`Bed`] carries what every module needs of a bed, and the
+/// declaration is a fact of the manifest that only `check` reads.
+///
+/// # Errors
+///
+/// As [`load_beds`], minus what [`to_bed`] refuses, plus what [`takes_strict`] refuses.
+pub fn strict_checkers(root: &Path) -> Result<Vec<String>> {
+    let mut names = Vec::new();
+    for manifest in load_manifests(root)? {
+        if takes_strict(&manifest)? {
+            names.push(manifest.name);
+        }
+    }
+    names.sort();
+    Ok(names)
+}
+
 /// Every `.plotplot/beds/*/garden.json` under `root`, parsed, in the order the filesystem
 /// lists them. An absent beds directory is an unplanted repository, not a failure.
 ///

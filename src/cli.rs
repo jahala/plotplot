@@ -3,15 +3,16 @@
 //! A face with work of its own keeps that work in its own module. `version` has none beyond
 //! reading the lock and laying out five lines, so it lives here.
 
-use std::io::{Read, Write};
+use std::io::{IsTerminal, Read, Write};
 use std::path::{Path, PathBuf};
 
 use clap::{Args as ClapArgs, Parser, Subcommand};
 
+use crate::check::Format;
 use crate::error::{Error, Result};
 use crate::harness::Harness;
 use crate::lock::{Lock, read_lock};
-use crate::{VERSION, bundle, doctor, friction, hook, lock, receipt};
+use crate::{VERSION, bundle, check, doctor, friction, hook, lock, receipt};
 
 /// `plotplot`, the stem of the garden.
 #[derive(Debug, Parser)]
@@ -41,6 +42,8 @@ pub enum Face {
         #[command(subcommand)]
         command: BundleFace,
     },
+    /// Run every gate the planted manifests declare and merge their findings into one log.
+    Check(CheckArgs),
     /// Prove the garden is planted: one line per check, exit 0 when every check passes.
     Doctor,
     /// The pinned judges `garden.lock` names.
@@ -67,6 +70,17 @@ pub enum BundleFace {
         #[arg(value_name = "claude|gemini|codex", value_parser = harness_value)]
         harness: Option<Harness>,
     },
+}
+
+/// `plotplot check [--strict] [--format sarif|table]`.
+#[derive(Debug, ClapArgs)]
+pub struct CheckArgs {
+    /// Ask for the strictest judgement of every gate that declares it takes one.
+    #[arg(long)]
+    pub strict: bool,
+    /// How to write the answer; a table at a terminal and SARIF everywhere else.
+    #[arg(long, value_name = "sarif|table", value_parser = format_value)]
+    pub format: Option<Format>,
 }
 
 /// `plotplot hook <harness> <event>`, the call every hook entry in every bundle makes.
@@ -119,6 +133,12 @@ pub struct HarnessArg {
 /// so the three names are spelled in one place; clap prints the error beside the bad value.
 fn harness_value(value: &str) -> std::result::Result<Harness, String> {
     value.parse::<Harness>().map_err(|error| error.to_string())
+}
+
+/// One format name from the command line, read by the same parser the two names are spelled
+/// in; clap prints the error beside the bad value.
+fn format_value(value: &str) -> std::result::Result<Format, String> {
+    value.parse::<Format>()
 }
 
 /// Run one face. The only exit codes this returns are the face's own; `main` turns the
@@ -174,6 +194,10 @@ pub fn run(args: Args, root: &Path, stdout: &mut dyn Write, stderr: &mut dyn Wri
                 }
             }
         }
+        Face::Check(face) => {
+            let format = face.format.unwrap_or_else(chosen_format);
+            check::run_face(root, &face, format, stdout, stderr)
+        }
         Face::Lock { command } => lock::run(root, &command, stdout, stderr),
         Face::Doctor => match home() {
             Ok(home) => doctor::run(root, &home, stdout, stderr),
@@ -194,6 +218,19 @@ fn payload_on_stdin() -> std::io::Result<String> {
     let mut payload = String::new();
     std::io::stdin().read_to_string(&mut payload)?;
     Ok(payload)
+}
+
+/// What `--format` defaults to: a table for a person at a terminal, SARIF for anything that
+/// reads the answer rather than looks at it.
+///
+/// Read here, at the edge, beside the other two facts this process learns from around it:
+/// the payload on stdin and the planter's home. The face itself is told the format.
+fn chosen_format() -> Format {
+    if std::io::stdout().is_terminal() {
+        Format::Table
+    } else {
+        Format::Sarif
+    }
 }
 
 /// The planter's home directory, where Codex records the projects it trusts.

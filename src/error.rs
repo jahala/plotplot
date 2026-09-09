@@ -31,6 +31,8 @@ pub enum Error {
     Git { command: String, stderr: String },
     /// A planted bed that cannot do what its manifest claims.
     Bed { bed: String, problem: String },
+    /// Output a gate offered as SARIF that the SARIF 2.1.0 schema will not accept.
+    Sarif { gate: String, problem: String },
     /// An `AGENTS.md` whose plotplot markers do not make one replaceable block, so the stem
     /// cannot say which bytes the garden block owns.
     Agents { problem: String },
@@ -62,6 +64,7 @@ impl fmt::Display for Error {
             Error::Manifest { bed, problem } | Error::Bed { bed, problem } => {
                 write!(f, "{bed}: {problem}")
             }
+            Error::Sarif { gate, problem } => write!(f, "{gate}: {problem}"),
             Error::Harness { problem } | Error::Agents { problem } => write!(f, "{problem}"),
             Error::Git { command, stderr } => write!(f, "{command}: {stderr}"),
             Error::Fetch { url, problem } => write!(f, "{url}: {problem}"),
@@ -85,6 +88,7 @@ impl std::error::Error for Error {
             | Error::Harness { .. }
             | Error::Git { .. }
             | Error::Bed { .. }
+            | Error::Sarif { .. }
             | Error::Agents { .. }
             | Error::Fetch { .. }
             | Error::Checksum { .. }
@@ -155,6 +159,11 @@ mod tests {
             problem: "is not on disk".to_owned(),
         };
         assert_eq!(bed.to_string(), "weeder: is not on disk");
+        let sarif = Error::Sarif {
+            gate: "weeder".to_owned(),
+            problem: "its output is not JSON".to_owned(),
+        };
+        assert_eq!(sarif.to_string(), "weeder: its output is not JSON");
     }
 
     #[test]
@@ -243,6 +252,10 @@ mod tests {
             },
             Error::Bed {
                 bed: "a".to_owned(),
+                problem: "b".to_owned(),
+            },
+            Error::Sarif {
+                gate: "a".to_owned(),
                 problem: "b".to_owned(),
             },
             Error::Agents {

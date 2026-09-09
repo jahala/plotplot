@@ -10,6 +10,9 @@
 #   scripts/fit/stem.sh lock         `plotplot lock verify` fetches a real pinned release into
 #                                    an ignored directory, verifies its checksum, refuses a
 #                                    mismatch, and no judge is committed anywhere
+#   scripts/fit/stem.sh check        `plotplot check` runs the gate the manifests declare and
+#                                    emits one valid SARIF 2.1.0 log; exit 2 on a block-level
+#                                    result, 3 when the judge could not run
 #
 # Exit 0 on pass, non-zero with a reason on failure. Every check builds the crate in release
 # mode once, then runs in a fresh temporary directory with HOME and CODEX_HOME pointed at a
@@ -821,13 +824,161 @@ check_lock() {
 }
 
 # ---------------------------------------------------------------------------------------
+# `plotplot check`, against the real judge
+# ---------------------------------------------------------------------------------------
+
+# The judge this check runs. weeder is the garden's gate, and it is the one bed whose check
+# face emits SARIF today; it has no release yet (the comment at the head of
+# `contracts/fixtures/garden.lock` says so), so there is no artifact for `lock verify` to
+# fetch and this check takes the binary the build machine already carries.
+CHECK_JUDGE="weeder"
+
+# A fixture repository with one feature and its test, committed, and weeder planted as its
+# only gate. The manifest is `contracts/fixtures/manifest/weeder.garden.json`, unedited, so
+# the gate command the stem runs is the one the contracts declare.
+plant_check_fixture() {
+  local repo="$1" judge="$2" digest
+  mkdir -p "$repo" || fail "could not make the fixture repository at $repo"
+  git init -q "$repo" || fail "git init failed in $repo"
+  git -C "$repo" config user.email "fit@plotplot.invalid" || fail "could not configure git"
+  git -C "$repo" config user.name "plotplot fit" || fail "could not configure git"
+
+  mkdir -p "$repo/src" "$repo/tests"
+  cat > "$repo/src/parser.ts" <<'SOURCE'
+export function parse(text: string): number {
+  return text.length;
+}
+SOURCE
+  cat > "$repo/tests/parser.test.ts" <<'TEST'
+import { test, expect } from "vitest";
+
+import { parse } from "../src/parser";
+
+test("parses an empty string", () => {
+  expect(parse("")).toBe(0);
+});
+TEST
+  git -C "$repo" add -A || fail "could not stage the fixture's first commit"
+  git -C "$repo" commit -qm "the feature and its test" || fail "could not commit the fixture"
+
+  mkdir -p "$repo/.plotplot/beds/$CHECK_JUDGE" "$repo/.plotplot/bin"
+  cp "$ROOT/contracts/fixtures/manifest/$CHECK_JUDGE.garden.json" \
+     "$repo/.plotplot/beds/$CHECK_JUDGE/garden.json" \
+    || fail "could not copy the $CHECK_JUDGE manifest"
+
+  # weeder has no release, so nothing can be fetched and verified against a pinned digest.
+  # The binary on this machine is placed by hand, its own sha256 recorded in the companion
+  # `lock verify` would have written, and `garden.lock` pinned to the same digest, so the
+  # fixture is coherent with what a planted repository looks like and the one thing that is
+  # not real about it is said out loud, here and on stdout.
+  cp "$judge" "$repo/.plotplot/bin/$CHECK_JUDGE" || fail "could not place $judge"
+  chmod +x "$repo/.plotplot/bin/$CHECK_JUDGE"
+  digest="$(fit_sha256 "$repo/.plotplot/bin/$CHECK_JUDGE")" \
+    || fail "could not hash the placed judge"
+  printf '%s\n' "$digest" > "$repo/.plotplot/bin/$CHECK_JUDGE.sha256"
+  cat > "$repo/garden.lock" <<LOCK
+season = "2026.09"
+
+[judges.$CHECK_JUDGE]
+version = "$("$judge" --version | awk '{print $2}')"
+
+[judges.$CHECK_JUDGE.platforms."$(fit_platform)"]
+url = "file://$repo/.plotplot/bin/$CHECK_JUDGE"
+sha256 = "$digest"
+LOCK
+
+  note "the judge was pre-placed from the build machine because $CHECK_JUDGE has no release: $judge, sha256 $digest, pinned in garden.lock and recorded beside it"
+}
+
+# The names of the tools a merged log's runs carry, one to a line.
+log_tools() {
+  jq -r '.runs[] | .tool.driver.name' "$1"
+}
+
+# How many block-level results a merged log carries.
+log_blocks() {
+  jq '[.runs[] | .results // [] | .[] | select(.level == "error")] | length' "$1"
+}
+
+check_check() {
+  require git jq node
+  build_stem
+
+  # The vendored SARIF schema is validated through the contracts' own validator, which reads
+  # the schema's checksum out of contracts/pins.json first. An absent node_modules is a
+  # machine that has not run `npm ci`, not a log that failed to validate, and the two must
+  # not read the same.
+  [ -d "$ROOT/node_modules/ajv-draft-04" ] \
+    || fail "the contracts' SARIF validator needs ajv-draft-04; run 'npm ci' in $ROOT first"
+
+  local judge
+  judge="$(command -v "$CHECK_JUDGE")" \
+    || fail "$CHECK_JUDGE is not on this machine's PATH, and it has no release for the lock to fetch, so this check has no judge to run; install $CHECK_JUDGE and run this again"
+  note "judge on the build machine: $judge ($("$judge" --version))"
+
+  local tmp repo status
+  tmp="$(scratch)"
+  repo="$tmp/repo"
+
+  note "planting the fixture repository at $repo"
+  plant_check_fixture "$repo" "$judge"
+
+  # 1. A clean tree: every gate ran, nothing blocks, and the log is SARIF 2.1.0.
+  ( cd "$repo" && "$STEM" check ) >"$tmp/clean.json" 2>"$tmp/clean.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/clean.err" >&2; fail "plotplot check exited $status on a clean tree, not 0"; }
+  node "$ROOT/contracts/test/lib/validate-sarif.mjs" "$tmp/clean.json" >/dev/null \
+    || { node "$ROOT/contracts/test/lib/validate-sarif.mjs" "$tmp/clean.json" >&2; \
+         fail "the log from a clean tree is not SARIF 2.1.0 by the contracts' vendored schema"; }
+  [ "$(log_tools "$tmp/clean.json")" = "$CHECK_JUDGE" ] \
+    || { cat "$tmp/clean.json" >&2; fail "the clean tree's log does not carry exactly $CHECK_JUDGE's run"; }
+  [ "$(log_blocks "$tmp/clean.json")" -eq 0 ] \
+    || { cat "$tmp/clean.json" >&2; fail "the clean tree's log carries a block-level result"; }
+  note "clean tree: exit 0, one run by $CHECK_JUDGE, valid SARIF 2.1.0, no block"
+
+  # 2. A change the judge blocks: a deleted test file.
+  git -C "$repo" rm -q tests/parser.test.ts || fail "could not delete the fixture's test file"
+  ( cd "$repo" && "$STEM" check ) >"$tmp/blocked.json" 2>"$tmp/blocked.err"
+  status=$?
+  [ "$status" -eq 2 ] \
+    || { cat "$tmp/blocked.json" "$tmp/blocked.err" >&2; \
+         fail "plotplot check exited $status on a deleted test file, not 2"; }
+  node "$ROOT/contracts/test/lib/validate-sarif.mjs" "$tmp/blocked.json" >/dev/null \
+    || { node "$ROOT/contracts/test/lib/validate-sarif.mjs" "$tmp/blocked.json" >&2; \
+         fail "the log from a blocked change is not SARIF 2.1.0"; }
+  [ "$(log_tools "$tmp/blocked.json")" = "$CHECK_JUDGE" ] \
+    || { cat "$tmp/blocked.json" >&2; fail "the blocked change's log does not carry exactly $CHECK_JUDGE's run"; }
+  [ "$(log_blocks "$tmp/blocked.json")" -ge 1 ] \
+    || { cat "$tmp/blocked.json" >&2; fail "the blocked change's log carries no block-level result"; }
+  note "deleted test file: exit 2, one run by $CHECK_JUDGE, $(log_blocks "$tmp/blocked.json") block-level result(s)"
+
+  # 3. And with the judge gone, the answer is missing rather than permissive.
+  mv "$repo/.plotplot/bin/$CHECK_JUDGE" "$tmp/$CHECK_JUDGE.withdrawn" \
+    || fail "could not take the judge out of the fixture"
+  ( cd "$repo" && "$STEM" check ) >"$tmp/gone.json" 2>"$tmp/gone.err"
+  status=$?
+  [ "$status" -eq 3 ] \
+    || { cat "$tmp/gone.json" "$tmp/gone.err" >&2; \
+         fail "plotplot check exited $status with the judge removed, not 3 (fail closed)"; }
+  grep -q "^$CHECK_JUDGE: " "$tmp/gone.err" \
+    || { cat "$tmp/gone.err" >&2; fail "plotplot check did not name $CHECK_JUDGE as the gate that could not run"; }
+  [ "$(jq '.runs | length' "$tmp/gone.json")" -eq 0 ] \
+    || { cat "$tmp/gone.json" >&2; fail "a gate that could not run still contributed a run to the log"; }
+  note "judge removed: exit 3, no run in the log, $(head -1 "$tmp/gone.err")"
+
+  echo "stem.sh check: pass"
+}
+
+# ---------------------------------------------------------------------------------------
 
 case "${1:-}" in
   bundles) check_bundles ;;
   hook-faces) check_hook_faces ;;
   lock) check_lock ;;
+  check) check_check ;;
   *)
-    echo "usage: stem.sh {bundles | hook-faces | lock}" >&2
+    echo "usage: stem.sh {bundles | hook-faces | lock | check}" >&2
     exit 2
     ;;
 esac
