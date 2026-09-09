@@ -251,7 +251,7 @@ AUDIT_INTEGRATE = (
 WORKER = {"provider": "claude", "model": "claude-opus-5"}
 
 
-def node(id_, prompt, needs=(), smoke=GATES, audit=None, timeout_ms=3_600_000):
+def node(id_, prompt, needs=(), smoke=GATES, audit=None, timeout_ms=3_600_000, setup="npm ci"):
     accept = {"smoke": smoke}
     if audit:
         accept["audit"] = audit
@@ -259,6 +259,7 @@ def node(id_, prompt, needs=(), smoke=GATES, audit=None, timeout_ms=3_600_000):
         "id": id_,
         "worker": dict(WORKER),
         "work": {"prompt": prompt},
+        "setup": setup,
         "needs": list(needs),
         "accept": accept,
         "policy": {"maxAttempts": 2, "timeoutMs": timeout_ms, "onDead": "resume", "reauditWhen": ["compacted"]},
@@ -315,6 +316,9 @@ reaudit = {
             "id": f"stem.audit.{'judges' if name == 'lock' else name}",
             "worker": dict(WORKER),
             "work": {"command": "bash -lc 'cargo build --release 2>&1 | tail -1'"},
+            # The fit script's SARIF validator and lock reader are the contracts' node
+            # modules; a fresh worktree has none, and setup is where pleach provisions.
+            "setup": "npm ci",
             "needs": [],
             "accept": {
                 "smoke": GATES,
