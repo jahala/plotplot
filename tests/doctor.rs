@@ -20,7 +20,7 @@ use plotplot::{layout, lock, manifest};
 /// line, which is the channel `bundle build` must name on stderr.
 const BEDS: [&str; 2] = ["tilth", "weeder"];
 
-/// The season `contracts/fixtures/garden.lock` pins.
+/// The season the stem's lock fixture (tests/fixtures/garden.lock) pins.
 const SEASON: &str = "2026.09";
 
 fn contracts(relative: &str) -> PathBuf {
@@ -132,8 +132,11 @@ fn seeded() -> tempfile::TempDir {
         ],
     );
 
-    std::fs::copy(contracts("fixtures/garden.lock"), layout::garden_lock(path))
-        .expect("the contracts' lock fixture");
+    std::fs::copy(
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/garden.lock"),
+        layout::garden_lock(path),
+    )
+    .expect("the stem's lock fixture");
 
     for bed in BEDS {
         let manifest_path = layout::bed_manifest(path, bed);

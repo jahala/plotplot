@@ -423,7 +423,7 @@ mod tests {
 
     fn fixture_lock() -> Lock {
         let path =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("contracts/fixtures/garden.lock");
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/garden.lock");
         let toml = std::fs::read_to_string(&path).expect("the fixture lock");
         crate::lock::parse_lock_at(&path, &toml).expect("a parsed lock")
     }
@@ -442,6 +442,7 @@ mod tests {
                 "season 2026.09\n",
                 "tend2 1.0.0 (npm @plotplot/tend2)\n",
                 "tilth 0.10.1\n",
+                "weeder 0.1.0\n",
             )
         );
     }

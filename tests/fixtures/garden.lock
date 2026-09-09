@@ -1,0 +1,45 @@
+# Every digest here is a published GitHub release asset digest, read from the platform on
+# 2026-09-08 (tilth) and 2026-09-09 (weeder v0.1.0, the first release under the artifact contract).
+season = "2026.09"
+
+[judges.weeder]
+version = "0.1.0"
+
+[judges.weeder.platforms."aarch64-apple-darwin"]
+url = "https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-aarch64-apple-darwin.tar.gz"
+sha256 = "79e3fdea396dfdd5d025da96d553d1ecce44690e16fd7fbf1e2e37f1e190440f"
+
+[judges.weeder.platforms."aarch64-unknown-linux-musl"]
+url = "https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-aarch64-unknown-linux-musl.tar.gz"
+sha256 = "b09580c179407e12e186b01f37017ba03ae1192513826fbce8dba6c3929928e3"
+
+[judges.weeder.platforms."x86_64-apple-darwin"]
+url = "https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-x86_64-apple-darwin.tar.gz"
+sha256 = "f1947ebd0f7774f3779418f7e3c2f2e2d04e8762aa2a7a8a7516df71ea2afdfb"
+
+[judges.weeder.platforms."x86_64-unknown-linux-musl"]
+url = "https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-x86_64-unknown-linux-musl.tar.gz"
+sha256 = "c10f4821f6eab85e4bdb149d61927e369d2e474d782df5e6d14fdbb969222cab"
+
+[judges.tilth]
+version = "0.10.1"
+
+[judges.tilth.platforms."aarch64-apple-darwin"]
+url = "https://github.com/jahala/tilth/releases/download/v0.10.1/tilth-aarch64-apple-darwin.tar.gz"
+sha256 = "38c36e471f61d5a7101d9e0f9dfd401939c5a363e0f4a96384b86f43a662fa55"
+
+[judges.tilth.platforms."aarch64-unknown-linux-musl"]
+url = "https://github.com/jahala/tilth/releases/download/v0.10.1/tilth-aarch64-unknown-linux-musl.tar.gz"
+sha256 = "d054263a201ed924d809582b0d13c3eae3e34b65baad941acba44386a913b9e6"
+
+[judges.tilth.platforms."x86_64-apple-darwin"]
+url = "https://github.com/jahala/tilth/releases/download/v0.10.1/tilth-x86_64-apple-darwin.tar.gz"
+sha256 = "3858cfc804a9667a2bceec27b61cf625c7835cd1c77d69a1aba15ecfcb2dad6f"
+
+[judges.tilth.platforms."x86_64-unknown-linux-musl"]
+url = "https://github.com/jahala/tilth/releases/download/v0.10.1/tilth-x86_64-unknown-linux-musl.tar.gz"
+sha256 = "3df16574ed9fc33e4d9c63107994c78d48f93ab0099a37232b4410223e2ad2ea"
+
+[judges.tend2]
+version = "1.0.0"
+npm = "@plotplot/tend2"
