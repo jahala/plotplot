@@ -4,7 +4,7 @@ Kept by the stem builder (agent beirut) during the stem build, September 2026. O
 finding, dated, with the command that showed it. Misunderstandings, faults, missing features
 and bugs in the garden's own tools, as met while using them for real work. Nothing here is a
 fix; each was filed on the tool's repository on 2026-09-09 or matched to an issue already
-open: tend 157, 158, 167, 169, 175 and 184; pleach 61, 63, 64, 66, 68, 69, 70, 71 and 77; umbel 65,
+open: tend 157, 158, 167, 169, 175 and 184; pleach 61, 63, 64, 66, 68, 69, 70, 71, 77 and 79; umbel 65,
 67, 69 and 70. The Conductor finding has no garden repository.
 
 ## tend2
@@ -91,6 +91,12 @@ open: tend 157, 158, 167, 169, 175 and 184; pleach 61, 63, 64, 66, 68, 69, 70, 7
   suggests a free-form command. The plan contract should say what an audit command is, and
   `validate` could warn when an audit command is not a `tend2 verify … --audit-egress` form
   (pleach 77 amended). A `pleach audit <node>` face would still have saved the hand landing.
+
+- 2026-09-09 collection ran `git add -A -- <touched paths>` including the worker's
+  `.loop-scratch/` files, which `.gitignore` ignores; git refused, pleach called it a
+  catastrophic isolate failure, the node failed after zero attempts with no quarantine, and
+  the worktree was gone. Forty minutes of opus work recovered only by replaying the worker's
+  transcript (pleach 79). pleach's own prompt promises that directory is never collected.
 
 ## umbel
 
