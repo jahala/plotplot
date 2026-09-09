@@ -277,23 +277,34 @@ plan = {
     ],
 }
 
-# `--reaudit`: one node only, re-running the integration node's gates (the same smoke and
-# a codex audit) on the repository HEAD, where the integration work already landed by hand
-# after the opencode auditor's relay came back unparseable. A command node has no builder
-# and is exempt from the hygiene gate, so nothing is rebuilt; only the gates settle.
+# `--reaudit`: relay-only command nodes that settle the integration node's audit on the
+# repository HEAD, where the integration work landed by hand after the first auditor's
+# relay came back unparseable. pleach's auditor is a relay: the audit command itself must
+# print the fenced tend-audit-result block, which is what `tend2 verify --audit-egress`
+# does, one check per invocation, so one node per stamped check. A command node has no
+# builder and is exempt from the hygiene gate; nothing is rebuilt, only the gates settle.
+VERIFY = "tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress"
+REAUDIT_CHECKS = [("bundles", 5), ("hook-faces", 8)]
 reaudit = {
-    "goal": "Settle the integration node's audit on codex for the landed stem stack (jahala/plotplot 20): the same smoke and audit command, no builder.",
+    "goal": "Settle the integration node's audit for the landed stem stack (jahala/plotplot 20): tend2 verify with audit egress on the two stamped checks, relayed by a codex auditor, no builder.",
     "source": "docs/plans/stem-reaudit.plan.json",
     "maxConcurrency": 1,
     "nodes": [
         {
-            "id": "stem.integrate",
+            "id": f"stem.audit.{name}",
             "worker": dict(WORKER),
             "work": {"command": "bash -lc 'cargo build --release 2>&1 | tail -1'"},
             "needs": [],
-            "accept": {"smoke": SMOKE_INTEGRATE, "audit": {"command": AUDIT_INTEGRATE, "provider": "codex"}},
+            "accept": {
+                "smoke": GATES,
+                "audit": {
+                    "command": f"bash -lc '{VERIFY} --check {number} --runner \"bash {{evidence}} {name}\"'",
+                    "provider": "codex",
+                },
+            },
             "policy": {"maxAttempts": 1, "timeoutMs": 1_800_000, "onDead": "resume", "reauditWhen": ["compacted"]},
         }
+        for name, number in REAUDIT_CHECKS
     ],
 }
 
