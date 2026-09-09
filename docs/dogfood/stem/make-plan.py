@@ -311,7 +311,8 @@ reaudit = {
     "maxConcurrency": 1,
     "nodes": [
         {
-            "id": f"stem.audit.{name}",
+            # git refuses a ref ending in .lock, so the lock check's node is named after the judges.
+            "id": f"stem.audit.{'judges' if name == 'lock' else name}",
             "worker": dict(WORKER),
             "work": {"command": "bash -lc 'cargo build --release 2>&1 | tail -1'"},
             "needs": [],
