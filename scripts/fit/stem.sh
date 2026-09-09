@@ -1003,10 +1003,18 @@ plant_init_fixture() {
   cp "$ROOT/contracts/fixtures/manifest/$INIT_JUDGE.garden.json" \
      "$repo/.plotplot/beds/$INIT_JUDGE/garden.json" \
     || fail "could not copy the $INIT_JUDGE manifest"
+  # The skill carries the front matter every harness reads a skill by: the description is
+  # the one line a deferring harness loads at session start, and what the context check
+  # measures.
   cat > "$repo/.plotplot/beds/$INIT_JUDGE/SKILL.md" <<'SKILL'
+---
+name: weeder
+description: The judge of the diff. Reads what an agent produced and refuses deleted tests, stubs and secrets before they land, as SARIF.
+---
+
 # weeder
 
-The judge of the diff: reads what an agent produced and refuses dishonest growth, as SARIF.
+Run `weeder check` before saying done; a block-level result is a refusal, not advice.
 SKILL
 
   cat > "$repo/.plotplot/bin/$INIT_JUDGE" <<'JUDGE'
@@ -1222,6 +1230,68 @@ check_init_claude() {
 }
 
 # ---------------------------------------------------------------------------------------
+# check: context
+# ---------------------------------------------------------------------------------------
+
+# The bar the stem loop names for what a planted repository costs an agent at session start
+# on a deferring harness: the garden block in AGENTS.md plus one description line per skill.
+CONTEXT_BAR=400
+
+# The probe. Two bases, both named on stdout: the skills through Claude Code's own
+# projection of a plugin's always-on cost (`claude plugin details`), which is what a
+# deferring harness actually pays for the description lines; the garden block at four
+# characters per token, the basis docs/garden-architecture-2026-09.md §2 used for the
+# 8,300-token baseline this check is measured against. Neither is an exact tokenizer, and
+# the numbers are printed so a reader can judge the margin, not just the verdict.
+chars_per_token=4
+
+check_context() {
+  require git jq claude
+  build_stem
+
+  local tmp repo home template status always_on block_chars block_tokens total
+  tmp="$(scratch)"
+  repo="$tmp/repo"
+  home="$(make_home "$tmp")"
+  template="$tmp/template.lock"
+
+  note "planting the fixture repository at $repo"
+  plant_init_fixture "$repo" "$template"
+  ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" \
+      "$STEM" init --harness claude --lock "$template" ) >"$tmp/init.out" 2>"$tmp/init.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/init.out" "$tmp/init.err" >&2; fail "plotplot init exited $status, not 0"; }
+
+  # The skills, as the harness projects them: every SKILL.md in the Claude bundle is a
+  # description line the deferring harness loads at session start and nothing more.
+  ( cd "$repo" && HOME="$home" claude --plugin-dir "$repo/.plotplot/bundles/claude" plugin details plotplot ) \
+    >"$tmp/details.out" 2>"$tmp/details.err" \
+    || { cat "$tmp/details.out" "$tmp/details.err" >&2; fail "claude plugin details could not read the bundle"; }
+  always_on="$(sed -n 's/^ *Always-on: *~\{0,1\}\([0-9][0-9]*\) tok.*/\1/p' "$tmp/details.out" | head -1)"
+  [ -n "$always_on" ] \
+    || { cat "$tmp/details.out" >&2; fail "claude plugin details printed no always-on projection"; }
+  local skills
+  skills="$(sed -n 's/^ *Skills (\([0-9][0-9]*\)).*/\1/p' "$tmp/details.out" | head -1)"
+  [ -n "$skills" ] && [ "$skills" -ge 1 ] \
+    || { cat "$tmp/details.out" >&2; fail "the harness projected no skill at all, so the probe measured nothing"; }
+  note "skills: $skills description line(s), ~$always_on tokens always-on by Claude Code's own projection"
+
+  # The garden block, between its markers, at the architecture document's basis.
+  sed -n '/<!-- plotplot:begin -->/,/<!-- plotplot:end -->/p' "$repo/AGENTS.md" >"$tmp/block.md"
+  [ -s "$tmp/block.md" ] || fail "AGENTS.md carries no garden block to measure"
+  block_chars="$(wc -c <"$tmp/block.md" | tr -d ' ')"
+  block_tokens=$(( (block_chars + chars_per_token - 1) / chars_per_token ))
+  note "garden block: $(grep -c . "$tmp/block.md") lines, $block_chars characters, ~$block_tokens tokens at $chars_per_token characters per token"
+
+  total=$(( always_on + block_tokens ))
+  [ "$total" -lt "$CONTEXT_BAR" ] \
+    || fail "the planted repository costs ~$total tokens at session start, not under the $CONTEXT_BAR bar"
+  note "total: ~$total tokens at session start, under the $CONTEXT_BAR bar"
+  echo "stem.sh context: pass"
+}
+
+# ---------------------------------------------------------------------------------------
 
 case "${1:-}" in
   bundles) check_bundles ;;
@@ -1229,8 +1299,9 @@ case "${1:-}" in
   lock) check_lock ;;
   check) check_check ;;
   init) check_init ;;
+  context) check_context ;;
   *)
-    echo "usage: stem.sh {bundles | hook-faces | lock | check | init}" >&2
+    echo "usage: stem.sh {bundles | hook-faces | lock | check | init | context}" >&2
     exit 2
     ;;
 esac
