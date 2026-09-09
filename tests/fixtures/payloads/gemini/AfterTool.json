@@ -1,0 +1,14 @@
+{
+  "session_id": "b7d90e14-53af-4c62-8e0d-1f47a2b6c308",
+  "transcript_path": "/home/agent/.gemini/tmp/b7d90e14-53af-4c62-8e0d-1f47a2b6c308/logs.json",
+  "cwd": "/work/repo",
+  "hook_event_name": "AfterTool",
+  "tool_name": "read_file",
+  "tool_input": {
+    "absolute_path": "/work/repo/src/harness.rs"
+  },
+  "tool_response": {
+    "llmContent": "pub enum Harness { Claude, Gemini, Codex }",
+    "returnDisplay": "Read src/harness.rs"
+  }
+}

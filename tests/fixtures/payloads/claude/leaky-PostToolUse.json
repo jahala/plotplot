@@ -1,0 +1,19 @@
+{
+  "session_id": "9c4d7e02-1b8a-4f36-9d5e-c07a3b18f2e6",
+  "transcript_path": "/Users/someone/.claude/projects/-Users-someone-code-billing/9c4d7e02-1b8a-4f36-9d5e-c07a3b18f2e6.jsonl",
+  "cwd": "/Users/someone/code/billing",
+  "permission_mode": "bypassPermissions",
+  "model": "claude-opus-5",
+  "agent_id": "main",
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "/Users/someone/code/billing/notes/onboarding.md",
+    "content": "Rewrite the onboarding email so it sounds less corporate, then pull the customer list out of billing and summarise who has not logged in for ninety days. Keep the tone warm."
+  },
+  "tool_use_id": "toolu_01Rk9Mv3xPd7nGw5tYbQ2hLs",
+  "tool_response": {
+    "type": "text",
+    "stdout": "running 24 tests\ntest suite::case_01 ... ok\ntest suite::case_02 ... ok\ntest suite::case_03 ... ok\ntest suite::case_04 ... ok\ntest suite::case_05 ... ok\ntest suite::case_06 ... ok\ntest suite::case_07 ... ok\ntest suite::case_08 ... ok\ntest suite::case_09 ... ok\ntest suite::case_10 ... ok\ntest suite::case_11 ... ok\ntest suite::case_12 ... ok\ntest suite::case_13 ... ok\ntest suite::case_14 ... ok\ntest suite::case_15 ... ok\ntest suite::case_16 ... ok\ntest suite::case_17 ... ok\ntest suite::case_18 ... ok\ntest suite::case_19 ... ok\ntest suite::case_20 ... ok\ntest suite::case_21 ... FAILED\n\nfailures:\n\n---- suite::case_21 stdout ----\nthread 'suite::case_21' panicked at tests/suite.rs:118:5:\nassertion `left == right` failed\n  left: \"onboarding-v2\"\n right: \"onboarding-v1\"\n\nfailures:\n    suite::case_21\n\ntest result: FAILED. 23 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out"
+  }
+}

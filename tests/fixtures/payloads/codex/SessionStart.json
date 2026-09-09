@@ -1,0 +1,9 @@
+{
+  "session_id": "e21a4f78-9c05-4b3d-a6f1-70d82c5e9b4a",
+  "transcript_path": "/home/agent/.codex/sessions/2026/09/08/rollout-e21a4f78-9c05-4b3d-a6f1-70d82c5e9b4a.jsonl",
+  "cwd": "/work/repo",
+  "permission_mode": "workspace-write",
+  "model": "gpt-5-codex",
+  "hook_event_name": "SessionStart",
+  "source": "startup"
+}

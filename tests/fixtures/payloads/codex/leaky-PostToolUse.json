@@ -1,0 +1,23 @@
+{
+  "session_id": "d0f8b3a6-47c1-4e59-b2ad-8e61f7c05934",
+  "transcript_path": "/Users/someone/.codex/sessions/2026/09/08/rollout-d0f8b3a6-47c1-4e59-b2ad-8e61f7c05934.jsonl",
+  "cwd": "/Users/someone/code/billing",
+  "permission_mode": "danger-full-access",
+  "model": "gpt-5-codex",
+  "turn_id": "turn_0031",
+  "hook_event_name": "PostToolUse",
+  "tool_name": "shell",
+  "tool_input": {
+    "command": [
+      "bash",
+      "-lc",
+      "cat > /Users/someone/code/billing/notes/onboarding.md <<'EOF'\nRewrite the onboarding email so it sounds less corporate, then pull the customer list out of billing and summarise who has not logged in for ninety days. Keep the tone warm.\nEOF"
+    ],
+    "workdir": "/Users/someone/code/billing"
+  },
+  "tool_use_id": "call_2QhX6zRt8vNm",
+  "tool_response": {
+    "exit_code": 1,
+    "output": "running 24 tests\ntest suite::case_01 ... ok\ntest suite::case_02 ... ok\ntest suite::case_03 ... ok\ntest suite::case_04 ... ok\ntest suite::case_05 ... ok\ntest suite::case_06 ... ok\ntest suite::case_07 ... ok\ntest suite::case_08 ... ok\ntest suite::case_09 ... ok\ntest suite::case_10 ... ok\ntest suite::case_11 ... ok\ntest suite::case_12 ... ok\ntest suite::case_13 ... ok\ntest suite::case_14 ... ok\ntest suite::case_15 ... ok\ntest suite::case_16 ... ok\ntest suite::case_17 ... ok\ntest suite::case_18 ... ok\ntest suite::case_19 ... ok\ntest suite::case_20 ... ok\ntest suite::case_21 ... FAILED\n\nfailures:\n\n---- suite::case_21 stdout ----\nthread 'suite::case_21' panicked at tests/suite.rs:118:5:\nassertion `left == right` failed\n  left: \"onboarding-v2\"\n right: \"onboarding-v1\"\n\nfailures:\n    suite::case_21\n\ntest result: FAILED. 23 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out"
+  }
+}

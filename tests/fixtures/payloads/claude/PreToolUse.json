@@ -1,0 +1,15 @@
+{
+  "session_id": "6f3c1b2a-8d47-4f0e-9b31-2a5c7e91d044",
+  "transcript_path": "/home/agent/.claude/projects/-work-repo/6f3c1b2a-8d47-4f0e-9b31-2a5c7e91d044.jsonl",
+  "cwd": "/work/repo",
+  "permission_mode": "acceptEdits",
+  "model": "claude-opus-5",
+  "agent_id": "main",
+  "hook_event_name": "PreToolUse",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "cargo test --all-targets",
+    "description": "Run the test suite"
+  },
+  "tool_use_id": "toolu_01Q8rXk3mVb9pWn2sFtG7hYz"
+}
