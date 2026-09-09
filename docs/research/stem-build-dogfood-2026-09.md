@@ -82,14 +82,15 @@ open: tend 157, 158, 167, 169, 175 and 184; pleach 61, 63, 64, 66, 68, 69, 70, 7
   auditor; when codex died mid-evening the only way to keep the integration node's audit was
   to edit the plan. An `--audit-provider`/`--audit-model` override would match the builder's.
 
-- 2026-09-09 an audit cast to opencode (deepseek-v4-pro) ran its command and relayed the
-  output, and pleach recorded `audit-egress-unparseable`: the relay carried no verdict block
-  it could read, the node failed after one attempt with its smoke green, and the work went to
-  quarantine. The egress in the journal shows both fit checks passing. Either the opencode
-  adapter's verdict template is not what pleach parses, or the parse should fall back to the
-  gate's own exit code when the relay carries it; and a `pleach audit <node>` that re-runs
-  only the audit on a quarantined node with a green smoke would have cost one auditor turn
-  instead of a hand landing.
+- 2026-09-09 an audit whose command printed test output failed as `audit-egress-unparseable`
+  on opencode and then twice on codex. Reading `src/core/audit-egress.ts` settled it: the
+  auditor is a relay, and the audit command itself must print a fenced `tend-audit-result`
+  JSON block (what `tend2 verify --audit-egress` prints, one check per invocation); pleach
+  takes the last block in the reply. Neither `pleach schema`, `pleach --help`, nor the
+  pleach-plan skill says so, and the skill's example (`Adversarially verify: <finding>`)
+  suggests a free-form command. The plan contract should say what an audit command is, and
+  `validate` could warn when an audit command is not a `tend2 verify … --audit-egress` form
+  (pleach 77 amended). A `pleach audit <node>` face would still have saved the hand landing.
 
 ## umbel
 
