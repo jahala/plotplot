@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Emit docs/plans/stem-build.plan.json, the pleach plan that builds the stem.
+"""Emit the pleach plans that build the stem, under docs/dogfood/stem/ as pleach keeps its own.
 
 One node per slice of docs/prompts/stem-build-2026-09.md. Run from the repository root:
 
-    python3 scripts/stem-plan.py > docs/plans/stem-build.plan.json && pleach validate docs/plans/stem-build.plan.json
+    python3 docs/dogfood/stem/make-plan.py > docs/dogfood/stem/build.plan.json
+    python3 docs/dogfood/stem/make-plan.py --reaudit > docs/dogfood/stem/reaudit.plan.json
+    pleach validate docs/dogfood/stem/build.plan.json
 
 The prompts are the only context a worker gets, so each names its files, its tests, what it
 must not create, and the gate it must pass. Gate commands are wrapped in `bash -lc` because
@@ -91,7 +93,7 @@ githooks::render(hook, beds) -> String: a POSIX sh script with a shebang, `set -
 gitconfig::desired(root) -> Vec<(String, String)>: core.hooksPath ".githooks"; remote.origin.fetch "+refs/notes/plotplot/receipts:refs/notes/plotplot/receipts"; remote.origin.push "refs/notes/plotplot/receipts:refs/notes/plotplot/receipts". gitconfig::read(root) -> Result<Vec<(String, String)>>: the current values of those keys via `git config --get-all`, absent keys omitted, Error::Git when git fails. gitconfig::missing(desired, current) -> Vec<(String, String)>: pure. gitconfig::apply(root, entries) -> Result<()>: `git config --add` for multi-valued refspecs, `git config` for hooksPath, never duplicating an entry already present.
 
 Tests you write first (tests/plant.rs with tempfile git repositories initialised by running `git init`; unit tests beside the code for the pure functions):
-- render's block has the two markers, at most ten lines between them, names every bed with its version, the season, the three commands, and contains no "!" and no "—";
+- render's block has the two markers, at most ten lines between them, names every bed with its version, the season, the three commands, and contains no exclamation mark and no em dash (U+2014);
 - replace_in on the repository's own AGENTS.md content (read it as a fixture string) appends the block and leaves the tend2 block byte-identical; a second application is a no-op; a changed block replaces only the marked region; a begin marker without an end is Error::Agents;
 - githooks: each of the four renders, starts with #!/bin/sh, is different per hook, names every declaring bed's binary under .plotplot/bin/, and shellcheck-free in the sense that `sh -n` accepts it (run `sh -n` on the rendered text in the test);
 - gitconfig: on a fresh temp repository with a remote named origin, read returns nothing for the three keys; apply(desired) then read returns all three; apply twice leaves single entries (assert `git config --get-all` counts); missing is empty afterwards; read on a directory that is not a repository is Error::Git.
@@ -203,7 +205,7 @@ Add src/sarif.rs: `pub fn validate(json: &str) -> Result<serde_json::Value>` enf
 
 Tests you write first (tests/check.rs with a temp planted root, fixture gate scripts under .plotplot/bin/ that print SARIF from contracts/fixtures/sarif/weeder-check.sarif.json or a modified copy, and manifests under .plotplot/beds/ with matching check commands): two gates → one log with two runs that validates against the SARIF schema; a gate with one error-level result → exit 2; a gate that exits 1 without SARIF → exit 3 with the bed named on stderr; a missing binary → exit 3; both a block and a could-not-run → 3; --strict appends the flag only to the bed with check_strict; --format table prints the rows; the merged log's tool names match each bed's own SARIF tool name; validate refuses a log with a missing `runs` key.
 
-Do NOT change existing public shapes; add only. Do NOT edit the loop file. Do NOT add the fit `check` subcommand unless a real gate binary (weeder from a real release under .plotplot/bin) can run in the fixture; a fixture-script gate is a test, not fit evidence.
+Do NOT change existing public shapes; add only. Do NOT edit the loop file. For the fit subcommand `check` in scripts/fit/stem.sh: weeder has no release yet, so the fixture repository takes the weeder binary found on the build machine (`command -v weeder`; the check fails, saying so, when there is none), places it under the fixture's .plotplot/bin/ with a .sha256 companion and a lock entry that matches it, and the script prints one line saying the judge was pre-placed from the build machine because weeder has no release. Then run `plotplot check` in the fixture on a change that weeder blocks (a deleted test file) and assert exit 2 with one SARIF log carrying weeder's run, on a clean tree assert exit 0 with a log that validates against contracts/vendor/sarif-schema-2.1.0.json (contracts/test/lib/validate-sarif.mjs does that), and with the judge removed assert exit 3. Run the verifier for the check line and paste its output: `tend2 verify docs/tend2/stem.tend2.html --repo-root . --check 3 --force --runner "bash {evidence} check"`.
 """
 
 
@@ -212,7 +214,7 @@ INIT = PREAMBLE + """
 
 This worktree carries the integrated stem with the lock and check faces. Read src/cli.rs, src/lock.rs, src/bundle/mod.rs, src/plant/, src/doctor.rs and scripts/fit/stem.sh before writing anything; init composes them and adds nothing they already do.
 
-`plotplot init [--harness claude,gemini,codex] [--beds a,b] [--profile minimal|full] [--lock <path>]`, per docs/plans/stem.md §5, idempotent, never touching a user-scope file and never installing anything globally: (1) detect harness CLIs on PATH (claude, gemini, codex) and any project configs present (.claude/settings.json, .gemini/settings.json, .codex/); --harness limits the set; (2) the profile: minimal (default, jahala/plotplot issue 17) plants weeder with its hooks, the garden block, the lock, the git hooks and the PR check workflow; full plants every judge in the lock; --beds overrides the bed list; (3) garden.lock: when absent, copy the template given by --lock (required when absent; the umbrella's template path is named in your final message as an open question if none is agreed) filtered to the chosen beds; when present, verify it (lock::verify with fetch::Https), refusing to continue on a Mismatch (exit 3); (4) bundle build for each chosen harness; (5) install each bundle at project scope, in src/install.rs, one function per harness, each returning what it wrote: Claude writes `.plotplot/marketplace/.claude-plugin/marketplace.json` listing the bundle as a local plugin and runs `claude plugin marketplace add .plotplot/marketplace` then `claude plugin install plotplot@plotplot-local --scope project`, reporting the exact command and its stderr on failure; Gemini has no project scope, so init writes the hooks and mcpServers into the project's .gemini/settings.json (merging into an existing file, touching only the `hooks` and `mcpServers` keys, byte-identical on a second run) and says so; Codex writes the project's .codex/hooks.json from the bundle's hooks.json and the MCP servers into .codex/config.toml under [mcp_servers], and says that hooks load only once the project is trusted; (6) .githooks/* from plant::githooks with mode 0o755, core.hooksPath and the receipts refspecs from plant::gitconfig; (7) the garden block in AGENTS.md from plant::garden_block, and the planted repository's own garden.json beside garden.lock, kind ["repository"], name from the directory or the git remote, written only when absent and validated against contracts/manifest.schema.json's repository case (contracts v1.3.0; fixture contracts/fixtures/manifest/repository.garden.json) — manifest::to_bed must refuse a repository manifest with Error::Manifest and load_beds must skip one under .plotplot/beds/, add both with tests; (8) the PR check workflow .github/workflows/plotplot-check.yml running `plotplot check --strict` on pull_request with hosted runners only (no self-hosted runner ever on a public bed, jahala/plotplot issue 7); (9) print one line per file or setting changed, and `nothing to do` when a second run changes nothing. Add `Error::Install { harness, problem }` additively.
+`plotplot init [--harness claude,gemini,codex] [--beds a,b] [--profile minimal|full] [--lock <path>]`, per docs/plans/stem.md §5, idempotent, never touching a user-scope file and never installing anything globally: (1) detect harness CLIs on PATH (claude, gemini, codex) and any project configs present (.claude/settings.json, .gemini/settings.json, .codex/); --harness limits the set; (2) the profile: minimal (default, jahala/plotplot issue 17) plants weeder with its hooks, the garden block, the lock, the git hooks and the PR check workflow; full plants every judge in the lock; --beds overrides the bed list; (3) garden.lock: when absent, copy the template given by --lock (required when absent; the umbrella's template path is named in your final message as an open question if none is agreed) filtered to the chosen beds; when present, verify it (lock::verify with fetch::Https), refusing to continue on a Mismatch (exit 3); (4) bundle build for each chosen harness; (5) install each bundle at project scope, in src/install.rs, one function per harness, each returning what it wrote: Claude writes `.plotplot/marketplace/.claude-plugin/marketplace.json` listing the bundle as a local plugin and runs `claude plugin marketplace add .plotplot/marketplace` then `claude plugin install plotplot@plotplot-local --scope project`, reporting the exact command and its stderr on failure; Gemini has no project scope, so init writes the hooks and mcpServers into the project's .gemini/settings.json (merging into an existing file, touching only the `hooks` and `mcpServers` keys, byte-identical on a second run) and says so; Codex writes the project's .codex/hooks.json from the bundle's hooks.json and the MCP servers into .codex/config.toml under [mcp_servers], and says that hooks load only once the project is trusted; (6) .githooks/* from plant::githooks with mode 0o755, core.hooksPath and the receipts refspecs from plant::gitconfig; (7) the garden block in AGENTS.md from plant::garden_block, and the planted repository's own garden.json beside garden.lock, kind ["repository"], name from the directory or the git remote, written only when absent and validated against contracts/manifest.schema.json's repository case (contracts v1.3.0; fixture contracts/fixtures/manifest/repository.garden.json). manifest::to_bed must refuse a repository manifest with Error::Manifest and load_beds must skip one under .plotplot/beds/, add both with tests; (8) the PR check workflow .github/workflows/plotplot-check.yml running `plotplot check --strict` on pull_request with hosted runners only (no self-hosted runner ever on a public bed, jahala/plotplot issue 7); (9) print one line per file or setting changed, and `nothing to do` when a second run changes nothing. Add `Error::Install { harness, problem }` additively.
 
 Then add the fit subcommand `init` to scripts/fit/stem.sh: build a fixture repository, run `plotplot init --harness gemini,codex --lock <a lock built in the fixture from a locally served artifact only if lock::verify can fetch it; otherwise pre-place the judge and its .sha256 so verify passes without a fetch>`, assert AGENTS.md carries the block, .gemini/settings.json and .codex/hooks.json exist with the dispatcher entries, core.hooksPath is .githooks, the four hooks are executable, the receipts refspecs are set, and that a second run prints `nothing to do` and leaves every file byte-identical (hash the tree before and after). Claude's install is asserted the same way when `claude` is on PATH, against a temp HOME.
 
@@ -223,6 +225,19 @@ Then run the verifier for the init check and paste its output into your final me
     tend2 verify docs/tend2/stem.tend2.html --repo-root . --check 1
 
 Do NOT change existing public shapes; add only. Do NOT edit the loop file.
+"""
+
+
+HARDEN = PREAMBLE + """
+## Your slice: three follow-ups from the umbrella's review of the first wave (pull request 20)
+
+The whole first wave is in this worktree. Read src/deny.rs, src/hook.rs, src/friction.rs and src/harness.rs before writing anything.
+
+(1) The deny list fails open when a writing tool's payload lacks its input or its cwd: decide() answers Allow for a Write/Edit/MultiEdit/write_file/replace/apply_patch/tilth_write call whose tool_input is absent or names no path, and guarded_target() skips an absolute target when the payload has no cwd. A hard limit fails closed. Test first, then: a writing tool call whose target cannot be determined (no tool_input, or an input with no path in it) is Deny with the reason `plotplot: cannot judge the target of a write: the payload names no path; a boundary that cannot see the target refuses it`; a writing tool call with an absolute target and no cwd is Deny with `plotplot: cannot judge the target of a write: the payload has no working directory to judge <path> against`; a shell command with a redirection whose target cannot be judged the same way is Deny likewise. A read, a search, a shell command without a redirection, and every non-before-tool event stay Allow. The dispatcher already records a deny-list refusal as a `tool.denied` friction record with `plotplot.rule`; give these refusals their own rule name (`write-target-unjudged`) and assert in tests/hook.rs that `plotplot hook claude PreToolUse` on a Write payload without tool_input exits 2 with the Claude deny JSON and appends one `tool.denied` line carrying that rule. Add fixture payloads for the two cases under tests/fixtures/payloads/claude/.
+
+(2) Swallowed failures in src/friction.rs and src/harness.rs are acceptable only where the drop is counted, never silent. Run `weeder check --strict --format table` on the worktree and read every S2 finding in those two files, then go through every `let _ =`, `.ok()`, `unwrap_or_default()` and `if let Err(_)` in src/friction.rs, src/harness.rs and src/hook.rs's trail(): each one either propagates the error to a caller that can act, or is counted where the profile lets it be seen (a line on stderr naming what was dropped and why, from the dispatcher's trail; never a silent default). Write a test for each drop that now surfaces. Do not weaken the rule that the friction and receipt faces never change the dispatcher's exit code.
+
+(3) Nothing else: no new faces, no changes to public shapes beyond what (1) and (2) need. State in your final message which S2 findings remain in those files, if any, and why each is a counted drop.
 """
 
 SMOKE_INTEGRATE = f"bash -lc '{GATE_SHELL} && bash scripts/fit/stem.sh bundles && bash scripts/fit/stem.sh hook-faces'"
@@ -256,7 +271,7 @@ plan = {
         "the pieces init writes, the hook dispatcher, doctor's static mode, and the fit evidence for the loop's "
         "bundles and hook-faces checks. Brief: docs/prompts/stem-build-2026-09.md. Loop: docs/tend2/stem.tend2.html."
     ),
-    "source": "docs/plans/stem-build.plan.json",
+    "source": "docs/dogfood/stem/build.plan.json",
     "maxConcurrency": 2,
     "nodes": [
         node("stem.bundle", BUNDLE),
@@ -287,7 +302,7 @@ VERIFY = "tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-
 REAUDIT_CHECKS = [("bundles", 5), ("hook-faces", 8)]
 reaudit = {
     "goal": "Settle the integration node's audit for the landed stem stack (jahala/plotplot 20): tend2 verify with audit egress on the two stamped checks, relayed by an auditor on another provider, no builder.",
-    "source": "docs/plans/stem-reaudit.plan.json",
+    "source": "docs/dogfood/stem/reaudit.plan.json",
     "maxConcurrency": 1,
     "nodes": [
         {
@@ -311,8 +326,40 @@ reaudit = {
     ],
 }
 
+
+# `--second`: the second run, after pull request 20 merged. At most two nodes at a time
+# (the shared session window): harden and lock in parallel, then check, then init.
+second = {
+    "goal": (
+        "The stem's second run: the review's three follow-ups, lock verify against tilth v0.10.1's real "
+        "release, check with one merged SARIF log, and init with the minimal profile and the repository's "
+        "own garden.json. Brief: docs/prompts/stem-build-2026-09.md. Loop: docs/tend2/stem.tend2.html."
+    ),
+    "source": "docs/dogfood/stem/second.plan.json",
+    "maxConcurrency": 2,
+    "nodes": [
+        node("stem.harden", HARDEN),
+        node("stem.judges", LOCK, smoke=f"bash -lc '{GATE_SHELL} && bash scripts/fit/stem.sh lock'"),
+        node("stem.check", CHECK, needs=["stem.harden", "stem.judges"], smoke=f"bash -lc '{GATE_SHELL} && bash scripts/fit/stem.sh lock && bash scripts/fit/stem.sh check'"),
+        node(
+            "stem.init",
+            INIT,
+            needs=["stem.check"],
+            smoke=f"bash -lc '{GATE_SHELL} && bash scripts/fit/stem.sh lock && bash scripts/fit/stem.sh check && bash scripts/fit/stem.sh init && bash scripts/fit/stem.sh bundles && bash scripts/fit/stem.sh hook-faces'",
+            audit={
+                "command": "bash -lc 'tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress --check 1 --runner \"bash {evidence} init\"'",
+                "provider": "opencode",
+                "model": "deepseek/deepseek-v4-pro",
+            },
+            timeout_ms=5_400_000,
+        ),
+    ],
+}
+
 import sys
-if "--reaudit" in sys.argv:
+if "--second" in sys.argv:
+    print(json.dumps(second, indent=2, ensure_ascii=False))
+elif "--reaudit" in sys.argv:
     print(json.dumps(reaudit, indent=2, ensure_ascii=False))
 else:
     print(json.dumps(plan, indent=2, ensure_ascii=False))

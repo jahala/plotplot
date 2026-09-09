@@ -21,7 +21,7 @@ open: tend 157, 158, 167, 169, 175 and 184; pleach 61, 63, 64, 66, 68, 69, 70, 7
   their `## Needs` tags, with no way to select a subset (`--only stem`); the stem node needs
   contracts, weeder, tend2, pleach and umbel, none of which this repository can verify, so the
   emitted plan cannot run here at all.
-- 2026-09-08 `tend2 next docs/tend2` reports "12 asks held back — their loops have no machine
+- 2026-09-08 `tend2 next docs/tend2` reports "12 asks held back, their loops have no machine
   evidence to judge yet" without naming which loops or how to surface them; the human check on
   the stem loop is invisible until a code check has evidence.
 
@@ -109,7 +109,7 @@ open: tend 157, 158, 167, 169, 175 and 184; pleach 61, 63, 64, 66, 68, 69, 70, 7
 - 2026-09-09 umbel has no wedge detection: a worker idle with a live session is not read as
   failure, so a wedged node waits out pleach's timeout (30 to 60 minutes here) unless the
   conductor aborts by hand (cape-town's observation on tend2's run, 2026-09-09).
-- 2026-09-08 `umbel ls` shows `—` in the MODEL column for a freshly spawned claude worker for
+- 2026-09-08 `umbel ls` shows a dash in the MODEL column for a freshly spawned claude worker for
   its first minute or so, then `claude-opus-5`; a row with no model looks like a probe or a
   failed spawn rather than a worker that has not reported yet.
 
