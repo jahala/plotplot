@@ -14,6 +14,8 @@ target/
 .loop-scratch/
 .plotplot/bin/
 .plotplot/beds/
+.plotplot/bundles/
+.plotplot/marketplace/
 .plotplot/friction/
 .plotplot/receipts/
 .plotplot/npm/

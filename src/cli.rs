@@ -3,6 +3,7 @@
 //! A face with work of its own keeps that work in its own module. `version` has none beyond
 //! reading the lock and laying out five lines, so it lives here.
 
+use std::ffi::OsString;
 use std::io::{IsTerminal, Read, Write};
 use std::path::{Path, PathBuf};
 
@@ -12,7 +13,7 @@ use crate::check::Format;
 use crate::error::{Error, Result};
 use crate::harness::Harness;
 use crate::lock::{Lock, read_lock};
-use crate::{VERSION, bundle, check, doctor, friction, hook, lock, receipt};
+use crate::{VERSION, bundle, check, doctor, friction, hook, init, lock, receipt};
 
 /// `plotplot`, the stem of the garden.
 #[derive(Debug, Parser)]
@@ -31,6 +32,8 @@ pub struct Args {
 pub enum Face {
     /// Print the stem's version, and the season and judges `garden.lock` pins.
     Version,
+    /// Plant the garden in this repository: the lock, the bundles, the hooks, the block.
+    Init(InitArgs),
     /// Dispatch one hook event to the beds that registered for it (stdin: the payload).
     Hook(HookArgs),
     /// The friction emitter on its own (stdin: the payload).
@@ -70,6 +73,39 @@ pub enum BundleFace {
         #[arg(value_name = "claude|gemini|codex", value_parser = harness_value)]
         harness: Option<Harness>,
     },
+}
+
+/// `plotplot init [--harness …] [--beds …] [--profile …] [--lock <path>]`.
+#[derive(Debug, ClapArgs)]
+pub struct InitArgs {
+    /// The harnesses to plant; what is detected on PATH and already configured here when
+    /// this is not given.
+    #[arg(
+        long,
+        value_name = "claude,gemini,codex",
+        value_delimiter = ',',
+        value_parser = harness_value
+    )]
+    pub harness: Option<Vec<Harness>>,
+    /// The beds to plant, overriding the profile's list.
+    #[arg(long, value_name = "a,b", value_delimiter = ',')]
+    pub beds: Option<Vec<String>>,
+    /// Which beds the profile plants: weeder alone, or every judge the lock pins.
+    #[arg(long, value_name = "minimal|full", default_value = "minimal")]
+    pub profile: Profile,
+    /// The `garden.lock` template to copy from, needed when this repository pins none yet.
+    #[arg(long, value_name = "path")]
+    pub lock: Option<PathBuf>,
+}
+
+/// Which beds `init` plants when `--beds` does not say.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, clap::ValueEnum)]
+pub enum Profile {
+    /// weeder with its hooks, the garden block, the lock, the git hooks and the PR gate
+    /// (jahala/plotplot issue 17).
+    Minimal,
+    /// Every judge the lock pins.
+    Full,
 }
 
 /// `plotplot check [--strict] [--format sarif|table]`.
@@ -194,6 +230,7 @@ pub fn run(args: Args, root: &Path, stdout: &mut dyn Write, stderr: &mut dyn Wri
                 }
             }
         }
+        Face::Init(face) => init::run(root, &face, search_path().as_deref(), stdout, stderr),
         Face::Check(face) => {
             let format = face.format.unwrap_or_else(chosen_format);
             check::run_face(root, &face, format, stdout, stderr)
@@ -218,6 +255,15 @@ fn payload_on_stdin() -> std::io::Result<String> {
     let mut payload = String::new();
     std::io::stdin().read_to_string(&mut payload)?;
     Ok(payload)
+}
+
+/// The directories a command name is looked for in, as the process was started with.
+///
+/// Read here, at the edge, beside the payload on stdin and the planter's home: `init` is
+/// told where to look for the three harness CLIs rather than asking the environment itself,
+/// so a test can hand it a directory of its own.
+fn search_path() -> Option<OsString> {
+    std::env::var_os("PATH")
 }
 
 /// What `--format` defaults to: a table for a person at a terminal, SARIF for anything that

@@ -47,6 +47,12 @@ pub enum Error {
     },
     /// An artifact the stem could not unpack, or one in a format it does not unpack.
     Archive { path: PathBuf, problem: String },
+    /// A harness that would not take the bundle `init` generated for it, or a project-scope
+    /// configuration file of that harness's that the stem could not read or merge into.
+    Install {
+        harness: crate::harness::Harness,
+        problem: String,
+    },
 }
 
 /// The crate's result type; failure always lives here rather than in a panic.
@@ -74,6 +80,7 @@ impl fmt::Display for Error {
                 actual,
             } => write!(f, "{judge}: expected {expected}, got {actual}"),
             Error::Archive { path, problem } => write!(f, "{}: {problem}", path.display()),
+            Error::Install { harness, problem } => write!(f, "{harness}: {problem}"),
         }
     }
 }
@@ -92,7 +99,8 @@ impl std::error::Error for Error {
             | Error::Agents { .. }
             | Error::Fetch { .. }
             | Error::Checksum { .. }
-            | Error::Archive { .. } => None,
+            | Error::Archive { .. }
+            | Error::Install { .. } => None,
         }
     }
 }
@@ -274,10 +282,26 @@ mod tests {
                 path: PathBuf::from("a"),
                 problem: "b".to_owned(),
             },
+            Error::Install {
+                harness: crate::harness::Harness::Gemini,
+                problem: "b".to_owned(),
+            },
         ];
         for error in &errors {
             assert!(!error.to_string().contains('\n'), "{error}");
         }
+    }
+
+    #[test]
+    fn an_install_failure_names_the_harness_first() {
+        let error = Error::Install {
+            harness: crate::harness::Harness::Claude,
+            problem: "`claude plugin install` exited 1: no such marketplace".to_owned(),
+        };
+        assert_eq!(
+            error.to_string(),
+            "claude: `claude plugin install` exited 1: no such marketplace"
+        );
     }
 
     #[test]

@@ -19,6 +19,8 @@ pub mod fetch;
 pub mod friction;
 pub mod harness;
 pub mod hook;
+pub mod init;
+pub mod install;
 pub mod layout;
 pub mod lock;
 pub mod manifest;

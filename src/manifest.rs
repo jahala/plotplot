@@ -210,6 +210,57 @@ fn is_repository(value: &Value) -> bool {
         })
 }
 
+/// Check a planted repository's own `garden.json` against the contracts.
+///
+/// The manifest schema's repository case (contracts v1.3.0) is the whole of what such a
+/// document has to satisfy: a name and a `kind` carrying `repository`. `init` writes one and
+/// puts it through this before printing that it did, so a manifest the contracts would
+/// refuse is never left in a planted repository.
+///
+/// # Errors
+///
+/// [`Error::Json`] when the bytes are not JSON, [`Error::Manifest`] when the schema refuses
+/// them or when the document is a bed's manifest rather than a repository's.
+pub fn validate_repository(json: &str) -> Result<()> {
+    let value: Value =
+        serde_json::from_str(json).map_err(|source| Error::Json { path: None, source })?;
+    let bed = value
+        .get("name")
+        .and_then(Value::as_str)
+        .unwrap_or("(unnamed)")
+        .to_owned();
+
+    let validator = manifest_validator()
+        .as_ref()
+        .map_err(|problem| Error::Manifest {
+            bed: bed.clone(),
+            problem: format!("the embedded manifest schema did not compile: {problem}"),
+        })?;
+    if let Err(error) = validator.validate(&value) {
+        let at = error.instance_path().to_string();
+        let where_ = if at.is_empty() {
+            String::new()
+        } else {
+            format!(" at {at}")
+        };
+        return Err(Error::Manifest {
+            bed,
+            problem: one_line(&format!("{SCHEMA_REFUSED}{where_}: {error}")),
+        });
+    }
+
+    if !is_repository(&value) {
+        return Err(Error::Manifest {
+            bed,
+            problem: format!(
+                "carries no {REPOSITORY_KIND} kind, so it is a bed's manifest and not a planted \
+                 repository's own"
+            ),
+        });
+    }
+    Ok(())
+}
+
 /// Turn a manifest into the bed the rest of the stem consumes.
 ///
 /// # Errors
@@ -223,6 +274,16 @@ pub fn to_bed(manifest: &Manifest) -> Result<Bed> {
         bed: bed.clone(),
         problem,
     };
+
+    // A planted repository's own manifest is schema-valid and is never a bed. `init` writes
+    // one beside `garden.lock`; [`parse_manifest_at`] already refuses to read it as a bed,
+    // and this says the same thing about a `Manifest` that reached here another way, so the
+    // rule holds wherever the value came from rather than only on the parsing path.
+    if manifest.kind.iter().any(|kind| kind == REPOSITORY_KIND) {
+        return Err(refuse(format!(
+            "{REPOSITORY_NOT_A_BED}; the stem plants beds from it, never it"
+        )));
+    }
 
     let binary = manifest
         .install
@@ -433,9 +494,23 @@ fn load_manifests(root: &Path) -> Result<Vec<Manifest>> {
                 });
             }
         };
+        // A planted repository's own manifest under `.plotplot/beds/` is somebody's copy of
+        // the repository they planted, not a bed to install. It is skipped rather than
+        // refused: nothing about it is wrong, it is simply not a bed.
+        if is_repository_json(&json) {
+            continue;
+        }
         manifests.push(parse_manifest_at(Some(&manifest_path), &json)?);
     }
     Ok(manifests)
+}
+
+/// Whether a cached `garden.json` is a planted repository's own rather than a bed's.
+///
+/// Bytes that are not JSON answer `false`, so the document reaches [`parse_manifest_at`]
+/// and is refused there with the reason serde gives, rather than being quietly skipped.
+fn is_repository_json(json: &str) -> bool {
+    serde_json::from_str::<Value>(json).is_ok_and(|value| is_repository(&value))
 }
 
 /// `"Event"` or `"Event:Matcher"`, checked against the events the harness really fires.
@@ -667,6 +742,76 @@ mod tests {
             "the contracts accept it; the stem refuses it as a bed: {problem}"
         );
         assert!(problem.starts_with(REPOSITORY_NOT_A_BED), "{problem}");
+    }
+
+    /// `parse_manifest` refuses a repository manifest before serde sees it, so a `Manifest`
+    /// carrying the repository kind can only be built in memory. `to_bed` still refuses it,
+    /// so the rule holds wherever the value came from.
+    #[test]
+    fn to_bed_refuses_a_repository_manifest_however_the_manifest_was_built() {
+        let mut manifest = parse_manifest(&fixture("weeder.garden.json")).expect("a manifest");
+        manifest.kind.push(REPOSITORY_KIND.to_owned());
+
+        match to_bed(&manifest) {
+            Err(Error::Manifest { bed, problem }) => {
+                assert_eq!(bed, "weeder");
+                assert!(problem.starts_with(REPOSITORY_NOT_A_BED), "{problem}");
+            }
+            other => panic!("expected Error::Manifest, got {other:?}"),
+        }
+    }
+
+    /// A repository's own `garden.json` copied under `.plotplot/beds/` is not a bed and is
+    /// not a fault either: `load_beds` walks past it and plants the beds beside it.
+    #[test]
+    fn load_beds_skips_a_repository_manifest_rather_than_refusing_the_whole_tree() {
+        let root = tempfile::tempdir().expect("a temp root");
+        for (bed, json) in [
+            ("weeder", fixture("weeder.garden.json")),
+            ("plotplot", fixture("repository.garden.json")),
+        ] {
+            let dir = crate::layout::bed_dir(root.path(), bed);
+            std::fs::create_dir_all(&dir).expect("the bed directory");
+            std::fs::write(dir.join("garden.json"), json).expect("the cached manifest");
+        }
+
+        let beds = load_beds(root.path()).expect("the planted beds");
+        assert_eq!(
+            beds.iter().map(|bed| bed.name.as_str()).collect::<Vec<_>>(),
+            ["weeder"]
+        );
+        assert!(
+            unplantable_channels(root.path())
+                .expect("the channels")
+                .is_empty(),
+            "a repository manifest is skipped everywhere manifests are read"
+        );
+    }
+
+    #[test]
+    fn validate_repository_accepts_the_contracts_own_repository_fixture() {
+        validate_repository(&fixture("repository.garden.json")).expect("the contracts accept it");
+    }
+
+    #[test]
+    fn validate_repository_refuses_a_beds_manifest_and_names_the_bed() {
+        match validate_repository(&fixture("weeder.garden.json")) {
+            Err(Error::Manifest { bed, problem }) => {
+                assert_eq!(bed, "weeder");
+                assert!(problem.contains(REPOSITORY_KIND), "{problem}");
+            }
+            other => panic!("expected Error::Manifest, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn validate_repository_refuses_a_document_the_schema_refuses() {
+        match validate_repository("{\"name\": \"Plot Plot\", \"kind\": [\"repository\"]}") {
+            Err(Error::Manifest { problem, .. }) => {
+                assert!(problem.starts_with(SCHEMA_REFUSED), "{problem}");
+            }
+            other => panic!("expected Error::Manifest, got {other:?}"),
+        }
     }
 
     #[test]

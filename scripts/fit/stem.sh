@@ -13,6 +13,9 @@
 #   scripts/fit/stem.sh check        `plotplot check` runs the gate the manifests declare and
 #                                    emits one valid SARIF 2.1.0 log; exit 2 on a block-level
 #                                    result, 3 when the judge could not run
+#   scripts/fit/stem.sh init         `plotplot init` plants a fixture repository: the garden
+#                                    block, the harness project configs, the git law and the
+#                                    pull request gate, and a second run changes nothing
 #
 # Exit 0 on pass, non-zero with a reason on failure. Every check builds the crate in release
 # mode once, then runs in a fresh temporary directory with HOME and CODEX_HOME pointed at a
@@ -971,14 +974,263 @@ check_check() {
 }
 
 # ---------------------------------------------------------------------------------------
+# check: init
+# ---------------------------------------------------------------------------------------
+
+# The bed `plotplot init --profile minimal` plants (jahala/plotplot issue 17).
+INIT_JUDGE="weeder"
+INIT_VERSION="0.1.0"
+
+# A fixture repository and the lock template init copies from.
+#
+# weeder has no release (the comment at the head of contracts/fixtures/garden.lock says so)
+# and the lock schema takes only https urls, so there is no artifact any lock could name that
+# `lock verify` could fetch here. The judge is placed by hand instead, with its own digest in
+# the companion `lock verify` writes and the same digest pinned in the template, which is
+# exactly the state a resolved lock leaves behind: verify answers "verified" and fetches
+# nothing. That is the one thing about this fixture that is not real, and it is said here and
+# on stdout. Everything init does with it afterwards is the real code path.
+plant_init_fixture() {
+  local repo="$1" template="$2" platform digest
+  mkdir -p "$repo" || fail "could not make the fixture repository at $repo"
+  git init -q "$repo" || fail "git init failed in $repo"
+  git -C "$repo" config user.email "fit@plotplot.invalid" || fail "could not configure git"
+  git -C "$repo" config user.name "plotplot fit" || fail "could not configure git"
+  git -C "$repo" remote add origin "https://example.invalid/jahala/fixture.git" \
+    || fail "could not give the fixture an origin remote"
+
+  mkdir -p "$repo/.plotplot/beds/$INIT_JUDGE" "$repo/.plotplot/bin"
+  cp "$ROOT/contracts/fixtures/manifest/$INIT_JUDGE.garden.json" \
+     "$repo/.plotplot/beds/$INIT_JUDGE/garden.json" \
+    || fail "could not copy the $INIT_JUDGE manifest"
+  cat > "$repo/.plotplot/beds/$INIT_JUDGE/SKILL.md" <<'SKILL'
+# weeder
+
+The judge of the diff: reads what an agent produced and refuses dishonest growth, as SARIF.
+SKILL
+
+  cat > "$repo/.plotplot/bin/$INIT_JUDGE" <<'JUDGE'
+#!/bin/sh
+# The fixture judge. The bed contract, and nothing more: read the payload, allow.
+cat >/dev/null
+exit 0
+JUDGE
+  chmod +x "$repo/.plotplot/bin/$INIT_JUDGE"
+  digest="$(fit_sha256 "$repo/.plotplot/bin/$INIT_JUDGE")" || fail "could not hash the judge"
+  printf '%s\n' "$digest" > "$repo/.plotplot/bin/$INIT_JUDGE.sha256"
+
+  platform="$(fit_platform)"
+  cat > "$template" <<LOCK
+season = "2026.09"
+
+[judges.$INIT_JUDGE]
+version = "$INIT_VERSION"
+
+[judges.$INIT_JUDGE.platforms."$platform"]
+url = "https://github.com/jahala/$INIT_JUDGE/releases/download/v$INIT_VERSION/$INIT_JUDGE-$platform.tar.gz"
+sha256 = "$digest"
+
+[judges.tilth]
+version = "0.10.1"
+npm = "tilth"
+LOCK
+
+  note "the judge was pre-placed because $INIT_JUDGE has no release and the lock schema takes only https urls: sha256 $digest, pinned in the template and recorded beside the judge, so verify resolves it without a fetch"
+  note "the template also pins tilth, which the minimal profile drops; that is what the filter has to prove"
+}
+
+# Every file under a tree, its sha256 and its path, one to a line, git's own bookkeeping left
+# out. Two of these, before and after a second run, are what idempotence means here.
+tree_hash() {
+  local dir="$1" f
+  ( cd "$dir" && find . -type f -not -path './.git/*' | LC_ALL=C sort | while read -r f; do
+      printf '%s  %s\n' "$(fit_sha256 "$f")" "$f"
+    done )
+}
+
+# The dispatcher call a project-scope entry has to carry for one harness and one event.
+assert_dispatcher_entry() {
+  local file="$1" filter="$2" harness="$3" event="$4" command
+  command="$(jq -r "$filter" "$file")" \
+    || { cat "$file" >&2; fail "$file carries no entry for $harness $event"; }
+  { [ -n "$command" ] && [ "$command" != "null" ]; } \
+    || { cat "$file" >&2; fail "$file registers nothing on $harness $event"; }
+  case "$command" in
+    *"hook $harness $event") : ;;
+    *) fail "$file's $event entry is \"$command\", not one dispatcher call" ;;
+  esac
+  case "$command" in
+    *'${CLAUDE_PLUGIN_ROOT}'*|*'${extensionPath}'*)
+      fail "$file's $event entry still names a bundle root variable nothing expands at project scope: $command" ;;
+  esac
+}
+
+check_init() {
+  require git jq claude
+  build_stem
+
+  local tmp repo home template status
+  tmp="$(scratch)"
+  repo="$tmp/repo"
+  home="$(make_home "$tmp")"
+  template="$tmp/template.lock"
+
+  note "planting the fixture repository at $repo"
+  plant_init_fixture "$repo" "$template"
+
+  # 1. The first run plants, and names every file and setting it changed.
+  ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" \
+      "$STEM" init --harness gemini,codex --lock "$template" ) >"$tmp/first.out" 2>"$tmp/first.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/first.out" "$tmp/first.err" >&2; fail "plotplot init exited $status, not 0"; }
+  note "init reported $(grep -c . "$tmp/first.out") changes"
+
+  # 2. The lock it wrote is the template filtered to the minimal profile's one bed.
+  grep -q "^\[judges\.$INIT_JUDGE\]" "$repo/garden.lock" \
+    || { cat "$repo/garden.lock" >&2; fail "the written lock does not pin $INIT_JUDGE"; }
+  if grep -q "^\[judges\.tilth\]" "$repo/garden.lock"; then
+    cat "$repo/garden.lock" >&2
+    fail "the written lock still pins tilth, which the minimal profile drops"
+  fi
+  note "garden.lock: $INIT_JUDGE $INIT_VERSION, and nothing else"
+
+  # 3. The garden block is in AGENTS.md, and it names what is planted.
+  grep -q '<!-- plotplot:begin -->' "$repo/AGENTS.md" \
+    || { cat "$repo/AGENTS.md" >&2; fail "AGENTS.md carries no garden block"; }
+  grep -q '<!-- plotplot:end -->' "$repo/AGENTS.md" \
+    || fail "AGENTS.md's garden block has no end marker"
+  grep -q "$INIT_JUDGE $INIT_VERSION" "$repo/AGENTS.md" \
+    || { cat "$repo/AGENTS.md" >&2; fail "the garden block does not name $INIT_JUDGE $INIT_VERSION"; }
+  note "AGENTS.md: the garden block names $INIT_JUDGE $INIT_VERSION"
+
+  # 4. The repository's own manifest, which is never a bed.
+  [ -f "$repo/garden.json" ] || fail "init wrote no garden.json beside the lock"
+  [ "$(jq -r '.kind | join(",")' "$repo/garden.json")" = "repository" ] \
+    || { cat "$repo/garden.json" >&2; fail "the repository's own manifest is not kind [\"repository\"]"; }
+  note "garden.json: $(jq -r '.name' "$repo/garden.json"), kind repository"
+
+  # 5. Gemini's project settings, which is where its hooks live because it has no project
+  #    scope of its own.
+  [ -f "$repo/.gemini/settings.json" ] || fail "init wrote no $repo/.gemini/settings.json"
+  assert_dispatcher_entry "$repo/.gemini/settings.json" \
+    '.hooks.BeforeTool[0].hooks[0].command' gemini BeforeTool
+  assert_dispatcher_entry "$repo/.gemini/settings.json" \
+    '.hooks.SessionEnd[0].hooks[0].command' gemini SessionEnd
+  note "gemini: $(jq -r '.hooks | keys | join(", ")' "$repo/.gemini/settings.json")"
+
+  # 6. Codex's project hook file.
+  [ -f "$repo/.codex/hooks.json" ] || fail "init wrote no $repo/.codex/hooks.json"
+  assert_dispatcher_entry "$repo/.codex/hooks.json" \
+    '.hooks.PreToolUse[0].hooks[0].command' codex PreToolUse
+  assert_dispatcher_entry "$repo/.codex/hooks.json" \
+    '.hooks.Stop[0].hooks[0].command' codex Stop
+  note "codex: $(jq -r '.hooks | keys | join(", ")' "$repo/.codex/hooks.json")"
+  grep -q "trust" "$tmp/first.err" \
+    || { cat "$tmp/first.err" >&2; fail "init did not say that codex waits on project trust"; }
+
+  # 7. The git law: the four hooks, runnable, and the configuration that runs them.
+  local hook
+  for hook in pre-commit pre-push pre-rebase post-commit; do
+    [ -f "$repo/.githooks/$hook" ] || fail "init wrote no .githooks/$hook"
+    [ -x "$repo/.githooks/$hook" ] || fail ".githooks/$hook is not executable"
+  done
+  [ "$(git -C "$repo" config --local core.hooksPath)" = ".githooks" ] \
+    || fail "core.hooksPath is \"$(git -C "$repo" config --local core.hooksPath)\", not .githooks"
+  git -C "$repo" config --local --get-all remote.origin.fetch \
+    | grep -q '^+refs/notes/plotplot/receipts:refs/notes/plotplot/receipts$' \
+    || fail "the receipts fetch refspec is not set"
+  git -C "$repo" config --local --get-all remote.origin.push \
+    | grep -q '^refs/notes/plotplot/receipts:refs/notes/plotplot/receipts$' \
+    || fail "the receipts push refspec is not set"
+  note "git: core.hooksPath .githooks, four runnable hooks, both receipts refspecs"
+
+  # 8. The gate every pull request passes, on a hosted runner and no other.
+  local workflow="$repo/.github/workflows/plotplot-check.yml"
+  [ -f "$workflow" ] || fail "init wrote no pull request workflow"
+  grep -q 'plotplot check --strict' "$workflow" \
+    || fail "the workflow does not run plotplot check --strict"
+  grep -q 'pull_request' "$workflow" || fail "the workflow does not run on pull_request"
+  grep -q 'runs-on: ubuntu-latest' "$workflow" || fail "the workflow names no hosted runner"
+  if grep -q 'self-hosted' "$workflow"; then
+    fail "the workflow names a runner of the repository's own, which a public bed never registers (jahala/plotplot issue 7)"
+  fi
+  note "the pull request gate runs plotplot check --strict on a hosted runner"
+
+  # 9. And a second run changes nothing, and says so.
+  tree_hash "$repo" > "$tmp/before.hashes"
+  ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" \
+      "$STEM" init --harness gemini,codex --lock "$template" ) >"$tmp/second.out" 2>"$tmp/second.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/second.out" "$tmp/second.err" >&2; fail "the second init exited $status, not 0"; }
+  [ "$(cat "$tmp/second.out")" = "nothing to do" ] \
+    || { cat "$tmp/second.out" >&2; fail "the second init did not print exactly 'nothing to do'"; }
+  tree_hash "$repo" > "$tmp/after.hashes"
+  diff "$tmp/before.hashes" "$tmp/after.hashes" >/dev/null \
+    || { diff "$tmp/before.hashes" "$tmp/after.hashes" >&2; fail "the second init changed files"; }
+  note "second run: nothing to do, and every file byte for byte as it was"
+
+  # 10. Claude's own install, through claude's own mechanism, against the temporary home.
+  check_init_claude "$tmp" "$repo" "$home" "$template"
+
+  echo "stem.sh init: pass"
+}
+
+# Claude Code's half of the check: the same repository, planted again with --harness claude,
+# asserted through what claude itself wrote at project scope. HOME is the temporary one, so
+# the marketplace claude records for itself is recorded there and nowhere else.
+check_init_claude() {
+  local tmp="$1" repo="$2" home="$3" template="$4" status
+  note "planting claude through claude's own marketplace mechanism"
+
+  ( cd "$repo" && HOME="$home" \
+      "$STEM" init --harness claude --lock "$template" ) >"$tmp/claude.out" 2>"$tmp/claude.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/claude.out" "$tmp/claude.err" >&2; fail "plotplot init --harness claude exited $status, not 0"; }
+
+  local market="$repo/.plotplot/marketplace/.claude-plugin/marketplace.json"
+  [ -f "$market" ] || fail "init wrote no local marketplace for claude"
+  [ "$(jq -r '.plugins[0].name' "$market")" = "$PLUGIN" ] \
+    || { cat "$market" >&2; fail "the marketplace does not list $PLUGIN"; }
+
+  # What project scope means for claude: the plugin enabled in the project's own settings.
+  [ -f "$repo/.claude/settings.json" ] || fail "claude wrote no project settings"
+  [ "$(jq -r --arg id "$PLUGIN@plotplot-local" '.enabledPlugins[$id] // false' "$repo/.claude/settings.json")" = "true" ] \
+    || { cat "$repo/.claude/settings.json" >&2; fail "claude did not enable $PLUGIN@plotplot-local at project scope"; }
+
+  # And nothing of the stem's went outside the repository: the only user-scope file is the
+  # marketplace list claude keeps for itself, which init names on stderr.
+  [ -f "$home/.claude/settings.json" ] \
+    || fail "claude recorded no marketplace in the temporary home, so this check proved nothing about scope"
+  grep -q "user scope" "$tmp/claude.err" \
+    || { cat "$tmp/claude.err" >&2; fail "init did not say what claude records outside the repository"; }
+
+  tree_hash "$repo" > "$tmp/claude-before.hashes"
+  ( cd "$repo" && HOME="$home" \
+      "$STEM" init --harness claude --lock "$template" ) >"$tmp/claude2.out" 2>"$tmp/claude2.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/claude2.out" "$tmp/claude2.err" >&2; fail "the second claude init exited $status, not 0"; }
+  [ "$(cat "$tmp/claude2.out")" = "nothing to do" ] \
+    || { cat "$tmp/claude2.out" >&2; fail "the second claude init did not print exactly 'nothing to do'"; }
+  tree_hash "$repo" > "$tmp/claude-after.hashes"
+  diff "$tmp/claude-before.hashes" "$tmp/claude-after.hashes" >/dev/null \
+    || { diff "$tmp/claude-before.hashes" "$tmp/claude-after.hashes" >&2; fail "the second claude init changed files"; }
+  note "claude: installed at project scope from $repo/.plotplot/marketplace, and a second run changed nothing"
+}
+
+# ---------------------------------------------------------------------------------------
 
 case "${1:-}" in
   bundles) check_bundles ;;
   hook-faces) check_hook_faces ;;
   lock) check_lock ;;
   check) check_check ;;
+  init) check_init ;;
   *)
-    echo "usage: stem.sh {bundles | hook-faces | lock | check}" >&2
+    echo "usage: stem.sh {bundles | hook-faces | lock | check | init}" >&2
     exit 2
     ;;
 esac
