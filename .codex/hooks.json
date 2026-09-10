@@ -1,0 +1,48 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "\"/Users/jahala/conductor/workspaces/plotplot/beirut/.plotplot/bundles/codex/bin/plotplot\" hook codex PostToolUse",
+            "timeout": 10,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "command": "\"/Users/jahala/conductor/workspaces/plotplot/beirut/.plotplot/bundles/codex/bin/plotplot\" hook codex PreCompact",
+            "timeout": 5,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "\"/Users/jahala/conductor/workspaces/plotplot/beirut/.plotplot/bundles/codex/bin/plotplot\" hook codex PreToolUse",
+            "timeout": 10,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "\"/Users/jahala/conductor/workspaces/plotplot/beirut/.plotplot/bundles/codex/bin/plotplot\" hook codex Stop",
+            "timeout": 1,
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  }
+}
