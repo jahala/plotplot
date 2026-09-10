@@ -163,15 +163,15 @@ plant_fixture() {
       || fail "could not copy the $bed manifest"
   done
 
-  # Each bed's SKILL.md where its own manifest says it is: weeder at the artifact root,
-  # tilth under skills/.
-  mkdir -p "$repo/.plotplot/beds/tilth/skills"
-  cat > "$repo/.plotplot/beds/weeder/SKILL.md" <<'SKILL'
+  # Each bed's SKILL.md where its own manifest says it is, inside the unpacked artifact:
+  # weeder at the artifact root, tilth under skills/.
+  mkdir -p "$repo/.plotplot/beds/weeder/artifact" "$repo/.plotplot/beds/tilth/artifact/skills"
+  cat > "$repo/.plotplot/beds/weeder/artifact/SKILL.md" <<'SKILL'
 # weeder
 
 The judge of the diff: reads what an agent produced and refuses dishonest growth, as SARIF.
 SKILL
-  cat > "$repo/.plotplot/beds/tilth/skills/SKILL.md" <<'SKILL'
+  cat > "$repo/.plotplot/beds/tilth/artifact/skills/SKILL.md" <<'SKILL'
 # tilth
 
 Code intelligence: tree-sitter indexed lookups, smart code reading for agents.
@@ -1025,7 +1025,8 @@ plant_init_fixture() {
   # The skill carries the front matter every harness reads a skill by: the description is
   # the one line a deferring harness loads at session start, and what the context check
   # measures.
-  cat > "$repo/.plotplot/beds/$INIT_JUDGE/SKILL.md" <<'SKILL'
+  mkdir -p "$repo/.plotplot/beds/$INIT_JUDGE/artifact"
+  cat > "$repo/.plotplot/beds/$INIT_JUDGE/artifact/SKILL.md" <<'SKILL'
 ---
 name: weeder
 description: The judge of the diff. Reads what an agent produced and refuses deleted tests, stubs and secrets before they land, as SARIF.

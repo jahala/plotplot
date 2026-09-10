@@ -154,7 +154,7 @@ fn seeded() -> tempfile::TempDir {
             .skill
             .unwrap_or_else(|| panic!("{bed} declares a skill in its fixture manifest"));
         write(
-            &layout::bed_dir(path, bed).join(skill),
+            &layout::bed_artifact(path, bed).join(skill),
             &format!("---\nname: {bed}\n---\n\nwhat {bed} does.\n"),
         );
     }

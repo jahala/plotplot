@@ -678,7 +678,10 @@ mod tests {
 
     #[test]
     fn a_gate_that_is_not_there_could_not_run_and_names_its_path() {
-        let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+        // A temporary root, never the crate's own: this repository is planted with the stem
+        // and carries a real weeder under .plotplot/bin/.
+        let temp = tempfile::tempdir().expect("a temp root");
+        let root = temp.path();
         let gate = Gate {
             bed: "weeder".to_owned(),
             program: root.join(".plotplot/bin/weeder"),

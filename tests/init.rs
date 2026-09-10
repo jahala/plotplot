@@ -114,7 +114,7 @@ fn fixture() -> (tempfile::TempDir, PathBuf, PathBuf) {
     let manifest = contracts("fixtures/manifest/weeder.garden.json");
     write(&layout::bed_manifest(&root, "weeder"), &read(&manifest));
     write(
-        &layout::bed_dir(&root, "weeder").join("SKILL.md"),
+        &layout::bed_artifact(&root, "weeder").join("SKILL.md"),
         "# weeder\n\nThe judge of the diff.\n",
     );
     let judge = layout::judge_binary(&root, "weeder");
@@ -571,7 +571,9 @@ fn the_planted_repository_gets_its_own_manifest_beside_the_lock() {
         serde_json::json!(["repository"]),
         "the planted repository is not a bed"
     );
-    assert_eq!(manifest["name"].as_str(), Some("repo"));
+    // The fixture's directory is `repo`, its origin remote is `https://example.invalid/o/r.git`,
+    // and the remote names the repository.
+    assert_eq!(manifest["name"].as_str(), Some("r"));
 
     plotplot::manifest::validate_repository(&read(&path))
         .expect("the contracts accept the manifest init wrote");

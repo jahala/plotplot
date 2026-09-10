@@ -243,10 +243,9 @@ pub fn filter_lock(template: &str, template_path: &Path, beds: &[String]) -> Res
 /// both of the things it looked at, because guessing a name here would put a manifest the
 /// contracts refuse into somebody's repository.
 pub fn repository_name(root: &Path, remote: Option<&str>) -> Result<String> {
-    let directory = root.file_name().and_then(OsStr::to_str).unwrap_or_default();
-    if let Some(name) = as_manifest_name(directory) {
-        return Ok(name);
-    }
+    // The remote names the repository; the directory is whatever the clone was called. A
+    // Conductor workspace, a worktree or a scratch clone carries the same repository under
+    // another directory name, and the manifest must say which repository it is.
     let from_remote = remote
         .map(|url| {
             url.trim_end_matches('/')
@@ -258,6 +257,10 @@ pub fn repository_name(root: &Path, remote: Option<&str>) -> Result<String> {
         })
         .unwrap_or_default();
     if let Some(name) = as_manifest_name(&from_remote) {
+        return Ok(name);
+    }
+    let directory = root.file_name().and_then(OsStr::to_str).unwrap_or_default();
+    if let Some(name) = as_manifest_name(directory) {
         return Ok(name);
     }
     Err(Error::Manifest {
@@ -879,13 +882,46 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
     }
 
     #[test]
-    fn the_repository_takes_its_directorys_name() {
+    fn the_repository_takes_its_remotes_name_over_its_directorys() {
+        assert_eq!(
+            repository_name(
+                Path::new("/Users/someone/conductor/workspaces/plotplot/beirut"),
+                Some("https://github.com/jahala/plotplot.git")
+            )
+            .expect("a name"),
+            "plotplot",
+            "a workspace clone is the repository its remote names"
+        );
+        assert_eq!(
+            repository_name(
+                Path::new("/work/plotplot"),
+                Some("git@github.com:jahala/weeder.git")
+            )
+            .expect("a name"),
+            "weeder"
+        );
+    }
+
+    #[test]
+    fn without_a_remote_the_repository_takes_its_directorys_name() {
         assert_eq!(
             repository_name(Path::new("/work/My Repo"), None).expect("a name"),
             "my-repo"
         );
         assert_eq!(
             repository_name(Path::new("/work/plotplot"), None).expect("a name"),
+            "plotplot"
+        );
+    }
+
+    #[test]
+    fn a_remote_that_is_not_a_manifest_name_falls_to_the_directory() {
+        assert_eq!(
+            repository_name(
+                Path::new("/work/plotplot"),
+                Some("https://example.invalid/2026.git")
+            )
+            .expect("a name"),
             "plotplot"
         );
     }

@@ -88,9 +88,12 @@ fn repository() -> tempfile::TempDir {
     dir
 }
 
+/// This repository's AGENTS.md as it was before the stem planted it, kept as a fixture: the
+/// live file carries the garden block now, and these tests are about planting into a file
+/// that has none.
 fn agents_md_fixture() -> String {
-    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("AGENTS.md");
-    std::fs::read_to_string(&path).expect("this repository's own AGENTS.md")
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/AGENTS.md");
+    std::fs::read_to_string(&path).expect("the unplanted AGENTS.md fixture")
 }
 
 // ---------------------------------------------------------------- garden_block
@@ -130,7 +133,7 @@ fn the_block_is_marked_short_and_says_what_a_planted_repository_needs() {
 }
 
 #[test]
-fn the_block_lands_after_this_repositorys_own_agents_md_and_leaves_it_alone() {
+fn the_block_lands_after_an_unplanted_agents_md_and_leaves_it_alone() {
     let agents = agents_md_fixture();
     let block = garden_block::render("2026.09", &planted_beds());
 

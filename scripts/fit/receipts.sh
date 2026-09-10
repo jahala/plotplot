@@ -167,7 +167,8 @@ place_judge() {
   cp "$ROOT/contracts/fixtures/manifest/$JUDGE.garden.json" \
      "$repo/.plotplot/beds/$JUDGE/garden.json" \
     || fail "could not copy the $JUDGE manifest"
-  cat > "$repo/.plotplot/beds/$JUDGE/SKILL.md" <<'SKILL'
+  mkdir -p "$repo/.plotplot/beds/$JUDGE/artifact"
+  cat > "$repo/.plotplot/beds/$JUDGE/artifact/SKILL.md" <<'SKILL'
 ---
 name: weeder
 description: The judge of the diff. Reads what an agent produced and refuses deleted tests, stubs and secrets before they land, as SARIF.
