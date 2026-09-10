@@ -1,17 +1,25 @@
 {
-  "generated": "2026-09-08",
-  "note": "this file is read by contracts/test/pins.test.sh and contracts/test/sarif.test.sh; a change to either value below is a change to what this repository asserts the garden speaks, not a value either test invents",
+  "generated": "2026-09-10",
+  "note": "read by contracts/test/pins.test.sh and contracts/test/sarif.test.sh; each pin names the repository, file and commit it was read from, so the test fetches that file at that commit from the platform and never from a path on one machine; a change to a version below is a change to what this repository asserts the garden speaks",
   "loop_format": {
     "owner": "tend2",
     "version": "1",
-    "source": "docs/tend2/FORMAT.md in the tend2 repository (feature-map/missoula), line 1 (\"# The loop format — contract, version 1\") and line 28's <meta name=\"loop-format\" content=\"1\"> convention",
-    "read_on": "2026-09-08"
+    "source": "FORMAT.md in jahala/tend at the pinned ref, line 1 (\"# The loop format \u2014 contract, version 1\")",
+    "read_on": "2026-09-08",
+    "repo": "jahala/tend",
+    "file": "FORMAT.md",
+    "ref": "73e3120afddb",
+    "pattern": "contract, version ([0-9]+)"
   },
   "plan_schema": {
     "owner": "pleach",
     "version": "1.1.5",
-    "source": "docs/contract/plan-schema.md in the pleach repository (pleach-v1/cayenne), line 1 (\"# `@agent-contract/plan` v1.1.5 — canonical text\"), confirmed by docs/contract/CHANGES.md's latest entry",
-    "read_on": "2026-09-08"
+    "source": "docs/contract/plan-schema.md in jahala/pleach at the pinned ref, line 1 (\"# `@agent-contract/plan` v1.1.5 \u2014 canonical text\")",
+    "read_on": "2026-09-08",
+    "repo": "jahala/pleach",
+    "file": "docs/contract/plan-schema.md",
+    "ref": "439e20228e05",
+    "pattern": "v([0-9]+\\.[0-9]+\\.[0-9]+)"
   },
   "sarif_schema": {
     "version": "2.1.0",
