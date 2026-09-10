@@ -20,6 +20,8 @@ pub const GARDEN_LOCK: &str = "garden.lock";
 pub const AGENTS_MD: &str = "AGENTS.md";
 /// The manifest file name inside a cached bed directory.
 pub const GARDEN_JSON: &str = "garden.json";
+/// Where GitHub reads code owners from; `init --github` writes the stem's region of it.
+pub const CODEOWNERS: &str = ".github/CODEOWNERS";
 
 /// `garden.lock`, the pinned judges. Committed.
 pub fn garden_lock(root: &Path) -> PathBuf {
@@ -29,6 +31,11 @@ pub fn garden_lock(root: &Path) -> PathBuf {
 /// `AGENTS.md`, which carries the garden block between its markers.
 pub fn agents_md(root: &Path) -> PathBuf {
     root.join(AGENTS_MD)
+}
+
+/// `.github/CODEOWNERS`, which carries the stem's region between its markers. Committed.
+pub fn codeowners(root: &Path) -> PathBuf {
+    root.join(CODEOWNERS)
 }
 
 /// `.githooks/`, what `core.hooksPath` is set to. Committed.

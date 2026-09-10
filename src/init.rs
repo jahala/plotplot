@@ -25,6 +25,7 @@ use crate::fetch::Https;
 use crate::harness::Harness;
 use crate::lock::{self, JudgeState, Lock};
 use crate::plant::{garden_block, gitconfig, githooks};
+use crate::platform::{self, Gh, GhCli, Unapplied, Unreachable};
 use crate::{install, layout, manifest};
 
 /// What the minimal profile plants: the judge of the diff, and nothing else
@@ -41,7 +42,8 @@ pub const NOTHING: &str = "nothing to do";
 /// Exit codes. Zero is a planted repository; the other three are the three ways this face
 /// stops, and each is a different thing for a planter to do about it.
 pub const PLANTED: i32 = 0;
-/// The command itself was wrong: a flag the run needed was not given.
+/// The command itself was wrong: a flag the run needed was not given, or `--github` was asked
+/// of a repository it cannot reach (no `gh`, or no origin on github.com).
 pub const USAGE: i32 = 2;
 /// The lock could not be resolved, so nothing was planted. Fail closed.
 pub const REFUSED: i32 = 3;
@@ -108,7 +110,7 @@ pub fn detect(root: &Path, search_path: Option<&OsStr>) -> Detected {
 }
 
 /// The first directory of `search_path` holding an executable called `name`.
-fn find_on_path(name: &str, search_path: Option<&OsStr>) -> Option<PathBuf> {
+pub(crate) fn find_on_path(name: &str, search_path: Option<&OsStr>) -> Option<PathBuf> {
     let search_path = search_path?;
     std::env::split_paths(search_path)
         .map(|directory| directory.join(name))
@@ -348,8 +350,10 @@ permissions:
   contents: read
 
 jobs:
-  check:
-    name: plotplot check --strict
+  # The ruleset plotplot applies on the default branch requires a check called {check}.
+  # Rename this job and the branch is silently unprotected; change the steps freely.
+  {check}:
+    name: {check}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -364,7 +368,8 @@ jobs:
 
       - name: plotplot check --strict
         run: plotplot check --strict
-"
+",
+        check = platform::REQUIRED_CHECK,
     )
 }
 
@@ -427,22 +432,19 @@ pub fn run(
     }
 
     match plant(root, args, &harnesses, existing) {
-        Ok(planted) => {
-            for note in &planted.notes {
-                let _ = writeln!(stderr, "{note}");
-            }
-            let lines = if planted.changed.is_empty() {
-                NOTHING.to_owned()
+        Ok(mut planted) => {
+            let stop = if args.github {
+                let gh = find_on_path(platform::GH, search_path).map(|program| GhCli { program });
+                github(
+                    root,
+                    origin_url(root).as_deref(),
+                    gh.as_ref().map(|gh| gh as &dyn Gh),
+                    &mut planted,
+                )
             } else {
-                planted.changed.join("\n")
+                None
             };
-            match writeln!(stdout, "{lines}") {
-                Ok(()) => PLANTED,
-                Err(error) => {
-                    let _ = writeln!(stderr, "stdout: {error}");
-                    FAILED
-                }
-            }
+            report(&planted, stop.as_ref(), stdout, stderr)
         }
         Err(Refusal::Unresolved(reasons)) => {
             for reason in &reasons {
@@ -459,6 +461,101 @@ pub fn run(
             FAILED
         }
     }
+}
+
+/// What `init` prints after planting, and the exit code it answers.
+///
+/// The notes first, then one line per change on stdout, or `nothing to do` when a finished
+/// run changed nothing. When `--github` stopped short, what it could not do follows on
+/// stderr, after everything the run did change.
+pub fn report(
+    planted: &Planted,
+    stop: Option<&GithubStop>,
+    stdout: &mut dyn Write,
+    stderr: &mut dyn Write,
+) -> i32 {
+    for note in &planted.notes {
+        let _ = writeln!(stderr, "{note}");
+    }
+    let lines = match (planted.changed.is_empty(), stop) {
+        (true, None) => Some(NOTHING.to_owned()),
+        (true, Some(_)) => None,
+        (false, _) => Some(planted.changed.join("\n")),
+    };
+    if let Some(lines) = lines
+        && let Err(error) = writeln!(stdout, "{lines}")
+    {
+        let _ = writeln!(stderr, "stdout: {error}");
+        return FAILED;
+    }
+    match stop {
+        None => PLANTED,
+        Some(GithubStop::Unreachable(why)) => {
+            let _ = writeln!(stderr, "--github wrote nothing: {why}");
+            USAGE
+        }
+        Some(GithubStop::Failed(error)) => {
+            let _ = writeln!(stderr, "{error}");
+            FAILED
+        }
+        Some(GithubStop::Unapplied(unapplied)) => {
+            let _ = write!(stderr, "{}", platform::unapplied_text(unapplied));
+            FAILED
+        }
+    }
+}
+
+/// How `--github` stopped short. Each is a different thing for a planter to do about it.
+#[derive(Debug)]
+pub enum GithubStop {
+    /// It could not start: no `gh` on the search path, or no origin on github.com. Nothing of
+    /// its own was written. [`USAGE`].
+    Unreachable(Unreachable),
+    /// Its region of `.github/CODEOWNERS` could not be written. [`FAILED`].
+    Failed(Error),
+    /// gh did not apply the ruleset, and said why. [`FAILED`].
+    Unapplied(Unapplied),
+}
+
+/// `--github`, after the plain planting: the stem's region of `.github/CODEOWNERS`, then the
+/// ruleset on the default branch, in that order. Each change is a line in `planted`.
+///
+/// The origin and the `gh` to call arrive as arguments: `run` reads both from around the
+/// process, and a test hands in a recorded `gh`.
+pub fn github(
+    root: &Path,
+    origin: Option<&str>,
+    gh: Option<&dyn Gh>,
+    planted: &mut Planted,
+) -> Option<GithubStop> {
+    let (gh, repository) = match platform::reach(gh, origin) {
+        Ok(reached) => reached,
+        Err(why) => return Some(GithubStop::Unreachable(why)),
+    };
+    match write_codeowners(root, &repository.owner) {
+        Ok(true) => planted.changed.push(layout::CODEOWNERS.to_owned()),
+        Ok(false) => {}
+        Err(error) => return Some(GithubStop::Failed(error)),
+    }
+    match platform::apply_ruleset(gh, &repository) {
+        Ok(Some(line)) => planted.changed.push(line),
+        Ok(None) => {}
+        Err(unapplied) => return Some(GithubStop::Unapplied(unapplied)),
+    }
+    None
+}
+
+/// The stem's region of `.github/CODEOWNERS` for `owner`, and every other line of that file
+/// left alone. Whether the bytes moved.
+fn write_codeowners(root: &Path, owner: &str) -> Result<bool> {
+    let path = layout::codeowners(root);
+    let existing = match std::fs::read_to_string(&path) {
+        Ok(existing) => existing,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
+        Err(source) => return Err(Error::Io { path, source }),
+    };
+    let planted = platform::codeowners_in(&existing, &platform::codeowners_region(owner))?;
+    write_if_changed(&path, planted.as_bytes())
 }
 
 /// The two ways planting stops, which are two different exit codes.
@@ -700,7 +797,7 @@ fn write_own_manifest(root: &Path, planted: &mut Planted) -> Result<()> {
 
 /// The url of `origin`, or `None` when the repository has no such remote. A repository with
 /// no remote is not a failure; it is a repository that has not been pushed anywhere.
-fn origin_url(root: &Path) -> Option<String> {
+pub(crate) fn origin_url(root: &Path) -> Option<String> {
     let output = std::process::Command::new("git")
         .arg("-C")
         .arg(root)
@@ -1047,6 +1144,30 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
     }
 
     #[test]
+    fn the_workflows_job_is_named_the_check_the_ruleset_requires() {
+        for text in [workflow(false), workflow(true)] {
+            assert!(
+                text.contains(&format!(
+                    "\n  {check}:\n    name: {check}\n",
+                    check = platform::REQUIRED_CHECK
+                )),
+                "{text}"
+            );
+            // The command the job runs may change without touching the ruleset; it is a step.
+            assert!(
+                text.contains(
+                    "      - name: plotplot check --strict\n        run: plotplot check --strict\n"
+                ),
+                "{text}"
+            );
+            assert!(
+                !text.contains("    name: plotplot check --strict\n"),
+                "{text}"
+            );
+        }
+    }
+
+    #[test]
     fn the_stems_own_repository_builds_the_stem_from_its_checkout() {
         let own = workflow(true);
         assert!(own.contains("cargo install --locked --path ."), "{own}");
@@ -1131,5 +1252,185 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
         let tmp = tempfile::tempdir().expect("a temp directory");
         let detected = detect(tmp.path(), None);
         assert!(detected.on_path.is_empty());
+    }
+
+    // ------------------------------------------------------------------ --github
+
+    use crate::platform::recorded::Recorded;
+    use crate::platform::{Ran, Unreachable};
+
+    const GITHUB: &str = "https://github.com/example-owner/example-repo.git";
+    const LIST: &str = "repos/example-owner/example-repo/rulesets";
+
+    /// What `report` wrote on each stream, and the code it answered.
+    fn reported(planted: &Planted, stop: Option<&GithubStop>) -> (i32, String, String) {
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let code = report(planted, stop, &mut stdout, &mut stderr);
+        (
+            code,
+            String::from_utf8(stdout).expect("utf-8"),
+            String::from_utf8(stderr).expect("utf-8"),
+        )
+    }
+
+    #[test]
+    fn github_writes_the_region_then_applies_the_ruleset_and_names_both() {
+        let root = tempfile::tempdir().expect("a temp root");
+        let gh = Recorded::default()
+            .answer("GET", LIST, "[]")
+            .answer("POST", LIST, r#"{"id":41}"#);
+        let mut planted = Planted::default();
+
+        let stop = github(root.path(), Some(GITHUB), Some(&gh), &mut planted);
+        assert!(stop.is_none(), "{stop:?}");
+        assert_eq!(
+            planted.changed,
+            [
+                layout::CODEOWNERS.to_owned(),
+                "ruleset \"plotplot: the default branch\" applied on example-owner/example-repo"
+                    .to_owned(),
+            ]
+        );
+        let codeowners =
+            std::fs::read_to_string(layout::codeowners(root.path())).expect("CODEOWNERS");
+        assert!(
+            codeowners.contains("/garden.lock @example-owner\n"),
+            "{codeowners}"
+        );
+
+        // The second run: the region is already there and the ruleset already says this.
+        let gh = Recorded::default()
+            .answer(
+                "GET",
+                LIST,
+                r#"[{"id":41,"name":"plotplot: the default branch"}]"#,
+            )
+            .answer(
+                "GET",
+                "repos/example-owner/example-repo/rulesets/41",
+                &crate::platform::ruleset_body(),
+            );
+        let mut again = Planted::default();
+        assert!(github(root.path(), Some(GITHUB), Some(&gh), &mut again).is_none());
+        assert!(again.changed.is_empty(), "{:?}", again.changed);
+        assert!(gh.writes().is_empty(), "{:?}", gh.calls());
+        assert_eq!(
+            reported(&again, None),
+            (PLANTED, "nothing to do\n".to_owned(), String::new())
+        );
+    }
+
+    #[test]
+    fn a_failing_call_prints_ghs_own_words_after_the_changed_lines_and_answers_failed() {
+        let root = tempfile::tempdir().expect("a temp root");
+        let gh = Recorded::default().answer("GET", LIST, "[]").ran(
+            "POST",
+            LIST,
+            Ran {
+                code: 1,
+                stdout:
+                    "{\"message\":\"Resource not accessible by integration\",\"status\":\"403\"}"
+                        .to_owned(),
+                stderr: "gh: Resource not accessible by integration (HTTP 403)\n".to_owned(),
+            },
+        );
+        let mut planted = Planted {
+            changed: vec!["AGENTS.md".to_owned()],
+            notes: vec!["a note".to_owned()],
+        };
+
+        let stop = github(root.path(), Some(GITHUB), Some(&gh), &mut planted);
+        assert!(matches!(stop, Some(GithubStop::Unapplied(_))), "{stop:?}");
+        // What was planted before the refusal stays planted.
+        assert!(layout::codeowners(root.path()).is_file());
+
+        let (code, stdout, stderr) = reported(&planted, stop.as_ref());
+        assert_eq!(code, FAILED);
+        assert_eq!(stdout, "AGENTS.md\n.github/CODEOWNERS\n");
+        assert_eq!(
+            stderr,
+            "a note\n\
+             gh api -X POST repos/example-owner/example-repo/rulesets could not be applied:\n\
+             gh: Resource not accessible by integration (HTTP 403)\n\
+             {\"message\":\"Resource not accessible by integration\",\"status\":\"403\"}\n"
+        );
+    }
+
+    #[test]
+    fn without_gh_github_refuses_with_usage_and_writes_nothing_of_its_own() {
+        let root = tempfile::tempdir().expect("a temp root");
+        let mut planted = Planted {
+            changed: vec!["garden.lock".to_owned()],
+            notes: Vec::new(),
+        };
+        let stop = github(root.path(), Some(GITHUB), None, &mut planted);
+        assert!(
+            matches!(stop, Some(GithubStop::Unreachable(Unreachable::NoGh))),
+            "{stop:?}"
+        );
+        assert!(!layout::codeowners(root.path()).exists());
+
+        let (code, stdout, stderr) = reported(&planted, stop.as_ref());
+        assert_eq!(code, USAGE);
+        assert_eq!(
+            stdout, "garden.lock\n",
+            "the plain planting is still reported"
+        );
+        assert_eq!(stderr.lines().count(), 1, "{stderr}");
+        assert!(stderr.contains("gh is not on PATH"), "{stderr}");
+    }
+
+    #[test]
+    fn an_origin_off_github_refuses_with_usage_and_asks_gh_nothing() {
+        let root = tempfile::tempdir().expect("a temp root");
+        let gh = Recorded::default();
+        let mut planted = Planted::default();
+        let stop = github(
+            root.path(),
+            Some("https://example.invalid/jahala/fixture.git"),
+            Some(&gh),
+            &mut planted,
+        );
+        assert!(
+            matches!(
+                stop,
+                Some(GithubStop::Unreachable(Unreachable::NotGithub { .. }))
+            ),
+            "{stop:?}"
+        );
+        assert!(gh.calls().is_empty(), "{:?}", gh.calls());
+        assert!(!layout::codeowners(root.path()).exists());
+
+        let (code, stdout, stderr) = reported(&planted, stop.as_ref());
+        assert_eq!(code, USAGE);
+        assert!(stdout.is_empty(), "{stdout}");
+        assert_eq!(stderr.lines().count(), 1, "{stderr}");
+        assert!(stderr.contains("example.invalid"), "{stderr}");
+        assert!(stderr.contains("github.com"), "{stderr}");
+    }
+
+    #[test]
+    fn a_codeowners_with_broken_markers_is_refused_before_any_call() {
+        let root = tempfile::tempdir().expect("a temp root");
+        let path = layout::codeowners(root.path());
+        std::fs::create_dir_all(path.parent().expect("a parent")).expect("the directory");
+        std::fs::write(&path, "# plotplot:begin\n* @someone\n").expect("a broken region");
+        let gh = Recorded::default();
+        let mut planted = Planted::default();
+
+        let stop = github(root.path(), Some(GITHUB), Some(&gh), &mut planted);
+        assert!(
+            matches!(stop, Some(GithubStop::Failed(Error::Codeowners { .. }))),
+            "{stop:?}"
+        );
+        assert!(gh.calls().is_empty(), "{:?}", gh.calls());
+        assert_eq!(
+            std::fs::read_to_string(&path).expect("the file"),
+            "# plotplot:begin\n* @someone\n"
+        );
+        let (code, _, stderr) = reported(&planted, stop.as_ref());
+        assert_eq!(code, FAILED);
+        assert!(stderr.starts_with(layout::CODEOWNERS), "{stderr}");
     }
 }
