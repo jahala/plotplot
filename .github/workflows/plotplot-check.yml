@@ -23,9 +23,8 @@ jobs:
           fetch-depth: 0
 
       - name: plant the stem
-        # plotplot has no release yet, so this builds it from the umbrella's default branch.
-        # Name a tag here once a season is tagged.
-        run: cargo install --locked --git https://github.com/jahala/plotplot plotplot
+        # This repository is the stem's own, so the gate builds it from the checkout.
+        run: cargo install --locked --path .
 
       - name: resolve the pinned judges
         run: plotplot lock verify
