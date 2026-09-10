@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>payoff · plotplot</title>
+<link rel="stylesheet" href="./loop.css">
+<body>
+<noscript>This page renders its markdown payload with JavaScript — enable JS, or read the raw payload in the page source.</noscript>
+<script type="text/markdown" id="loop">
+# payoff — does the harness pay for itself
+**Goal.** One measurement, planted against bare, on copeca's corpus, with the kill criteria written before the run: cost per correct answer on non-trivial and trivial tasks, the control delta, interventions per task. The plan is `docs/plans/harness-payoff-experiment.md`. If the planted arm does not win where it should and hold where it must, the stem's default profile is wrong and the harness loop waits.
+
+## Tests
+- [ ] (code) `scenarios/harness-payoff.yaml` in copeca validates, names two modes that differ in exactly one variable (the planted setup and the stem's Claude Code bundle overlay), and `copeca validate` accepts it · scripts/fit/payoff.sh scenario
+- [ ] (code) the planted arm's validity gate reads the worktree's friction journal and refuses a result whose journal holds no hook event, proven on a fixture run with the bundle removed · scripts/fit/payoff.sh validity
+- [ ] (code) a first slice of twenty tasks across the four categories and the control set has run in both arms, three repetitions each, and `copeca analyze` reports cost per correct answer per arm per set with intervals and the control delta · scripts/fit/payoff.sh slice
+- [ ] (code) hook latency per tool call at the median, read from the harness's own timing in the friction journal, is under one second in the planted arm · scripts/fit/payoff.sh latency
+- [ ] (code) the results artifact is committed under docs/research/harness-payoff-2026-09/ with copeca's integrity manifest and `copeca verify` passes on it · scripts/fit/payoff.sh artifact
+- [ ] (human) the owner reads the result against the kill criteria and records the decision on the stem's default profile in this loop's Tried
+
+## Needs #stem
+
+## Tried
+- 2026-09-10 shaped after wave one's landings and the owner's question about efficiency; copeca's corpus and its mode types (`setup`, `agent_config`) already carry everything the two arms need, so no task minting and no new tool stands in front of the run
+- 2026-09-10 the orient experiment (issue 3) becomes a third arm on the same scenario once this one has a baseline, not a separate run
+</script>
+<script src="./loop.js"></script>
