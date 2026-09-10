@@ -513,7 +513,7 @@ fn codex_is_told_that_its_hooks_wait_on_project_trust() {
 // ---------------------------------------------------- 6. the git hooks and git config
 
 #[test]
-fn the_four_git_hooks_are_written_executable_and_git_is_pointed_at_them() {
+fn the_five_git_hooks_are_written_executable_and_git_is_pointed_at_them() {
     let (_tmp, root, _template, _home) = planted();
 
     for hook in plotplot::bed::GitHook::ALL {
@@ -525,18 +525,14 @@ fn the_four_git_hooks_are_written_executable_and_git_is_pointed_at_them() {
         git_config(&root, "core.hooksPath"),
         vec![layout::GITHOOKS_DIR.to_owned()]
     );
-    assert!(
-        git_config(&root, "remote.origin.fetch")
-            .iter()
-            .any(|value| value.contains("refs/notes/plotplot/receipts")),
-        "the receipts ref is fetched"
-    );
-    assert!(
-        git_config(&root, "remote.origin.push")
-            .iter()
-            .any(|value| value.contains("refs/notes/plotplot/receipts")),
-        "the receipts ref is pushed"
-    );
+    for key in ["remote.origin.fetch", "remote.origin.push"] {
+        assert!(
+            git_config(&root, key)
+                .iter()
+                .all(|value| !value.contains("refs/notes/plotplot/receipts")),
+            "{key} carries the receipts ref: a fetch refspec for an absent ref fails every fetch, a push refspec sends the ref alone"
+        );
+    }
 }
 
 // ------------------------------------------- 7. the garden block and the own manifest

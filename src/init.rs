@@ -591,17 +591,30 @@ fn write_git_hooks(root: &Path, beds: &[crate::bed::Bed], planted: &mut Planted)
     Ok(())
 }
 
-/// `core.hooksPath` and the two receipts refspecs.
+/// `core.hooksPath`, and the receipts ref by name when origin has it.
 fn write_git_config(root: &Path, planted: &mut Planted) -> Result<()> {
     let desired = gitconfig::desired(root);
     let current = gitconfig::read(root)?;
     let missing = gitconfig::missing(&desired, &current);
-    if missing.is_empty() {
-        return Ok(());
+    if !missing.is_empty() {
+        gitconfig::apply(root, &missing)?;
+        for (key, value) in missing {
+            planted.changed.push(format!("{key} {value}"));
+        }
     }
-    gitconfig::apply(root, &missing)?;
-    for (key, value) in missing {
-        planted.changed.push(format!("{key} {value}"));
+    // The receipts ref travels when asked, never by a refspec: bring it now when origin has
+    // it, so a fresh clone carries the receipts its history was sealed with.
+    match gitconfig::fetch_receipts(root)? {
+        gitconfig::Receipts::Fetched => planted
+            .changed
+            .push(format!("{} fetched from origin", gitconfig::RECEIPTS_REF)),
+        gitconfig::Receipts::Unreachable(why) => planted.notes.push(format!(
+            "origin could not be asked for {}, so no receipts were fetched: {why}",
+            gitconfig::RECEIPTS_REF
+        )),
+        gitconfig::Receipts::AlreadyHere
+        | gitconfig::Receipts::NoneOnRemote
+        | gitconfig::Receipts::NoOrigin => {}
     }
     Ok(())
 }

@@ -1158,21 +1158,19 @@ check_init() {
   grep -q "trust" "$tmp/first.err" \
     || { cat "$tmp/first.err" >&2; fail "init did not say that codex waits on project trust"; }
 
-  # 7. The git law: the four hooks, runnable, and the configuration that runs them.
+  # 7. The git law: the five hooks, runnable, and the configuration that runs them.
   local hook
-  for hook in pre-commit pre-push pre-rebase post-commit; do
+  for hook in pre-commit commit-msg pre-push pre-rebase post-commit; do
     [ -f "$repo/.githooks/$hook" ] || fail "init wrote no .githooks/$hook"
     [ -x "$repo/.githooks/$hook" ] || fail ".githooks/$hook is not executable"
   done
   [ "$(git -C "$repo" config --local core.hooksPath)" = ".githooks" ] \
     || fail "core.hooksPath is \"$(git -C "$repo" config --local core.hooksPath)\", not .githooks"
-  git -C "$repo" config --local --get-all remote.origin.fetch \
-    | grep -q '^+refs/notes/plotplot/receipts:refs/notes/plotplot/receipts$' \
-    || fail "the receipts fetch refspec is not set"
-  git -C "$repo" config --local --get-all remote.origin.push \
-    | grep -q '^refs/notes/plotplot/receipts:refs/notes/plotplot/receipts$' \
-    || fail "the receipts push refspec is not set"
-  note "git: core.hooksPath .githooks, four runnable hooks, both receipts refspecs"
+  if { git -C "$repo" config --local --get-all remote.origin.fetch; git -C "$repo" config --local --get-all remote.origin.push; } 2>/dev/null \
+      | grep -q 'refs/notes/plotplot/receipts'; then
+    fail "init set a refspec for the receipts ref; a fetch refspec fails every fetch until the ref exists and a push refspec sends the ref alone"
+  fi
+  note "git: core.hooksPath .githooks, five runnable hooks, no refspec for the receipts ref"
 
   # 8. The gate every pull request passes, on a hosted runner and no other.
   local workflow="$repo/.github/workflows/plotplot-check.yml"

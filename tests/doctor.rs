@@ -181,7 +181,7 @@ fn seed_judges(root: &Path) {
 }
 
 /// A repository planted end to end: everything `seeded` writes, plus the three bundles from
-/// `bundle build`, the four git hooks, the garden block and the git configuration.
+/// `bundle build`, the five git hooks, the garden block and the git configuration.
 ///
 /// The home directory comes back with it because `doctor` reads Codex's trust from there,
 /// and a temporary one is what keeps the build machine's own Codex out of the test.
@@ -508,17 +508,30 @@ fn an_unset_hooks_path_fails_its_check() {
 }
 
 #[test]
-fn a_missing_receipts_refspec_fails_its_check() {
+fn a_receipts_refspec_in_the_config_fails_the_receipts_check() {
     let (root, home) = planted();
     git(
         root.path(),
-        &["config", "--unset-all", "remote.origin.push"],
+        &[
+            "config",
+            "--add",
+            "remote.origin.fetch",
+            "+refs/notes/plotplot/receipts:refs/notes/plotplot/receipts",
+        ],
     );
 
     let (code, rows) = doctor(root.path(), home.path());
     assert_eq!(code, 3);
-    only_failure(&rows, "receipts refspec");
-    assert!(detail(&rows, "receipts refspec").contains("push"));
+    only_failure(&rows, "receipts ref");
+    assert!(detail(&rows, "receipts ref").contains("fails every fetch"));
+}
+
+#[test]
+fn no_receipt_yet_is_reported_and_is_not_a_fault() {
+    let (root, home) = planted();
+    let (code, rows) = doctor(root.path(), home.path());
+    assert_eq!(code, 0);
+    assert!(detail(&rows, "receipts ref").contains("no receipt"));
 }
 
 #[test]

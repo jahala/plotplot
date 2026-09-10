@@ -1,4 +1,4 @@
-//! The four git hooks a planted repository carries under `core.hooksPath`.
+//! The five git hooks a planted repository carries under `core.hooksPath`.
 //!
 //! These are the boundary: the place where a claim stops being a claim because git refuses
 //! the commit. So the scripts are POSIX `sh` with no interpreter to install, they resolve
@@ -6,8 +6,9 @@
 //! they call judges only through `.plotplot/bin/` so the version that judged is the version
 //! the lock names, and they exit on the first refusal rather than collecting opinions.
 //!
-//! A hook no bed declared is still written, so `core.hooksPath` holds four files and
-//! `doctor` has four files to check.
+//! A hook no bed declared is still written, so `core.hooksPath` holds five files and
+//! `doctor` has five files to check. `commit-msg` is where a commit's message first exists,
+//! and so where a bed can read a `Weeder-allow` trailer (contracts v1.4.0).
 
 use crate::bed::{Bed, GitHook};
 use crate::layout;
@@ -25,7 +26,7 @@ fn bin_dir() -> String {
 ///
 /// Only the beds that declared this hook and carry a binary appear, in the order they are
 /// given. `post-commit` seals the receipt first and runs those beds after it; the other
-/// three hooks run the beds alone.
+/// four hooks run the beds alone, `commit-msg` with the message file git hands it.
 pub fn render(hook: GitHook, beds: &[Bed]) -> String {
     let name = hook.file_name();
     let guards: Vec<&str> = beds
@@ -243,6 +244,6 @@ mod tests {
             .collect();
         scripts.sort();
         scripts.dedup();
-        assert_eq!(scripts.len(), 4);
+        assert_eq!(scripts.len(), 5);
     }
 }

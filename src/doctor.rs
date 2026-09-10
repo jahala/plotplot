@@ -38,7 +38,7 @@ pub const CHECKS: [&str; 9] = [
     "core.hooksPath",
     "git hooks",
     "garden block",
-    "receipts refspec",
+    "receipts ref",
     "judges",
     "codex trust",
 ];
@@ -172,7 +172,7 @@ pub fn run_static(root: &Path, home: &Path) -> Result<Vec<Finding>> {
         hooks_path(&configured),
         git_hooks(root, &beds)?,
         block(root, &lock, &beds)?,
-        receipts_refspec(root, &configured),
+        receipts_ref(root)?,
         judges(root, &lock, &beds)?,
         codex_trust(root, home)?,
     ])
@@ -323,8 +323,8 @@ fn commands(groups: &Value) -> Vec<String> {
         .collect()
 }
 
-/// `core.hooksPath` points at `.githooks`, which is what makes those four files the law
-/// rather than four files nobody runs.
+/// `core.hooksPath` points at `.githooks`, which is what makes those five files the law
+/// rather than five files nobody runs.
 fn hooks_path(configured: &[(String, String)]) -> Finding {
     let held: Vec<&str> = values(configured, gitconfig::HOOKS_PATH_KEY);
     if held.contains(&layout::GITHOOKS_DIR) {
@@ -345,7 +345,7 @@ fn hooks_path(configured: &[(String, String)]) -> Finding {
     }
 }
 
-/// All four hook files are there, runnable, and still what the stem renders for these beds.
+/// All five hook files are there, runnable, and still what the stem renders for these beds.
 fn git_hooks(root: &Path, beds: &[Bed]) -> Result<Finding> {
     let mut problems = Vec::new();
     for hook in GitHook::ALL {
@@ -417,26 +417,51 @@ fn block(root: &Path, lock: &Lock, beds: &[Bed]) -> Result<Finding> {
     })
 }
 
-/// Both refspecs carry the receipts ref, without which a receipt never leaves the machine
-/// that wrote it.
-fn receipts_refspec(root: &Path, configured: &[(String, String)]) -> Finding {
-    let wanted = gitconfig::desired(root);
-    let problems: Vec<String> = gitconfig::missing(&wanted, configured)
-        .into_iter()
-        .filter(|(key, _)| key == gitconfig::FETCH_KEY || key == gitconfig::PUSH_KEY)
-        .map(|(key, _)| format!("{key} does not carry {}", gitconfig::RECEIPTS_REF))
+/// The receipts ref: present once a receipt has been sealed or fetched, and honestly absent
+/// before the first one. Neither is a fault. A refspec carrying the ref is one (see
+/// `gitconfig::desired`), and is reported.
+fn receipts_ref(root: &Path) -> Result<Finding> {
+    let refspecs = gitconfig::read_keys(
+        root,
+        &[
+            gitconfig::FETCH_KEY.to_owned(),
+            gitconfig::PUSH_KEY.to_owned(),
+        ],
+    )?;
+    let problems: Vec<String> = refspecs
+        .iter()
+        .filter(|(key, value)| {
+            (key == gitconfig::FETCH_KEY || key == gitconfig::PUSH_KEY)
+                && value.contains(gitconfig::RECEIPTS_REF)
+        })
+        .map(|(key, _)| {
+            format!(
+                "{key} carries {}, which fails every fetch or push until the ref exists on the \
+                 remote; unset it, the stem moves the ref by name",
+                gitconfig::RECEIPTS_REF
+            )
+        })
         .collect();
-
-    verdict(
-        CHECKS[6],
-        problems,
+    let detail = if git_ref_exists(root, gitconfig::RECEIPTS_REF) {
+        format!("{} is here", gitconfig::RECEIPTS_REF)
+    } else {
         format!(
-            "{} and {} carry {}",
-            gitconfig::FETCH_KEY,
-            gitconfig::PUSH_KEY,
+            "no receipt sealed or fetched yet; {} appears with the first",
             gitconfig::RECEIPTS_REF
-        ),
-    )
+        )
+    };
+    Ok(verdict(CHECKS[6], problems, detail))
+}
+
+/// Whether git resolves `reference` in this repository, packed or loose.
+fn git_ref_exists(root: &Path, reference: &str) -> bool {
+    std::process::Command::new("git")
+        .arg("-C")
+        .arg(root)
+        .args(["show-ref", "--verify", "--quiet", reference])
+        .status()
+        .map(|status| status.success())
+        .unwrap_or(false)
 }
 
 /// What a judge is called under `.plotplot/bin/`: the file name its cached manifest declares
@@ -660,7 +685,7 @@ mod tests {
         vec![
             ok("bundles", "three bundles"),
             fail("stem binary", "gemini: no bin/plotplot"),
-            ok("receipts refspec", "both refspecs"),
+            ok("receipts ref", "no receipt yet"),
         ]
     }
 
@@ -673,7 +698,7 @@ mod tests {
     #[test]
     fn the_verdicts_and_the_details_each_start_in_one_column() {
         let table = render(&findings());
-        let widest = "receipts refspec".len();
+        let widest = "receipts ref".len();
 
         for line in table.lines() {
             assert_eq!(verdict_column(line), widest + 2, "{line:?}");
@@ -689,11 +714,11 @@ mod tests {
     fn a_failing_check_reads_fail_and_a_passing_one_reads_ok() {
         let table = render(&findings());
         assert!(
-            table.contains("bundles           ok    three bundles\n"),
+            table.contains("bundles       ok    three bundles\n"),
             "{table}"
         );
         assert!(
-            table.contains("stem binary       fail  gemini: no bin/plotplot\n"),
+            table.contains("stem binary   fail  gemini: no bin/plotplot\n"),
             "{table}"
         );
     }

@@ -469,13 +469,13 @@ fn a_hook_whose_judge_was_never_fetched_refuses_rather_than_passing() {
 // ------------------------------------------------------------------ gitconfig
 
 #[test]
-fn a_fresh_repository_holds_none_of_the_three_keys() {
+fn a_fresh_repository_holds_none_of_the_keys() {
     let repo = repository();
     let current = gitconfig::read(repo.path()).expect("a repository git can read");
     assert!(current.is_empty(), "{current:?}");
     assert_eq!(
         gitconfig::missing(&gitconfig::desired(repo.path()), &current).len(),
-        3
+        1
     );
 }
 
@@ -501,7 +501,7 @@ fn applying_the_desired_configuration_writes_all_three_and_repeats_without_dupli
 }
 
 #[test]
-fn the_receipts_refspec_joins_the_remotes_own_without_replacing_it() {
+fn applying_the_desired_entries_leaves_the_remotes_own_refspec_alone_and_adds_none() {
     let repo = tempfile::tempdir().expect("a temporary directory");
     git(repo.path(), &["init", "--quiet"]);
     git(
@@ -518,12 +518,14 @@ fn the_receipts_refspec_joins_the_remotes_own_without_replacing_it() {
 
     gitconfig::apply(repo.path(), &gitconfig::desired(repo.path())).expect("git accepts it");
 
+    // No refspec for the receipts ref, in either direction: a fetch refspec for a ref the
+    // remote lacks fails every fetch, and a push refspec makes git push send that ref alone.
     let fetch = values(repo.path(), "remote.origin.fetch");
-    assert_eq!(fetch.len(), 2, "{fetch:?}");
-    assert_eq!(fetch[0], heads[0]);
-    assert!(
-        fetch[1].contains("refs/notes/plotplot/receipts"),
-        "{fetch:?}"
+    assert_eq!(fetch, heads, "{fetch:?}");
+    assert!(values(repo.path(), "remote.origin.push").is_empty());
+    assert_eq!(
+        values(repo.path(), "core.hooksPath"),
+        vec![".githooks".to_owned()]
     );
 }
 
