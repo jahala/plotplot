@@ -112,6 +112,11 @@ already open: tend 157, 158, 167, 169, 175, 183 and 184; pleach 61, 63, 64, 66, 
   the plan's setup now runs `plotplot lock verify` first. A refused commit should quarantine
   the tree with the hook's words, never lose it (pleach 96; the hook's wording is
   plotplot 30).
+- 2026-09-11 `pleach land` refused the fourth run's two closed nodes as "land conflict on
+  node/stem.platform" with an empty file list, on a branch one commit past the nodes' base;
+  `git merge --no-ff node/stem.platform` by hand was clean, 17 files. Either land wants the
+  branch still on the base and should say so, or its conflict detection is wrong; either way
+  it names no file (pleach 98).
 
 ## umbel
 

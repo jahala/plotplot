@@ -1,0 +1,14 @@
+# plotplot:begin
+/.githooks/ @jahala
+/garden.lock @jahala
+/garden.json @jahala
+/AGENTS.md @jahala
+/CLAUDE.md @jahala
+/weeder.toml @jahala
+/.claude/settings.json @jahala
+/.gemini/settings.json @jahala
+/.codex/hooks.json @jahala
+/.github/workflows/plotplot-check.yml @jahala
+/.github/CODEOWNERS @jahala
+/docs/tend2/ @jahala
+# plotplot:end
