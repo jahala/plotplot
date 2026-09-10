@@ -48,9 +48,11 @@ gate retries, 4 aborted runs, 4 quarantines; pleach's ten runs had none of those
   `telemetry` field is empty, because umbel does not report a worker's usage to pleach. The
   casting ledger's cost per verified claim therefore rests on durations alone. Filed as
   jahala/umbel 78 with a note on pleach 81.
-- **The stem.** Its conducted runs did not write to the journal in its own repository's git
-  directory; the umbrella agent has asked where they went, and the stem's forty-odd nodes are
-  missing from the tables above.
+- **The stem.** Its journal lost its first nineteen nodes between 2026-09-09 and 2026-09-10 by a
+  cause nobody can name (jahala/pleach 97); their close receipts survived beside it and say: nineteen
+  nodes, every one closed on its first attempt, all Claude Opus 5, durations from under a minute to
+  49 minutes with a median of 11. They are not in the tables above because a receipt carries no
+  date the tables can key on.
 - **Improvement of the tools on the work.** The nodes are different tasks in different tools
   on different days; a fall in attempts or minutes cannot be attributed to a tool change without
   a fixed task set run before and after it. That is the experiment the garden withdrew for want
