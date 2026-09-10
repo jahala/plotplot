@@ -1,0 +1,61 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "subject": [
+    {
+      "name": "github.com/jahala/plotplot",
+      "digest": {
+        "gitCommit": "b6643b8a1a7fec2e66cba18303c1642b7bcf67f8",
+        "gitTree": "290643ebf27265b5fca664ae42dac5efd6ae8f45"
+      }
+    }
+  ],
+  "predicateType": "https://plotplot.ai/receipt/v1",
+  "predicate": {
+    "producer": {
+      "name": "plotplot",
+      "version": "0.1.0"
+    },
+    "createdAt": "2026-09-10T10:15:17.096Z",
+    "harness": null,
+    "models": null,
+    "principal": null,
+    "sessions": [],
+    "conductor": null,
+    "changed": [
+      ".claude/settings.json",
+      ".codex/hooks.json",
+      ".gemini/settings.json",
+      ".githooks/commit-msg",
+      ".githooks/post-commit",
+      ".githooks/pre-commit",
+      ".githooks/pre-push",
+      ".githooks/pre-rebase",
+      ".github/workflows/plotplot-check.yml",
+      "AGENTS.md",
+      "garden.json",
+      "garden.lock"
+    ],
+    "verification": {
+      "weeder": {
+        "sarif": {
+          "sha256": "eb72d44e69c8bdb8e8d8475b27edff160f3bdee628ab94bbe939617a6a32d49b"
+        },
+        "block": 0,
+        "warn": 0
+      },
+      "tend2": [],
+      "pleach": null,
+      "commands": []
+    },
+    "cost": {
+      "inputTokens": null,
+      "outputTokens": null,
+      "wallSeconds": null,
+      "toolCalls": {}
+    },
+    "friction": {
+      "summary": null
+    }
+  }
+}
+sha256: 94a7f7343abe620cfbc65d5fcacfad0878dac30a8452566458be37ff2348b745
