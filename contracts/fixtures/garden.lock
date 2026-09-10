@@ -1,25 +1,29 @@
 # Every digest here is a published GitHub release asset digest, read from the platform on
-# 2026-09-08 (tilth) and 2026-09-09 (weeder v0.2.1, the release whose guard recognises a stem-installed hook).
+# 2026-09-08 (tilth) and 2026-09-09 (weeder v0.2.2, the first release with all five platforms).
 season = "2026.09"
 
 [judges.weeder]
-version = "0.2.1"
+version = "0.2.2"
 
 [judges.weeder.platforms."aarch64-apple-darwin"]
-url = "https://github.com/jahala/weeder/releases/download/v0.2.1/weeder-aarch64-apple-darwin.tar.gz"
-sha256 = "4f57938b91b93300fc146c884dab7895f6911510901c4972b9fca23bd908e316"
+url = "https://github.com/jahala/weeder/releases/download/v0.2.2/weeder-aarch64-apple-darwin.tar.gz"
+sha256 = "5222f54117a8443ece0e68975b55fadf4663b13dd0d2f0af383a5539034d37e2"
 
 [judges.weeder.platforms."aarch64-unknown-linux-musl"]
-url = "https://github.com/jahala/weeder/releases/download/v0.2.1/weeder-aarch64-unknown-linux-musl.tar.gz"
-sha256 = "e99c956a567909639b1f95c4f2e3b416f231e493877e71d3ee40a5e074e0830d"
+url = "https://github.com/jahala/weeder/releases/download/v0.2.2/weeder-aarch64-unknown-linux-musl.tar.gz"
+sha256 = "fe5ed5d9fb0f1ae4e79624d3fc5b85c25e9579be411a220fc549230928caf564"
 
 [judges.weeder.platforms."x86_64-apple-darwin"]
-url = "https://github.com/jahala/weeder/releases/download/v0.2.1/weeder-x86_64-apple-darwin.tar.gz"
-sha256 = "575ee35d201c707fa30b799bcca2396787aec3d2215916022b183aa350a11f72"
+url = "https://github.com/jahala/weeder/releases/download/v0.2.2/weeder-x86_64-apple-darwin.tar.gz"
+sha256 = "16252b57dd41fd1653722a3e3aba65b37db8ee95a6f618e235de71d27f769a97"
 
 [judges.weeder.platforms."x86_64-unknown-linux-musl"]
-url = "https://github.com/jahala/weeder/releases/download/v0.2.1/weeder-x86_64-unknown-linux-musl.tar.gz"
-sha256 = "52390fec016615acbb3cea07c9b0c6fd1adc0cdee36d70d5ba68e6a99e8ba168"
+url = "https://github.com/jahala/weeder/releases/download/v0.2.2/weeder-x86_64-unknown-linux-musl.tar.gz"
+sha256 = "605e7e5aea3f510bb34457062ac2ae346636fd5a21b4d9b72bf571ad32c033c9"
+
+[judges.weeder.platforms."x86_64-pc-windows-msvc"]
+url = "https://github.com/jahala/weeder/releases/download/v0.2.2/weeder-x86_64-pc-windows-msvc.tar.gz"
+sha256 = "8673d5d3f0531761956556948949b7a5d8e99a9fae2a90ed91a3abacc2866f74"
 
 [judges.tilth]
 version = "0.10.1"
