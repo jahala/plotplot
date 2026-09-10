@@ -163,15 +163,15 @@ plant_fixture() {
       || fail "could not copy the $bed manifest"
   done
 
-  # Each bed's SKILL.md where its own manifest says it is: weeder at the artifact root,
-  # tilth under skills/.
-  mkdir -p "$repo/.plotplot/beds/tilth/skills"
-  cat > "$repo/.plotplot/beds/weeder/SKILL.md" <<'SKILL'
+  # Each bed's SKILL.md where its own manifest says it is, inside the unpacked artifact:
+  # weeder at the artifact root, tilth under skills/.
+  mkdir -p "$repo/.plotplot/beds/weeder/artifact" "$repo/.plotplot/beds/tilth/artifact/skills"
+  cat > "$repo/.plotplot/beds/weeder/artifact/SKILL.md" <<'SKILL'
 # weeder
 
 The judge of the diff: reads what an agent produced and refuses dishonest growth, as SARIF.
 SKILL
-  cat > "$repo/.plotplot/beds/tilth/skills/SKILL.md" <<'SKILL'
+  cat > "$repo/.plotplot/beds/tilth/artifact/skills/SKILL.md" <<'SKILL'
 # tilth
 
 Code intelligence: tree-sitter indexed lookups, smart code reading for agents.
@@ -1025,7 +1025,8 @@ plant_init_fixture() {
   # The skill carries the front matter every harness reads a skill by: the description is
   # the one line a deferring harness loads at session start, and what the context check
   # measures.
-  cat > "$repo/.plotplot/beds/$INIT_JUDGE/SKILL.md" <<'SKILL'
+  mkdir -p "$repo/.plotplot/beds/$INIT_JUDGE/artifact"
+  cat > "$repo/.plotplot/beds/$INIT_JUDGE/artifact/SKILL.md" <<'SKILL'
 ---
 name: weeder
 description: The judge of the diff. Reads what an agent produced and refuses deleted tests, stubs and secrets before they land, as SARIF.
@@ -1157,21 +1158,19 @@ check_init() {
   grep -q "trust" "$tmp/first.err" \
     || { cat "$tmp/first.err" >&2; fail "init did not say that codex waits on project trust"; }
 
-  # 7. The git law: the four hooks, runnable, and the configuration that runs them.
+  # 7. The git law: the five hooks, runnable, and the configuration that runs them.
   local hook
-  for hook in pre-commit pre-push pre-rebase post-commit; do
+  for hook in pre-commit commit-msg pre-push pre-rebase post-commit; do
     [ -f "$repo/.githooks/$hook" ] || fail "init wrote no .githooks/$hook"
     [ -x "$repo/.githooks/$hook" ] || fail ".githooks/$hook is not executable"
   done
   [ "$(git -C "$repo" config --local core.hooksPath)" = ".githooks" ] \
     || fail "core.hooksPath is \"$(git -C "$repo" config --local core.hooksPath)\", not .githooks"
-  git -C "$repo" config --local --get-all remote.origin.fetch \
-    | grep -q '^+refs/notes/plotplot/receipts:refs/notes/plotplot/receipts$' \
-    || fail "the receipts fetch refspec is not set"
-  git -C "$repo" config --local --get-all remote.origin.push \
-    | grep -q '^refs/notes/plotplot/receipts:refs/notes/plotplot/receipts$' \
-    || fail "the receipts push refspec is not set"
-  note "git: core.hooksPath .githooks, four runnable hooks, both receipts refspecs"
+  if { git -C "$repo" config --local --get-all remote.origin.fetch; git -C "$repo" config --local --get-all remote.origin.push; } 2>/dev/null \
+      | grep -q 'refs/notes/plotplot/receipts'; then
+    fail "init set a refspec for the receipts ref; a fetch refspec fails every fetch until the ref exists and a push refspec sends the ref alone"
+  fi
+  note "git: core.hooksPath .githooks, five runnable hooks, no refspec for the receipts ref"
 
   # 8. The gate every pull request passes, on a hosted runner and no other.
   local workflow="$repo/.github/workflows/plotplot-check.yml"

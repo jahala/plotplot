@@ -1,0 +1,20 @@
+season = "2026.09"
+
+[judges.weeder]
+version = "0.2.1"
+
+[judges.weeder.platforms.aarch64-apple-darwin]
+sha256 = "4f57938b91b93300fc146c884dab7895f6911510901c4972b9fca23bd908e316"
+url = "https://github.com/jahala/weeder/releases/download/v0.2.1/weeder-aarch64-apple-darwin.tar.gz"
+
+[judges.weeder.platforms.aarch64-unknown-linux-musl]
+sha256 = "e99c956a567909639b1f95c4f2e3b416f231e493877e71d3ee40a5e074e0830d"
+url = "https://github.com/jahala/weeder/releases/download/v0.2.1/weeder-aarch64-unknown-linux-musl.tar.gz"
+
+[judges.weeder.platforms.x86_64-apple-darwin]
+sha256 = "575ee35d201c707fa30b799bcca2396787aec3d2215916022b183aa350a11f72"
+url = "https://github.com/jahala/weeder/releases/download/v0.2.1/weeder-x86_64-apple-darwin.tar.gz"
+
+[judges.weeder.platforms.x86_64-unknown-linux-musl]
+sha256 = "52390fec016615acbb3cea07c9b0c6fd1adc0cdee36d70d5ba68e6a99e8ba168"
+url = "https://github.com/jahala/weeder/releases/download/v0.2.1/weeder-x86_64-unknown-linux-musl.tar.gz"

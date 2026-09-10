@@ -41,6 +41,9 @@ pub struct HookEntry {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum GitHook {
     PreCommit,
+    /// Where a commit's message first exists, and so where a `Weeder-allow` trailer can be
+    /// read (contracts v1.4.0, the allowance doctrine).
+    CommitMsg,
     PrePush,
     PreRebase,
     PostCommit,
@@ -48,8 +51,9 @@ pub enum GitHook {
 
 impl GitHook {
     /// Every git hook the stem installs.
-    pub const ALL: [GitHook; 4] = [
+    pub const ALL: [GitHook; 5] = [
         GitHook::PreCommit,
+        GitHook::CommitMsg,
         GitHook::PrePush,
         GitHook::PreRebase,
         GitHook::PostCommit,
@@ -59,6 +63,7 @@ impl GitHook {
     pub fn file_name(self) -> &'static str {
         match self {
             GitHook::PreCommit => "pre-commit",
+            GitHook::CommitMsg => "commit-msg",
             GitHook::PrePush => "pre-push",
             GitHook::PreRebase => "pre-rebase",
             GitHook::PostCommit => "post-commit",
@@ -134,6 +139,7 @@ mod tests {
     #[test]
     fn git_hook_file_names_are_gits_own() {
         assert_eq!(GitHook::PreCommit.file_name(), "pre-commit");
+        assert_eq!(GitHook::CommitMsg.file_name(), "commit-msg");
         assert_eq!(GitHook::PrePush.file_name(), "pre-push");
         assert_eq!(GitHook::PreRebase.file_name(), "pre-rebase");
         assert_eq!(GitHook::PostCommit.file_name(), "post-commit");
@@ -144,7 +150,7 @@ mod tests {
         for hook in GitHook::ALL {
             assert_eq!(GitHook::from_file_name(hook.file_name()), Some(hook));
         }
-        assert_eq!(GitHook::ALL.len(), 4);
+        assert_eq!(GitHook::ALL.len(), 5);
         assert_eq!(GitHook::from_file_name("reference-transaction"), None);
         assert_eq!(GitHook::from_file_name("pre-receive"), None);
         assert_eq!(GitHook::from_file_name("PreCommit"), None);
@@ -155,6 +161,7 @@ mod tests {
         let mut hooks = vec![
             GitHook::PostCommit,
             GitHook::PreRebase,
+            GitHook::CommitMsg,
             GitHook::PreCommit,
             GitHook::PrePush,
         ];
@@ -163,6 +170,7 @@ mod tests {
             hooks,
             vec![
                 GitHook::PreCommit,
+                GitHook::CommitMsg,
                 GitHook::PrePush,
                 GitHook::PreRebase,
                 GitHook::PostCommit

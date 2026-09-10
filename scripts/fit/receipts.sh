@@ -8,8 +8,8 @@
 #                                    above it, and a second seal changes nothing
 #   scripts/fit/receipts.sh verify   `plotplot receipt verify --range` fails on a range with
 #                                    one receipt missing and passes when every commit carries
-#                                    one; a fresh clone fetches the receipts ref because
-#                                    `plotplot init` set the refspec
+#                                    one; a fresh clone carries the receipts ref because
+#                                    `plotplot init` fetched it by name
 #
 # Exit 0 on pass, non-zero with a reason on failure. Every check builds the crate in release
 # mode once and then works in a fresh temporary directory with HOME pointed at a temporary
@@ -167,7 +167,8 @@ place_judge() {
   cp "$ROOT/contracts/fixtures/manifest/$JUDGE.garden.json" \
      "$repo/.plotplot/beds/$JUDGE/garden.json" \
     || fail "could not copy the $JUDGE manifest"
-  cat > "$repo/.plotplot/beds/$JUDGE/SKILL.md" <<'SKILL'
+  mkdir -p "$repo/.plotplot/beds/$JUDGE/artifact"
+  cat > "$repo/.plotplot/beds/$JUDGE/artifact/SKILL.md" <<'SKILL'
 ---
 name: weeder
 description: The judge of the diff. Reads what an agent produced and refuses deleted tests, stubs and secrets before they land, as SARIF.
@@ -364,7 +365,7 @@ check_verify() {
     || { cat "$tmp/signed.out" >&2; fail "verify --require-signed did not say the receipt is unsigned"; }
   note "--require-signed: exit 3, unsigned (v0)"
 
-  # 4. Plant the fixture, so it carries the refspecs a receipt travels on.
+  # 4. Plant the fixture; a receipt travels by name, never by refspec.
   digest="$(place_judge "$repo")" || fail "could not place the judge in the fixture"
   write_template "$template" "$digest"
   note "the judge was pre-placed because $JUDGE has no release and the lock schema takes only https urls: sha256 $digest"
@@ -373,10 +374,11 @@ check_verify() {
   status=$?
   [ "$status" -eq 0 ] \
     || { cat "$tmp/init.out" "$tmp/init.err" >&2; fail "plotplot init exited $status, not 0"; }
-  git -C "$repo" config --local --get-all remote.origin.fetch \
-    | grep -q "^+$RECEIPTS_REF:$RECEIPTS_REF$" \
-    || fail "init did not set the receipts fetch refspec on the fixture"
-  note "init planted the fixture and set the receipts refspecs"
+  if { git -C "$repo" config --local --get-all remote.origin.fetch; git -C "$repo" config --local --get-all remote.origin.push; } 2>/dev/null \
+      | grep -q "$RECEIPTS_REF"; then
+    fail "init set a refspec for $RECEIPTS_REF; the ref travels by name, never by refspec"
+  fi
+  note "init planted the fixture and set no refspec: the receipts ref travels when asked"
 
   # 5. A fresh clone, which starts with git's own refspec and so without the receipts.
   git clone -q "$repo" "$clone" || fail "could not clone the fixture"
@@ -394,16 +396,18 @@ check_verify() {
   fi
   note "before init: a fetch brings the branch and not the receipts"
 
-  # 6. Planted, the clone's fetch brings the receipts, and they verify there.
+  # 6. Planted, init asks origin for the receipts by name, and they verify in the clone.
   digest="$(place_judge "$clone")" || fail "could not place the judge in the clone"
   ( cd "$clone" && HOME="$home" CODEX_HOME="$home/.codex" \
       "$STEM" init --harness gemini --lock "$template" ) >"$tmp/clone-init.out" 2>"$tmp/clone-init.err"
   status=$?
   [ "$status" -eq 0 ] \
     || { cat "$tmp/clone-init.out" "$tmp/clone-init.err" >&2; fail "plotplot init in the clone exited $status, not 0"; }
-  git -C "$clone" fetch -q origin || fail "the planted clone could not fetch its origin"
+  grep -q "^$RECEIPTS_REF fetched from origin$" "$tmp/clone-init.out" \
+    || { cat "$tmp/clone-init.out" >&2; fail "init in the clone did not report fetching $RECEIPTS_REF"; }
   git -C "$clone" show-ref --verify --quiet "$RECEIPTS_REF" \
-    || fail "the planted clone's fetch did not bring $RECEIPTS_REF"
+    || fail "init in the planted clone did not bring $RECEIPTS_REF"
+  git -C "$clone" fetch -q origin || fail "the planted clone could not fetch its origin afterwards"
 
   read_note "$repo" HEAD "$tmp/origin-note.txt"
   read_note "$clone" HEAD "$tmp/clone-note.txt"

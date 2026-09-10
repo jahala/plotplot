@@ -1,0 +1,33 @@
+# Written by plotplot init: the gate every pull request passes.
+#
+# Runs on GitHub's hosted runners and nothing else. A runner of your own, registered on a
+# public repository, lets a pull request from a fork run its own code on that machine
+# (jahala/plotplot issue 7).
+
+name: plotplot check
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: plotplot check --strict
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # A gate that judges a diff needs the base of the pull request, not one commit.
+          fetch-depth: 0
+
+      - name: plant the stem
+        # This repository is the stem's own, so the gate builds it from the checkout.
+        run: cargo install --locked --path .
+
+      - name: resolve the pinned judges
+        run: plotplot lock verify
+
+      - name: plotplot check --strict
+        run: plotplot check --strict

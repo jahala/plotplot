@@ -365,7 +365,10 @@ pub fn read_skills(root: &Path, beds: &[Bed]) -> Result<Vec<SkillFile>> {
         let Some(relative) = &bed.skill else {
             continue;
         };
-        let path = layout::bed_dir(root, &bed.name).join(relative);
+        // `faces.skill` is a path inside the release artifact, and the artifact is unpacked
+        // under the bed's `artifact/` directory by `lock verify`; the cached manifest beside
+        // it is a copy, not the artifact root.
+        let path = layout::bed_artifact(root, &bed.name).join(relative);
         let content = match fs::read_to_string(&path) {
             Ok(content) => content,
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
@@ -800,6 +803,28 @@ fn indent(depth: usize, out: &mut String) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_skill_is_read_from_the_unpacked_artifact_and_not_from_beside_the_cached_manifest() {
+        let root = tempfile::tempdir().expect("a temp root");
+        let mut weeder = bed("weeder");
+        weeder.skill = Some(PathBuf::from("SKILL.md"));
+        let beside = layout::bed_dir(root.path(), "weeder").join("SKILL.md");
+        std::fs::create_dir_all(beside.parent().expect("a bed directory"))
+            .expect("the bed directory");
+        std::fs::write(&beside, "beside the manifest").expect("a stray skill");
+        let error = read_skills(root.path(), std::slice::from_ref(&weeder))
+            .expect_err("a skill beside the cached manifest is not where the artifact keeps it");
+        assert!(error.to_string().contains("artifact"), "{error}");
+
+        let inside = layout::bed_artifact(root.path(), "weeder").join("SKILL.md");
+        std::fs::create_dir_all(inside.parent().expect("an artifact directory"))
+            .expect("the artifact directory");
+        std::fs::write(&inside, "inside the artifact").expect("the skill");
+        let skills =
+            read_skills(root.path(), std::slice::from_ref(&weeder)).expect("the skill is read");
+        assert_eq!(skills[0].content, "inside the artifact");
+    }
 
     fn bed(name: &str) -> Bed {
         Bed {

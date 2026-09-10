@@ -1,0 +1,12 @@
+#!/bin/sh
+# Written by plotplot: the commit-msg hook of a planted garden. Do not edit by hand;
+# `plotplot init` rewrites this file from the beds' manifests.
+set -eu
+
+root=$(git rev-parse --show-toplevel)
+cd "$root"
+
+# The first guard that refuses ends the commit-msg, with its own status.
+"$root/.plotplot/bin/weeder" guard commit-msg "$@" || exit $?
+
+exit 0

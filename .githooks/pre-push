@@ -1,0 +1,16 @@
+#!/bin/sh
+# Written by plotplot: the pre-push hook of a planted garden. Do not edit by hand;
+# `plotplot init` rewrites this file from the beds' manifests.
+set -eu
+
+root=$(git rev-parse --show-toplevel)
+cd "$root"
+
+# git sends the refs being pushed on stdin, and every guard reads the same bytes.
+refs=$(cat; printf x)
+refs=${refs%x}
+
+# The first guard that refuses ends the pre-push, with its own status.
+printf '%s' "$refs" | "$root/.plotplot/bin/weeder" guard pre-push "$@" || exit $?
+
+exit 0

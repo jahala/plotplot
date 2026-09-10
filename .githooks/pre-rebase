@@ -1,0 +1,12 @@
+#!/bin/sh
+# Written by plotplot: the pre-rebase hook of a planted garden. Do not edit by hand;
+# `plotplot init` rewrites this file from the beds' manifests.
+set -eu
+
+root=$(git rev-parse --show-toplevel)
+cd "$root"
+
+# The first guard that refuses ends the pre-rebase, with its own status.
+"$root/.plotplot/bin/weeder" guard pre-rebase "$@" || exit $?
+
+exit 0

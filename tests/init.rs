@@ -114,7 +114,7 @@ fn fixture() -> (tempfile::TempDir, PathBuf, PathBuf) {
     let manifest = contracts("fixtures/manifest/weeder.garden.json");
     write(&layout::bed_manifest(&root, "weeder"), &read(&manifest));
     write(
-        &layout::bed_dir(&root, "weeder").join("SKILL.md"),
+        &layout::bed_artifact(&root, "weeder").join("SKILL.md"),
         "# weeder\n\nThe judge of the diff.\n",
     );
     let judge = layout::judge_binary(&root, "weeder");
@@ -342,18 +342,20 @@ fn a_missing_lock_flag_with_no_garden_lock_is_a_usage_error_naming_the_flag() {
 }
 
 #[test]
-fn a_lock_whose_digest_does_not_match_aborts_before_any_bundle_is_written() {
+fn a_lock_that_moved_to_bytes_the_stem_cannot_fetch_aborts_before_any_bundle_is_written() {
     let (tmp, root, _template) = fixture();
     let home = tmp.path().join("home");
+    // The lock names other bytes than the record beside the placed judge: the lock moved, so
+    // the stem fetches what it now names, and the fixture's remote does not exist.
     let bent = format!("00{}", &WEEDER_SHA[2..]);
     assert_ne!(bent, WEEDER_SHA);
     write(&layout::garden_lock(&root), &weeder_lock(&bent));
 
     let output = init(&root, &home, &["--harness", "gemini"]);
 
-    assert_eq!(output.status.code(), Some(3), "{output:?}");
+    assert_eq!(output.status.code(), Some(1), "{output:?}");
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("mismatch"), "{stderr}");
+    assert!(stderr.contains("example.invalid"), "{stderr}");
     assert!(
         !layout::bundles_dir(&root).exists(),
         "a refused lock must leave no bundle behind"
@@ -513,7 +515,7 @@ fn codex_is_told_that_its_hooks_wait_on_project_trust() {
 // ---------------------------------------------------- 6. the git hooks and git config
 
 #[test]
-fn the_four_git_hooks_are_written_executable_and_git_is_pointed_at_them() {
+fn the_five_git_hooks_are_written_executable_and_git_is_pointed_at_them() {
     let (_tmp, root, _template, _home) = planted();
 
     for hook in plotplot::bed::GitHook::ALL {
@@ -525,18 +527,14 @@ fn the_four_git_hooks_are_written_executable_and_git_is_pointed_at_them() {
         git_config(&root, "core.hooksPath"),
         vec![layout::GITHOOKS_DIR.to_owned()]
     );
-    assert!(
-        git_config(&root, "remote.origin.fetch")
-            .iter()
-            .any(|value| value.contains("refs/notes/plotplot/receipts")),
-        "the receipts ref is fetched"
-    );
-    assert!(
-        git_config(&root, "remote.origin.push")
-            .iter()
-            .any(|value| value.contains("refs/notes/plotplot/receipts")),
-        "the receipts ref is pushed"
-    );
+    for key in ["remote.origin.fetch", "remote.origin.push"] {
+        assert!(
+            git_config(&root, key)
+                .iter()
+                .all(|value| !value.contains("refs/notes/plotplot/receipts")),
+            "{key} carries the receipts ref: a fetch refspec for an absent ref fails every fetch, a push refspec sends the ref alone"
+        );
+    }
 }
 
 // ------------------------------------------- 7. the garden block and the own manifest
@@ -571,7 +569,9 @@ fn the_planted_repository_gets_its_own_manifest_beside_the_lock() {
         serde_json::json!(["repository"]),
         "the planted repository is not a bed"
     );
-    assert_eq!(manifest["name"].as_str(), Some("repo"));
+    // The fixture's directory is `repo`, its origin remote is `https://example.invalid/o/r.git`,
+    // and the remote names the repository.
+    assert_eq!(manifest["name"].as_str(), Some("r"));
 
     plotplot::manifest::validate_repository(&read(&path))
         .expect("the contracts accept the manifest init wrote");

@@ -243,10 +243,9 @@ pub fn filter_lock(template: &str, template_path: &Path, beds: &[String]) -> Res
 /// both of the things it looked at, because guessing a name here would put a manifest the
 /// contracts refuse into somebody's repository.
 pub fn repository_name(root: &Path, remote: Option<&str>) -> Result<String> {
-    let directory = root.file_name().and_then(OsStr::to_str).unwrap_or_default();
-    if let Some(name) = as_manifest_name(directory) {
-        return Ok(name);
-    }
+    // The remote names the repository; the directory is whatever the clone was called. A
+    // Conductor workspace, a worktree or a scratch clone carries the same repository under
+    // another directory name, and the manifest must say which repository it is.
     let from_remote = remote
         .map(|url| {
             url.trim_end_matches('/')
@@ -258,6 +257,10 @@ pub fn repository_name(root: &Path, remote: Option<&str>) -> Result<String> {
         })
         .unwrap_or_default();
     if let Some(name) = as_manifest_name(&from_remote) {
+        return Ok(name);
+    }
+    let directory = root.file_name().and_then(OsStr::to_str).unwrap_or_default();
+    if let Some(name) = as_manifest_name(directory) {
         return Ok(name);
     }
     Err(Error::Manifest {
@@ -304,7 +307,30 @@ pub fn repository_manifest(name: &str) -> String {
 ///
 /// Hosted runners only: a runner registered on a public repository lets a pull request from
 /// a fork run its own code on that machine (jahala/plotplot issue 7).
-pub fn workflow() -> String {
+pub fn workflow(own_stem: bool) -> String {
+    // The umbrella is the stem's own repository, and its gate builds the stem from the very
+    // checkout it judges; every other repository takes the stem from the umbrella, which
+    // needs the umbrella reachable from a hosted runner: public, or a release to name here.
+    let plant = if own_stem {
+        [
+            "      - name: plant the stem",
+            "        # This repository is the stem's own, so the gate builds it from the checkout.",
+            "        run: cargo install --locked --path .",
+        ]
+        .join("\n")
+    } else {
+        [
+            "      - name: plant the stem".to_owned(),
+            "        # plotplot has no release yet, so this builds it from the umbrella's default".to_owned(),
+            "        # branch, which a hosted runner reaches only while the umbrella is public. Name".to_owned(),
+            "        # a tag here once a season is tagged.".to_owned(),
+            format!(
+                "        run: cargo install --locked --git {} plotplot",
+                env!("CARGO_PKG_REPOSITORY")
+            ),
+        ]
+        .join("\n")
+    };
     format!(
         "\
 # Written by plotplot init: the gate every pull request passes.
@@ -331,19 +357,39 @@ jobs:
           # A gate that judges a diff needs the base of the pull request, not one commit.
           fetch-depth: 0
 
-      - name: plant the stem
-        # plotplot has no release yet, so this builds it from the umbrella's default branch.
-        # Name a tag here once a season is tagged.
-        run: cargo install --locked --git {repository} plotplot
+{plant}
 
       - name: resolve the pinned judges
         run: plotplot lock verify
 
       - name: plotplot check --strict
         run: plotplot check --strict
-",
-        repository = env!("CARGO_PKG_REPOSITORY")
+"
     )
+}
+
+/// Whether the repository at `root` is the stem's own: a `Cargo.toml` at the root whose
+/// package is `plotplot`.
+///
+/// # Errors
+///
+/// [`Error::Io`] when a `Cargo.toml` is there and cannot be read; a manifest that is not
+/// TOML, or names another package, is simply not the stem's.
+pub fn is_stems_own(root: &Path) -> Result<bool> {
+    let path = root.join("Cargo.toml");
+    let text = match std::fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
+        Err(source) => return Err(Error::Io { path, source }),
+    };
+    let Ok(manifest) = text.parse::<toml::Table>() else {
+        return Ok(false);
+    };
+    Ok(manifest
+        .get("package")
+        .and_then(|package| package.get("name"))
+        .and_then(|name| name.as_str())
+        == Some(env!("CARGO_PKG_NAME")))
 }
 
 // --------------------------------------------------------------------------- the face
@@ -487,7 +533,7 @@ fn plant(
 
     // 8. The gate every pull request passes.
     let workflow_path = root.join(WORKFLOW);
-    if write_if_changed(&workflow_path, workflow().as_bytes())? {
+    if write_if_changed(&workflow_path, workflow(is_stems_own(root)?).as_bytes())? {
         planted.changed.push(WORKFLOW.to_owned());
     }
 
@@ -588,17 +634,30 @@ fn write_git_hooks(root: &Path, beds: &[crate::bed::Bed], planted: &mut Planted)
     Ok(())
 }
 
-/// `core.hooksPath` and the two receipts refspecs.
+/// `core.hooksPath`, and the receipts ref by name when origin has it.
 fn write_git_config(root: &Path, planted: &mut Planted) -> Result<()> {
     let desired = gitconfig::desired(root);
     let current = gitconfig::read(root)?;
     let missing = gitconfig::missing(&desired, &current);
-    if missing.is_empty() {
-        return Ok(());
+    if !missing.is_empty() {
+        gitconfig::apply(root, &missing)?;
+        for (key, value) in missing {
+            planted.changed.push(format!("{key} {value}"));
+        }
     }
-    gitconfig::apply(root, &missing)?;
-    for (key, value) in missing {
-        planted.changed.push(format!("{key} {value}"));
+    // The receipts ref travels when asked, never by a refspec: bring it now when origin has
+    // it, so a fresh clone carries the receipts its history was sealed with.
+    match gitconfig::fetch_receipts(root)? {
+        gitconfig::Receipts::Fetched => planted
+            .changed
+            .push(format!("{} fetched from origin", gitconfig::RECEIPTS_REF)),
+        gitconfig::Receipts::Unreachable(why) => planted.notes.push(format!(
+            "origin could not be asked for {}, so no receipts were fetched: {why}",
+            gitconfig::RECEIPTS_REF
+        )),
+        gitconfig::Receipts::AlreadyHere
+        | gitconfig::Receipts::NoneOnRemote
+        | gitconfig::Receipts::NoOrigin => {}
     }
     Ok(())
 }
@@ -879,13 +938,46 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
     }
 
     #[test]
-    fn the_repository_takes_its_directorys_name() {
+    fn the_repository_takes_its_remotes_name_over_its_directorys() {
+        assert_eq!(
+            repository_name(
+                Path::new("/Users/someone/conductor/workspaces/plotplot/beirut"),
+                Some("https://github.com/jahala/plotplot.git")
+            )
+            .expect("a name"),
+            "plotplot",
+            "a workspace clone is the repository its remote names"
+        );
+        assert_eq!(
+            repository_name(
+                Path::new("/work/plotplot"),
+                Some("git@github.com:jahala/weeder.git")
+            )
+            .expect("a name"),
+            "weeder"
+        );
+    }
+
+    #[test]
+    fn without_a_remote_the_repository_takes_its_directorys_name() {
         assert_eq!(
             repository_name(Path::new("/work/My Repo"), None).expect("a name"),
             "my-repo"
         );
         assert_eq!(
             repository_name(Path::new("/work/plotplot"), None).expect("a name"),
+            "plotplot"
+        );
+    }
+
+    #[test]
+    fn a_remote_that_is_not_a_manifest_name_falls_to_the_directory() {
+        assert_eq!(
+            repository_name(
+                Path::new("/work/plotplot"),
+                Some("https://example.invalid/2026.git")
+            )
+            .expect("a name"),
             "plotplot"
         );
     }
@@ -939,7 +1031,7 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
 
     #[test]
     fn the_workflow_runs_the_strict_check_on_a_pull_request_and_on_a_hosted_runner() {
-        let workflow = workflow();
+        let workflow = workflow(false);
         assert!(workflow.contains("on:\n  pull_request:\n"), "{workflow}");
         assert!(workflow.contains("runs-on: ubuntu-latest"), "{workflow}");
         assert!(
@@ -952,6 +1044,53 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
             1,
             "one job, one runner: {workflow}"
         );
+    }
+
+    #[test]
+    fn the_stems_own_repository_builds_the_stem_from_its_checkout() {
+        let own = workflow(true);
+        assert!(own.contains("cargo install --locked --path ."), "{own}");
+        assert!(!own.contains("--git"), "{own}");
+        let other = workflow(false);
+        assert!(
+            other.contains(
+                "cargo install --locked --git https://github.com/jahala/plotplot plotplot"
+            ),
+            "{other}"
+        );
+        assert!(other.contains("while the umbrella is public"), "{other}");
+        for text in [&own, &other] {
+            assert!(text.contains("runs-on: ubuntu-latest"), "{text}");
+            assert!(!text.contains("self-hosted"), "{text}");
+            assert!(text.contains("plotplot check --strict"), "{text}");
+            // The step's lines sit where YAML wants them: every `run:` under a step is
+            // indented eight spaces, and none of the step's lines lost its indentation.
+            for line in text.lines().filter(|line| line.contains("cargo install")) {
+                assert!(line.starts_with("        run: "), "{line:?}");
+            }
+            assert!(!text.contains("\nrun:"), "{text}");
+            assert!(!text.contains("\n# This repository"), "{text}");
+        }
+    }
+
+    #[test]
+    fn a_repository_is_the_stems_own_when_its_cargo_package_is_plotplot() {
+        let root = tempfile::tempdir().expect("a temp root");
+        assert!(!is_stems_own(root.path()).expect("no Cargo.toml is a plain answer"));
+        std::fs::write(
+            root.path().join("Cargo.toml"),
+            "[package]\nname = \"weeder\"\nversion = \"0.1.0\"\n",
+        )
+        .expect("a manifest");
+        assert!(!is_stems_own(root.path()).expect("another package is a plain answer"));
+        std::fs::write(
+            root.path().join("Cargo.toml"),
+            "[package]\nname = \"plotplot\"\nversion = \"0.1.0\"\n",
+        )
+        .expect("the stem's manifest");
+        assert!(is_stems_own(root.path()).expect("the stem's own"));
+        std::fs::write(root.path().join("Cargo.toml"), "not = [toml").expect("garbage");
+        assert!(!is_stems_own(root.path()).expect("garbage is not the stem's"));
     }
 
     #[test]

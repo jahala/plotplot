@@ -3,9 +3,10 @@
 Kept by the stem builder (agent beirut) during the stem build, September 2026. One line per
 finding, dated, with the command that showed it. Misunderstandings, faults, missing features
 and bugs in the garden's own tools, as met while using them for real work. Nothing here is a
-fix; each was filed on the tool's repository on 2026-09-09 or matched to an issue already
-open: tend 157, 158, 167, 169, 175 and 184; pleach 61, 63, 64, 66, 68, 69, 70, 71, 77 and 79; umbel 65,
-67, 69 and 70. The Conductor finding has no garden repository.
+fix; each was filed on the tool's repository on 2026-09-09 and 2026-09-10 or matched to an issue
+already open: tend 157, 158, 167, 169, 175, 183 and 184; pleach 61, 63, 64, 66, 68, 69, 70, 71,
+74 (79 closed as its duplicate), 77, 81 and 82; umbel 65, 67, 69, 70 and 75; pollen 20, 21 and
+22; weeder 31 and 32. The Conductor finding has no garden repository.
 
 ## tend2
 
@@ -98,6 +99,12 @@ open: tend 157, 158, 167, 169, 175 and 184; pleach 61, 63, 64, 66, 68, 69, 70, 7
   the worktree was gone. Forty minutes of opus work recovered only by replaying the worker's
   transcript (pleach 79). pleach's own prompt promises that directory is never collected.
 
+- 2026-09-09 a command node's verdict records provider claude and model claude-opus-5 though
+  no worker ran (pleach 81); a node id that runs again overwrites its receipt file, so the
+  failed audit's reasons were lost when the re-run passed (pleach 82).
+- 2026-09-09 the doctor-live worker's session limit reached pleach as "Claude is waiting for
+  your input"; the reset time was on the pane (umbel 75, commented).
+
 ## umbel
 
 - 2026-09-08 `umbel ls` lists four `smk-trust-*` sessions dead since 2026-09-05 in temp
@@ -119,13 +126,25 @@ open: tend 157, 158, 167, 169, 175 and 184; pleach 61, 63, 64, 66, 68, 69, 70, 7
   its first minute or so, then `claude-opus-5`; a row with no model looks like a probe or a
   failed spawn rather than a worker that has not reported yet.
 
+## pollen
+
+- 2026-09-09 a sender cannot tell whether a peer read a message; the umbrella's silence for
+  an hour looked the same as a lost message (pollen 20).
+- 2026-09-09 `pollen_inbox` prints messages without the journal's timestamps (pollen 21).
+- 2026-09-08 `POLLEN_ALLOW` is read once at server start and `pollen_allow` does not persist;
+  the project .mcp.json written after the session started had no effect on it (pollen 22).
+
 ## weeder
 
 - 2026-09-09 `weeder check --strict --base origin/master` blocked (T2) on src/harness.rs
   because a test's three explicit `assert_eq!` calls became one assertion inside a loop over
   the same three cases; the count of assertion sites fell from 81 to 79 while the cases
   checked stayed three. A static site count reads a loop as a loss. Restored the three
-  explicit assertions to pass the gate; one false block for weeder's calibration ledger.
+  explicit assertions to pass the gate; one false block for weeder's calibration ledger
+  (weeder 31).
+- 2026-09-09 T5 warned "a recorded expectation changed alongside the code it judges" on two
+  fixture payloads that were added, not changed, in the same change as the tests reading
+  them (weeder 32).
 
 ## conductor (workspace tooling)
 

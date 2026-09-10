@@ -1,0 +1,59 @@
+{
+  "hooks": {
+    "AfterAgent": [
+      {
+        "hooks": [
+          {
+            "command": "\"$GEMINI_PROJECT_DIR/.plotplot/bundles/gemini/bin/plotplot\" hook gemini AfterAgent",
+            "timeout": 5000,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "AfterTool": [
+      {
+        "hooks": [
+          {
+            "command": "\"$GEMINI_PROJECT_DIR/.plotplot/bundles/gemini/bin/plotplot\" hook gemini AfterTool",
+            "timeout": 10000,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "BeforeTool": [
+      {
+        "hooks": [
+          {
+            "command": "\"$GEMINI_PROJECT_DIR/.plotplot/bundles/gemini/bin/plotplot\" hook gemini BeforeTool",
+            "timeout": 10000,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PreCompress": [
+      {
+        "hooks": [
+          {
+            "command": "\"$GEMINI_PROJECT_DIR/.plotplot/bundles/gemini/bin/plotplot\" hook gemini PreCompress",
+            "timeout": 5000,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "command": "\"$GEMINI_PROJECT_DIR/.plotplot/bundles/gemini/bin/plotplot\" hook gemini SessionEnd",
+            "timeout": 1000,
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  }
+}
