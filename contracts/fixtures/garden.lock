@@ -1,25 +1,25 @@
 # Every digest here is a published GitHub release asset digest, read from the platform on
-# 2026-09-08 (tilth) and 2026-09-09 (weeder v0.1.0, the first release under the artifact contract).
+# 2026-09-08 (tilth) and 2026-09-09 (weeder v0.2.0, the release that carries the commit-msg stage).
 season = "2026.09"
 
 [judges.weeder]
-version = "0.1.0"
+version = "0.2.0"
 
 [judges.weeder.platforms."aarch64-apple-darwin"]
-url = "https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-aarch64-apple-darwin.tar.gz"
-sha256 = "79e3fdea396dfdd5d025da96d553d1ecce44690e16fd7fbf1e2e37f1e190440f"
+url = "https://github.com/jahala/weeder/releases/download/v0.2.0/weeder-aarch64-apple-darwin.tar.gz"
+sha256 = "035528224b2e142ccc46c7fd056cd148424b79bc75fc08657976f1a417eb7897"
 
 [judges.weeder.platforms."aarch64-unknown-linux-musl"]
-url = "https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-aarch64-unknown-linux-musl.tar.gz"
-sha256 = "b09580c179407e12e186b01f37017ba03ae1192513826fbce8dba6c3929928e3"
+url = "https://github.com/jahala/weeder/releases/download/v0.2.0/weeder-aarch64-unknown-linux-musl.tar.gz"
+sha256 = "1a269f2b1c74cd96f7b93fd66c0174383445642d614cddf2f2b747ce20c62c3f"
 
 [judges.weeder.platforms."x86_64-apple-darwin"]
-url = "https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-x86_64-apple-darwin.tar.gz"
-sha256 = "f1947ebd0f7774f3779418f7e3c2f2e2d04e8762aa2a7a8a7516df71ea2afdfb"
+url = "https://github.com/jahala/weeder/releases/download/v0.2.0/weeder-x86_64-apple-darwin.tar.gz"
+sha256 = "0ce4480312f39e057f9a58c8c8f894ef3a7ab52bf83b50e51737da284eb0652c"
 
 [judges.weeder.platforms."x86_64-unknown-linux-musl"]
-url = "https://github.com/jahala/weeder/releases/download/v0.1.0/weeder-x86_64-unknown-linux-musl.tar.gz"
-sha256 = "c10f4821f6eab85e4bdb149d61927e369d2e474d782df5e6d14fdbb969222cab"
+url = "https://github.com/jahala/weeder/releases/download/v0.2.0/weeder-x86_64-unknown-linux-musl.tar.gz"
+sha256 = "2fb397fd4753d0fec823e3013f7ebf041f0ef91ebb665978ed5434a0ecd5dab9"
 
 [judges.tilth]
 version = "0.10.1"
