@@ -342,18 +342,20 @@ fn a_missing_lock_flag_with_no_garden_lock_is_a_usage_error_naming_the_flag() {
 }
 
 #[test]
-fn a_lock_whose_digest_does_not_match_aborts_before_any_bundle_is_written() {
+fn a_lock_that_moved_to_bytes_the_stem_cannot_fetch_aborts_before_any_bundle_is_written() {
     let (tmp, root, _template) = fixture();
     let home = tmp.path().join("home");
+    // The lock names other bytes than the record beside the placed judge: the lock moved, so
+    // the stem fetches what it now names, and the fixture's remote does not exist.
     let bent = format!("00{}", &WEEDER_SHA[2..]);
     assert_ne!(bent, WEEDER_SHA);
     write(&layout::garden_lock(&root), &weeder_lock(&bent));
 
     let output = init(&root, &home, &["--harness", "gemini"]);
 
-    assert_eq!(output.status.code(), Some(3), "{output:?}");
+    assert_eq!(output.status.code(), Some(1), "{output:?}");
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("mismatch"), "{stderr}");
+    assert!(stderr.contains("example.invalid"), "{stderr}");
     assert!(
         !layout::bundles_dir(&root).exists(),
         "a refused lock must leave no bundle behind"

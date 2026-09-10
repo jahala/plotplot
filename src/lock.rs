@@ -284,19 +284,17 @@ fn from_artifact(
     };
 
     // What the judge is called on disk is what the cached manifest says, so a second run
-    // finds the file the first run placed even when that name is not the lock's key.
+    // finds the file the first run placed even when that name is not the lock's key. A
+    // record that matches the lock and a judge beside it is the settled case. A record that
+    // differs is a lock that moved (a bump, a rollback): the judge on disk is stale, not
+    // suspect, and the bytes the lock now names are fetched and judged below. Mismatch is
+    // what fetched bytes earn when they are not the bytes the lock pins.
     let placed = cached_binary_name(root, name)?;
-    if let Some(recorded) = read_if_present(&layout::judge_digest(root, &placed))? {
-        let recorded = recorded.trim().to_owned();
-        if recorded != artifact.sha256 {
-            return Ok(JudgeState::Mismatch {
-                expected: artifact.sha256.clone(),
-                actual: recorded,
-            });
-        }
-        if layout::judge_binary(root, &placed).is_file() {
-            return Ok(JudgeState::Verified);
-        }
+    if let Some(recorded) = read_if_present(&layout::judge_digest(root, &placed))?
+        && recorded.trim() == artifact.sha256
+        && layout::judge_binary(root, &placed).is_file()
+    {
+        return Ok(JudgeState::Verified);
     }
 
     let bytes = fetch.fetch(&artifact.url)?;
@@ -308,7 +306,15 @@ fn from_artifact(
         });
     }
 
+    // The unpacked tree is the stem's own cache of one artifact; a previous artifact's files
+    // must not survive beside the new one's.
     let artifact_dir = layout::bed_artifact(root, name);
+    if artifact_dir.is_dir() {
+        std::fs::remove_dir_all(&artifact_dir).map_err(|source| Error::Io {
+            path: artifact_dir.clone(),
+            source,
+        })?;
+    }
     unpack(&bytes, &artifact.url, &artifact_dir)?;
     place(root, name, &artifact_dir, &digest)
 }
@@ -1165,12 +1171,58 @@ mod verify_tests {
     }
 
     #[test]
-    fn a_companion_that_differs_is_a_mismatch_without_fetching_anything() {
+    fn a_lock_that_moved_refetches_and_replaces_the_stale_judge() {
         let root = tempfile::tempdir().expect("a temp root");
         let bytes = artifact();
         let digest = digest_of(&bytes);
         let lock = lock_pinning("weeder", PLATFORM, URL, &digest);
         let fetcher = FromMap::serving(URL, bytes);
+
+        // What a bump leaves behind: the previous version's judge and the record of its bytes.
+        let stale = "1".repeat(64);
+        write_file(&layout::judge_binary(root.path(), "weeder"), "an old judge")
+            .expect("a judge already on disk");
+        write_file(
+            &layout::judge_digest(root.path(), "weeder"),
+            &format!("{stale}\n"),
+        )
+        .expect("its companion");
+        let old_artifact = layout::bed_artifact(root.path(), "weeder").join("left-over");
+        write_file(&old_artifact, "from the previous artifact").expect("an old artifact file");
+
+        let reports = verify(root.path(), &lock, PLATFORM, &fetcher).expect("a report");
+        assert_eq!(only(&reports).state, JudgeState::Fetched { manifest: true });
+        assert_eq!(
+            fetcher.calls(),
+            [URL],
+            "the lock moved, so the bytes it names are fetched"
+        );
+        assert_eq!(
+            std::fs::read(layout::judge_binary(root.path(), "weeder")).expect("the judge"),
+            EXECUTABLE,
+            "the stale judge was not replaced"
+        );
+        let recorded = std::fs::read_to_string(layout::judge_digest(root.path(), "weeder"))
+            .expect("the digest companion");
+        assert_eq!(
+            recorded.trim(),
+            digest,
+            "the record still names the old bytes"
+        );
+        assert!(
+            !old_artifact.exists(),
+            "a file from the previous artifact survived beside the new one"
+        );
+    }
+
+    #[test]
+    fn a_lock_that_moved_to_bytes_the_remote_does_not_serve_is_a_mismatch_and_keeps_the_old_judge()
+    {
+        let root = tempfile::tempdir().expect("a temp root");
+        let served = artifact();
+        let pinned = "2".repeat(64);
+        let lock = lock_pinning("weeder", PLATFORM, URL, &pinned);
+        let fetcher = FromMap::serving(URL, served.clone());
 
         let stale = "1".repeat(64);
         write_file(&layout::judge_binary(root.path(), "weeder"), "an old judge")
@@ -1185,19 +1237,22 @@ mod verify_tests {
         assert_eq!(
             only(&reports).state,
             JudgeState::Mismatch {
-                expected: digest,
-                actual: stale,
+                expected: pinned,
+                actual: digest_of(&served),
             }
-        );
-        assert!(
-            fetcher.calls().is_empty(),
-            "the lock is the truth, not the disk"
         );
         assert_eq!(
             std::fs::read_to_string(layout::judge_binary(root.path(), "weeder"))
                 .expect("the judge on disk"),
             "an old judge",
-            "the judge was replaced"
+            "bytes the lock does not pin replaced the judge"
+        );
+        assert_eq!(
+            std::fs::read_to_string(layout::judge_digest(root.path(), "weeder"))
+                .expect("the companion")
+                .trim(),
+            stale,
+            "the record moved although nothing was placed"
         );
     }
 

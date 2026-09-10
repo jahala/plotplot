@@ -91,7 +91,7 @@ fn a_url_that_gives_up_no_bytes_answers_one_and_names_the_url() {
 }
 
 #[test]
-fn a_companion_the_lock_disagrees_with_answers_three_and_never_fetches() {
+fn a_companion_the_lock_disagrees_with_is_a_lock_that_moved_and_the_bytes_are_fetched() {
     let root = with_lock(&lock_for(lock::platform(), UNREACHABLE, PINNED));
     write(
         &layout::judge_binary(root.path(), "tilth"),
@@ -104,25 +104,26 @@ fn a_companion_the_lock_disagrees_with_answers_three_and_never_fetches() {
 
     let assert = plotplot(root.path()).args(["lock", "verify"]).assert();
     let output = assert.get_output().clone();
+    // The record beside the judge names other bytes than the lock, so the lock moved and
+    // the bytes it now names are fetched; the url is unreachable, which is an error naming
+    // it, not a verdict, and the old judge stays until real bytes replace it.
     assert_eq!(
         output.status.code(),
-        Some(3),
+        Some(1),
         "stderr: {}",
         String::from_utf8_lossy(&output.stderr)
     );
-
-    // The url is unreachable, so an exit of 3 with a mismatch line is itself the proof that
-    // the companion was believed and nothing went to the network.
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains(UNREACHABLE), "{stderr}");
     assert_eq!(
-        String::from_utf8_lossy(&output.stdout),
-        format!("tilth 0.10.1 mismatch: expected {PINNED}, got {STALE}\n")
+        std::fs::read_to_string(layout::judge_binary(root.path(), "tilth")).expect("the judge"),
+        "an old judge\n"
     );
-    assert!(output.stderr.is_empty());
     assert_eq!(
-        std::fs::read_to_string(layout::judge_binary(root.path(), "tilth"))
-            .expect("the judge on disk"),
-        "an old judge\n",
-        "the lock is the truth and the caller decides; nothing may be replaced"
+        std::fs::read_to_string(layout::judge_digest(root.path(), "tilth"))
+            .expect("the companion")
+            .trim(),
+        STALE
     );
 }
 
