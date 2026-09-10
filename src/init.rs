@@ -941,7 +941,7 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
     fn the_repository_takes_its_remotes_name_over_its_directorys() {
         assert_eq!(
             repository_name(
-                Path::new("/Users/someone/conductor/workspaces/plotplot/beirut"),
+                Path::new("/home/someone/work/a-clone-called-otherwise"),
                 Some("https://github.com/jahala/plotplot.git")
             )
             .expect("a name"),
