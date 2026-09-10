@@ -14,8 +14,9 @@
 #                                    emits one valid SARIF 2.1.0 log; exit 2 on a block-level
 #                                    result, 3 when the judge could not run
 #   scripts/fit/stem.sh init         `plotplot init` plants a fixture repository: the garden
-#                                    block, the harness project configs, the git law and the
-#                                    pull request gate, and a second run changes nothing
+#                                    block beside tend2's, which it leaves byte for byte, the
+#                                    harness project configs, the git law and the pull
+#                                    request gate, and a second run changes nothing
 #   scripts/fit/stem.sh doctor-live  `plotplot doctor --live` drives one real session per
 #                                    harness through umbel and proves from the friction
 #                                    journal and the receipt drafts that the before-tool,
@@ -1000,6 +1001,12 @@ check_check() {
 INIT_JUDGE="weeder"
 INIT_VERSION="0.1.0"
 
+# tend2's block as tend2's init writes it into AGENTS.md, copied byte for byte from this
+# repository's own AGENTS.md and held to that file by a test in tests/plant.rs. The stem
+# never renders it; each init leaves the other's block alone (jahala/plotplot issue 28).
+TEND2_BLOCK="$ROOT/tests/fixtures/AGENTS.tend2.md"
+AGENTS_PROSE="Notes this repository keeps for itself."
+
 # A fixture repository and the lock template init copies from.
 #
 # weeder has no release (the comment at the head of contracts/fixtures/garden.lock says so)
@@ -1017,6 +1024,10 @@ plant_init_fixture() {
   git -C "$repo" config user.name "plotplot fit" || fail "could not configure git"
   git -C "$repo" remote add origin "https://example.invalid/jahala/fixture.git" \
     || fail "could not give the fixture an origin remote"
+
+  # AGENTS.md as tend2's init leaves it, with a line of the repository's own under it.
+  { cat "$TEND2_BLOCK" && printf '\n%s\n' "$AGENTS_PROSE"; } >"$repo/AGENTS.md" \
+    || fail "could not write the fixture's AGENTS.md from $TEND2_BLOCK"
 
   mkdir -p "$repo/.plotplot/beds/$INIT_JUDGE" "$repo/.plotplot/bin"
   cp "$ROOT/contracts/fixtures/manifest/$INIT_JUDGE.garden.json" \
@@ -1093,6 +1104,20 @@ assert_dispatcher_entry() {
   esac
 }
 
+# tend2's block in an AGENTS.md is the fixture, byte for byte.
+assert_tend2_block() {
+  local agents="$1" when="$2"
+  sed -n '/<!-- tend2:begin -->/,/<!-- tend2:end -->/p' "$agents" | cmp -s - "$TEND2_BLOCK" \
+    || { cat "$agents" >&2; fail "$when: tend2's block in AGENTS.md is not byte for byte $TEND2_BLOCK"; }
+}
+
+# And it still opens the file: the file's first lines are the fixture's lines.
+assert_tend2_block_first() {
+  local agents="$1" when="$2"
+  head -n "$(( $(wc -l <"$TEND2_BLOCK") ))" "$agents" | cmp -s - "$TEND2_BLOCK" \
+    || { cat "$agents" >&2; fail "$when: tend2's block no longer starts AGENTS.md at line 1"; }
+}
+
 check_init() {
   require git jq claude
   build_stem
@@ -1132,6 +1157,11 @@ check_init() {
   grep -q "$INIT_JUDGE $INIT_VERSION" "$repo/AGENTS.md" \
     || { cat "$repo/AGENTS.md" >&2; fail "the garden block does not name $INIT_JUDGE $INIT_VERSION"; }
   note "AGENTS.md: the garden block names $INIT_JUDGE $INIT_VERSION"
+  assert_tend2_block "$repo/AGENTS.md" "first run"
+  assert_tend2_block_first "$repo/AGENTS.md" "first run"
+  grep -qxF "$AGENTS_PROSE" "$repo/AGENTS.md" \
+    || { cat "$repo/AGENTS.md" >&2; fail "first run: the repository's own line in AGENTS.md is gone"; }
+  note "AGENTS.md after the first run: tend2's block byte for byte the fixture, still from line 1, the repository's own line kept"
 
   # 4. The repository's own manifest, which is never a bed.
   [ -f "$repo/garden.json" ] || fail "init wrote no garden.json beside the lock"
@@ -1197,11 +1227,59 @@ check_init() {
   diff "$tmp/before.hashes" "$tmp/after.hashes" >/dev/null \
     || { diff "$tmp/before.hashes" "$tmp/after.hashes" >&2; fail "the second init changed files"; }
   note "second run: nothing to do, and every file byte for byte as it was"
+  assert_tend2_block "$repo/AGENTS.md" "second run"
+  assert_tend2_block_first "$repo/AGENTS.md" "second run"
+  note "AGENTS.md after the second run: tend2's block byte for byte the fixture, still from line 1"
 
-  # 10. Claude's own install, through claude's own mechanism, against the temporary home.
+  # 10. The other order the two blocks can stand in: the garden block above tend2's.
+  check_init_above_tend2 "$repo/AGENTS.md"
+
+  # 11. Claude's own install, through claude's own mechanism, against the temporary home.
   check_init_claude "$tmp" "$repo" "$home" "$template"
 
   echo "stem.sh init: pass"
+}
+
+# A second fixture repository whose AGENTS.md has the garden block at the top, one season
+# old, and tend2's block under it. One init replaces the marked region and leaves tend2's
+# block byte for byte, one blank line below the garden block.
+check_init_above_tend2() {
+  local planted="$1" tmp repo home template status
+  scratch
+  tmp="$SCRATCH_DIR"
+  repo="$tmp/repo"
+  home="$(make_home "$tmp")"
+  template="$tmp/template.lock"
+
+  note "planting a second fixture repository, the garden block above tend2's, at $repo"
+  plant_init_fixture "$repo" "$template"
+
+  # The garden block the stem rendered for the first fixture, set back one season so init
+  # has a region to replace: the stem's own output, never a hand-written copy of it.
+  sed -n '/<!-- plotplot:begin -->/,/<!-- plotplot:end -->/p' "$planted" \
+    | sed 's/^Season: 2026\.09\.$/Season: 2026.08./' >"$tmp/older.md"
+  grep -qx 'Season: 2026.08.' "$tmp/older.md" \
+    || { cat "$tmp/older.md" >&2; fail "could not set the first fixture's garden block back a season"; }
+  { cat "$tmp/older.md" && echo && cat "$TEND2_BLOCK"; } >"$repo/AGENTS.md" \
+    || fail "could not write the second fixture's AGENTS.md"
+
+  ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" \
+      "$STEM" init --harness gemini,codex --lock "$template" ) >"$tmp/above.out" 2>"$tmp/above.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/above.out" "$tmp/above.err" >&2; fail "plotplot init exited $status on the second fixture, not 0"; }
+  grep -qx 'AGENTS.md' "$tmp/above.out" \
+    || { cat "$tmp/above.out" >&2; fail "init did not rewrite the second fixture's AGENTS.md"; }
+  [ "$(head -1 "$repo/AGENTS.md")" = '<!-- plotplot:begin -->' ] \
+    || { cat "$repo/AGENTS.md" >&2; fail "the garden block no longer opens the second fixture's AGENTS.md"; }
+  grep -qx 'Season: 2026.09.' "$repo/AGENTS.md" \
+    || { cat "$repo/AGENTS.md" >&2; fail "the older season's garden block was not replaced"; }
+  note "second layout: init replaced the older season's garden block at the top of AGENTS.md"
+
+  assert_tend2_block "$repo/AGENTS.md" "second layout"
+  sed '1,/<!-- plotplot:end -->/d' "$repo/AGENTS.md" | cmp -s - <(echo && cat "$TEND2_BLOCK") \
+    || { cat "$repo/AGENTS.md" >&2; fail "second layout: tend2's block is not where it was, one blank line below the garden block"; }
+  note "second layout: tend2's block byte for byte the fixture, still one blank line after the garden block"
 }
 
 # Claude Code's half of the check: the same repository, planted again with --harness claude,
