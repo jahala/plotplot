@@ -96,7 +96,11 @@ A change that breaks one of these is wrong even if every test passes.
 - **Delete with `trash`, never `rm`. Never `git reset`. Never touch the git stash.** Merge your
   own pull request once every gate is green (the verifier's stamps, the second-provider audit,
   weeder), with a merge commit so the narrative survives; the umbrella's own pull requests are the
-  umbrella agent's to merge. Tags, publishing, renaming repositories and enabling services stay
+  umbrella agent's to merge. "On green" is a command chain, not a habit: the merge runs only
+  after the check watch has succeeded, in the same chain, and a landing script the loops call
+  carries that chain (learned 2026-09-10, a hotfix merged on a red map gate because a `;` stood
+  where `&&` belonged). The platform's required-check ruleset, once the stem projects it, is the
+  gate no chain can bypass. Tags, publishing, renaming repositories and enabling services stay
   the owner's actions (owner's rule, 2026-09-09).
 - **Never kill what you did not start.** Several conductors share one machine. Before you stop
   a session, a worktree or a process, read who owns it (umbel's `meta.json` names the working
