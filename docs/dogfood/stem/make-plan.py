@@ -280,6 +280,78 @@ AUDIT_INTEGRATE = (
 WORKER = {"provider": "claude", "model": "claude-opus-5"}
 
 
+AGENTS_BLOCK = PREAMBLE + """
+## Your slice: `plotplot init` leaves tend2's block in AGENTS.md byte for byte (jahala/plotplot issue 28)
+
+The stem is built and planted in this worktree; read src/plant/garden_block.rs, src/init.rs (write_garden_block), tests/plant.rs and scripts/fit/stem.sh (check_init and plant_init_fixture) before writing anything. The rule, ruled by the umbrella agent on 2026-09-10 and recorded on the contracts loop: tend2's init writes its own contract block into AGENTS.md between `<!-- tend2:begin -->` and `<!-- tend2:end -->`, beside the stem's garden block between `<!-- plotplot:begin -->` and `<!-- plotplot:end -->`; neither restates the other, and each init preserves the other's block byte for byte. This repository's own AGENTS.md carries tend2's block at lines 1 to 10 and the stem's at 12 to 22, and is the reference for what the two blocks look like side by side.
+
+What to build, tests first:
+
+1. A fixture `tests/fixtures/AGENTS.tend2.md`: tend2's block copied byte for byte from this repository's AGENTS.md (the ten lines from `<!-- tend2:begin -->` through `<!-- tend2:end -->`, with the trailing newline). Never retype it; copy it with a command (`sed -n '/tend2:begin/,/tend2:end/p' AGENTS.md`), and have a test assert the fixture equals that region of the live AGENTS.md so the two cannot drift.
+
+2. Tests in tests/plant.rs, written first and watched failing where they can fail (some pass already because replace_in copies through what is outside its markers; a test that passes at once is still the proof, say so in your final message):
+   - planting the garden block into a file that is tend2's block alone leaves tend2's bytes exactly where they were, the garden block follows after one blank line, and the bytes before the plotplot begin marker equal the fixture exactly;
+   - planting into a file that carries tend2's block, then prose, then an older garden block, then more prose, replaces only the marked region and every byte outside it (tend2's block included) is identical before and after, compared as byte slices and not by length;
+   - planting into a file where tend2's block sits below the garden block (garden block first, blank line, tend2's block) leaves tend2's block byte for byte and in place;
+   - re-planting a different garden block (another season) in each of those layouts changes only the marked region;
+   - a fifth test: the fixture equals the live AGENTS.md's tend2 region (see 1).
+
+3. The fit evidence, scripts/fit/stem.sh, check `init`: plant_init_fixture writes the fixture repository's AGENTS.md as tend2's block (read from tests/fixtures/AGENTS.tend2.md) followed by one blank line and one line of prose; after the first init and after the second, assert with `sed -n '/<!-- tend2:begin -->/,/<!-- tend2:end -->/p' "$repo/AGENTS.md" | cmp - tests/fixtures/AGENTS.tend2.md` that tend2's block is byte for byte the fixture, and that it still starts at line 1. Add a second fixture layout inside the same check, in its own scratch repository: the garden block already present at the top with tend2's block under it, `plotplot init` run once, and tend2's block byte for byte and still after the garden block. Each assertion prints a `note` line naming what it proved. Keep every existing assertion of check_init.
+
+4. Do not change garden_block::replace_in's behaviour unless a test above fails; if one does, fix the smallest thing and say which. Do not write tend2's block from the stem anywhere (the stem's renderer never carries another bed's text): the fixture is a test input, never a rendered output.
+
+The gate for this slice is the crate gate followed by `bash scripts/fit/stem.sh init`, which needs `claude`, `git` and `jq` on PATH; run it exactly as the accept smoke names it.
+
+Do NOT create or edit: src/cli.rs, src/main.rs, src/doctor.rs, src/doctor/, src/hook.rs, src/bundle/, src/install.rs, src/lock.rs, docs/tend2/. Do NOT edit this repository's own AGENTS.md.
+"""
+
+PLATFORM = PREAMBLE + """
+## Your slice: the platform half of `init` and `doctor` (jahala/plotplot issue 7, the part ruled urgent on 2026-09-10)
+
+The stem is built and planted in this worktree. Read first: src/init.rs (run, plant, workflow, origin_url, write_if_changed), src/doctor.rs (CHECKS, Finding, run, run_static, render), src/doctor/live.rs (the Driver seam with its `Ran` value and the recorded double in its tests: copy that pattern), src/cli.rs (InitArgs, DoctorArgs, run), src/plant/garden_block.rs (a marked region inside a file somebody else also writes), scripts/fit/stem.sh (check_init, plant_init_fixture, the scratch and note helpers), and jahala/plotplot issue 7 as quoted here: the repository holds the truth in files and the platform enforces it on humans; git hooks bind a human until `--no-verify`, only a ruleset binds past that.
+
+What lands in this slice, and nothing more of issue 7 (the weekly clock, the SARIF upload, the schedule check and the push ruleset wait):
+
+### 1. `plotplot init --github`
+
+A new flag on InitArgs. After everything plain `init` plants, `--github` does two more things, in this order, against the repository origin names:
+
+(a) Writes the stem's region of `.github/CODEOWNERS`: the lines between `# plotplot:begin` and `# plotplot:end`, every other byte of the file preserved (the same rule as the garden block in AGENTS.md; a file with no region gets the region appended after one blank line; a malformed marker pair is refused with Error::Agents-style precision, add a variant if you need one). The region names the owner, `@<owner>` where owner is the first path segment of the origin url (`https://github.com/<owner>/<repo>.git`, `git@github.com:<owner>/<repo>.git`, with or without `.git`), for exactly these guardrail paths, one per line, in this order: `/.githooks/`, `/garden.lock`, `/garden.json`, `/AGENTS.md`, `/CLAUDE.md`, `/weeder.toml`, `/.claude/settings.json`, `/.gemini/settings.json`, `/.codex/hooks.json`, `/.github/workflows/plotplot-check.yml`, `/.github/CODEOWNERS`, `/docs/tend2/`. These are weeder's C1 guardrail files (harness settings, git hooks, weeder.toml, the hard-limits section's files), the stem's own files, the pull request gate and the map. Written through write_if_changed, so a second run changes nothing and `.github/CODEOWNERS` appears in the changed lines only when its bytes moved.
+
+(b) Applies one ruleset through `gh api`, named `plotplot: the default branch`: target `branch`, enforcement `active`, conditions `{"ref_name": {"include": ["~DEFAULT_BRANCH"], "exclude": []}}`, rules exactly `[{"type": "deletion"}, {"type": "non_fast_forward"}, {"type": "required_status_checks", "parameters": {"strict_required_status_checks_policy": false, "required_status_checks": [{"context": "plotplot check --strict"}]}}]`. No bypass actors. Linear history is deliberately absent: the law merges every pull request with a merge commit, and GitHub's linear-history rule refuses those. The required check's context is the job name the workflow `init` writes (init::workflow, `name: plotplot check --strict`); make that one constant both places read so the two spellings cannot drift.
+   Idempotent: list the repository's rulesets (`GET repos/<owner>/<repo>/rulesets`), and when one carries this name read it (`GET repos/<owner>/<repo>/rulesets/<id>`) and compare target, enforcement, conditions and rules to the desired ones; unchanged means no call and no changed line; different means `PUT repos/<owner>/<repo>/rulesets/<id>` with the desired body; absent means `POST repos/<owner>/<repo>/rulesets`. A changed line reads `ruleset "plotplot: the default branch" applied on <owner>/<repo>`.
+   Anything gh could not apply is printed verbatim: gh's stderr and stdout, as gh wrote them, each line on stderr after one line naming the call (`gh api -X POST repos/<owner>/<repo>/rulesets could not be applied:`), and init exits FAILED (1) after printing everything else it changed; the files planted before stay planted. Without gh on PATH, or with an origin that is not on github.com, `--github` refuses before writing anything of its own with one line saying which of the two it is, exit USAGE (2), and the plain planting that ran before it stays.
+
+The seam: a trait in a new `src/platform.rs` mirroring live.rs's Driver, e.g. `pub trait Gh { fn api(&self, method: &str, path: &str, body: Option<&str>) -> Ran; }` with `Ran {code, stdout, stderr}` (move or share live's Ran rather than duplicating it), a real `GhCli` that runs `gh api -X <METHOD> <path> --input -` with the body on stdin (no body: `gh api <path>`), and in tests a recorded double that answers canned JSON per (method, path) and records every call in order. The desired ruleset body, the comparison, the CODEOWNERS region and the read-back parsing are pure functions over strings and serde_json Values; the double never replaces them. Nothing in the library reads the environment: the search path for gh and the origin url are read in init the way they already are (search_path, origin_url) and passed in.
+
+Never run `plotplot init --github`, any `gh api -X POST|PUT|PATCH|DELETE`, or any writing gh call against a real repository from this worktree: this worktree's origin is jahala/plotplot itself and a ruleset applied from here lands on the real repository. The fit check uses a recording stub `gh`; the real proof on jahala/plotplot is the conductor's, after landing. Read-only `gh api` calls are allowed if you need to look at a shape.
+
+### 2. `plotplot doctor --platform`
+
+A new flag on DoctorArgs, exclusive with nothing (it may combine with --live; run static, then platform, then live in that order when both are given). After the static table, one blank line, then a second table in the live table's shape (check, verdict, detail) with three lines, read back with read-only calls only: `GET repos/<owner>/<repo>` for `default_branch`, then `GET repos/<owner>/<repo>/rules/branches/<default_branch>`, which answers the rules in force on that branch as an array of objects with `type` and, for status checks, `parameters.required_status_checks[].context`:
+   - `required check`: ok when a `required_status_checks` rule lists the context `plotplot check --strict`, detail naming the branch and the ruleset id it came from (`ruleset_id`); fail otherwise, detail saying what the branch requires instead (the contexts found, or `none`);
+   - `force push`: ok when a `non_fast_forward` rule is in force, fail otherwise;
+   - `deletion`: ok when a `deletion` rule is in force, fail otherwise.
+   Without gh on PATH, or with no github.com origin, the platform table is one line, `platform  unavailable  <reason>`, and the exit is 3: the mode is skipped, never guessed (issue 7). A gh call that fails is `unavailable` with gh's first line as the detail. Exit 0 only when the static table and all three platform lines are ok; 3 otherwise; 1 on the errors doctor already answers 1 to.
+
+### 3. Tests, written first
+
+Unit tests beside the code with the recorded double: the desired body is byte-stable JSON with the three rules in that order and no linear-history rule; an absent ruleset is POSTed; a present and equal ruleset makes no writing call; a present and different ruleset is PUT to its id; a failing call prints gh's own words verbatim and answers FAILED with the changed lines before it; the CODEOWNERS region is idempotent and leaves foreign lines (a comment above, a `*.md @someone` line below) byte for byte; the owner is parsed from https and ssh origins with and without `.git`; a non-github origin refuses with USAGE; the read-back turns the rules array into three findings, each verdict proved both ways; the mode without gh is one unavailable line and exit 3. Integration in tests/ where the binary's face matters (the flag exists, the tables print in order).
+
+### 4. The fit evidence: `scripts/fit/stem.sh platform`
+
+A new check in scripts/fit/stem.sh, listed in the header comment and the case at the bottom, in the style of check_init: a scratch repository planted with `plotplot init --lock <template> --harness gemini,codex` whose origin is `https://github.com/example-owner/example-repo.git` (a url only, never fetched), and a stub `gh` executable written into a scratch bin directory put first on PATH. The stub records each call (argv on one line, stdin after it) to a journal file, and answers by path: `repos/example-owner/example-repo` with `{"default_branch":"main"}`; `repos/example-owner/example-repo/rulesets` GET with `[]` before a POST and `[{"id":41,"name":"plotplot: the default branch"}]` after one (keep a state file), POST with the created ruleset (id 41) echoing the body's rules; `repos/example-owner/example-repo/rulesets/41` GET with the body it was given; `repos/example-owner/example-repo/rules/branches/main` with the three rules in force as GitHub shapes them (`[{"type":"deletion","ruleset_id":41,...},{"type":"non_fast_forward",...},{"type":"required_status_checks","parameters":{"required_status_checks":[{"context":"plotplot check --strict"}],"strict_required_status_checks_policy":false},...}]`). Then assert, each with a `note`: `plotplot init --github` exits 0 and names `.github/CODEOWNERS` and the ruleset in its changed lines; the journal shows exactly one POST whose body (parsed with jq) carries the three rule types in order, no `required_linear_history`, the context `plotplot check --strict`, and `~DEFAULT_BRANCH`; `.github/CODEOWNERS` carries the twelve guardrail lines naming `@example-owner` inside the markers and a pre-existing foreign line outside them untouched; a second `plotplot init --github` prints `nothing to do` and the journal gained no POST or PUT; `plotplot doctor --platform` exits 0 and its platform table reads ok on all three lines naming branch main and ruleset 41; with the stub answering a rules array lacking `non_fast_forward`, `doctor --platform` exits 3 and the force push line reads fail; with gh removed from PATH, `doctor --platform` exits 3 with the one unavailable line, and `init --github` exits 2 having planted nothing new. Finally, on this repository itself (the worktree, whose origin is jahala/plotplot) run only `"$STEM" doctor --platform` and print its platform table with a note; do not assert its verdicts, because whether the real ruleset is applied yet is the conductor's act after this lands; assert only that it exits 0 or 3 and prints the three lines or the one unavailable line.
+
+### 5. The brief
+
+Append a `platform.rs` entry to §4 of docs/prompts/stem-build-2026-09.md naming the trait, the desired ruleset, the CODEOWNERS region and the read-back, in the style of the entries there. No em dashes anywhere you write.
+
+The gate for this slice is the crate gate followed by `bash scripts/fit/stem.sh init && bash scripts/fit/stem.sh platform`; run it exactly as the accept smoke names it.
+
+Do NOT create or edit: src/hook.rs, src/bundle/, src/lock.rs, src/receipt.rs, src/friction.rs, src/deny.rs, docs/tend2/, .github/ of this repository (the CODEOWNERS you render is proved on the fixture, never written here), this repository's AGENTS.md.
+"""
+
+
 def node(id_, prompt, needs=(), smoke=GATES, audit=None, timeout_ms=3_600_000, setup="npm ci"):
     accept = {"smoke": smoke}
     if audit:
@@ -453,7 +525,47 @@ third = {
     ],
 }
 
-if "--third" in sys.argv:
+# `--fourth`: the umbrella agent's order of 2026-09-10 after the hold, one node at a time in
+# this order: the AGENTS.md preservation proof (issue 28), then the platform half of issue 7
+# that the day's incident made urgent. Each audited by a relay of the verifier's egress on
+# the check it closes: init's check 1 re-stamped for 28, the new check 11 for the platform.
+fourth = {
+    "goal": (
+        "The stem's fourth run: `plotplot init` proved to leave tend2's AGENTS.md block byte for byte "
+        "(jahala/plotplot 28), then `init --github` applying the default-branch ruleset and the CODEOWNERS "
+        "region through gh and `doctor --platform` reading them back (the urgent half of jahala/plotplot 7)."
+    ),
+    "source": "docs/dogfood/stem/fourth.plan.json",
+    "maxConcurrency": 1,
+    "nodes": [
+        node(
+            "stem.agents-block",
+            AGENTS_BLOCK,
+            smoke=f"bash -lc '{GATE_SHELL} && bash scripts/fit/stem.sh init'",
+            audit={
+                "command": "bash -lc 'tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress --check 1 --runner \"bash {evidence} init\"'",
+                "provider": "opencode",
+                "model": "deepseek/deepseek-v4-pro",
+            },
+        ),
+        node(
+            "stem.platform",
+            PLATFORM,
+            needs=["stem.agents-block"],
+            smoke=f"bash -lc '{GATE_SHELL} && bash scripts/fit/stem.sh init && bash scripts/fit/stem.sh platform'",
+            audit={
+                "command": "bash -lc 'tend2 verify docs/tend2/stem.tend2.html --repo-root . --force --audit-egress --check 11 --runner \"bash {evidence} platform\"'",
+                "provider": "opencode",
+                "model": "deepseek/deepseek-v4-pro",
+            },
+            timeout_ms=5_400_000,
+        ),
+    ],
+}
+
+if "--fourth" in sys.argv:
+    print(json.dumps(fourth, indent=2, ensure_ascii=False))
+elif "--third" in sys.argv:
     print(json.dumps(third, indent=2, ensure_ascii=False))
 elif "--second" in sys.argv:
     print(json.dumps(second, indent=2, ensure_ascii=False))
