@@ -143,7 +143,7 @@
         },
         "git": {
           "type": "array",
-          "description": "git hook names this bed installs into core.hooksPath; commit-msg is where an allowance trailer can first be read, so a bed whose block-level findings a trailer may allow declares it beside pre-commit",
+          "description": "git hook names this bed installs into core.hooksPath, and that a planter may install on the bed's behalf from this manifest; the bed recognises an installed hook by what it invokes (its own face), never by a marker only the bed writes. commit-msg is where an allowance trailer can first be read, so a bed whose block-level findings a trailer may allow declares it beside pre-commit",
           "items": {
             "type": "string",
             "enum": [
