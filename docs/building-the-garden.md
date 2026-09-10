@@ -102,6 +102,12 @@ A change that breaks one of these is wrong even if every test passes.
   a session, a worktree or a process, read who owns it (umbel's `meta.json` names the working
   directory); if it is not yours, leave it and tell the umbrella on pollen. A kill costs another
   agent its node and the record of what it was doing (learned 2026-09-08, jahala/umbel 65).
+- **A guardrail changes only by allowance.** The hooks, the harness settings, the lockfile and
+  the hard limits are guardrail files, and weeder refuses a change to them, including the change
+  the stem itself makes when it plants a repository. A person authorizes such a change with a
+  `Weeder-allow` trailer on the commit, judged at commit-msg where the message first exists.
+  There is no exemption for a tool's own writes: a judge that asks the planter about the
+  planter's files is the planter allowing itself (learned 2026-09-10, the first planting).
 
 ## 3. What every bed ships: the fit contract
 
