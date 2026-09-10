@@ -88,12 +88,38 @@ fn repository() -> tempfile::TempDir {
     dir
 }
 
-/// This repository's AGENTS.md as it was before the stem planted it, kept as a fixture: the
-/// live file carries the garden block now, and these tests are about planting into a file
-/// that has none.
-fn agents_md_fixture() -> String {
-    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/AGENTS.md");
-    std::fs::read_to_string(&path).expect("the unplanted AGENTS.md fixture")
+/// tend2's block, copied byte for byte from this repository's AGENTS.md, which is also that
+/// file as it was before the stem planted it. The stem never renders it: it is what tend2's
+/// init writes, and the input these tests plant beside.
+fn tend2_block_fixture() -> String {
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/AGENTS.tend2.md");
+    std::fs::read_to_string(&path).expect("the tend2 block fixture")
+}
+
+/// What `sed -n '/tend2:begin/,/tend2:end/p'` prints: the whole lines from the first that
+/// carries tend2's begin marker through the next that carries its end marker.
+fn tend2_region(agents_md: &str) -> String {
+    agents_md
+        .split_inclusive('\n')
+        .skip_while(|line| !line.contains("<!-- tend2:begin -->"))
+        .scan(false, |ended, line| {
+            if *ended {
+                return None;
+            }
+            *ended = line.contains("<!-- tend2:end -->");
+            Some(line)
+        })
+        .collect()
+}
+
+/// The bytes before the garden block's begin marker, and the bytes after its end marker.
+fn outside_the_garden_block(agents_md: &str) -> (&[u8], &[u8]) {
+    let begin = agents_md
+        .find(garden_block::BEGIN)
+        .expect("the begin marker");
+    let end = agents_md.find(garden_block::END).expect("the end marker") + garden_block::END.len();
+    let bytes = agents_md.as_bytes();
+    (&bytes[..begin], &bytes[end..])
 }
 
 // ---------------------------------------------------------------- garden_block
@@ -134,7 +160,7 @@ fn the_block_is_marked_short_and_says_what_a_planted_repository_needs() {
 
 #[test]
 fn the_block_lands_after_an_unplanted_agents_md_and_leaves_it_alone() {
-    let agents = agents_md_fixture();
+    let agents = tend2_block_fixture();
     let block = garden_block::render("2026.09", &planted_beds());
 
     let planted = garden_block::replace_in(&agents, &block).expect("a file with no markers");
@@ -148,7 +174,7 @@ fn the_block_lands_after_an_unplanted_agents_md_and_leaves_it_alone() {
 
 #[test]
 fn planting_the_same_block_twice_changes_nothing_the_second_time() {
-    let agents = agents_md_fixture();
+    let agents = tend2_block_fixture();
     let block = garden_block::render("2026.09", &planted_beds());
 
     let once = garden_block::replace_in(&agents, &block).expect("the first planting");
@@ -158,7 +184,7 @@ fn planting_the_same_block_twice_changes_nothing_the_second_time() {
 
 #[test]
 fn a_new_block_replaces_only_the_marked_region() {
-    let agents = agents_md_fixture();
+    let agents = tend2_block_fixture();
     let old = garden_block::render("2026.09", &planted_beds());
     let new = garden_block::render("2026.10", &planted_beds()[..1]);
 
@@ -179,7 +205,7 @@ fn a_new_block_replaces_only_the_marked_region() {
 fn a_begin_marker_without_an_end_is_refused() {
     let agents = format!(
         "{}\n{}\nplanted\n",
-        agents_md_fixture(),
+        tend2_block_fixture(),
         garden_block::BEGIN
     );
     let block = garden_block::render("2026.09", &planted_beds());
@@ -190,6 +216,123 @@ fn a_begin_marker_without_an_end_is_refused() {
         }
         other => panic!("expected Error::Agents, got {other:?}"),
     }
+}
+
+// ------------------------------------------- garden_block beside tend2's block
+
+// tend2's init writes its own block between `<!-- tend2:begin -->` and `<!-- tend2:end -->`,
+// beside the garden block, and each init leaves the other's bytes alone (jahala/plotplot
+// issue 28, ruled 2026-09-10 on the contracts loop). Every comparison here is of bytes.
+
+const PROSE: &str = "This repository keeps notes of its own here.\n";
+const MORE_PROSE: &str = "## Written by hand\n\nNobody else's to move.\n";
+
+#[test]
+fn planting_beside_tend2s_block_alone_keeps_it_first_and_the_garden_block_one_blank_line_below() {
+    let tend2 = tend2_block_fixture();
+    let block = garden_block::render("2026.09", &planted_beds());
+
+    let planted =
+        garden_block::replace_in(&tend2, &block).expect("a file with no plotplot markers");
+
+    let (before, after) = outside_the_garden_block(&planted);
+    assert_eq!(
+        before,
+        format!("{tend2}\n").as_bytes(),
+        "the bytes before the garden block are not tend2's block and one blank line:\n{planted}"
+    );
+    assert_eq!(after, b"\n", "{planted}");
+    assert_eq!(tend2_region(&planted), tend2);
+}
+
+#[test]
+fn replanting_between_tend2s_block_and_prose_moves_no_byte_outside_the_markers() {
+    let tend2 = tend2_block_fixture();
+    let older = garden_block::render("2026.09", &[bed("weeder", "0.1.0", Some("weeder"), &[])]);
+    let newer = garden_block::render("2026.09", &[bed("weeder", "0.2.2", Some("weeder"), &[])]);
+    let agents = format!("{tend2}\n{PROSE}\n{older}\n\n{MORE_PROSE}");
+
+    let planted = garden_block::replace_in(&agents, &newer).expect("one marked region");
+
+    let (was_before, was_after) = outside_the_garden_block(&agents);
+    let (before, after) = outside_the_garden_block(&planted);
+    assert_eq!(before, was_before, "bytes before the garden block changed");
+    assert_eq!(after, was_after, "bytes after the garden block changed");
+    assert_eq!(
+        &planted.as_bytes()[before.len()..planted.len() - after.len()],
+        newer.as_bytes()
+    );
+    assert!(planted.as_bytes().starts_with(tend2.as_bytes()));
+    assert_eq!(tend2_region(&planted), tend2);
+}
+
+#[test]
+fn planting_above_tend2s_block_leaves_it_byte_for_byte_below_the_garden_block() {
+    let tend2 = tend2_block_fixture();
+    let older = garden_block::render("2026.09", &[bed("weeder", "0.1.0", Some("weeder"), &[])]);
+    let newer = garden_block::render("2026.09", &planted_beds());
+    let agents = format!("{older}\n\n{tend2}");
+
+    let planted = garden_block::replace_in(&agents, &newer).expect("one marked region");
+
+    let (before, after) = outside_the_garden_block(&planted);
+    assert_eq!(before, b"", "{planted}");
+    assert_eq!(
+        after,
+        format!("\n\n{tend2}").as_bytes(),
+        "tend2's block is not where it was below the garden block:\n{planted}"
+    );
+    assert_eq!(tend2_region(&planted), tend2);
+}
+
+#[test]
+fn another_seasons_block_changes_only_the_marked_region_in_every_layout() {
+    let tend2 = tend2_block_fixture();
+    let this_season = garden_block::render("2026.09", &planted_beds());
+    let next_season = garden_block::render("2026.10", &planted_beds());
+    let layouts = [
+        ("tend2's block alone", tend2.clone()),
+        (
+            "tend2's block, prose, the garden block, prose",
+            format!("{tend2}\n{PROSE}\n{this_season}\n\n{MORE_PROSE}"),
+        ),
+        (
+            "the garden block above tend2's block",
+            format!("{this_season}\n\n{tend2}"),
+        ),
+    ];
+
+    for (layout, agents) in layouts {
+        let planted = garden_block::replace_in(&agents, &this_season).expect("this season");
+        let replanted = garden_block::replace_in(&planted, &next_season).expect("the next season");
+
+        let (was_before, was_after) = outside_the_garden_block(&planted);
+        let (before, after) = outside_the_garden_block(&replanted);
+        assert_eq!(
+            before, was_before,
+            "{layout}: bytes before the block changed"
+        );
+        assert_eq!(after, was_after, "{layout}: bytes after the block changed");
+        assert_eq!(
+            &replanted.as_bytes()[before.len()..replanted.len() - after.len()],
+            next_season.as_bytes(),
+            "{layout}: the marked region is not the next season's block"
+        );
+        assert_eq!(tend2_region(&replanted), tend2, "{layout}");
+    }
+}
+
+#[test]
+fn the_tend2_fixture_is_this_repositorys_tend2_block_byte_for_byte() {
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("AGENTS.md");
+    let live = std::fs::read_to_string(&path).expect("this repository's AGENTS.md");
+
+    let region = tend2_region(&live);
+    assert!(
+        region.starts_with("<!-- tend2:begin -->\n") && region.ends_with("<!-- tend2:end -->\n"),
+        "AGENTS.md carries no whole tend2 block:\n{region}"
+    );
+    assert_eq!(tend2_block_fixture(), region);
 }
 
 // ------------------------------------------------------------------- githooks

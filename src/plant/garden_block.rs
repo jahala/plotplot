@@ -8,6 +8,7 @@
 use crate::bed::Bed;
 use crate::error::{Error, Result};
 use crate::layout;
+use crate::plant::region::{self, Markers};
 
 /// Where the block starts. Everything before it in `AGENTS.md` is somebody else's.
 pub const BEGIN: &str = "<!-- plotplot:begin -->";
@@ -58,58 +59,12 @@ Season: {season}.
 /// end, an end without a begin, an end before its begin, or more than one of either. The
 /// stem will not guess which bytes the block owns.
 pub fn replace_in(agents_md: &str, block: &str) -> Result<String> {
-    let begins = agents_md.matches(BEGIN).count();
-    let ends = agents_md.matches(END).count();
-
-    let refuse = |problem: String| Err(Error::Agents { problem });
-    let file = layout::AGENTS_MD;
-
-    match (begins, ends) {
-        (0, 0) => Ok(appended(agents_md, block)),
-        (1, 1) => {
-            let (begin, end) = match (agents_md.find(BEGIN), agents_md.find(END)) {
-                (Some(begin), Some(end)) => (begin, end),
-                _ => return refuse(format!("{file} lost a plotplot marker while being read")),
-            };
-            if begin > end {
-                return refuse(format!("{file} has {END} before {BEGIN}"));
-            }
-            // Sliced with `get`, so a marker in a place these bounds did not expect is a
-            // refusal rather than a panic in a git hook.
-            let (before, after) = match (agents_md.get(..begin), agents_md.get(end + END.len()..)) {
-                (Some(before), Some(after)) => (before, after),
-                _ => return refuse(format!("{file} has markers the stem cannot cut on")),
-            };
-            let mut planted = String::with_capacity(before.len() + block.len() + after.len());
-            planted.push_str(before);
-            planted.push_str(block);
-            planted.push_str(after);
-            Ok(planted)
-        }
-        (_, 0) => refuse(format!("{file} has {BEGIN} without {END}")),
-        (0, _) => refuse(format!("{file} has {END} without {BEGIN}")),
-        _ => refuse(format!(
-            "{file} has {begins} of {BEGIN} and {ends} of {END}; the stem replaces exactly one block"
-        )),
-    }
-}
-
-/// `agents_md` with `block` after it, separated by one blank line and never by two.
-///
-/// Only newlines are added: no byte already in the file is moved or dropped.
-fn appended(agents_md: &str, block: &str) -> String {
-    if agents_md.is_empty() {
-        return format!("{block}\n");
-    }
-    let trailing = agents_md.len() - agents_md.trim_end_matches('\n').len();
-    let mut planted = String::with_capacity(agents_md.len() + block.len() + 3);
-    planted.push_str(agents_md);
-    for _ in trailing..2 {
-        planted.push('\n');
-    }
-    planted.push_str(block);
-    planted.push('\n');
-    planted
+    let markers = Markers {
+        file: layout::AGENTS_MD,
+        begin: BEGIN,
+        end: END,
+    };
+    region::replace_in(agents_md, block, markers).map_err(|problem| Error::Agents { problem })
 }
 
 #[cfg(test)]

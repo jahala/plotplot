@@ -376,6 +376,53 @@ plotplot receipt draft --harness <h>      the draft alone (stdin: the payload)
 plotplot doctor                           static mode; exit 0 or 3
 ```
 
+### `platform.rs`: the law projected onto GitHub, and read back
+
+Added 2026-09-11 for the platform half of jahala/plotplot issue 7: a git hook binds a person
+until `--no-verify`; only a ruleset binds past that. GitHub is reached through `gh` behind one
+seam, shaped like `doctor::live::Driver` and sharing its `Ran`:
+
+```rust
+pub trait Gh { fn api(&self, method: &str, path: &str, body: Option<&str>) -> Ran; }
+pub struct GhCli { pub program: PathBuf }   // `gh api <path>` for a read; `gh api -X <METHOD> <path> --input -` with the body on stdin
+pub const REQUIRED_CHECK: &str = "garden"; // the PR gate's job name, the ruleset's required context, doctor's read-back: one constant
+pub const RULESET_NAME: &str = "plotplot: the default branch";
+pub struct Repository { pub owner: String, pub name: String }
+pub fn github_repository(origin: &str) -> Option<Repository>;   // https, git@github.com: and ssh:// origins, with or without .git
+pub enum Unreachable { NoGh, NoOrigin, NotGithub { origin: String } }
+pub fn reach<G>(gh: Option<G>, origin: Option<&str>) -> Result<(G, Repository), Unreachable>;
+pub fn desired_ruleset() -> Value;  pub fn ruleset_body() -> String;   // byte-stable JSON
+pub fn same_ruleset(held: &Value) -> bool;   // target, enforcement, conditions, rules
+pub fn apply_ruleset(gh: &dyn Gh, repository: &Repository) -> Result<Option<String>, Unapplied>;
+pub fn codeowners_region(owner: &str) -> String;  pub fn codeowners_in(codeowners: &str, region: &str) -> Result<String>;
+pub fn read(gh: &dyn Gh, repository: &Repository) -> Vec<LiveFinding>;   // two read-only calls
+pub fn read_back(branch: &str, rules: &Value) -> Vec<LiveFinding>;
+```
+
+The desired ruleset is one ruleset on `~DEFAULT_BRANCH`, target `branch`, enforcement
+`active`, no bypass actors, rules exactly `deletion`, `non_fast_forward` and
+`required_status_checks` requiring the context `garden`, in that order. Linear history is
+absent on purpose: the law merges with a merge commit, and that rule refuses one.
+`init --github` lists the rulesets, reads the one carrying the name, and POSTs when there is
+none, PUTs to its id when it says something else, and calls nothing when it already says
+this; fields GitHub adds to what it hands back are not differences. Anything gh refuses is
+printed on stderr as gh wrote it, after one line naming the call, and `init` exits 1.
+
+The CODEOWNERS region is the lines between `# plotplot:begin` and `# plotplot:end` in
+`.github/CODEOWNERS`, the same rule as the garden block (`plant::region`), naming `@<owner>`
+for weeder's C1 guardrail files, the stem's own files, the pull request gate and `docs/tend2/`.
+A malformed marker pair is `Error::Codeowners`.
+
+The read-back is `doctor --platform`: `GET repos/<owner>/<repo>` for `default_branch`, then
+`GET repos/<owner>/<repo>/rules/branches/<branch>`, as three lines in the live table's shape:
+`required check`, `force push`, `deletion`. Without gh or a github.com origin, or when a call
+fails, the table is one `platform unavailable <reason>` line and the exit is 3.
+
+```
+plotplot init --github                    after planting: the CODEOWNERS region, then the ruleset; exit 2 without gh or a github.com origin
+plotplot doctor --platform                the static table, then the platform table; exit 0 only when both are ok, else 3
+```
+
 ## 5. Vendor facts, verified 2026-09-08 on the build machine
 
 Claude Code 2.1.265, Gemini CLI 0.46.0, Codex CLI 0.133.0. Where these differ from
