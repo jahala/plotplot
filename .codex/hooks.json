@@ -4,7 +4,7 @@
       {
         "hooks": [
           {
-            "command": "\"/Users/jahala/conductor/workspaces/plotplot/beirut/.plotplot/bundles/codex/bin/plotplot\" hook codex PostToolUse",
+            "command": "\"$(git rev-parse --show-toplevel)/.plotplot/bundles/codex/bin/plotplot\" hook codex PostToolUse",
             "timeout": 10,
             "type": "command"
           }
@@ -15,7 +15,7 @@
       {
         "hooks": [
           {
-            "command": "\"/Users/jahala/conductor/workspaces/plotplot/beirut/.plotplot/bundles/codex/bin/plotplot\" hook codex PreCompact",
+            "command": "\"$(git rev-parse --show-toplevel)/.plotplot/bundles/codex/bin/plotplot\" hook codex PreCompact",
             "timeout": 5,
             "type": "command"
           }
@@ -26,7 +26,7 @@
       {
         "hooks": [
           {
-            "command": "\"/Users/jahala/conductor/workspaces/plotplot/beirut/.plotplot/bundles/codex/bin/plotplot\" hook codex PreToolUse",
+            "command": "\"$(git rev-parse --show-toplevel)/.plotplot/bundles/codex/bin/plotplot\" hook codex PreToolUse",
             "timeout": 10,
             "type": "command"
           }
@@ -37,7 +37,7 @@
       {
         "hooks": [
           {
-            "command": "\"/Users/jahala/conductor/workspaces/plotplot/beirut/.plotplot/bundles/codex/bin/plotplot\" hook codex Stop",
+            "command": "\"$(git rev-parse --show-toplevel)/.plotplot/bundles/codex/bin/plotplot\" hook codex Stop",
             "timeout": 1,
             "type": "command"
           }

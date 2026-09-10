@@ -41,6 +41,11 @@ pub const MARKETPLACE_DIR: &str = "marketplace";
 /// command can lean on. Verified against the CLI's bundled hooks reference (0.46.0).
 pub const GEMINI_PROJECT_DIR: &str = "$GEMINI_PROJECT_DIR";
 
+/// What a Codex project hook command spells for the repository root: a shell substitution
+/// git answers at run time, since Codex has no project-directory variable and a committed
+/// project file must not carry one machine's absolute path.
+pub const CODEX_PROJECT_ROOT: &str = "$(git rev-parse --show-toplevel)";
+
 /// What one harness's install did.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Installed {
@@ -213,7 +218,10 @@ pub fn gemini(root: &Path, tree: &FileTree) -> Result<Installed> {
 /// not a TOML table, [`Error::Toml`] when it is not TOML at all, [`Error::Io`] when a file
 /// cannot be read or written.
 pub fn codex(root: &Path, tree: &FileTree) -> Result<Installed> {
-    let bundle_root = absolute(&layout::bundle_dir(root, Harness::Codex));
+    // Codex has no variable for the project directory the way Gemini does, and a project
+    // file is committed and cloned: an absolute path in it names one machine. The hook
+    // commands run through a shell, so the repository root is asked of git at run time.
+    let bundle_root = format!("{CODEX_PROJECT_ROOT}/{}", relative_bundle(Harness::Codex));
 
     let events = retargeted_hooks(Harness::Codex, tree, &bundle_root)?;
     let hooks_file = serde_json::json!({ "hooks": Value::Object(events) });
@@ -669,20 +677,40 @@ mod tests {
     }
 
     #[test]
-    fn codexs_hook_commands_resolve_through_the_bundles_own_directory() {
+    fn codexs_hook_commands_resolve_through_the_repository_root_git_answers() {
         let tree = tree(Harness::Codex);
-        let events = retargeted_hooks(Harness::Codex, &tree, "/work/repo/.plotplot/bundles/codex")
-            .expect("the hooks retarget");
+        let bundle_root = format!("{CODEX_PROJECT_ROOT}/{}", relative_bundle(Harness::Codex));
+        let events =
+            retargeted_hooks(Harness::Codex, &tree, &bundle_root).expect("the hooks retarget");
         for (event, groups) in &events {
             let command = groups[0]["hooks"][0]["command"]
                 .as_str()
                 .expect("a command string");
             assert!(
-                command.starts_with("\"/work/repo/.plotplot/bundles/codex/bin/plotplot\""),
+                command.starts_with(
+                    "\"$(git rev-parse --show-toplevel)/.plotplot/bundles/codex/bin/plotplot\""
+                ),
                 "{event}: {command}"
             );
             assert!(!command.contains("${CLAUDE_PLUGIN_ROOT}"), "{command}");
+            assert!(
+                !command.contains("/Users/") && !command.contains("/home/"),
+                "a committed project file carries one machine's path: {command}"
+            );
         }
+    }
+
+    #[test]
+    fn a_planted_codex_project_file_carries_no_absolute_path() {
+        let root = tempfile::tempdir().expect("a temp root");
+        let tree = tree(Harness::Codex);
+        codex(root.path(), &tree).expect("the project file is written");
+        let hooks = std::fs::read_to_string(root.path().join(CODEX_HOOKS)).expect("the hooks file");
+        assert!(hooks.contains(CODEX_PROJECT_ROOT), "{hooks}");
+        assert!(
+            !hooks.contains(root.path().to_str().expect("utf-8")),
+            "the temp root's absolute path is in the committed file: {hooks}"
+        );
     }
 
     #[test]
