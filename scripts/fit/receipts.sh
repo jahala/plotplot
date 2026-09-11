@@ -429,7 +429,8 @@ case "${1:-}" in
   seal) check_seal ;;
   verify) check_verify ;;
   *)
-    echo "usage: receipts.sh {seal | verify}" >&2
-    exit 2
+    echo "unevaluable ${1:-}: this script proves seal and verify; the claim '${1:-}' has no evidence in it yet"
+    echo "receipts.sh: '${1:-}' is not implemented; the loop's check stays open until it is" >&2
+    exit 3
     ;;
 esac

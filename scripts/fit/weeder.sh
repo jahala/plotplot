@@ -753,8 +753,9 @@ check_f6() {
 case "${1:-}" in
   ""|f1|f2|f3|f4|f5|f6) ;;
   *)
-    echo "usage: weeder.sh [f1 | f2 | f3 | f4 | f5 | f6]" >&2
-    exit 2
+    echo "unevaluable $1: this script proves the fit contract (f1 to f6); the claim '$1' has no evidence in it yet"
+    echo "weeder.sh: '$1' is not implemented; the loop's check stays open until it is" >&2
+    exit 3
     ;;
 esac
 
