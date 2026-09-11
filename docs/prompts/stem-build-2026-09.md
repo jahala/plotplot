@@ -383,7 +383,10 @@ until `--no-verify`; only a ruleset binds past that. GitHub is reached through `
 seam, shaped like `doctor::live::Driver` and sharing its `Ran`:
 
 ```rust
-pub trait Gh { fn api(&self, method: &str, path: &str, body: Option<&str>) -> Ran; }
+pub trait Gh {
+    fn api(&self, method: &str, path: &str, body: Option<&str>) -> Ran;
+    fn raw(&self, path: &str) -> Ran;       // a file's bytes: `gh api -H "Accept: application/vnd.github.raw+json" <path>`
+}
 pub struct GhCli { pub program: PathBuf }   // `gh api <path>` for a read; `gh api -X <METHOD> <path> --input -` with the body on stdin
 pub const REQUIRED_CHECK: &str = "garden"; // the PR gate's job name, the ruleset's required context, doctor's read-back: one constant
 pub const RULESET_NAME: &str = "plotplot: the default branch";
@@ -393,10 +396,18 @@ pub enum Unreachable { NoGh, NoOrigin, NotGithub { origin: String } }
 pub fn reach<G>(gh: Option<G>, origin: Option<&str>) -> Result<(G, Repository), Unreachable>;
 pub fn desired_ruleset() -> Value;  pub fn ruleset_body() -> String;   // byte-stable JSON
 pub fn same_ruleset(held: &Value) -> bool;   // target, enforcement, conditions, rules
-pub fn apply_ruleset(gh: &dyn Gh, repository: &Repository) -> Result<Option<String>, Unapplied>;
+pub struct Job { pub key: String, pub name: String }   // a job under `jobs:`, and the name it reports
+pub fn gate_jobs(workflow: &str) -> Vec<Job>;           // pure, no YAML parser
+pub fn reports(jobs: &[Job], check: &str) -> bool;
+pub struct Gate { pub branch: String, pub jobs: Option<Vec<Job>> }   // None: no workflow on the branch
+pub fn default_branch(gh: &dyn Gh, repository: &Repository) -> Result<String, Unapplied>;
+pub fn read_gate(gh: &dyn Gh, repository: &Repository) -> Result<Gate, Unapplied>;   // two read-only calls
+pub fn apply_ruleset(gh: &dyn Gh, repository: &Repository, gate: &Gate) -> Result<Option<String>, Unapplied>;
+pub enum Unapplied { Refused { call, ran }, Unreadable { call, problem, ran }, Ungated { gate, deadlock } }
 pub fn codeowners_region(owner: &str) -> String;  pub fn codeowners_in(codeowners: &str, region: &str) -> Result<String>;
-pub fn read(gh: &dyn Gh, repository: &Repository) -> Vec<LiveFinding>;   // two read-only calls
+pub fn read(gh: &dyn Gh, repository: &Repository) -> Vec<LiveFinding>;   // three read-only calls
 pub fn read_back(branch: &str, rules: &Value) -> Vec<LiveFinding>;
+pub fn gate_line(gate: &Gate) -> LiveFinding;
 ```
 
 The desired ruleset is one ruleset on `~DEFAULT_BRANCH`, target `branch`, enforcement
@@ -408,18 +419,51 @@ none, PUTs to its id when it says something else, and calls nothing when it alre
 this; fields GitHub adds to what it hands back are not differences. Anything gh refuses is
 printed on stderr as gh wrote it, after one line naming the call, and `init` exits 1.
 
+The ordering rule (jahala/plotplot issue 33, ruled 2026-09-11): the ruleset requires `garden`
+only once the default branch's workflow already carries a job reporting it, because a ruleset
+requiring a check no workflow on the branch reports lets no pull request merge, the one that
+would fix the workflow included. `init --github` runs in this order: the CODEOWNERS region, then
+the gate read, then the ruleset. The gate read is `GET repos/<owner>/<repo>` for
+`default_branch`, then `raw("repos/<owner>/<repo>/contents/.github/workflows/plotplot-check.yml?ref=<branch>")`,
+the branch escaped as `branch_query` spells it (`branch_segment`, plus `&` and `+`). The file is
+absent when gh exits non-zero with 404 in its first line, or the answer is empty; any other
+failed read is `Unapplied::Refused` with gh's words. `gate_jobs` reads the jobs without a YAML
+parser: after a line that is exactly `jobs:`, a line `  <key>:` (a key of letters, digits, `-`
+and `_`) starts a job, a line `    name: <text>` under it is the name it reports, trimmed and
+unquoted, and a job with no name reports its key, as GitHub does; a line with no indent ends the
+section. That is enough because the stem writes the file; a hand-edited workflow that hides its
+job's name from this reader is read as naming no `garden` job, which is the honest reading.
+When the gate does not report `garden`, `apply_ruleset` refuses with `Unapplied::Ungated` before
+it lists, compares or writes anything, and `init` exits 1 with the region still written and
+named. The refusal is one line naming the branch, what it holds and the fix:
+
+```
+master's .github/workflows/plotplot-check.yml names no job "garden" (jobs: check, reported as "plotplot check --strict"); land the workflow on master first, then run plotplot init --github again
+master has no .github/workflows/plotplot-check.yml; land the workflow on master first, then run plotplot init --github again
+```
+
+and, when the ruleset called `plotplot: the default branch` is active and already requires
+`garden` (two more reads, of the list and of that ruleset), a second line:
+`ruleset <id> already requires "garden", so master takes no merge until that workflow lands`.
+When those two reads fail, the second line says whether it does could not be read, with gh's
+word. A rename lands the workflow on the default branch first, and the ruleset moves after.
+
 The CODEOWNERS region is the lines between `# plotplot:begin` and `# plotplot:end` in
 `.github/CODEOWNERS`, the same rule as the garden block (`plant::region`), naming `@<owner>`
 for weeder's C1 guardrail files, the stem's own files, the pull request gate and `docs/tend2/`.
 A malformed marker pair is `Error::Codeowners`.
 
 The read-back is `doctor --platform`: `GET repos/<owner>/<repo>` for `default_branch`, then
-`GET repos/<owner>/<repo>/rules/branches/<branch>`, as three lines in the live table's shape:
-`required check`, `force push`, `deletion`. Without gh or a github.com origin, or when a call
-fails, the table is one `platform unavailable <reason>` line and the exit is 3.
+`GET repos/<owner>/<repo>/rules/branches/<branch>`, then the raw read of the gate's workflow on
+that branch, as four lines in the live table's shape: `required check`, `force push`,
+`deletion`, `gate job`. The gate job line is ok when the workflow reports `garden`
+(`master's plotplot-check.yml reports garden`), and fails naming the jobs it reports instead or
+the missing file, in the refusal's words. Without gh or a github.com origin, or when the first
+two calls fail, the table is one `platform unavailable <reason>` line and the exit is 3; a
+failed read of the workflow that is not a 404 makes the gate job line alone `unavailable`.
 
 ```
-plotplot init --github                    after planting: the CODEOWNERS region, then the ruleset; exit 2 without gh or a github.com origin
+plotplot init --github                    after planting: the CODEOWNERS region, then the gate read, then the ruleset; exit 2 without gh or a github.com origin; exit 1 while the default branch's workflow reports no garden job
 plotplot doctor --platform                the static table, then the platform table; exit 0 only when both are ok, else 3
 ```
 

@@ -100,7 +100,8 @@ pub struct InitArgs {
     pub lock: Option<PathBuf>,
     /// After planting, write the stem's region of .github/CODEOWNERS and apply the default
     /// branch's ruleset through gh: the garden check required, force pushes and deletion
-    /// refused.
+    /// refused. The ruleset is refused while the default branch's workflow reports no garden
+    /// job; land the workflow there first.
     #[arg(long)]
     pub github: bool,
 }
@@ -119,7 +120,8 @@ pub enum Profile {
 #[derive(Debug, ClapArgs)]
 pub struct DoctorArgs {
     /// After the static findings, read back through gh, with read-only calls, whether GitHub
-    /// requires the garden check and refuses force pushes and deletion on the default branch.
+    /// requires the garden check and refuses force pushes and deletion on the default branch,
+    /// and whether the workflow there reports the garden job.
     #[arg(long)]
     pub platform: bool,
     /// After the static findings, drive one real session per harness through umbel and prove

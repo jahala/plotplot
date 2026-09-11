@@ -1036,6 +1036,10 @@ mod tests {
                 r#"[{"type":"deletion","ruleset_id":41},{"type":"non_fast_forward","ruleset_id":41},
                     {"type":"required_status_checks","ruleset_id":41,
                      "parameters":{"required_status_checks":[{"context":"garden"}]}}]"#,
+            )
+            .raw_answer(
+                "repos/example-owner/example-repo/contents/.github/workflows/plotplot-check.yml?ref=main",
+                &init::workflow(false),
             );
         let repository = platform::Repository {
             owner: "example-owner".to_owned(),
@@ -1053,9 +1057,10 @@ mod tests {
             .collect();
         assert_eq!(
             names,
-            ["required check", "force push", "deletion"],
+            ["required check", "force push", "deletion", "gate job"],
             "{stdout}"
         );
+        assert!(gh.writes().is_empty(), "{:?}", gh.calls());
         assert!(
             table.lines().all(|line| line.contains("  ok  ")),
             "{stdout}"

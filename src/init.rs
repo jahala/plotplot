@@ -513,12 +513,14 @@ pub enum GithubStop {
     Unreachable(Unreachable),
     /// Its region of `.github/CODEOWNERS` could not be written. [`FAILED`].
     Failed(Error),
-    /// gh did not apply the ruleset, and said why. [`FAILED`].
+    /// The ruleset was not applied: gh refused a call and said why, or the default branch's
+    /// workflow reports no job the ruleset could require. [`FAILED`].
     Unapplied(Unapplied),
 }
 
 /// `--github`, after the plain planting: the stem's region of `.github/CODEOWNERS`, then the
-/// ruleset on the default branch, in that order. Each change is a line in `planted`.
+/// pull request gate read from the default branch, then the ruleset, which is applied only
+/// when that gate reports the check it requires. Each change is a line in `planted`.
 ///
 /// The origin and the `gh` to call arrive as arguments: `run` reads both from around the
 /// process, and a test hands in a recorded `gh`.
@@ -537,7 +539,11 @@ pub fn github(
         Ok(false) => {}
         Err(error) => return Some(GithubStop::Failed(error)),
     }
-    match platform::apply_ruleset(gh, &repository) {
+    let gate = match platform::read_gate(gh, &repository) {
+        Ok(gate) => gate,
+        Err(unread) => return Some(GithubStop::Unapplied(unread)),
+    };
+    match platform::apply_ruleset(gh, &repository, &gate) {
         Ok(Some(line)) => planted.changed.push(line),
         Ok(None) => {}
         Err(unapplied) => return Some(GithubStop::Unapplied(unapplied)),
@@ -1257,10 +1263,30 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
     // ------------------------------------------------------------------ --github
 
     use crate::platform::recorded::Recorded;
-    use crate::platform::{Ran, Unreachable};
+    use crate::platform::{Ran, Unapplied, Unreachable};
 
     const GITHUB: &str = "https://github.com/example-owner/example-repo.git";
     const LIST: &str = "repos/example-owner/example-repo/rulesets";
+    const REPOSITORY: &str = "repos/example-owner/example-repo";
+    const ON_MASTER: &str =
+        "repos/example-owner/example-repo/contents/.github/workflows/plotplot-check.yml?ref=master";
+
+    /// A gh whose default branch is master, holding `workflow` there.
+    fn on_master(workflow: &str) -> Recorded {
+        Recorded::default()
+            .answer("GET", REPOSITORY, r#"{"default_branch":"master"}"#)
+            .raw_answer(ON_MASTER, workflow)
+    }
+
+    /// The workflow master held before the job was renamed: the job `check`, reporting
+    /// `plotplot check --strict` (jahala/plotplot issue 33).
+    fn before_the_rename() -> String {
+        let old = workflow(true)
+            .replace("\n  garden:\n", "\n  check:\n")
+            .replace("    name: garden\n", "    name: plotplot check --strict\n");
+        assert_ne!(old, workflow(true));
+        old
+    }
 
     /// What `report` wrote on each stream, and the code it answered.
     fn reported(planted: &Planted, stop: Option<&GithubStop>) -> (i32, String, String) {
@@ -1277,13 +1303,30 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
     #[test]
     fn github_writes_the_region_then_applies_the_ruleset_and_names_both() {
         let root = tempfile::tempdir().expect("a temp root");
-        let gh = Recorded::default()
-            .answer("GET", LIST, "[]")
-            .answer("POST", LIST, r#"{"id":41}"#);
+        let gh = on_master(&workflow(true)).answer("GET", LIST, "[]").answer(
+            "POST",
+            LIST,
+            r#"{"id":41}"#,
+        );
         let mut planted = Planted::default();
 
         let stop = github(root.path(), Some(GITHUB), Some(&gh), &mut planted);
         assert!(stop.is_none(), "{stop:?}");
+        // The gate on the default branch is read before the ruleset is touched.
+        let calls: Vec<(String, String)> = gh
+            .calls()
+            .into_iter()
+            .map(|(method, path, _)| (method, path))
+            .collect();
+        assert_eq!(
+            calls,
+            [
+                ("GET".to_owned(), REPOSITORY.to_owned()),
+                ("RAW".to_owned(), ON_MASTER.to_owned()),
+                ("GET".to_owned(), LIST.to_owned()),
+                ("POST".to_owned(), LIST.to_owned()),
+            ]
+        );
         assert_eq!(
             planted.changed,
             [
@@ -1300,7 +1343,7 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
         );
 
         // The second run: the region is already there and the ruleset already says this.
-        let gh = Recorded::default()
+        let gh = on_master(&workflow(true))
             .answer(
                 "GET",
                 LIST,
@@ -1324,7 +1367,7 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
     #[test]
     fn a_failing_call_prints_ghs_own_words_after_the_changed_lines_and_answers_failed() {
         let root = tempfile::tempdir().expect("a temp root");
-        let gh = Recorded::default().answer("GET", LIST, "[]").ran(
+        let gh = on_master(&workflow(true)).answer("GET", LIST, "[]").ran(
             "POST",
             LIST,
             Ran {
@@ -1354,6 +1397,90 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
              gh api -X POST repos/example-owner/example-repo/rulesets could not be applied:\n\
              gh: Resource not accessible by integration (HTTP 403)\n\
              {\"message\":\"Resource not accessible by integration\",\"status\":\"403\"}\n"
+        );
+    }
+
+    #[test]
+    fn a_default_branch_reporting_the_old_job_name_is_refused_after_codeowners_and_answers_failed()
+    {
+        let root = tempfile::tempdir().expect("a temp root");
+        let gh = on_master(&before_the_rename()).answer("GET", LIST, "[]");
+        let mut planted = Planted::default();
+
+        let stop = github(root.path(), Some(GITHUB), Some(&gh), &mut planted);
+        assert!(
+            matches!(stop, Some(GithubStop::Unapplied(Unapplied::Ungated { .. }))),
+            "{stop:?}"
+        );
+        assert!(gh.writes().is_empty(), "{:?}", gh.calls());
+        // The region written before the refusal stays written, and is named.
+        assert!(layout::codeowners(root.path()).is_file());
+
+        let (code, stdout, stderr) = reported(&planted, stop.as_ref());
+        assert_eq!(code, FAILED);
+        assert_eq!(stdout, ".github/CODEOWNERS\n");
+        assert_eq!(
+            stderr,
+            "master's .github/workflows/plotplot-check.yml names no job \"garden\" \
+             (jobs: check, reported as \"plotplot check --strict\"); land the workflow on master \
+             first, then run plotplot init --github again\n"
+        );
+    }
+
+    #[test]
+    fn a_default_branch_with_no_workflow_is_refused_naming_the_missing_file() {
+        let root = tempfile::tempdir().expect("a temp root");
+        let gh = Recorded::default()
+            .answer("GET", REPOSITORY, r#"{"default_branch":"master"}"#)
+            .ran(
+                "RAW",
+                ON_MASTER,
+                Ran {
+                    code: 1,
+                    stdout: r#"{"message":"Not Found","status":"404"}"#.to_owned(),
+                    stderr: "gh: Not Found (HTTP 404)\n".to_owned(),
+                },
+            )
+            .answer("GET", LIST, "[]");
+        let mut planted = Planted::default();
+
+        let stop = github(root.path(), Some(GITHUB), Some(&gh), &mut planted);
+        assert!(gh.writes().is_empty(), "{:?}", gh.calls());
+        let (code, _, stderr) = reported(&planted, stop.as_ref());
+        assert_eq!(code, FAILED);
+        assert_eq!(
+            stderr,
+            "master has no .github/workflows/plotplot-check.yml; land the workflow on master \
+             first, then run plotplot init --github again\n"
+        );
+    }
+
+    #[test]
+    fn a_gate_that_cannot_be_read_prints_ghs_own_words_and_touches_no_ruleset() {
+        let root = tempfile::tempdir().expect("a temp root");
+        let gh = Recorded::default()
+            .answer("GET", REPOSITORY, r#"{"default_branch":"master"}"#)
+            .ran(
+                "RAW",
+                ON_MASTER,
+                Ran {
+                    code: 1,
+                    stdout: String::new(),
+                    stderr: "gh: Bad credentials (HTTP 401)\n".to_owned(),
+                },
+            );
+        let mut planted = Planted::default();
+
+        let stop = github(root.path(), Some(GITHUB), Some(&gh), &mut planted);
+        assert_eq!(gh.calls().len(), 2, "{:?}", gh.calls());
+        let (code, _, stderr) = reported(&planted, stop.as_ref());
+        assert_eq!(code, FAILED);
+        assert_eq!(
+            stderr,
+            format!(
+                "{} could not be applied:\ngh: Bad credentials (HTTP 401)\n",
+                crate::platform::raw_line(ON_MASTER)
+            )
         );
     }
 
