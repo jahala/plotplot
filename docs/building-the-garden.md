@@ -233,21 +233,46 @@ owner. No time estimates. No "phase two". No promise about work not done.
 
 ## 8. Order, and the kill criteria that travel with it
 
-1. contracts: manifest and lock schemas, SARIF fixtures, the fit runner. Kill: if two existing
-   beds cannot express their findings in SARIF without loss, stop and report.
-2. tend2 to npm; petals and pleach public. The loop must be installable.
-3. weeder in its own repository, on `tilth-core` once tilth lands the split (weeder proposes the
-   API and the branch, tilth lands it). Kill: over two percent false blocks over the pooled
-   merged commits of the garden repos, up to 200 each, or reaching the bar requires disabling
-   the test-deletion, skip, or stub rules.
-4. Stamps carry the verifier version; Tried required in pleach work orders; the one-page
-   tended-repository spec published.
-5. Friction ledger in tend2. Kill: a hot spot it names is not confirmed by the next
-   simplification loop.
-6. The stem as bundles plus lockfile wrapper, `doctor` proving hooks fire on two harnesses.
-7. `copeca init`.
-8. The proof repo runs the loop end to end on pinned versions, and the site tells it with real
-   output.
+Rewritten 2026-09-11 after a week in which the beds landed features by their own maps while the
+umbrella's proofs that they form one garden stayed prose: twelve of the fourteen fit scripts the
+umbrella's loops name did not exist, and the seam between two tools carried eleven issues before
+anyone tested it. The order below is the correction.
+
+**The umbrella's open checks are the program.** A bed's builder is dispatched only for work that
+turns an open check on the umbrella map green (a fit check or a seam check), or for a defect in
+the first tier, one that loses work or kills a worker. Milestones inside a bed do not run ahead
+of the umbrella's checks; `tend2 next` on the umbrella names what the garden does next.
+
+1. **The umbrella builds its own evidence first.** The per-bed fit scripts (`scripts/fit/<bed>.sh`
+   composing `scripts/fit/lib.sh`), the seam tests on the contracts loop, and the proof run
+   (`scripts/fit/proof.sh`), conducted on this repository through tend2, pleach and umbel, one
+   node at a time. Until these exist the map cannot say which bed belongs, and nothing else is
+   dispatched except tier one.
+2. **A seam gets its contract before either side moves.** One page under `contracts/` and one
+   test both tools run in their own CI against the other's pinned version: the plan and delivery
+   between tend2 and pleach, the worker lifecycle and usage between pleach and umbel, hooks and
+   artifacts between weeder and the stem, the instruction file between tend2 and the stem, the
+   channel's gate and liveness between pollen and everyone. Kill criterion per seam: if a seam
+   test has not caught one real drift in a season, it is a fixture and comes out.
+3. **Beds work down their fit checks, then tier one, then nothing.** Weeder's fourteen open,
+   pleach's eleven, tend2's seven, in the order the umbrella's map routes them; the first-tier
+   defects (a worker killed, work lost, a record gone) run beside them. Second-tier (wrong) and
+   third-tier (expensive) defects wait for a green fit loop on their tool.
+4. **The proof run is the wave's gate.** A wave ends when `scripts/fit/proof.sh` is green on the
+   pinned season: a fixture repository planted, a plan conducted with a planted test deletion
+   refused, receipts sealed, doctor live on a fresh clone. No wave ends on landings alone.
+5. **Measurement follows the record.** Usage reported per node (umbel), cost per verified claim
+   with cache reads priced apart (tend2), then the one question that decides the default profile:
+   does a planted repository lower cost per correct answer. Withdrawn until a yardstick exists;
+   revived the day one does.
+
+Pacing: one agent runs at a time, two only when a seam test says two tools must move together,
+and the window is the owner's.
+
+Kill criteria that travel with the order: a fit script that cannot be made honest for a bed says
+the bed does not fit, not that the script is wrong; a seam whose two sides cannot agree on one
+page is two beds that should be one or none; a wave whose proof run stays red for two seasons
+is a garden that does not work end to end, whatever its loops say.
 
 ## 9. Decisions reserved for the owner
 
