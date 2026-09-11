@@ -117,6 +117,9 @@ already open: tend 157, 158, 167, 169, 175, 183 and 184; pleach 61, 63, 64, 66, 
   `git merge --no-ff node/stem.platform` by hand was clean, 17 files. Either land wants the
   branch still on the base and should say so, or its conflict detection is wrong; either way
   it names no file (pleach 98).
+- 2026-09-11 `pleach land` landed the fifth run's node cleanly with the branch still on the
+  node's base, which narrows pleach 98: land refuses when the branch moved past the base and
+  reports the refusal as a conflict naming no file.
 
 ## umbel
 
