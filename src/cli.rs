@@ -77,7 +77,7 @@ pub enum BundleFace {
     },
 }
 
-/// `plotplot init [--harness …] [--beds …] [--profile …] [--lock <path>]`.
+/// `plotplot init [--harness …] [--beds …] [--profile …] [--lock <path>] [--github]`.
 #[derive(Debug, ClapArgs)]
 pub struct InitArgs {
     /// The harnesses to plant; what is detected on PATH and already configured here when
@@ -98,6 +98,11 @@ pub struct InitArgs {
     /// The `garden.lock` template to copy from, needed when this repository pins none yet.
     #[arg(long, value_name = "path")]
     pub lock: Option<PathBuf>,
+    /// After planting, write the stem's region of .github/CODEOWNERS and apply the default
+    /// branch's ruleset through gh: the garden check required, force pushes and deletion
+    /// refused.
+    #[arg(long)]
+    pub github: bool,
 }
 
 /// Which beds `init` plants when `--beds` does not say.
@@ -110,9 +115,13 @@ pub enum Profile {
     Full,
 }
 
-/// `plotplot doctor [--live] [--harness claude,gemini,codex] [--timeout <s>]`.
+/// `plotplot doctor [--platform] [--live] [--harness claude,gemini,codex] [--timeout <s>]`.
 #[derive(Debug, ClapArgs)]
 pub struct DoctorArgs {
+    /// After the static findings, read back through gh, with read-only calls, whether GitHub
+    /// requires the garden check and refuses force pushes and deletion on the default branch.
+    #[arg(long)]
+    pub platform: bool,
     /// After the static findings, drive one real session per harness through umbel and prove
     /// from the friction journal and the receipt drafts that each hook fired.
     #[arg(long)]
@@ -326,16 +335,9 @@ pub fn run(args: Args, root: &Path, stdout: &mut dyn Write, stderr: &mut dyn Wri
         }
         Face::Lock { command } => lock::run(root, &command, stdout, stderr),
         Face::Doctor(face) => match home() {
-            Ok(home) if face.live => live::run(
-                root,
-                &home,
-                &face.harnesses(),
-                face.timeout(),
-                &live::Umbel,
-                stdout,
-                stderr,
-            ),
-            Ok(home) => doctor::run(root, &home, stdout, stderr),
+            Ok(home) => {
+                doctor::run_face(root, &home, &face, search_path().as_deref(), stdout, stderr)
+            }
             Err(error) => {
                 let _ = writeln!(stderr, "{error}");
                 1
@@ -358,8 +360,9 @@ fn payload_on_stdin() -> std::io::Result<String> {
 /// The directories a command name is looked for in, as the process was started with.
 ///
 /// Read here, at the edge, beside the payload on stdin and the planter's home: `init` is
-/// told where to look for the three harness CLIs rather than asking the environment itself,
-/// so a test can hand it a directory of its own.
+/// told where to look for the three harness CLIs and for gh, and `doctor --platform` for gh,
+/// rather than asking the environment themselves, so a test can hand them a directory of its
+/// own.
 fn search_path() -> Option<OsString> {
     std::env::var_os("PATH")
 }

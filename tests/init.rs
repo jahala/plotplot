@@ -677,3 +677,67 @@ fn a_second_run_changes_nothing_and_says_so() {
         "a second run left the tree byte for byte as it was"
     );
 }
+
+// ------------------------------------------------------------------- 10. --github
+
+/// A search path holding `git` and nothing else, so no `gh` is found on it.
+fn only_git() -> tempfile::TempDir {
+    let bin = tempfile::tempdir().expect("a temporary bin directory");
+    let git = std::process::Command::new("sh")
+        .args(["-c", "command -v git"])
+        .output()
+        .expect("a shell that can look for git");
+    let git = String::from_utf8_lossy(&git.stdout).trim().to_owned();
+    assert!(!git.is_empty(), "git is on the build machine's path");
+    std::os::unix::fs::symlink(&git, bin.path().join("git")).expect("a link to git");
+    bin
+}
+
+#[test]
+fn init_offers_the_github_flag() {
+    let output = Command::cargo_bin("plotplot")
+        .expect("the plotplot binary is built")
+        .args(["init", "--help"])
+        .output()
+        .expect("the binary runs");
+    assert!(output.status.success());
+    assert!(String::from_utf8_lossy(&output.stdout).contains("--github"));
+}
+
+#[test]
+fn github_without_gh_refuses_with_usage_after_the_plain_planting_stays() {
+    let (tmp, root, template) = fixture();
+    let home = tmp.path().join("home");
+    let bin = only_git();
+    let mut command = Command::cargo_bin("plotplot").expect("the plotplot binary is built");
+    let output = command
+        .current_dir(&root)
+        .env("HOME", &home)
+        .env("PATH", bin.path())
+        .args([
+            "init",
+            "--github",
+            "--harness",
+            "gemini",
+            "--lock",
+            &template.display().to_string(),
+        ])
+        .output()
+        .expect("the binary runs");
+
+    assert_eq!(output.status.code(), Some(2), "{output:?}");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let refusal: Vec<&str> = stderr
+        .lines()
+        .filter(|line| line.contains("--github"))
+        .collect();
+    assert_eq!(refusal.len(), 1, "{stderr}");
+    assert!(refusal[0].contains("gh is not on PATH"), "{stderr}");
+
+    // The plain planting ran first and stays; --github wrote nothing of its own.
+    assert!(layout::garden_lock(&root).is_file());
+    assert!(root.join(".github/workflows/plotplot-check.yml").is_file());
+    assert!(!root.join(".github/CODEOWNERS").exists());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.lines().any(|line| line == "garden.lock"), "{stdout}");
+}

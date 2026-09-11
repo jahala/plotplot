@@ -32,7 +32,6 @@ use std::time::{Duration, Instant};
 use serde_json::Value;
 
 use crate::deny::Rule;
-use crate::doctor;
 use crate::error::{Error, Result};
 use crate::friction::{Kind, Record, harness_label};
 use crate::harness::Harness;
@@ -200,7 +199,7 @@ pub fn failed(findings: &[LiveFinding]) -> bool {
 
 // ------------------------------------------------------------------------------ the seam
 
-/// What one umbel command answered.
+/// What one external command answered: umbel here, gh for the platform (`crate::platform`).
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Ran {
     pub code: i32,
@@ -209,8 +208,8 @@ pub struct Ran {
 }
 
 impl Ran {
-    /// The first line with anything on it, which is umbel's own word about what happened;
-    /// on a timeout the pane snapshot follows it and is read separately.
+    /// The first line with anything on it, which is the program's own word about what
+    /// happened; on an umbel timeout the pane snapshot follows it and is read separately.
     pub fn first_line(&self) -> Option<&str> {
         self.stderr
             .lines()
@@ -775,33 +774,6 @@ pub fn probe_all(
         }
     }
     findings
-}
-
-/// `plotplot doctor --live`: the static table, then the live one.
-///
-/// Static findings come first and are printed whatever live mode goes on to say, because a
-/// bundle that is not on disk explains a hook that did not fire. The exit code is 3 when a
-/// static check failed or a session that ran did not prove what it should have.
-pub fn run(
-    root: &Path,
-    home: &Path,
-    harnesses: &[Harness],
-    timeout: Duration,
-    driver: &dyn Driver,
-    stdout: &mut dyn Write,
-    stderr: &mut dyn Write,
-) -> i32 {
-    let code = doctor::run(root, home, stdout, stderr);
-    if doctor::unplanted(root).is_some() || code == 1 {
-        return code;
-    }
-
-    let findings = probe_all(root, harnesses, timeout, driver, stderr);
-    if let Err(error) = write!(stdout, "\n{}", render(&findings)) {
-        let _ = writeln!(stderr, "stdout: {error}");
-        return 1;
-    }
-    if failed(&findings) || code != 0 { 3 } else { 0 }
 }
 
 #[cfg(test)]
