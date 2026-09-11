@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>parser · seam</title>
+<link rel="stylesheet" href="./loop.css">
+<body>
+<noscript>This page renders its markdown payload with JavaScript — enable JS, or read the raw payload in the page source.</noscript>
+<script type="text/markdown" id="loop">
+# parser
+**Goal.** A parser that reads the header line of the input format and refuses an empty input.
+
+## Tests
+- [ ] (code) the parser reads the header line of a well-formed input · test/parser-header.test.sh
+- [ ] (code) the parser refuses an empty input with a non-zero exit · test/parser-empty.test.sh
+
+## Needs
+- [core](core.tend2.html)
+
+## Tried
+- 2026-09-11 shaped as two code checks, each with its intended evidence path, so each can be built test first
+</script>
+<script src="./loop.js"></script>
