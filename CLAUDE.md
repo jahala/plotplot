@@ -45,6 +45,21 @@ pulls the brand from here by tag, like every bed's page. Read this before changi
 
 ## Working here
 
+- **Every change lands by pull request.** A ruleset on `master` requires the `garden` check; a
+  direct push is refused. Branch → push → `gh pr create` → `gh pr checks <n> --watch --exit-status`
+  → `gh pr merge <n> --merge`, in one chain (the law: on green is a command chain).
+- **Run pinned tools, never the machine's links.** `pleach` and `tend2` on PATH point into agents'
+  live checkouts. Conduct with a pinned master clone (`bun <clone>/src/main.ts`), verify and lint
+  with a pinned tend2 build (`node <clone>/dist/cli.js`, through a shim dir on PATH), re-pin after
+  each tool landing; until the lock pins the tools (issue 39).
+- **Conducting a node here:** a hand-written `docs/dogfood/<loop>/plan.json`, one phased node
+  closing one check; setup builds the stem and runs `plotplot lock verify` so a fresh worktree
+  carries its judges; the test requires the evidence file then runs it; smoke `weeder check
+  --strict`; audit `tend2 verify … --audit-egress` relayed by a second provider. A test that is red
+  by design cannot pass the green gate; land its script from the quarantine branch and say so.
+- **Evidence scripts** compose `scripts/fit/lib.sh`, print one line per claim, exit 0/1/3, and
+  answer `unevaluable` with the claim's name for a claim they do not carry.
+
 - Edit `.brand/*.md` → regenerate tokens → tag when beds must follow.
 - Loops: `tend2 lint docs/tend2/*.tend2.html` clean before any PR; only `tend2 verify` stamps.
 - Delete with `trash`, never `rm`. Never `git reset`. Do not push tags, publish or rename
