@@ -19,7 +19,7 @@ jobs:
     name: garden
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           # A gate that judges a diff needs the base of the pull request, not one commit.
           fetch-depth: 0
