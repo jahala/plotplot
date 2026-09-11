@@ -7,6 +7,11 @@
 //! one ruleset on the default branch, and `doctor --platform` asks GitHub which rules are in
 //! force there, with read-only calls.
 //!
+//! The ruleset requires a check the pull request gate reports, so it is applied only once the
+//! default branch's workflow reports it (jahala/plotplot issue 33): a ruleset requiring a check
+//! no workflow on the branch reports lets no pull request merge, the one that would fix the
+//! workflow included.
+//!
 //! GitHub is reached through `gh` behind [`Gh`]. The body, the comparison, the region and the
 //! read-back are pure functions over strings and JSON values with unit tests of their own;
 //! `scripts/fit/stem.sh platform` runs the real binary against a recording `gh`.
@@ -163,7 +168,13 @@ pub fn reach<G>(
 pub trait Gh {
     /// The method, the path under the API root, and the JSON body when there is one.
     fn api(&self, method: &str, path: &str, body: Option<&str>) -> Ran;
+    /// A read of a file's raw contents: GitHub answers the file's bytes, not JSON about it.
+    fn raw(&self, path: &str) -> Ran;
 }
+
+/// The Accept header that makes GitHub's contents endpoint answer a file's bytes rather than
+/// JSON carrying them in base64.
+pub const RAW: &str = "Accept: application/vnd.github.raw+json";
 
 /// The real `gh`: the executable found on the search path, one process per call, with the
 /// planter's own login.
@@ -173,13 +184,29 @@ pub struct GhCli {
 
 impl Gh for GhCli {
     fn api(&self, method: &str, path: &str, body: Option<&str>) -> Ran {
+        self.run(
+            &call_args(method, path, body.is_some()),
+            body,
+            &call_line(method, path),
+        )
+    }
+
+    fn raw(&self, path: &str) -> Ran {
+        self.run(&raw_args(path), None, &raw_line(path))
+    }
+}
+
+impl GhCli {
+    /// One gh process: its arguments, the body on stdin when there is one, and the line that
+    /// names the call when gh could not be run at all.
+    fn run(&self, args: &[String], body: Option<&str>, line: &str) -> Ran {
         let failed = |error: std::io::Error| Ran {
             code: 1,
             stdout: String::new(),
-            stderr: format!("{}: {error}\n", call_line(method, path)),
+            stderr: format!("{line}: {error}\n"),
         };
         let mut child = match Command::new(&self.program)
-            .args(call_args(method, path, body.is_some()))
+            .args(args)
             .stdin(if body.is_some() {
                 Stdio::piped()
             } else {
@@ -237,6 +264,21 @@ pub fn call_line(method: &str, path: &str) -> String {
     } else {
         format!("{GH} api -X {method} {path}")
     }
+}
+
+/// gh's arguments for a raw read: `api -H "<RAW>" <path>`, a GET.
+pub fn raw_args(path: &str) -> Vec<String> {
+    vec![
+        "api".to_owned(),
+        "-H".to_owned(),
+        RAW.to_owned(),
+        path.to_owned(),
+    ]
+}
+
+/// A raw read as a planter would type it.
+pub fn raw_line(path: &str) -> String {
+    format!("{GH} api -H \"{RAW}\" {path}")
 }
 
 // ------------------------------------------------------------------------- the ruleset
@@ -349,20 +391,45 @@ pub enum Unapplied {
         problem: String,
         ran: Ran,
     },
+    /// The default branch's workflow reports no job named [`REQUIRED_CHECK`], so a ruleset
+    /// requiring that check would let no pull request merge (jahala/plotplot issue 33).
+    Ungated {
+        /// The gate as the default branch holds it.
+        gate: Gate,
+        /// `Ok(Some(id))` when the stem's ruleset already requires the check, which is that
+        /// deadlock now; `Ok(None)` when it does not; `Err` with gh's word when the rulesets
+        /// could not be read.
+        deadlock: std::result::Result<Option<u64>, String>,
+    },
 }
 
 /// Apply the ruleset on `repository`: create it when it is absent, put the desired body to it
 /// when it says something else, and leave it alone when it already says this.
 ///
+/// `gate` is the pull request gate as the default branch holds it ([`read_gate`]). A ruleset
+/// requiring [`REQUIRED_CHECK`] is applied only when that gate already reports the check: a
+/// rename lands the workflow on the default branch first, and the ruleset moves after. Asked
+/// otherwise, it refuses before anything is listed, compared or written; the only calls a
+/// refusal makes are the reads that say whether the stem's ruleset already requires the check.
+///
 /// `Ok(Some(line))` when a call changed the platform, `Ok(None)` when no call was needed.
 ///
 /// # Errors
 ///
-/// [`Unapplied`] naming the first call that did not do what it was for.
+/// [`Unapplied::Ungated`] when the gate does not report the check, else [`Unapplied`] naming
+/// the first call that did not do what it was for.
 pub fn apply_ruleset(
     gh: &dyn Gh,
     repository: &Repository,
+    gate: &Gate,
 ) -> std::result::Result<Option<String>, Unapplied> {
+    if !gate.reports(REQUIRED_CHECK) {
+        return Err(Unapplied::Ungated {
+            gate: gate.clone(),
+            deadlock: requiring(gh, repository),
+        });
+    }
+
     let slug = repository.slug();
     let list_path = format!("repos/{slug}/rulesets");
     let list = answer(gh, &list_path)?;
@@ -412,8 +479,36 @@ fn answer(gh: &dyn Gh, path: &str) -> std::result::Result<(Value, Ran), Unapplie
     }
 }
 
-/// What `init` prints on stderr for a ruleset that was not applied: one line naming the call,
-/// then what gh wrote on stderr and on stdout, as it wrote them.
+/// The id of the stem's ruleset when it is enforced and already requires [`REQUIRED_CHECK`],
+/// read with two read-only calls; gh's word when the rulesets could not be read. A ruleset that
+/// is disabled or only evaluated blocks no merge, so it is no deadlock.
+fn requiring(gh: &dyn Gh, repository: &Repository) -> std::result::Result<Option<u64>, String> {
+    let slug = repository.slug();
+    let (list, _) = answer(gh, &format!("repos/{slug}/rulesets")).map_err(|u| reason(&u))?;
+    let Some(id) = find_ruleset(&list)? else {
+        return Ok(None);
+    };
+    let (held, _) = answer(gh, &format!("repos/{slug}/rulesets/{id}")).map_err(|u| reason(&u))?;
+    let enforced = held.get("enforcement").and_then(Value::as_str) == Some("active");
+    let requires = enforced
+        && held
+            .get("rules")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .filter(|rule| {
+                rule.get("type").and_then(Value::as_str) == Some("required_status_checks")
+            })
+            .any(|rule| contexts(rule).contains(&REQUIRED_CHECK));
+    Ok(requires.then_some(id))
+}
+
+/// What `init` prints on stderr for a ruleset that was not applied.
+///
+/// For a call that failed: one line naming the call, then what gh wrote on stderr and on
+/// stdout, as it wrote them. For a gate that does not report the check: one line naming the
+/// branch, what it holds and the fix, and a second when the stem's ruleset already requires
+/// the check, or when whether it does could not be read.
 pub fn unapplied_text(unapplied: &Unapplied) -> String {
     let (head, ran) = match unapplied {
         Unapplied::Refused { call, ran } => (format!("{call} could not be applied:"), ran),
@@ -423,8 +518,44 @@ pub fn unapplied_text(unapplied: &Unapplied) -> String {
             ),
             ran,
         ),
+        Unapplied::Ungated { gate, deadlock } => return ungated_text(gate, deadlock),
     };
     format!("{head}\n{}{}", verbatim(&ran.stderr), verbatim(&ran.stdout))
+}
+
+fn ungated_text(gate: &Gate, deadlock: &std::result::Result<Option<u64>, String>) -> String {
+    let branch = &gate.branch;
+    let mut text = format!(
+        "{}; land the workflow on {branch} first, then run plotplot init --github again\n",
+        gate.missing()
+    );
+    match deadlock {
+        Ok(Some(id)) => text.push_str(&format!(
+            "ruleset {id} already requires \"{REQUIRED_CHECK}\", so {branch} takes no merge \
+             until that workflow lands\n"
+        )),
+        Ok(None) => {}
+        Err(reason) => text.push_str(&format!(
+            "whether ruleset \"{RULESET_NAME}\" already requires \"{REQUIRED_CHECK}\" could \
+             not be read: {reason}\n"
+        )),
+    }
+    text
+}
+
+/// A failed call as one line: gh's own first word, or the call and its exit when gh said
+/// nothing; for an answer the stem could not read, the call and the problem.
+fn reason(unapplied: &Unapplied) -> String {
+    match unapplied {
+        Unapplied::Refused { call, ran } => ran
+            .first_line()
+            .map(str::to_owned)
+            .unwrap_or_else(|| format!("{call} exited {}", ran.code)),
+        Unapplied::Unreadable { call, problem, .. } => {
+            format!("{call} answered what the stem cannot read ({problem})")
+        }
+        Unapplied::Ungated { gate, .. } => gate.missing(),
+    }
 }
 
 /// gh's words untouched, ending in a newline so the next line starts on its own.
@@ -463,10 +594,218 @@ pub fn codeowners_in(codeowners: &str, region: &str) -> Result<String> {
     region::replace_in(codeowners, region, markers).map_err(|problem| Error::Codeowners { problem })
 }
 
+// ---------------------------------------------------------------------------- the gate
+
+/// One job the pull request gate declares: its key under `jobs:`, and the name it reports its
+/// check under, which is what a ruleset requires.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Job {
+    pub key: String,
+    pub name: String,
+}
+
+/// The jobs a workflow declares, read without a YAML parser.
+///
+/// After a line that is exactly `jobs:`, a line of two spaces, a key of letters, digits, `-`
+/// and `_`, and a colon starts a job; a line of four spaces, `name: ` and some text under it
+/// is the name that job reports, trimmed, with a pair of surrounding single or double quotes
+/// removed. A job with no `name:` reports its key, which is what GitHub does. A line with no
+/// indent ends the section; blank lines and comments do not.
+///
+/// That is enough because the file is one the stem itself writes ([`crate::init::workflow`]).
+/// A hand-edited workflow that hides its job's name from this reader (a flow mapping, a
+/// comment after the key, a name folded onto the next line) is a workflow the doctor reports
+/// as naming no `garden` job, which is the honest reading: the stem cannot tell that the check
+/// is reported, so it does not say so.
+pub fn gate_jobs(workflow: &str) -> Vec<Job> {
+    let mut jobs: Vec<Job> = Vec::new();
+    let mut inside = false;
+    // Whether the job being read has met its `name:` line; the first one is its name.
+    let mut named = false;
+    for line in workflow.lines() {
+        if !inside {
+            inside = line == "jobs:";
+            continue;
+        }
+        let content = line.trim_start();
+        if content.is_empty() || content.starts_with('#') {
+            continue;
+        }
+        if !line.starts_with(' ') {
+            break;
+        }
+        if let Some(key) = job_key(line) {
+            jobs.push(Job {
+                key: key.to_owned(),
+                name: key.to_owned(),
+            });
+            named = false;
+        } else if let Some(text) = line.strip_prefix("    name: ")
+            && let Some(job) = jobs.last_mut()
+            && !named
+        {
+            let name = unquote(text.trim());
+            if !name.is_empty() {
+                job.name = name.to_owned();
+            }
+            named = true;
+        }
+    }
+    jobs
+}
+
+/// The key a line of two spaces, a job id and a colon declares, and nothing else.
+fn job_key(line: &str) -> Option<&str> {
+    let key = line.strip_prefix("  ")?.strip_suffix(':')?;
+    let id = !key.is_empty()
+        && key
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_'));
+    id.then_some(key)
+}
+
+/// `text` without one pair of surrounding single or double quotes.
+fn unquote(text: &str) -> &str {
+    ['"', '\'']
+        .into_iter()
+        .find_map(|quote| text.strip_prefix(quote)?.strip_suffix(quote))
+        .unwrap_or(text)
+}
+
+/// Whether any of `jobs` reports `check`.
+pub fn reports(jobs: &[Job], check: &str) -> bool {
+    jobs.iter().any(|job| job.name == check)
+}
+
+/// The pull request gate as the default branch holds it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Gate {
+    /// The default branch.
+    pub branch: String,
+    /// The jobs its workflow declares, or `None` when the branch holds no workflow.
+    pub jobs: Option<Vec<Job>>,
+}
+
+impl Gate {
+    /// Whether the workflow on the branch reports `check`.
+    pub fn reports(&self, check: &str) -> bool {
+        self.jobs
+            .as_deref()
+            .is_some_and(|jobs| reports(jobs, check))
+    }
+
+    /// What the branch holds in place of a job reporting [`REQUIRED_CHECK`], as one clause:
+    /// no workflow, or the jobs it declares and the names they report.
+    pub fn missing(&self) -> String {
+        let branch = &self.branch;
+        let file = crate::init::WORKFLOW;
+        let Some(jobs) = &self.jobs else {
+            return format!("{branch} has no {file}");
+        };
+        let found = if jobs.is_empty() {
+            "none".to_owned()
+        } else {
+            jobs.iter()
+                .map(|job| {
+                    if job.name == job.key {
+                        job.key.clone()
+                    } else {
+                        format!("{}, reported as \"{}\"", job.key, job.name)
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join("; ")
+        };
+        format!("{branch}'s {file} names no job \"{REQUIRED_CHECK}\" (jobs: {found})")
+    }
+}
+
+/// Where the contents endpoint serves the gate's workflow as `branch` holds it.
+pub fn workflow_path(repository: &Repository, branch: &str) -> String {
+    format!(
+        "repos/{}/contents/{}?ref={}",
+        repository.slug(),
+        crate::init::WORKFLOW,
+        branch_query(branch)
+    )
+}
+
+/// A branch name as a query value: what [`branch_segment`] escapes, and the two characters git
+/// allows in a branch name that a query would read as something else.
+pub fn branch_query(branch: &str) -> String {
+    branch_segment(branch)
+        .replace('&', "%26")
+        .replace('+', "%2B")
+}
+
+/// The repository's default branch, read with `GET repos/<owner>/<repo>`: the read
+/// `doctor --platform` and `init --github` both start from.
+///
+/// # Errors
+///
+/// [`Unapplied`] naming the call when gh refused it or its answer names no default branch.
+pub fn default_branch(
+    gh: &dyn Gh,
+    repository: &Repository,
+) -> std::result::Result<String, Unapplied> {
+    let path = format!("repos/{}", repository.slug());
+    let (about, ran) = answer(gh, &path)?;
+    match about.get("default_branch").and_then(Value::as_str) {
+        Some(branch) if !branch.is_empty() => Ok(branch.to_owned()),
+        _ => Err(Unapplied::Unreadable {
+            call: call_line("GET", &path),
+            problem: "it names no default_branch".to_owned(),
+            ran,
+        }),
+    }
+}
+
+/// The gate's workflow as `branch` holds it, read raw: its text, or `None` when the branch
+/// holds no such file (gh's first line carries 404, or the answer is empty).
+///
+/// # Errors
+///
+/// [`Unapplied::Refused`] with gh's words when the read failed for any other reason.
+pub fn workflow_on(
+    gh: &dyn Gh,
+    repository: &Repository,
+    branch: &str,
+) -> std::result::Result<Option<String>, Unapplied> {
+    let path = workflow_path(repository, branch);
+    let ran = gh.raw(&path);
+    if ran.code != 0 {
+        if ran.first_line().is_some_and(|line| line.contains("404")) {
+            return Ok(None);
+        }
+        return Err(Unapplied::Refused {
+            call: raw_line(&path),
+            ran,
+        });
+    }
+    if ran.stdout.trim().is_empty() {
+        return Ok(None);
+    }
+    Ok(Some(ran.stdout))
+}
+
+/// The pull request gate on the default branch, with two read-only calls: the branch, then
+/// the workflow there.
+///
+/// # Errors
+///
+/// [`Unapplied`] naming the call that could not be made or read.
+pub fn read_gate(gh: &dyn Gh, repository: &Repository) -> std::result::Result<Gate, Unapplied> {
+    let branch = default_branch(gh, repository)?;
+    let jobs = workflow_on(gh, repository, &branch)?.map(|text| gate_jobs(&text));
+    Ok(Gate { branch, jobs })
+}
+
 // ------------------------------------------------------------------------ the read-back
 
-/// The three questions `doctor --platform` asks, in the order it prints the answers.
-pub const READ_BACK: [&str; 3] = ["required check", "force push", "deletion"];
+/// The four questions `doctor --platform` asks, in the order it prints the answers: the three
+/// rules in force on the default branch, then whether the gate there reports the check they
+/// require.
+pub const READ_BACK: [&str; 4] = ["required check", "force push", "deletion", "gate job"];
 
 /// The one line the platform table carries when nothing could be read.
 pub const UNAVAILABLE: &str = "platform";
@@ -480,25 +819,59 @@ pub fn unavailable(reason: impl Into<String>) -> Vec<LiveFinding> {
     }]
 }
 
-/// Ask GitHub which rules are in force on the default branch, with two read-only calls, and
-/// read the answer back as the platform table.
+/// Ask GitHub which rules are in force on the default branch and whether the gate there
+/// reports the check they require, with three read-only calls, and read the answers back as
+/// the platform table.
+///
+/// The branch and the rules come first, and without either the table is one `unavailable`
+/// line. The workflow is read last; a read of it that fails for a reason other than a missing
+/// file makes that line alone `unavailable`.
 pub fn read(gh: &dyn Gh, repository: &Repository) -> Vec<LiveFinding> {
-    let slug = repository.slug();
-    let path = format!("repos/{slug}");
-    let about = match read_only(gh, &path) {
-        Ok(about) => about,
+    let branch = match default_branch(gh, repository) {
+        Ok(branch) => branch,
+        Err(unread) => return unavailable(reason(&unread)),
+    };
+    let path = format!(
+        "repos/{}/rules/branches/{}",
+        repository.slug(),
+        branch_segment(&branch)
+    );
+    let rules = match read_only(gh, &path) {
+        Ok(rules) => rules,
         Err(reason) => return unavailable(reason),
     };
-    let Some(branch) = about.get("default_branch").and_then(Value::as_str) else {
-        return unavailable(format!(
-            "{} answered no default_branch",
-            call_line("GET", &path)
-        ));
-    };
-    let path = format!("repos/{slug}/rules/branches/{}", branch_segment(branch));
-    match read_only(gh, &path) {
-        Ok(rules) => read_back(branch, &rules),
-        Err(reason) => unavailable(reason),
+    let mut findings = read_back(&branch, &rules);
+    if findings.iter().any(|finding| finding.check == UNAVAILABLE) {
+        return findings;
+    }
+    findings.push(match workflow_on(gh, repository, &branch) {
+        Ok(text) => gate_line(&Gate {
+            jobs: text.map(|text| gate_jobs(&text)),
+            branch,
+        }),
+        Err(unread) => LiveFinding {
+            check: READ_BACK[3],
+            verdict: Verdict::Unavailable,
+            detail: reason(&unread),
+        },
+    });
+    findings
+}
+
+/// The gate as the default branch holds it, read back as the table's `gate job` line.
+pub fn gate_line(gate: &Gate) -> LiveFinding {
+    if gate.reports(REQUIRED_CHECK) {
+        let file = crate::init::WORKFLOW
+            .rsplit('/')
+            .next()
+            .unwrap_or(crate::init::WORKFLOW);
+        finding(
+            READ_BACK[3],
+            true,
+            format!("{}'s {file} reports {REQUIRED_CHECK}", gate.branch),
+        )
+    } else {
+        finding(READ_BACK[3], false, gate.missing())
     }
 }
 
@@ -527,7 +900,7 @@ pub fn branch_segment(branch: &str) -> String {
 }
 
 /// The rules in force on `branch`, as GitHub's `rules/branches` endpoint lists them, read
-/// back as the three answers [`READ_BACK`] names.
+/// back as the first three answers [`READ_BACK`] names.
 pub fn read_back(branch: &str, rules: &Value) -> Vec<LiveFinding> {
     let Some(rules) = rules.as_array() else {
         return unavailable(format!("the rules in force on {branch} are not a list"));
@@ -631,7 +1004,11 @@ pub(crate) mod recorded {
     use super::{Gh, Ran};
 
     /// One call as the double saw it: method, path, and the body on stdin when there was one.
+    /// A read of raw file contents is recorded, and answered, under the method `RAW`.
     pub type Call = (String, String, Option<String>);
+
+    /// The method a raw read is recorded under: a read, never a write.
+    pub const RAW_READ: &str = "RAW";
 
     #[derive(Default)]
     pub struct Recorded {
@@ -653,6 +1030,11 @@ pub(crate) mod recorded {
             self
         }
 
+        /// A successful raw read carrying the file's `text` on stdout.
+        pub fn raw_answer(self, path: &str, text: &str) -> Recorded {
+            self.answer(RAW_READ, path, text)
+        }
+
         /// An answer exactly as gh gave it, failure included.
         pub fn ran(mut self, method: &str, path: &str, ran: Ran) -> Recorded {
             self.answers
@@ -668,13 +1050,11 @@ pub(crate) mod recorded {
         pub fn writes(&self) -> Vec<Call> {
             self.calls()
                 .into_iter()
-                .filter(|(method, _, _)| method != "GET")
+                .filter(|(method, _, _)| method != "GET" && method != RAW_READ)
                 .collect()
         }
-    }
 
-    impl Gh for Recorded {
-        fn api(&self, method: &str, path: &str, body: Option<&str>) -> Ran {
+        fn call(&self, method: &str, path: &str, body: Option<&str>) -> Ran {
             self.calls.borrow_mut().push((
                 method.to_owned(),
                 path.to_owned(),
@@ -690,6 +1070,16 @@ pub(crate) mod recorded {
                 })
         }
     }
+
+    impl Gh for Recorded {
+        fn api(&self, method: &str, path: &str, body: Option<&str>) -> Ran {
+            self.call(method, path, body)
+        }
+
+        fn raw(&self, path: &str) -> Ran {
+            self.call(RAW_READ, path, None)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -702,6 +1092,14 @@ mod tests {
         Repository {
             owner: "example-owner".to_owned(),
             name: "example-repo".to_owned(),
+        }
+    }
+
+    /// The gate as the stem writes it, on the default branch: one job reporting `garden`.
+    fn gated() -> Gate {
+        Gate {
+            branch: "main".to_owned(),
+            jobs: Some(gate_jobs(&crate::init::workflow(false))),
         }
     }
 
@@ -823,7 +1221,7 @@ mod tests {
         );
         let gh = gh.answer("POST", LIST, r#"{"id":41}"#);
 
-        let applied = apply_ruleset(&gh, &repo()).expect("applied");
+        let applied = apply_ruleset(&gh, &repo(), &gated()).expect("applied");
         assert_eq!(
             applied.as_deref(),
             Some("ruleset \"plotplot: the default branch\" applied on example-owner/example-repo")
@@ -847,7 +1245,7 @@ mod tests {
             )
             .answer("GET", ONE, &ruleset_body());
 
-        assert_eq!(apply_ruleset(&gh, &repo()).expect("read"), None);
+        assert_eq!(apply_ruleset(&gh, &repo(), &gated()).expect("read"), None);
         assert!(gh.writes().is_empty(), "{:?}", gh.calls());
         assert_eq!(gh.calls().len(), 2, "{:?}", gh.calls());
     }
@@ -865,7 +1263,7 @@ mod tests {
             .answer("GET", ONE, &held.to_string())
             .answer("PUT", ONE, r#"{"id":41}"#);
 
-        let applied = apply_ruleset(&gh, &repo()).expect("applied");
+        let applied = apply_ruleset(&gh, &repo(), &gated()).expect("applied");
         assert!(applied.is_some());
         assert_eq!(
             gh.writes(),
@@ -884,7 +1282,7 @@ mod tests {
             .answer("GET", LIST, "[]")
             .ran("POST", LIST, refusal.clone());
 
-        let unapplied = apply_ruleset(&gh, &repo()).expect_err("gh refused");
+        let unapplied = apply_ruleset(&gh, &repo(), &gated()).expect_err("gh refused");
         assert_eq!(
             unapplied,
             Unapplied::Refused {
@@ -903,7 +1301,7 @@ mod tests {
     #[test]
     fn a_list_that_is_not_a_list_is_unreadable_and_nothing_is_written() {
         let gh = Recorded::default().answer("GET", LIST, r#"{"message":"Moved"}"#);
-        let unapplied = apply_ruleset(&gh, &repo()).expect_err("not a list");
+        let unapplied = apply_ruleset(&gh, &repo(), &gated()).expect_err("not a list");
         assert!(
             matches!(&unapplied, Unapplied::Unreadable { call, .. } if call == "gh api repos/example-owner/example-repo/rulesets"),
             "{unapplied:?}"
@@ -1189,15 +1587,17 @@ mod tests {
     }
 
     #[test]
-    fn the_read_back_asks_two_read_only_questions_and_no_more() {
+    fn the_read_back_asks_three_read_only_questions_and_no_more() {
         let gh = Recorded::default()
             .answer(
                 "GET",
                 REPOSITORY,
                 r#"{"default_branch":"main","name":"example-repo"}"#,
             )
-            .answer("GET", RULES, IN_FORCE);
+            .answer("GET", RULES, IN_FORCE)
+            .raw_answer(WORKFLOW_ON_MAIN, &crate::init::workflow(false));
         let findings = read(&gh, &repo());
+        assert_eq!(findings.len(), READ_BACK.len(), "{findings:?}");
         assert!(
             findings
                 .iter()
@@ -1209,6 +1609,7 @@ mod tests {
             [
                 ("GET".to_owned(), REPOSITORY.to_owned(), None),
                 ("GET".to_owned(), RULES.to_owned(), None),
+                ("RAW".to_owned(), WORKFLOW_ON_MAIN.to_owned(), None),
             ]
         );
     }
@@ -1246,5 +1647,472 @@ mod tests {
         assert_eq!(branch_segment("main"), "main");
         assert_eq!(branch_segment("release/2026"), "release/2026");
         assert_eq!(branch_segment("a#b%c"), "a%23b%25c");
+    }
+
+    // ------------------------------------------------------------------ the gate
+
+    /// The stem's own workflow with its job named as master's was before the rename.
+    fn renamed(workflow: &str) -> String {
+        let text = workflow.replace("    name: garden\n", "    name: plotplot check --strict\n");
+        assert_ne!(text, workflow, "the name line was there to change");
+        text
+    }
+
+    fn job(key: &str, name: &str) -> Job {
+        Job {
+            key: key.to_owned(),
+            name: name.to_owned(),
+        }
+    }
+
+    #[test]
+    fn the_workflow_init_writes_declares_one_job_garden_reporting_garden() {
+        for own in [true, false] {
+            let jobs = gate_jobs(&crate::init::workflow(own));
+            assert_eq!(jobs, [job("garden", "garden")]);
+            assert!(reports(&jobs, REQUIRED_CHECK));
+        }
+    }
+
+    #[test]
+    fn a_job_whose_name_line_says_something_else_reports_that() {
+        let jobs = gate_jobs(&renamed(&crate::init::workflow(true)));
+        assert_eq!(jobs, [job("garden", "plotplot check --strict")]);
+        assert!(!reports(&jobs, REQUIRED_CHECK));
+        assert!(reports(&jobs, "plotplot check --strict"));
+    }
+
+    #[test]
+    fn a_job_with_no_name_line_reports_its_key() {
+        let workflow = "\
+name: ci
+on: push
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: run the linter
+        run: make lint
+  garden:
+    runs-on: ubuntu-latest
+    name: plotplot check --strict
+";
+        assert_eq!(
+            gate_jobs(workflow),
+            [
+                job("lint", "lint"),
+                job("garden", "plotplot check --strict")
+            ]
+        );
+    }
+
+    #[test]
+    fn a_file_with_no_jobs_section_declares_no_job() {
+        for workflow in [
+            "",
+            "name: ci\non: push\n",
+            // Indented, `jobs:` is some other mapping's key.
+            "name: ci\nenv:\n  jobs:\n  garden:\n    name: garden\n",
+            // `jobs:` with anything after it on the line is not the line this reads.
+            "jobs: {garden: {name: garden}}\n",
+        ] {
+            assert_eq!(gate_jobs(workflow), [], "{workflow:?}");
+        }
+    }
+
+    #[test]
+    fn quotes_around_a_name_are_removed() {
+        let workflow = "jobs:\n  one:\n    name: \"garden\"\n  two:\n    name: 'plotplot check --strict'\n  three:\n    name:   spaced out  \n";
+        assert_eq!(
+            gate_jobs(workflow),
+            [
+                job("one", "garden"),
+                job("two", "plotplot check --strict"),
+                job("three", "spaced out"),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_steps_name_line_is_never_a_job_or_a_jobs_name() {
+        let workflow = "\
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: garden
+        run: plotplot check --strict
+      - name: plotplot check --strict
+";
+        let jobs = gate_jobs(workflow);
+        assert_eq!(jobs, [job("check", "check")]);
+        assert!(!reports(&jobs, REQUIRED_CHECK));
+    }
+
+    #[test]
+    fn a_top_level_line_ends_the_jobs_section_and_comments_do_not() {
+        let workflow = "\
+jobs:
+  # A comment at the jobs' own indent.
+# A comment at the top.
+
+  garden:
+    name: garden
+env:
+  other:
+    name: not a job
+";
+        assert_eq!(gate_jobs(workflow), [job("garden", "garden")]);
+    }
+
+    #[test]
+    fn a_key_that_is_not_a_job_id_starts_no_job() {
+        let workflow =
+            "jobs:\n  a job:\n    name: garden\n  garden: # trailing\n    name: garden\n";
+        assert_eq!(gate_jobs(workflow), []);
+    }
+
+    const WORKFLOW_ON_MAIN: &str =
+        "repos/example-owner/example-repo/contents/.github/workflows/plotplot-check.yml?ref=main";
+    const ABOUT: &str = r#"{"default_branch":"main","name":"example-repo"}"#;
+
+    fn not_found() -> Ran {
+        Ran {
+            code: 1,
+            stdout: r#"{"message":"Not Found","status":"404"}"#.to_owned(),
+            stderr: "gh: Not Found (HTTP 404)\n".to_owned(),
+        }
+    }
+
+    #[test]
+    fn the_file_is_read_raw_as_a_planter_would_type_it() {
+        assert_eq!(
+            raw_args("repos/o/r/contents/x.yml?ref=main"),
+            [
+                "api",
+                "-H",
+                "Accept: application/vnd.github.raw+json",
+                "repos/o/r/contents/x.yml?ref=main"
+            ]
+        );
+        assert_eq!(
+            raw_line("repos/o/r/contents/x.yml?ref=main"),
+            "gh api -H \"Accept: application/vnd.github.raw+json\" repos/o/r/contents/x.yml?ref=main"
+        );
+        assert_eq!(workflow_path(&repo(), "main"), WORKFLOW_ON_MAIN);
+    }
+
+    #[test]
+    fn a_branch_in_the_query_is_escaped_where_a_query_would_read_it_otherwise() {
+        assert_eq!(branch_query("main"), "main");
+        assert_eq!(branch_query("release/2026"), "release/2026");
+        assert_eq!(branch_query("a#b%c&d+e"), "a%23b%25c%26d%2Be");
+    }
+
+    #[test]
+    fn the_gate_is_read_from_the_default_branch_with_two_read_only_calls() {
+        let gh = Recorded::default()
+            .answer("GET", REPOSITORY, ABOUT)
+            .raw_answer(WORKFLOW_ON_MAIN, &crate::init::workflow(false));
+        let gate = read_gate(&gh, &repo()).expect("read");
+        assert_eq!(
+            gate,
+            Gate {
+                branch: "main".to_owned(),
+                jobs: Some(vec![job("garden", "garden")]),
+            }
+        );
+        assert!(gate.reports(REQUIRED_CHECK));
+        assert_eq!(
+            gh.calls(),
+            [
+                ("GET".to_owned(), REPOSITORY.to_owned(), None),
+                ("RAW".to_owned(), WORKFLOW_ON_MAIN.to_owned(), None),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_404_or_an_empty_answer_is_a_branch_with_no_workflow() {
+        for ran in [
+            not_found(),
+            Ran::default(),
+            Ran {
+                code: 0,
+                stdout: "\n".to_owned(),
+                stderr: String::new(),
+            },
+        ] {
+            let gh = Recorded::default().answer("GET", REPOSITORY, ABOUT).ran(
+                "RAW",
+                WORKFLOW_ON_MAIN,
+                ran.clone(),
+            );
+            let gate = read_gate(&gh, &repo()).expect("read");
+            assert_eq!(gate.jobs, None, "{ran:?}");
+            assert!(!gate.reports(REQUIRED_CHECK));
+        }
+    }
+
+    #[test]
+    fn a_failed_read_of_the_file_that_is_not_a_404_is_refused_with_ghs_words() {
+        let forbidden = Ran {
+            code: 1,
+            stdout: String::new(),
+            stderr: "gh: Resource not accessible by integration (HTTP 403)\n".to_owned(),
+        };
+        let gh = Recorded::default().answer("GET", REPOSITORY, ABOUT).ran(
+            "RAW",
+            WORKFLOW_ON_MAIN,
+            forbidden.clone(),
+        );
+        assert_eq!(
+            read_gate(&gh, &repo()),
+            Err(Unapplied::Refused {
+                call: raw_line(WORKFLOW_ON_MAIN),
+                ran: forbidden,
+            })
+        );
+    }
+
+    #[test]
+    fn a_repository_answer_with_no_default_branch_is_unreadable_and_reads_no_file() {
+        let gh = Recorded::default().answer("GET", REPOSITORY, r#"{"name":"example-repo"}"#);
+        let unread = read_gate(&gh, &repo()).expect_err("no branch");
+        assert!(
+            matches!(&unread, Unapplied::Unreadable { problem, .. } if problem.contains("default_branch")),
+            "{unread:?}"
+        );
+        assert_eq!(gh.calls().len(), 1, "{:?}", gh.calls());
+    }
+
+    fn gate_with(jobs: Option<Vec<Job>>) -> Gate {
+        Gate {
+            branch: "master".to_owned(),
+            jobs,
+        }
+    }
+
+    #[test]
+    fn a_gate_reporting_the_old_name_is_refused_before_any_ruleset_is_written() {
+        let gh = Recorded::default().answer("GET", LIST, "[]");
+        let gate = gate_with(Some(vec![job("check", "plotplot check --strict")]));
+
+        let unapplied = apply_ruleset(&gh, &repo(), &gate).expect_err("refused");
+        assert!(gh.writes().is_empty(), "{:?}", gh.calls());
+        assert_eq!(
+            unapplied_text(&unapplied),
+            "master's .github/workflows/plotplot-check.yml names no job \"garden\" \
+             (jobs: check, reported as \"plotplot check --strict\"); land the workflow on master \
+             first, then run plotplot init --github again\n"
+        );
+    }
+
+    #[test]
+    fn a_branch_with_no_workflow_is_refused_naming_the_missing_file() {
+        let gh = Recorded::default().answer("GET", LIST, "[]");
+        let unapplied = apply_ruleset(&gh, &repo(), &gate_with(None)).expect_err("refused");
+        assert!(gh.writes().is_empty(), "{:?}", gh.calls());
+        assert_eq!(
+            unapplied_text(&unapplied),
+            "master has no .github/workflows/plotplot-check.yml; land the workflow on master \
+             first, then run plotplot init --github again\n"
+        );
+    }
+
+    #[test]
+    fn a_workflow_with_no_jobs_is_refused_saying_it_found_none() {
+        let gh = Recorded::default().answer("GET", LIST, "[]");
+        let unapplied =
+            apply_ruleset(&gh, &repo(), &gate_with(Some(Vec::new()))).expect_err("refused");
+        assert!(
+            unapplied_text(&unapplied).starts_with(
+                "master's .github/workflows/plotplot-check.yml names no job \"garden\" (jobs: none); "
+            ),
+            "{}",
+            unapplied_text(&unapplied)
+        );
+    }
+
+    #[test]
+    fn a_ruleset_already_requiring_the_check_adds_the_deadlock_line() {
+        let gh = Recorded::default()
+            .answer(
+                "GET",
+                LIST,
+                r#"[{"id":41,"name":"plotplot: the default branch"}]"#,
+            )
+            .answer("GET", ONE, &ruleset_body());
+        let gate = gate_with(Some(vec![job("check", "plotplot check --strict")]));
+
+        let unapplied = apply_ruleset(&gh, &repo(), &gate).expect_err("refused");
+        assert!(gh.writes().is_empty(), "{:?}", gh.calls());
+        let text = unapplied_text(&unapplied);
+        let lines: Vec<&str> = text.lines().collect();
+        assert_eq!(lines.len(), 2, "{text}");
+        assert_eq!(
+            lines[1],
+            "ruleset 41 already requires \"garden\", so master takes no merge until that workflow lands"
+        );
+    }
+
+    #[test]
+    fn a_ruleset_of_the_stems_name_requiring_something_else_adds_no_deadlock_line() {
+        let mut held = desired_ruleset();
+        held["rules"][2]["parameters"]["required_status_checks"][0]["context"] =
+            Value::from("plotplot check --strict");
+        let gh = Recorded::default()
+            .answer(
+                "GET",
+                LIST,
+                r#"[{"id":41,"name":"plotplot: the default branch"}]"#,
+            )
+            .answer("GET", ONE, &held.to_string());
+        let unapplied = apply_ruleset(&gh, &repo(), &gate_with(None)).expect_err("refused");
+        assert_eq!(unapplied_text(&unapplied).lines().count(), 1);
+        assert!(gh.writes().is_empty(), "{:?}", gh.calls());
+    }
+
+    #[test]
+    fn a_ruleset_requiring_the_check_that_is_not_enforced_adds_no_deadlock_line() {
+        for enforcement in ["disabled", "evaluate"] {
+            let mut held = desired_ruleset();
+            held["enforcement"] = Value::from(enforcement);
+            let gh = Recorded::default()
+                .answer(
+                    "GET",
+                    LIST,
+                    r#"[{"id":41,"name":"plotplot: the default branch"}]"#,
+                )
+                .answer("GET", ONE, &held.to_string());
+            let unapplied = apply_ruleset(&gh, &repo(), &gate_with(None)).expect_err("refused");
+            assert_eq!(
+                unapplied_text(&unapplied).lines().count(),
+                1,
+                "{enforcement}"
+            );
+        }
+    }
+
+    #[test]
+    fn rulesets_that_cannot_be_read_are_said_so_on_the_refusals_second_line() {
+        let gh = Recorded::default().ran("GET", LIST, not_found());
+        let unapplied = apply_ruleset(&gh, &repo(), &gate_with(None)).expect_err("refused");
+        let text = unapplied_text(&unapplied);
+        let lines: Vec<&str> = text.lines().collect();
+        assert_eq!(lines.len(), 2, "{text}");
+        assert_eq!(
+            lines[1],
+            "whether ruleset \"plotplot: the default branch\" already requires \"garden\" \
+             could not be read: gh: Not Found (HTTP 404)"
+        );
+        assert!(gh.writes().is_empty(), "{:?}", gh.calls());
+    }
+
+    #[test]
+    fn a_gate_reporting_garden_proceeds_to_the_post() {
+        let gh = Recorded::default()
+            .answer("GET", LIST, "[]")
+            .answer("POST", LIST, r#"{"id":41}"#);
+        let gate = gate_with(Some(vec![job("garden", "garden")]));
+        assert!(
+            apply_ruleset(&gh, &repo(), &gate)
+                .expect("applied")
+                .is_some()
+        );
+        assert_eq!(
+            gh.writes(),
+            [("POST".to_owned(), LIST.to_owned(), Some(ruleset_body()))]
+        );
+    }
+
+    // ------------------------------------------------------------ the doctor's fourth line
+
+    fn doctor_gh(workflow: Ran) -> Recorded {
+        Recorded::default()
+            .answer("GET", REPOSITORY, ABOUT)
+            .answer("GET", RULES, IN_FORCE)
+            .ran("RAW", WORKFLOW_ON_MAIN, workflow)
+    }
+
+    fn file(text: &str) -> Ran {
+        Ran {
+            code: 0,
+            stdout: text.to_owned(),
+            stderr: String::new(),
+        }
+    }
+
+    #[test]
+    fn the_gate_job_line_is_ok_when_the_default_branchs_workflow_reports_garden() {
+        let gh = doctor_gh(file(&crate::init::workflow(false)));
+        let findings = read(&gh, &repo());
+        assert_eq!(
+            verdicts(&findings),
+            [
+                ("required check", Verdict::Ok),
+                ("force push", Verdict::Ok),
+                ("deletion", Verdict::Ok),
+                ("gate job", Verdict::Ok),
+            ]
+        );
+        assert_eq!(
+            findings[3].detail,
+            "main's plotplot-check.yml reports garden"
+        );
+        assert!(gh.writes().is_empty());
+        assert_eq!(gh.calls().len(), 3, "{:?}", gh.calls());
+    }
+
+    #[test]
+    fn the_gate_job_line_fails_naming_the_jobs_the_workflow_reports_instead() {
+        let old = renamed(&crate::init::workflow(true)).replace("\n  garden:\n", "\n  check:\n");
+        let findings = read(&doctor_gh(file(&old)), &repo());
+        assert_eq!(findings.len(), 4, "{findings:?}");
+        assert_eq!(findings[3].check, "gate job");
+        assert_eq!(findings[3].verdict, Verdict::Fail);
+        assert_eq!(
+            findings[3].detail,
+            "main's .github/workflows/plotplot-check.yml names no job \"garden\" \
+             (jobs: check, reported as \"plotplot check --strict\")"
+        );
+        assert!(
+            findings[..3]
+                .iter()
+                .all(|finding| finding.verdict == Verdict::Ok)
+        );
+    }
+
+    #[test]
+    fn the_gate_job_line_fails_when_the_default_branch_has_no_workflow() {
+        let findings = read(&doctor_gh(not_found()), &repo());
+        assert_eq!(findings[3].verdict, Verdict::Fail, "{findings:?}");
+        assert_eq!(
+            findings[3].detail,
+            "main has no .github/workflows/plotplot-check.yml"
+        );
+    }
+
+    #[test]
+    fn a_failed_read_of_the_workflow_is_unavailable_for_that_line_alone() {
+        let findings = read(
+            &doctor_gh(Ran {
+                code: 1,
+                stdout: String::new(),
+                stderr: "gh: Bad credentials (HTTP 401)\n".to_owned(),
+            }),
+            &repo(),
+        );
+        assert_eq!(
+            verdicts(&findings),
+            [
+                ("required check", Verdict::Ok),
+                ("force push", Verdict::Ok),
+                ("deletion", Verdict::Ok),
+                ("gate job", Verdict::Unavailable),
+            ]
+        );
+        assert_eq!(findings[3].detail, "gh: Bad credentials (HTTP 401)");
     }
 }

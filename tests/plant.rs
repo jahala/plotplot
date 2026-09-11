@@ -498,14 +498,7 @@ fn run_hook(repo: &Path, hook: GitHook, beds: &[Bed], args: &[&str], stdin: &str
     std::fs::write(&path, githooks::render(hook, beds)).expect("the hook is written");
     make_executable(&path);
 
-    let mut child = Command::new(&path)
-        .current_dir(repo)
-        .args(args)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("the hook runs");
+    let mut child = spawn_written(&path, repo, args);
     child
         .stdin
         .as_mut()
@@ -514,6 +507,70 @@ fn run_hook(repo: &Path, hook: GitHook, beds: &[Bed], args: &[&str], stdin: &str
         .expect("the hook reads stdin");
     let output = child.wait_with_output().expect("the hook finishes");
     output.status.code().unwrap_or(-1)
+}
+
+/// Execute a script this process just wrote, the way git would.
+///
+/// These tests run on threads, and each writes a script and then executes it. On Linux a
+/// fork on another thread inherits every open descriptor, this thread's write handle to the
+/// script included, and holds it until that child's exec closes it (the handles are
+/// close-on-exec, but a fork is not an exec). An exec of the script inside that window is
+/// refused with `ETXTBSY`, "Text file busy": a race between two tests, not a fault in the
+/// script. The window is microseconds, so the exec is tried again for up to a second on that
+/// one error and no other, and the script's own refusal is still its own exit status.
+fn spawn_written(path: &Path, repo: &Path, args: &[&str]) -> std::process::Child {
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(1);
+    loop {
+        let attempt = Command::new(path)
+            .current_dir(repo)
+            .args(args)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn();
+        match attempt {
+            Ok(child) => return child,
+            Err(error)
+                if error.kind() == std::io::ErrorKind::ExecutableFileBusy
+                    && std::time::Instant::now() < deadline =>
+            {
+                std::thread::sleep(std::time::Duration::from_millis(10));
+            }
+            Err(error) => panic!("the hook runs: {error}"),
+        }
+    }
+}
+
+/// The race above, made deterministic: a shell holds the script open for writing while it
+/// is executed, which is exactly what another test's forked child does by accident. Linux
+/// refuses the exec with `ETXTBSY` until the writer lets go; the runner waits it out and the
+/// script's own status comes back. macOS does not enforce this rule, so there the test
+/// proves only that the runner still runs a script.
+#[test]
+fn a_script_held_open_for_writing_by_another_process_still_runs_once_the_writer_lets_go() {
+    let repo = repository();
+    let hooks = repo.path().join(".githooks");
+    std::fs::create_dir_all(&hooks).expect("the hooks directory");
+    let path = hooks.join("pre-commit");
+    std::fs::write(&path, "#!/bin/sh\nexit 7\n").expect("the script is written");
+    make_executable(&path);
+
+    // A writer that holds the script open for a third of a second, then exits.
+    let mut writer = Command::new("sh")
+        .arg("-c")
+        .arg(format!("exec 3>>\"{}\"; sleep 0.3", path.display()))
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .expect("a shell that holds the script open");
+    // Give the shell time to open the descriptor before the exec races it.
+    std::thread::sleep(std::time::Duration::from_millis(50));
+
+    let child = spawn_written(&path, repo.path(), &[]);
+    let output = child.wait_with_output().expect("the script finishes");
+    assert_eq!(output.status.code(), Some(7));
+    writer.wait().expect("the writer exits");
 }
 
 fn recorded(repo: &Path, name: &str) -> Option<String> {

@@ -794,3 +794,115 @@ fn the_platform_mode_alone_prints_two_tables() {
     );
     assert_eq!(output.status.code(), Some(3));
 }
+
+/// A gh standing in for GitHub on one fixture repository, `example-owner/example-repo`, whose
+/// default branch is `main`. It answers the three read-only calls `doctor --platform` makes, in
+/// GitHub's shapes, the workflow only when asked for the file's raw bytes, and any other call
+/// with GitHub's 404. Every call's arguments go to `gh.calls` beside it. Shell builtins only,
+/// since the search path it sits on holds nothing but git.
+const READING_GH: &str = r#"#!/bin/sh
+here="${0%/*}"
+printf '%s\n' "$*" >> "$here/gh.calls"
+case "$*" in
+  "api repos/example-owner/example-repo")
+    printf '%s\n' '{"id":1,"name":"example-repo","full_name":"example-owner/example-repo","default_branch":"main"}' ;;
+  "api repos/example-owner/example-repo/rules/branches/main")
+    printf '%s\n' '[{"type":"deletion","ruleset_id":41},{"type":"non_fast_forward","ruleset_id":41},{"type":"required_status_checks","parameters":{"required_status_checks":[{"context":"garden"}],"strict_required_status_checks_policy":false},"ruleset_id":41}]' ;;
+  "api -H Accept: application/vnd.github.raw+json repos/example-owner/example-repo/contents/.github/workflows/plotplot-check.yml?ref=main")
+    while IFS= read -r line; do printf '%s\n' "$line"; done < "$here/workflow.yml" ;;
+  *)
+    printf '%s\n' '{"message":"Not Found","status":"404"}'
+    printf '%s\n' 'gh: Not Found (HTTP 404)' >&2
+    exit 1 ;;
+esac
+"#;
+
+/// A planted repository whose origin is `example-owner/example-repo` on github.com, and a
+/// search path holding git and [`READING_GH`], with `workflow` as what `main` holds.
+fn planted_on_github(workflow: &str) -> (tempfile::TempDir, tempfile::TempDir, tempfile::TempDir) {
+    let (root, home) = planted();
+    git(
+        root.path(),
+        &[
+            "config",
+            "remote.origin.url",
+            "https://github.com/example-owner/example-repo.git",
+        ],
+    );
+    let bin = only_git();
+    write(&bin.path().join("workflow.yml"), workflow);
+    let gh = bin.path().join("gh");
+    write(&gh, READING_GH);
+    make_executable(&gh);
+    (root, home, bin)
+}
+
+/// `doctor --platform`'s exit code and its platform table, one row per line.
+fn doctor_platform(root: &Path, home: &Path, bin: &Path) -> (i32, Vec<(String, String, String)>) {
+    let output = plotplot(root, home)
+        .args(["doctor", "--platform"])
+        .env("PATH", bin)
+        .output()
+        .expect("doctor --platform ran");
+    let stdout = String::from_utf8(output.stdout).expect("doctor writes utf-8");
+    let (_, platform) = stdout
+        .split_once("\n\n")
+        .unwrap_or_else(|| panic!("two tables: {stdout}"));
+    (
+        output.status.code().expect("doctor exited"),
+        platform.lines().map(columns).collect(),
+    )
+}
+
+#[test]
+fn the_platform_table_through_gh_is_four_lines_ending_in_the_gate_job() {
+    let (root, home, bin) = planted_on_github(&plotplot::init::workflow(false));
+    let (code, rows) = doctor_platform(root.path(), home.path(), bin.path());
+
+    let lines: Vec<(&str, &str)> = rows
+        .iter()
+        .map(|(check, verdict, _)| (check.as_str(), verdict.as_str()))
+        .collect();
+    assert_eq!(
+        lines,
+        [
+            ("required check", "ok"),
+            ("force push", "ok"),
+            ("deletion", "ok"),
+            ("gate job", "ok"),
+        ],
+        "{rows:?}"
+    );
+    assert_eq!(rows[3].2, "main's plotplot-check.yml reports garden");
+    // Every static check and every platform line is ok.
+    assert_eq!(code, 0, "{rows:?}");
+
+    let calls = read(&bin.path().join("gh.calls"));
+    assert_eq!(calls.lines().count(), 3, "{calls}");
+    assert!(!calls.contains("-X"), "doctor --platform wrote: {calls}");
+}
+
+#[test]
+fn a_default_branch_whose_workflow_reports_another_job_fails_the_gate_job_line_alone() {
+    let old = plotplot::init::workflow(false)
+        .replace("\n  garden:\n", "\n  check:\n")
+        .replace("    name: garden\n", "    name: plotplot check --strict\n");
+    let (root, home, bin) = planted_on_github(&old);
+    let (code, rows) = doctor_platform(root.path(), home.path(), bin.path());
+
+    assert_eq!(rows.len(), 4, "{rows:?}");
+    assert!(
+        rows[..3].iter().all(|(_, verdict, _)| verdict == "ok"),
+        "{rows:?}"
+    );
+    assert_eq!(
+        (rows[3].0.as_str(), rows[3].1.as_str()),
+        ("gate job", "fail")
+    );
+    assert_eq!(
+        rows[3].2,
+        "main's .github/workflows/plotplot-check.yml names no job \"garden\" \
+         (jobs: check, reported as \"plotplot check --strict\")"
+    );
+    assert_eq!(code, 3);
+}

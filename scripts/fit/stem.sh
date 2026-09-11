@@ -25,8 +25,11 @@
 #   scripts/fit/stem.sh platform     `plotplot init --github` writes the stem's CODEOWNERS
 #                                    region and applies the default branch's ruleset once,
 #                                    through a recording gh, and `plotplot doctor --platform`
-#                                    reads the rules back, reporting a missing rule and a
-#                                    missing gh; then this repository's own table, unasserted
+#                                    reads the rules and the gate job back, reporting a
+#                                    missing rule and a missing gh; init refuses the ruleset
+#                                    with no writing call while main's workflow reports no
+#                                    garden job or is absent; then this repository's own
+#                                    table, unasserted
 #
 # Exit 0 on pass, non-zero with a reason on failure. Every check builds the crate in release
 # mode once, then runs in a fresh temporary directory with HOME and CODEX_HOME pointed at a
@@ -1373,9 +1376,17 @@ platform_region() {
 # own answers, read 2026-09-11 with read-only calls: the list's fields, the ruleset's and the
 # ruleset_* fields a rule in force carries (cli/cli), and do_not_enforce_on_create beside a
 # ruleset's status checks (astral-sh/uv, microsoft/vscode, vercel/next.js).
+#
+# The pull request gate on `main` is answered only as raw bytes (the Accept header the stem
+# sends for a file), from a file called `gate-mode` beside `rules-mode`: `garden`, the default,
+# answers the workflow `plotplot init` wrote into the fixture repository at the second argument;
+# `old` answers the same text with the job as master held it before the rename (the key
+# `check`, the name `plotplot check --strict`; jahala/plotplot issue 33); `absent` answers
+# GitHub's 404.
 write_recording_gh() {
-  local bin="$1"
+  local bin="$1" workflow="$2"
   mkdir -p "$bin" || fail "could not make the stub's bin directory"
+  printf '%s\n' "$workflow" > "$bin/../gate-source" || fail "could not record where the gate's workflow is"
   cat > "$bin/gh" <<'STUB'
 #!/usr/bin/env bash
 # The recording gh of scripts/fit/stem.sh platform. Never the real one.
@@ -1388,10 +1399,11 @@ repo="repos/example-owner/example-repo"
 [ "${1:-}" = "api" ] || { echo "the recording gh answers api calls only: $*" >&2; exit 1; }
 printf '%s\n' "gh $*" >> "$journal"
 shift
-method="GET"; path=""; input="no"
+method="GET"; path=""; input="no"; accept=""
 while [ $# -gt 0 ]; do
   case "$1" in
     -X) method="$2"; shift 2 ;;
+    -H) accept="$2"; shift 2 ;;
     --input) input="yes"; shift 2 ;;
     *) path="$1"; shift ;;
   esac
@@ -1441,6 +1453,16 @@ case "$method $path" in
     else
       printf '[%s,%s,%s]\n' "$deletion" "$force" "$checks"
     fi ;;
+  "GET $repo/contents/.github/workflows/plotplot-check.yml?ref=main")
+    [ "$accept" = "Accept: application/vnd.github.raw+json" ] \
+      || { echo "the recording gh answers the workflow only as raw bytes, not for '$accept'" >&2; exit 1; }
+    workflow="$(cat "$here/gate-source")"
+    case "$(cat "$here/gate-mode" 2>/dev/null || echo garden)" in
+      garden) cat "$workflow" ;;
+      old) sed -e 's/^  garden:$/  check:/' -e 's/^    name: garden$/    name: plotplot check --strict/' "$workflow" ;;
+      absent) not_found ;;
+      *) echo "the recording gh knows no gate-mode $(cat "$here/gate-mode")" >&2; exit 1 ;;
+    esac ;;
   *) not_found ;;
 esac
 STUB
@@ -1476,6 +1498,26 @@ no_gh_path() {
   echo "$bin:/usr/bin:/bin"
 }
 
+# A fixture repository planted for the platform check: init's fixture with its origin on
+# github.com, planted plainly for gemini and codex, and claude's bundle generated.
+plant_platform_fixture() {
+  local repo="$1" template="$2" home="$3" logs="$4" status
+  note "planting the fixture repository at $repo, origin $PLATFORM_ORIGIN (a url only, never fetched)"
+  plant_init_fixture "$repo" "$template"
+  git -C "$repo" remote set-url origin "$PLATFORM_ORIGIN" || fail "could not point origin at $PLATFORM_ORIGIN"
+  ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" \
+      "$STEM" init --lock "$template" --harness gemini,codex ) >"$logs.plain.out" 2>"$logs.plain.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$logs.plain.out" "$logs.plain.err" >&2; fail "the plain init exited $status, not 0"; }
+  # doctor's static table asks after all three bundles; claude's is generated here without
+  # being installed, because installing it runs claude itself, which the init check proves.
+  ( cd "$repo" && HOME="$home" "$STEM" bundle build claude ) >/dev/null 2>"$logs.bundle.err" \
+    || { cat "$logs.bundle.err" >&2; fail "plotplot bundle build claude failed on the fixture"; }
+  [ -f "$repo/.github/workflows/plotplot-check.yml" ] \
+    || fail "the plain init wrote no .github/workflows/plotplot-check.yml into $repo"
+}
+
 check_platform() {
   require git jq
   build_stem
@@ -1489,25 +1531,14 @@ check_platform() {
   stub="$tmp/stub"
   journal="$stub/gh.journal"
 
-  note "planting the fixture repository at $repo, origin $PLATFORM_ORIGIN (a url only, never fetched)"
-  plant_init_fixture "$repo" "$template"
-  git -C "$repo" remote set-url origin "$PLATFORM_ORIGIN" || fail "could not point origin at $PLATFORM_ORIGIN"
-  ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" \
-      "$STEM" init --lock "$template" --harness gemini,codex ) >"$tmp/plain.out" 2>"$tmp/plain.err"
-  status=$?
-  [ "$status" -eq 0 ] \
-    || { cat "$tmp/plain.out" "$tmp/plain.err" >&2; fail "the plain init exited $status, not 0"; }
-  # doctor's static table asks after all three bundles; claude's is generated here without
-  # being installed, because installing it runs claude itself, which the init check proves.
-  ( cd "$repo" && HOME="$home" "$STEM" bundle build claude ) >/dev/null 2>"$tmp/bundle.err" \
-    || { cat "$tmp/bundle.err" >&2; fail "plotplot bundle build claude failed on the fixture"; }
+  plant_platform_fixture "$repo" "$template" "$home" "$tmp/first"
 
   # A CODEOWNERS of the repository's own, which --github must leave byte for byte.
   mkdir -p "$repo/.github"
   printf '# Owners this repository keeps for itself.\n*.md @someone\n' > "$repo/.github/CODEOWNERS"
   cp "$repo/.github/CODEOWNERS" "$tmp/codeowners.before"
 
-  write_recording_gh "$stub/bin"
+  write_recording_gh "$stub/bin" "$repo/.github/workflows/plotplot-check.yml"
   path_with_stub="$stub/bin:$PATH"
   [ "$(PATH="$path_with_stub" command -v gh)" = "$stub/bin/gh" ] \
     || fail "the recording gh is not the first gh on PATH, and this check must never reach the real one"
@@ -1569,15 +1600,15 @@ check_platform() {
     || { diff "$tmp/before.hashes" "$tmp/after.hashes" >&2; fail "the second init --github changed files"; }
   note "second run: nothing to do, no POST or PUT, every file as it was"
 
-  # 5. doctor --platform reads the three rules back.
+  # 5. doctor --platform reads the three rules back, and the gate job on main.
   ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" PATH="$path_with_stub" \
       "$STEM" doctor --platform ) >"$tmp/doctor.out" 2>"$tmp/doctor.err"
   status=$?
   [ "$status" -eq 0 ] \
     || { cat "$tmp/doctor.out" "$tmp/doctor.err" >&2; fail "plotplot doctor --platform exited $status, not 0"; }
   platform_table "$tmp/doctor.out" > "$tmp/platform.table"
-  [ "$(wc -l < "$tmp/platform.table" | tr -d ' ')" -eq 3 ] \
-    || { cat "$tmp/doctor.out" >&2; fail "the platform table is not three lines"; }
+  [ "$(wc -l < "$tmp/platform.table" | tr -d ' ')" -eq 4 ] \
+    || { cat "$tmp/doctor.out" >&2; fail "the platform table is not four lines"; }
   local check
   for check in "required check" "force push" "deletion"; do
     [ "$(platform_verdict "$tmp/platform.table" "$check")" = "ok" ] \
@@ -1587,6 +1618,10 @@ check_platform() {
     grep "^$check  " "$tmp/platform.table" | grep -q 'ruleset 41' \
       || { cat "$tmp/platform.table" >&2; fail "the $check line does not name ruleset 41"; }
   done
+  [ "$(platform_verdict "$tmp/platform.table" "gate job")" = "ok" ] \
+    || { cat "$tmp/doctor.out" >&2; fail "doctor --platform's gate job line is not ok"; }
+  grep -qxE "gate job +ok +main's plotplot-check\.yml reports $REQUIRED_CHECK" "$tmp/platform.table" \
+    || { cat "$tmp/platform.table" >&2; fail "the gate job line does not say main's plotplot-check.yml reports $REQUIRED_CHECK"; }
   [ "$(journal_count "$journal" POST)" -eq 1 ] && [ "$(journal_count "$journal" PUT)" -eq 0 ] \
     || { cat "$journal" >&2; fail "doctor --platform made a writing call"; }
   note "doctor --platform: exit 0, read-only calls only"
@@ -1636,9 +1671,109 @@ check_platform() {
     || fail "something reached the recording gh while no gh was on PATH"
   note "no gh, init --github: exit 2, $(grep 'gh is not on PATH' "$tmp/nogh-init.err"), nothing new planted"
 
-  # 8. This repository itself: read-only calls through the real gh, with the planter's own
-  #    login. Not asserted beyond its shape: whether the ruleset is applied yet is the
-  #    conductor's act after this lands.
+  # 8. The deadlock the ordering rule exists for (jahala/plotplot issue 33): ruleset 41 already
+  #    requires garden, and main's workflow still reports the old job. init --github refuses,
+  #    says the branch takes no merge until the workflow lands, and writes nothing.
+  local refusal_old refusal_absent
+  refusal_old="main's .github/workflows/plotplot-check.yml names no job \"$REQUIRED_CHECK\" (jobs: check, reported as \"plotplot check --strict\"); land the workflow on main first, then run plotplot init --github again"
+  refusal_absent="main has no .github/workflows/plotplot-check.yml; land the workflow on main first, then run plotplot init --github again"
+  echo "old" > "$stub/gate-mode"
+  tree_hash "$repo" > "$tmp/deadlock-before.hashes"
+  ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" PATH="$path_with_stub" \
+      "$STEM" init --github --harness gemini,codex ) >"$tmp/deadlock.out" 2>"$tmp/deadlock.err"
+  status=$?
+  [ "$status" -eq 1 ] \
+    || { cat "$tmp/deadlock.out" "$tmp/deadlock.err" >&2; fail "init --github under an applied ruleset with the old job on main exited $status, not 1"; }
+  [ "$(journal_count "$journal" POST)" -eq 1 ] && [ "$(journal_count "$journal" PUT)" -eq 0 ] \
+    || { cat "$journal" >&2; fail "init --github wrote a ruleset while main's workflow reports no $REQUIRED_CHECK job"; }
+  grep -qxF "$refusal_old" "$tmp/deadlock.err" \
+    || { cat "$tmp/deadlock.err" >&2; fail "the refusal does not name main, the file, the old job and the fix"; }
+  grep -qxF "ruleset 41 already requires \"$REQUIRED_CHECK\", so main takes no merge until that workflow lands" "$tmp/deadlock.err" \
+    || { cat "$tmp/deadlock.err" >&2; fail "the refusal does not name the deadlock ruleset 41 makes"; }
+  tree_hash "$repo" > "$tmp/deadlock-after.hashes"
+  diff "$tmp/deadlock-before.hashes" "$tmp/deadlock-after.hashes" >/dev/null \
+    || { diff "$tmp/deadlock-before.hashes" "$tmp/deadlock-after.hashes" >&2; fail "the refused init --github changed files"; }
+  note "old job on main under ruleset 41: exit 1, no POST or PUT, every file as it was; stderr:"
+  sed 's/^/    /' "$tmp/deadlock.err"
+  echo "garden" > "$stub/gate-mode"
+
+  # 9. A fresh repository, planted the same way, whose main still reports the old job and
+  #    holds no ruleset: init --github writes its CODEOWNERS region, then refuses the ruleset
+  #    with the reason and makes no writing call.
+  local second second_home second_stub second_journal second_path
+  second="$tmp/second"
+  second_home="$(make_home "$second")"
+  second_stub="$second/stub"
+  second_journal="$second_stub/gh.journal"
+  plant_platform_fixture "$second/repo" "$second/template.lock" "$second_home" "$second/logs"
+  write_recording_gh "$second_stub/bin" "$second/repo/.github/workflows/plotplot-check.yml"
+  echo "old" > "$second_stub/gate-mode"
+  second_path="$second_stub/bin:$PATH"
+  [ "$(PATH="$second_path" command -v gh)" = "$second_stub/bin/gh" ] \
+    || fail "the second recording gh is not the first gh on PATH, and this check must never reach the real one"
+  ( cd "$second/repo" && HOME="$second_home" CODEX_HOME="$second_home/.codex" PATH="$second_path" \
+      "$STEM" init --github --harness gemini,codex ) >"$second/old.out" 2>"$second/old.err"
+  status=$?
+  [ "$status" -eq 1 ] \
+    || { cat "$second/old.out" "$second/old.err" >&2; fail "init --github with the old job on main exited $status, not 1"; }
+  [ "$(journal_count "$second_journal" POST)" -eq 0 ] && [ "$(journal_count "$second_journal" PUT)" -eq 0 ] \
+    || { cat "$second_journal" >&2; fail "init --github made a writing call while main's workflow reports no $REQUIRED_CHECK job"; }
+  grep -qF 'gh api -H Accept: application/vnd.github.raw+json repos/example-owner/example-repo/contents/.github/workflows/plotplot-check.yml?ref=main' "$second_journal" \
+    || { cat "$second_journal" >&2; fail "init --github did not read main's workflow raw"; }
+  grep -qxF "$refusal_old" "$second/old.err" \
+    || { cat "$second/old.err" >&2; fail "the refusal does not name main, the file, check reported as plotplot check --strict, and the fix"; }
+  if grep -q 'already requires' "$second/old.err"; then
+    cat "$second/old.err" >&2
+    fail "the refusal names a deadlock where no ruleset exists"
+  fi
+  [ -f "$second/repo/.github/CODEOWNERS" ] && grep -qx '.github/CODEOWNERS' "$second/old.out" \
+    || { cat "$second/old.out" >&2; fail "the refused init --github did not write and name .github/CODEOWNERS first"; }
+  note "old job on main, no ruleset: exit 1, no POST or PUT, .github/CODEOWNERS written and named; stderr:"
+  sed 's/^/    /' "$second/old.err"
+
+  # doctor --platform there: the three rules answered, the gate job failing, exit 3, and the
+  # static table all ok, so the 3 is the gate's.
+  ( cd "$second/repo" && HOME="$second_home" CODEX_HOME="$second_home/.codex" PATH="$second_path" \
+      "$STEM" doctor --platform ) >"$second/doctor.out" 2>"$second/doctor.err"
+  status=$?
+  [ "$status" -eq 3 ] \
+    || { cat "$second/doctor.out" "$second/doctor.err" >&2; fail "doctor --platform with the old job on main exited $status, not 3"; }
+  if sed '/^$/,$d' "$second/doctor.out" | grep -q '  fail  '; then
+    cat "$second/doctor.out" >&2
+    fail "the second fixture's static table is not all ok, so its exit 3 would not be the gate's"
+  fi
+  platform_table "$second/doctor.out" > "$second/platform.table"
+  [ "$(wc -l < "$second/platform.table" | tr -d ' ')" -eq 4 ] \
+    || { cat "$second/doctor.out" >&2; fail "the platform table with the old job on main is not four lines"; }
+  for check in "required check" "force push" "deletion"; do
+    [ "$(platform_verdict "$second/platform.table" "$check")" = "ok" ] \
+      || { cat "$second/doctor.out" >&2; fail "with the old job on main, the $check line is not answered ok"; }
+  done
+  [ "$(platform_verdict "$second/platform.table" "gate job")" = "fail" ] \
+    || { cat "$second/doctor.out" >&2; fail "with the old job on main, the gate job line does not read fail"; }
+  grep '^gate job  ' "$second/platform.table" | grep -qF '(jobs: check, reported as "plotplot check --strict")' \
+    || { cat "$second/platform.table" >&2; fail "the gate job line does not name the job main reports"; }
+  note "doctor --platform with the old job on main: exit 3"
+  sed 's/^/    /' "$second/platform.table"
+
+  # 10. main holds no workflow at all: init --github refuses naming the missing file, and
+  #     makes no writing call.
+  echo "absent" > "$second_stub/gate-mode"
+  ( cd "$second/repo" && HOME="$second_home" CODEX_HOME="$second_home/.codex" PATH="$second_path" \
+      "$STEM" init --github --harness gemini,codex ) >"$second/absent.out" 2>"$second/absent.err"
+  status=$?
+  [ "$status" -eq 1 ] \
+    || { cat "$second/absent.out" "$second/absent.err" >&2; fail "init --github with no workflow on main exited $status, not 1"; }
+  [ "$(journal_count "$second_journal" POST)" -eq 0 ] && [ "$(journal_count "$second_journal" PUT)" -eq 0 ] \
+    || { cat "$second_journal" >&2; fail "init --github made a writing call while main holds no workflow"; }
+  grep -qxF "$refusal_absent" "$second/absent.err" \
+    || { cat "$second/absent.err" >&2; fail "the refusal does not name the file main is missing"; }
+  note "no workflow on main: exit 1, no POST or PUT; stderr:"
+  sed 's/^/    /' "$second/absent.err"
+
+  # 11. This repository itself: read-only calls through the real gh, with the planter's own
+  #     login. Not asserted beyond its shape: whether the ruleset is applied yet is the
+  #     conductor's act after this lands.
   local gh_config="${GH_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/gh}"
   ( cd "$ROOT" && HOME="$home" CODEX_HOME="$home/.codex" GH_CONFIG_DIR="$gh_config" \
       "$STEM" doctor --platform ) >"$tmp/self.out" 2>"$tmp/self.err"
@@ -1648,8 +1783,8 @@ check_platform() {
   platform_table "$tmp/self.out" > "$tmp/self.table"
   local lines
   lines="$(wc -l < "$tmp/self.table" | tr -d ' ')"
-  if [ "$lines" -eq 3 ]; then
-    for check in "required check" "force push" "deletion"; do
+  if [ "$lines" -eq 4 ]; then
+    for check in "required check" "force push" "deletion" "gate job"; do
       grep -q "^$check  " "$tmp/self.table" \
         || { cat "$tmp/self.out" >&2; fail "this repository's platform table has no $check line"; }
     done
@@ -1658,7 +1793,7 @@ check_platform() {
       || { cat "$tmp/self.out" >&2; fail "this repository's one platform line is not unavailable"; }
   else
     cat "$tmp/self.out" >&2
-    fail "this repository's platform table is $lines lines, neither three nor one unavailable"
+    fail "this repository's platform table is $lines lines, neither four nor one unavailable"
   fi
   note "this repository (origin $(git -C "$ROOT" remote get-url origin)), doctor --platform exited $status; its platform table, not asserted:"
   sed 's/^/    /' "$tmp/self.table"
