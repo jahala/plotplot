@@ -13,8 +13,10 @@ permissions:
   contents: read
 
 jobs:
-  check:
-    name: plotplot check --strict
+  # The ruleset plotplot applies on the default branch requires a check called garden.
+  # Rename this job and the branch is silently unprotected; change the steps freely.
+  garden:
+    name: garden
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

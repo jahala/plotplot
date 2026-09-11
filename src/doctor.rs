@@ -4,28 +4,33 @@
 //! planted" has to be a command rather than a belief. This is the half of that command that
 //! needs no harness running: it reads what is on disk, regenerates what the stem would write
 //! today, and compares. Live mode, which drives a real session through umbel and proves each
-//! hook fires by firing it, is [`live`].
+//! hook fires by firing it, is [`live`]. The platform read-back, which asks GitHub what it
+//! enforces on the default branch, is [`crate::platform`]; [`run_modes`] prints the static,
+//! platform and live tables in that order.
 //!
 //! Every check produces one [`Finding`], whether it passed or not, so the table is the same
 //! nine lines every time and a check can never go quiet. Nothing here repairs anything:
 //! `doctor` reports, `init` writes.
 
+use std::ffi::OsStr;
 use std::fmt::Write as _;
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 use crate::bed::{Bed, GitHook};
 use crate::bundle::{self, BundleInput, FileTree};
+use crate::cli::DoctorArgs;
 use crate::error::{Error, Result};
 use crate::harness::Harness;
 use crate::lock::{self, Lock};
 use crate::manifest::one_line;
 use crate::plant::{garden_block, gitconfig, githooks};
-use crate::{layout, manifest};
+use crate::{init, layout, manifest, platform};
 
 pub mod live;
 
@@ -118,6 +123,108 @@ pub fn run(root: &Path, home: &Path, stdout: &mut dyn Write, stderr: &mut dyn Wr
     } else {
         3
     }
+}
+
+/// What a run asks for after the static table, each mode with what it needs.
+pub struct Modes<'a> {
+    /// The platform read-back: the `gh` to ask and the repository to ask about, or why there
+    /// is neither.
+    pub platform: Option<
+        std::result::Result<(&'a dyn platform::Gh, platform::Repository), platform::Unreachable>,
+    >,
+    /// Live mode: the harnesses to drive, how long each worker has, and the driver.
+    pub live: Option<Live<'a>>,
+}
+
+/// What live mode needs to drive its sessions.
+pub struct Live<'a> {
+    pub harnesses: &'a [Harness],
+    pub timeout: Duration,
+    pub driver: &'a dyn live::Driver,
+}
+
+/// `plotplot doctor [--platform] [--live]`, as the command line asks for it.
+///
+/// The one place the faces' surroundings are looked up: `gh` on the search path and the
+/// `origin` remote for the platform, umbel for live mode. Each is looked up only when its
+/// mode was asked for.
+pub fn run_face(
+    root: &Path,
+    home: &Path,
+    face: &DoctorArgs,
+    search_path: Option<&OsStr>,
+    stdout: &mut dyn Write,
+    stderr: &mut dyn Write,
+) -> i32 {
+    let gh = face
+        .platform
+        .then(|| init::find_on_path(platform::GH, search_path))
+        .flatten()
+        .map(|program| platform::GhCli { program });
+    let platform = face.platform.then(|| {
+        platform::reach(
+            gh.as_ref().map(|gh| gh as &dyn platform::Gh),
+            init::origin_url(root).as_deref(),
+        )
+    });
+    let harnesses = face.harnesses();
+    let live = face.live.then(|| Live {
+        harnesses: &harnesses,
+        timeout: face.timeout(),
+        driver: &live::Umbel,
+    });
+    run_modes(root, home, &Modes { platform, live }, stdout, stderr)
+}
+
+/// The static table, then the platform table, then the live one, each after one blank line.
+///
+/// Static findings come first and are printed whatever the other modes go on to say, because
+/// a bundle that is not on disk explains a hook that did not fire. The platform is asked even
+/// where nothing is planted yet: what GitHub enforces does not depend on this clone. Live mode
+/// needs a planted repository and says nothing more on one that is not.
+///
+/// Exit 0 when every static check passed, every platform line is ok and no live session that
+/// ran failed to prove; 1 on an error the static checks could not get past; 3 otherwise. A
+/// platform that could not be read is 3: the mode is skipped, never guessed.
+pub fn run_modes(
+    root: &Path,
+    home: &Path,
+    modes: &Modes,
+    stdout: &mut dyn Write,
+    stderr: &mut dyn Write,
+) -> i32 {
+    let code = run(root, home, stdout, stderr);
+    if code == 1 {
+        return code;
+    }
+    let mut proved = code == 0;
+
+    if let Some(reach) = &modes.platform {
+        let findings = match reach {
+            Ok((gh, repository)) => platform::read(*gh, repository),
+            Err(why) => platform::unavailable(why.to_string()),
+        };
+        if let Err(error) = write!(stdout, "\n{}", live::render(&findings)) {
+            let _ = writeln!(stderr, "stdout: {error}");
+            return 1;
+        }
+        proved &= findings
+            .iter()
+            .all(|finding| finding.verdict == live::Verdict::Ok);
+    }
+
+    if let Some(mode) = &modes.live
+        && unplanted(root).is_none()
+    {
+        let findings = live::probe_all(root, mode.harnesses, mode.timeout, mode.driver, stderr);
+        if let Err(error) = write!(stdout, "\n{}", live::render(&findings)) {
+            let _ = writeln!(stderr, "stdout: {error}");
+            return 1;
+        }
+        proved &= !live::failed(&findings);
+    }
+
+    if proved { 0 } else { 3 }
 }
 
 /// The file whose absence says this repository was never planted, or `None` when both the
@@ -882,6 +989,79 @@ mod tests {
         let finding = judges(root.path(), &lock, &[]).expect("a finding");
         assert!(!finding.ok);
         assert!(finding.detail.contains("weeder"), "{}", finding.detail);
+    }
+
+    // ------------------------------------------------------------------ --platform
+
+    /// What `run_modes` printed and answered, on a repository nothing planted.
+    fn modes_on_unplanted(modes: &Modes) -> (i32, String, String) {
+        let root = tempfile::tempdir().expect("a temporary root");
+        let home = tempfile::tempdir().expect("a temporary home");
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let code = run_modes(root.path(), home.path(), modes, &mut stdout, &mut stderr);
+        (
+            code,
+            String::from_utf8(stdout).expect("utf-8"),
+            String::from_utf8(stderr).expect("utf-8"),
+        )
+    }
+
+    #[test]
+    fn the_platform_mode_without_gh_is_one_unavailable_line_and_exit_three() {
+        let modes = Modes {
+            platform: Some(Err(platform::Unreachable::NoGh)),
+            live: None,
+        };
+        let (code, stdout, _) = modes_on_unplanted(&modes);
+        assert_eq!(code, 3);
+        let (statics, table) = stdout
+            .split_once("\n\n")
+            .unwrap_or_else(|| panic!("two tables, one blank line between: {stdout}"));
+        assert!(statics.starts_with("not planted: "), "{stdout}");
+        assert_eq!(table, "platform  unavailable  gh is not on PATH\n");
+    }
+
+    #[test]
+    fn the_platform_table_reads_back_even_where_nothing_is_planted_yet() {
+        let gh = platform::recorded::Recorded::default()
+            .answer(
+                "GET",
+                "repos/example-owner/example-repo",
+                r#"{"default_branch":"main"}"#,
+            )
+            .answer(
+                "GET",
+                "repos/example-owner/example-repo/rules/branches/main",
+                r#"[{"type":"deletion","ruleset_id":41},{"type":"non_fast_forward","ruleset_id":41},
+                    {"type":"required_status_checks","ruleset_id":41,
+                     "parameters":{"required_status_checks":[{"context":"garden"}]}}]"#,
+            );
+        let repository = platform::Repository {
+            owner: "example-owner".to_owned(),
+            name: "example-repo".to_owned(),
+        };
+        let modes = Modes {
+            platform: Some(Ok((&gh as &dyn platform::Gh, repository))),
+            live: None,
+        };
+        let (code, stdout, _) = modes_on_unplanted(&modes);
+        let table = stdout.split_once("\n\n").expect("two tables").1;
+        let names: Vec<&str> = table
+            .lines()
+            .map(|line| line.split("  ").next().unwrap_or_default())
+            .collect();
+        assert_eq!(
+            names,
+            ["required check", "force push", "deletion"],
+            "{stdout}"
+        );
+        assert!(
+            table.lines().all(|line| line.contains("  ok  ")),
+            "{stdout}"
+        );
+        // Every platform line is ok, and the static table is not: 3, never 0.
+        assert_eq!(code, 3);
     }
 
     #[test]

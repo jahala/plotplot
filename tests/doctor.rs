@@ -733,3 +733,64 @@ fn live_mode_on_an_unplanted_repository_says_so_once_and_drives_nothing() {
     assert_eq!(stdout.lines().count(), 1, "{stdout}");
     assert!(stdout.starts_with("not planted: "), "{stdout}");
 }
+
+// --------------------------------------------------------------- doctor --platform
+
+#[test]
+fn the_platform_table_sits_between_the_static_and_the_live_tables() {
+    let (root, home) = planted();
+    // Only git on the search path: no gh to ask the platform with, and no umbel to drive.
+    let (code, stdout, stderr) = doctor_live(root.path(), home.path(), &["--platform"]);
+
+    let tables: Vec<&str> = stdout.split("\n\n").collect();
+    assert_eq!(tables.len(), 3, "static, platform, live: {stdout}");
+    let names =
+        |table: &str| -> Vec<String> { table.lines().map(|line| columns(line).0).collect() };
+    assert_eq!(names(tables[0]), plotplot::doctor::CHECKS, "{stdout}");
+
+    let platform: Vec<(String, String, String)> = tables[1].lines().map(columns).collect();
+    assert_eq!(
+        platform.len(),
+        1,
+        "one line when the mode is skipped: {stdout}"
+    );
+    assert_eq!(
+        (platform[0].0.as_str(), platform[0].1.as_str()),
+        ("platform", "unavailable"),
+        "{stdout}"
+    );
+    assert!(platform[0].2.contains("gh"), "{stdout}");
+
+    assert_eq!(
+        names(tables[2]),
+        ["claude session", "gemini session", "codex session"],
+        "{stdout}"
+    );
+    // The platform was not read, so it was not proved: 3, never a guess.
+    assert_eq!(code, 3, "{stdout}{stderr}");
+}
+
+#[test]
+fn the_platform_mode_alone_prints_two_tables() {
+    let (root, home) = planted();
+    let bin = only_git();
+    let output = plotplot(root.path(), home.path())
+        .args(["doctor", "--platform"])
+        .env("PATH", bin.path())
+        .output()
+        .expect("doctor --platform ran");
+    let stdout = String::from_utf8(output.stdout).expect("doctor writes utf-8");
+    let (statics, platform) = stdout
+        .split_once("\n\n")
+        .unwrap_or_else(|| panic!("two tables: {stdout}"));
+    assert_eq!(
+        statics.lines().count(),
+        plotplot::doctor::CHECKS.len(),
+        "{stdout}"
+    );
+    assert_eq!(
+        platform, "platform  unavailable  gh is not on PATH\n",
+        "{stdout}"
+    );
+    assert_eq!(output.status.code(), Some(3));
+}

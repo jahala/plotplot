@@ -104,6 +104,19 @@ already open: tend 157, 158, 167, 169, 175, 183 and 184; pleach 61, 63, 64, 66, 
   failed audit's reasons were lost when the re-run passed (pleach 82).
 - 2026-09-09 the doctor-live worker's session limit reached pleach as "Claude is waiting for
   your input"; the reset time was on the pane (umbel 75, commented).
+- 2026-09-11 the fourth run's first attempt was lost at the commit gate: the node printed
+  "commit gate failed" and pleach kept nothing, no `node/` branch, no quarantine, no receipt
+  (UNDERIVABLE), the worktree gone and the worker's umbel session killed with its transcript.
+  The commit was refused by the repository's own planted pre-commit hook, because a fresh
+  worktree carries no `.plotplot/bin/` (ignored) and the hook fails closed without its judge;
+  the plan's setup now runs `plotplot lock verify` first. A refused commit should quarantine
+  the tree with the hook's words, never lose it (pleach 96; the hook's wording is
+  plotplot 30).
+- 2026-09-11 `pleach land` refused the fourth run's two closed nodes as "land conflict on
+  node/stem.platform" with an empty file list, on a branch one commit past the nodes' base;
+  `git merge --no-ff node/stem.platform` by hand was clean, 17 files. Either land wants the
+  branch still on the base and should say so, or its conflict detection is wrong; either way
+  it names no file (pleach 98).
 
 ## umbel
 

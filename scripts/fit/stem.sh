@@ -14,13 +14,19 @@
 #                                    emits one valid SARIF 2.1.0 log; exit 2 on a block-level
 #                                    result, 3 when the judge could not run
 #   scripts/fit/stem.sh init         `plotplot init` plants a fixture repository: the garden
-#                                    block, the harness project configs, the git law and the
-#                                    pull request gate, and a second run changes nothing
+#                                    block beside tend2's, which it leaves byte for byte, the
+#                                    harness project configs, the git law and the pull
+#                                    request gate, and a second run changes nothing
 #   scripts/fit/stem.sh doctor-live  `plotplot doctor --live` drives one real session per
 #                                    harness through umbel and proves from the friction
 #                                    journal and the receipt drafts that the before-tool,
 #                                    session-end and draft faces fired, reporting a harness
 #                                    that would not run with what it said
+#   scripts/fit/stem.sh platform     `plotplot init --github` writes the stem's CODEOWNERS
+#                                    region and applies the default branch's ruleset once,
+#                                    through a recording gh, and `plotplot doctor --platform`
+#                                    reads the rules back, reporting a missing rule and a
+#                                    missing gh; then this repository's own table, unasserted
 #
 # Exit 0 on pass, non-zero with a reason on failure. Every check builds the crate in release
 # mode once, then runs in a fresh temporary directory with HOME and CODEX_HOME pointed at a
@@ -1000,6 +1006,16 @@ check_check() {
 INIT_JUDGE="weeder"
 INIT_VERSION="0.1.0"
 
+# tend2's block as tend2's init writes it into AGENTS.md, copied byte for byte from this
+# repository's own AGENTS.md and held to that file by a test in tests/plant.rs. The stem
+# never renders it; each init leaves the other's block alone (jahala/plotplot issue 28).
+TEND2_BLOCK="$ROOT/tests/fixtures/AGENTS.tend2.md"
+AGENTS_PROSE="Notes this repository keeps for itself."
+
+# The status check the default branch's ruleset requires and the pull request gate's job
+# reports (platform::REQUIRED_CHECK; the contract ruled 2026-09-10).
+REQUIRED_CHECK="garden"
+
 # A fixture repository and the lock template init copies from.
 #
 # weeder has no release (the comment at the head of contracts/fixtures/garden.lock says so)
@@ -1017,6 +1033,10 @@ plant_init_fixture() {
   git -C "$repo" config user.name "plotplot fit" || fail "could not configure git"
   git -C "$repo" remote add origin "https://example.invalid/jahala/fixture.git" \
     || fail "could not give the fixture an origin remote"
+
+  # AGENTS.md as tend2's init leaves it, with a line of the repository's own under it.
+  { cat "$TEND2_BLOCK" && printf '\n%s\n' "$AGENTS_PROSE"; } >"$repo/AGENTS.md" \
+    || fail "could not write the fixture's AGENTS.md from $TEND2_BLOCK"
 
   mkdir -p "$repo/.plotplot/beds/$INIT_JUDGE" "$repo/.plotplot/bin"
   cp "$ROOT/contracts/fixtures/manifest/$INIT_JUDGE.garden.json" \
@@ -1093,6 +1113,20 @@ assert_dispatcher_entry() {
   esac
 }
 
+# tend2's block in an AGENTS.md is the fixture, byte for byte.
+assert_tend2_block() {
+  local agents="$1" when="$2"
+  sed -n '/<!-- tend2:begin -->/,/<!-- tend2:end -->/p' "$agents" | cmp -s - "$TEND2_BLOCK" \
+    || { cat "$agents" >&2; fail "$when: tend2's block in AGENTS.md is not byte for byte $TEND2_BLOCK"; }
+}
+
+# And it still opens the file: the file's first lines are the fixture's lines.
+assert_tend2_block_first() {
+  local agents="$1" when="$2"
+  head -n "$(( $(wc -l <"$TEND2_BLOCK") ))" "$agents" | cmp -s - "$TEND2_BLOCK" \
+    || { cat "$agents" >&2; fail "$when: tend2's block no longer starts AGENTS.md at line 1"; }
+}
+
 check_init() {
   require git jq claude
   build_stem
@@ -1132,6 +1166,11 @@ check_init() {
   grep -q "$INIT_JUDGE $INIT_VERSION" "$repo/AGENTS.md" \
     || { cat "$repo/AGENTS.md" >&2; fail "the garden block does not name $INIT_JUDGE $INIT_VERSION"; }
   note "AGENTS.md: the garden block names $INIT_JUDGE $INIT_VERSION"
+  assert_tend2_block "$repo/AGENTS.md" "first run"
+  assert_tend2_block_first "$repo/AGENTS.md" "first run"
+  grep -qxF "$AGENTS_PROSE" "$repo/AGENTS.md" \
+    || { cat "$repo/AGENTS.md" >&2; fail "first run: the repository's own line in AGENTS.md is gone"; }
+  note "AGENTS.md after the first run: tend2's block byte for byte the fixture, still from line 1, the repository's own line kept"
 
   # 4. The repository's own manifest, which is never a bed.
   [ -f "$repo/garden.json" ] || fail "init wrote no garden.json beside the lock"
@@ -1175,14 +1214,20 @@ check_init() {
   # 8. The gate every pull request passes, on a hosted runner and no other.
   local workflow="$repo/.github/workflows/plotplot-check.yml"
   [ -f "$workflow" ] || fail "init wrote no pull request workflow"
-  grep -q 'plotplot check --strict' "$workflow" \
-    || fail "the workflow does not run plotplot check --strict"
+  grep -qx '        run: plotplot check --strict' "$workflow" \
+    || { cat "$workflow" >&2; fail "the workflow has no step running plotplot check --strict"; }
+  # The job's name is the status check the ruleset requires (ruled 2026-09-10): a job
+  # renamed away from it silently unprotects the default branch.
+  grep -qx "    name: $REQUIRED_CHECK" "$workflow" \
+    || { cat "$workflow" >&2; fail "the workflow's job is not named $REQUIRED_CHECK, the check the ruleset requires"; }
   grep -q 'pull_request' "$workflow" || fail "the workflow does not run on pull_request"
   grep -q 'runs-on: ubuntu-latest' "$workflow" || fail "the workflow names no hosted runner"
   if grep -q 'self-hosted' "$workflow"; then
     fail "the workflow names a runner of the repository's own, which a public bed never registers (jahala/plotplot issue 7)"
   fi
-  note "the pull request gate runs plotplot check --strict on a hosted runner"
+  [ ! -e "$repo/.github/CODEOWNERS" ] \
+    || fail "plain init wrote .github/CODEOWNERS, which only --github writes"
+  note "the pull request gate: job $REQUIRED_CHECK, a step running plotplot check --strict, on a hosted runner"
 
   # 9. And a second run changes nothing, and says so.
   tree_hash "$repo" > "$tmp/before.hashes"
@@ -1197,11 +1242,59 @@ check_init() {
   diff "$tmp/before.hashes" "$tmp/after.hashes" >/dev/null \
     || { diff "$tmp/before.hashes" "$tmp/after.hashes" >&2; fail "the second init changed files"; }
   note "second run: nothing to do, and every file byte for byte as it was"
+  assert_tend2_block "$repo/AGENTS.md" "second run"
+  assert_tend2_block_first "$repo/AGENTS.md" "second run"
+  note "AGENTS.md after the second run: tend2's block byte for byte the fixture, still from line 1"
 
-  # 10. Claude's own install, through claude's own mechanism, against the temporary home.
+  # 10. The other order the two blocks can stand in: the garden block above tend2's.
+  check_init_above_tend2 "$repo/AGENTS.md"
+
+  # 11. Claude's own install, through claude's own mechanism, against the temporary home.
   check_init_claude "$tmp" "$repo" "$home" "$template"
 
   echo "stem.sh init: pass"
+}
+
+# A second fixture repository whose AGENTS.md has the garden block at the top, one season
+# old, and tend2's block under it. One init replaces the marked region and leaves tend2's
+# block byte for byte, one blank line below the garden block.
+check_init_above_tend2() {
+  local planted="$1" tmp repo home template status
+  scratch
+  tmp="$SCRATCH_DIR"
+  repo="$tmp/repo"
+  home="$(make_home "$tmp")"
+  template="$tmp/template.lock"
+
+  note "planting a second fixture repository, the garden block above tend2's, at $repo"
+  plant_init_fixture "$repo" "$template"
+
+  # The garden block the stem rendered for the first fixture, set back one season so init
+  # has a region to replace: the stem's own output, never a hand-written copy of it.
+  sed -n '/<!-- plotplot:begin -->/,/<!-- plotplot:end -->/p' "$planted" \
+    | sed 's/^Season: 2026\.09\.$/Season: 2026.08./' >"$tmp/older.md"
+  grep -qx 'Season: 2026.08.' "$tmp/older.md" \
+    || { cat "$tmp/older.md" >&2; fail "could not set the first fixture's garden block back a season"; }
+  { cat "$tmp/older.md" && echo && cat "$TEND2_BLOCK"; } >"$repo/AGENTS.md" \
+    || fail "could not write the second fixture's AGENTS.md"
+
+  ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" \
+      "$STEM" init --harness gemini,codex --lock "$template" ) >"$tmp/above.out" 2>"$tmp/above.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/above.out" "$tmp/above.err" >&2; fail "plotplot init exited $status on the second fixture, not 0"; }
+  grep -qx 'AGENTS.md' "$tmp/above.out" \
+    || { cat "$tmp/above.out" >&2; fail "init did not rewrite the second fixture's AGENTS.md"; }
+  [ "$(head -1 "$repo/AGENTS.md")" = '<!-- plotplot:begin -->' ] \
+    || { cat "$repo/AGENTS.md" >&2; fail "the garden block no longer opens the second fixture's AGENTS.md"; }
+  grep -qx 'Season: 2026.09.' "$repo/AGENTS.md" \
+    || { cat "$repo/AGENTS.md" >&2; fail "the older season's garden block was not replaced"; }
+  note "second layout: init replaced the older season's garden block at the top of AGENTS.md"
+
+  assert_tend2_block "$repo/AGENTS.md" "second layout"
+  sed '1,/<!-- plotplot:end -->/d' "$repo/AGENTS.md" | cmp -s - <(echo && cat "$TEND2_BLOCK") \
+    || { cat "$repo/AGENTS.md" >&2; fail "second layout: tend2's block is not where it was, one blank line below the garden block"; }
+  note "second layout: tend2's block byte for byte the fixture, still one blank line after the garden block"
 }
 
 # Claude Code's half of the check: the same repository, planted again with --harness claude,
@@ -1246,6 +1339,331 @@ check_init_claude() {
   diff "$tmp/claude-before.hashes" "$tmp/claude-after.hashes" >/dev/null \
     || { diff "$tmp/claude-before.hashes" "$tmp/claude-after.hashes" >&2; fail "the second claude init changed files"; }
   note "claude: installed at project scope from $repo/.plotplot/marketplace, and a second run changed nothing"
+}
+
+# ---------------------------------------------------------------------------------------
+# check: platform
+# ---------------------------------------------------------------------------------------
+
+# The repository the fixture's origin names. A url only: nothing here fetches it, and every
+# call about it is answered by the recording gh below.
+PLATFORM_OWNER="example-owner"
+PLATFORM_REPO="example-repo"
+PLATFORM_ORIGIN="https://github.com/$PLATFORM_OWNER/$PLATFORM_REPO.git"
+RULESET_NAME="plotplot: the default branch"
+
+# The twelve lines the stem's CODEOWNERS region carries for the fixture's owner, in order.
+platform_region() {
+  local path
+  echo '# plotplot:begin'
+  for path in /.githooks/ /garden.lock /garden.json /AGENTS.md /CLAUDE.md /weeder.toml \
+      /.claude/settings.json /.gemini/settings.json /.codex/hooks.json \
+      /.github/workflows/plotplot-check.yml /.github/CODEOWNERS /docs/tend2/; do
+    echo "$path @$PLATFORM_OWNER"
+  done
+  echo '# plotplot:end'
+}
+
+# A gh that answers the calls the stem makes about the fixture's repository, and nothing
+# else, and writes every call to a journal: argv on one line, then stdin when there was any.
+# It keeps the one ruleset it was given in a state file beside the journal, so a list after a
+# POST names it and a GET of it hands back the body it was given, the way GitHub would. A file
+# called `rules-mode` holding `no-force` makes it report the branch without its
+# non_fast_forward rule. Everything it answers about GitHub's shapes is copied from GitHub's
+# own answers, read 2026-09-11 with read-only calls: the list's fields, the ruleset's and the
+# ruleset_* fields a rule in force carries (cli/cli), and do_not_enforce_on_create beside a
+# ruleset's status checks (astral-sh/uv, microsoft/vscode, vercel/next.js).
+write_recording_gh() {
+  local bin="$1"
+  mkdir -p "$bin" || fail "could not make the stub's bin directory"
+  cat > "$bin/gh" <<'STUB'
+#!/usr/bin/env bash
+# The recording gh of scripts/fit/stem.sh platform. Never the real one.
+set -u
+here="$(cd "$(dirname "$0")/.." && pwd)"
+journal="$here/gh.journal"
+ruleset="$here/gh.ruleset"
+repo="repos/example-owner/example-repo"
+
+[ "${1:-}" = "api" ] || { echo "the recording gh answers api calls only: $*" >&2; exit 1; }
+printf '%s\n' "gh $*" >> "$journal"
+shift
+method="GET"; path=""; input="no"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -X) method="$2"; shift 2 ;;
+    --input) input="yes"; shift 2 ;;
+    *) path="$1"; shift ;;
+  esac
+done
+body=""
+if [ "$input" = "yes" ]; then
+  body="$(cat)"
+  printf '%s\n' "$body" >> "$journal"
+fi
+
+not_found() {
+  echo "gh: Not Found (HTTP 404)" >&2
+  printf '{"message":"Not Found","documentation_url":"https://docs.github.com/rest","status":"404"}'
+  exit 1
+}
+
+case "$method $path" in
+  "GET $repo")
+    printf '{"id":1,"name":"example-repo","full_name":"example-owner/example-repo","default_branch":"main"}\n' ;;
+  "GET $repo/rulesets")
+    if [ -f "$ruleset" ]; then
+      printf '[{"id":41,"name":"plotplot: the default branch","target":"branch","source_type":"Repository","source":"example-owner/example-repo","enforcement":"active"}]\n'
+    else
+      printf '[]\n'
+    fi ;;
+  "POST $repo/rulesets")
+    printf '%s\n' "$body" > "$ruleset"
+    jq -c '. + {id: 41, source_type: "Repository", source: "example-owner/example-repo"}' "$ruleset" ;;
+  "GET $repo/rulesets/41")
+    # The body it was given, with what GitHub adds to a ruleset it hands back: its id and
+    # source, and do_not_enforce_on_create beside the status checks.
+    [ -f "$ruleset" ] || not_found
+    jq -c '. + {id: 41, source_type: "Repository", source: "example-owner/example-repo"}
+           | .rules |= map(if .type == "required_status_checks"
+                           then .parameters += {do_not_enforce_on_create: false} else . end)' "$ruleset" ;;
+  "PUT $repo/rulesets/41")
+    [ -f "$ruleset" ] || not_found
+    printf '%s\n' "$body" > "$ruleset"
+    jq -c '. + {id: 41}' "$ruleset" ;;
+  "GET $repo/rules/branches/main")
+    source='"ruleset_source_type":"Repository","ruleset_source":"example-owner/example-repo","ruleset_id":41'
+    deletion="{\"type\":\"deletion\",$source}"
+    force="{\"type\":\"non_fast_forward\",$source}"
+    checks="{\"type\":\"required_status_checks\",\"parameters\":{\"required_status_checks\":[{\"context\":\"garden\"}],\"strict_required_status_checks_policy\":false},$source}"
+    if [ "$(cat "$here/rules-mode" 2>/dev/null)" = "no-force" ]; then
+      printf '[%s,%s]\n' "$deletion" "$checks"
+    else
+      printf '[%s,%s,%s]\n' "$deletion" "$force" "$checks"
+    fi ;;
+  *) not_found ;;
+esac
+STUB
+  chmod +x "$bin/gh" || fail "could not make the recording gh executable"
+}
+
+# How many calls in the journal used this method.
+journal_count() {
+  local journal="$1" method="$2"
+  [ -f "$journal" ] || { echo 0; return; }
+  grep -c "^gh api -X $method " "$journal"
+}
+
+# The platform table: the lines after the static table's blank line.
+platform_table() {
+  sed '1,/^$/d' "$1"
+}
+
+# One platform line's verdict, read from the table's second column.
+platform_verdict() {
+  local table="$1" check="$2"
+  grep "^$check  " "$table" | sed -E "s/^$check +([a-z]+) .*/\1/"
+}
+
+# A bin directory holding git and jq and nothing else, and the PATH that is it plus the
+# system directories: no gh anywhere on it.
+no_gh_path() {
+  local bin="$1" tool
+  mkdir -p "$bin" || fail "could not make $bin"
+  for tool in git jq; do
+    ln -sf "$(command -v "$tool")" "$bin/$tool" || fail "could not link $tool into $bin"
+  done
+  echo "$bin:/usr/bin:/bin"
+}
+
+check_platform() {
+  require git jq
+  build_stem
+
+  local tmp repo home template stub journal status path_with_stub path_without_gh
+  scratch
+  tmp="$SCRATCH_DIR"
+  repo="$tmp/repo"
+  home="$(make_home "$tmp")"
+  template="$tmp/template.lock"
+  stub="$tmp/stub"
+  journal="$stub/gh.journal"
+
+  note "planting the fixture repository at $repo, origin $PLATFORM_ORIGIN (a url only, never fetched)"
+  plant_init_fixture "$repo" "$template"
+  git -C "$repo" remote set-url origin "$PLATFORM_ORIGIN" || fail "could not point origin at $PLATFORM_ORIGIN"
+  ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" \
+      "$STEM" init --lock "$template" --harness gemini,codex ) >"$tmp/plain.out" 2>"$tmp/plain.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/plain.out" "$tmp/plain.err" >&2; fail "the plain init exited $status, not 0"; }
+  # doctor's static table asks after all three bundles; claude's is generated here without
+  # being installed, because installing it runs claude itself, which the init check proves.
+  ( cd "$repo" && HOME="$home" "$STEM" bundle build claude ) >/dev/null 2>"$tmp/bundle.err" \
+    || { cat "$tmp/bundle.err" >&2; fail "plotplot bundle build claude failed on the fixture"; }
+
+  # A CODEOWNERS of the repository's own, which --github must leave byte for byte.
+  mkdir -p "$repo/.github"
+  printf '# Owners this repository keeps for itself.\n*.md @someone\n' > "$repo/.github/CODEOWNERS"
+  cp "$repo/.github/CODEOWNERS" "$tmp/codeowners.before"
+
+  write_recording_gh "$stub/bin"
+  path_with_stub="$stub/bin:$PATH"
+  [ "$(PATH="$path_with_stub" command -v gh)" = "$stub/bin/gh" ] \
+    || fail "the recording gh is not the first gh on PATH, and this check must never reach the real one"
+  note "a recording gh at $stub/bin/gh, first on PATH; every call goes to $journal"
+
+  # 1. init --github writes the region, applies the ruleset, and names both.
+  ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" PATH="$path_with_stub" \
+      "$STEM" init --github --harness gemini,codex ) >"$tmp/github.out" 2>"$tmp/github.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/github.out" "$tmp/github.err" >&2; fail "plotplot init --github exited $status, not 0"; }
+  grep -qx '.github/CODEOWNERS' "$tmp/github.out" \
+    || { cat "$tmp/github.out" >&2; fail "init --github did not name .github/CODEOWNERS"; }
+  grep -qxF "ruleset \"$RULESET_NAME\" applied on $PLATFORM_OWNER/$PLATFORM_REPO" "$tmp/github.out" \
+    || { cat "$tmp/github.out" >&2; fail "init --github did not name the ruleset it applied"; }
+  note "init --github: exit 0, changed: $(paste -sd ';' "$tmp/github.out")"
+
+  # 2. Exactly one POST, carrying the desired body.
+  [ "$(journal_count "$journal" POST)" -eq 1 ] \
+    || { cat "$journal" >&2; fail "the journal holds $(journal_count "$journal" POST) POSTs, not one"; }
+  [ "$(journal_count "$journal" PUT)" -eq 0 ] \
+    || { cat "$journal" >&2; fail "the first run PUT a ruleset nobody had created"; }
+  awk '/^gh api -X POST /{getline; print}' "$journal" > "$tmp/posted.json"
+  [ "$(jq -c '[.rules[].type]' "$tmp/posted.json")" = '["deletion","non_fast_forward","required_status_checks"]' ] \
+    || { cat "$tmp/posted.json" >&2; fail "the POSTed rules are not deletion, non_fast_forward, required_status_checks in that order"; }
+  if grep -q 'required_linear_history' "$tmp/posted.json"; then
+    fail "the POSTed ruleset carries required_linear_history, which refuses the law's merge commits"
+  fi
+  [ "$(jq -r '.rules[2].parameters.required_status_checks[0].context' "$tmp/posted.json")" = "$REQUIRED_CHECK" ] \
+    || { cat "$tmp/posted.json" >&2; fail "the POSTed ruleset does not require the context $REQUIRED_CHECK"; }
+  [ "$(jq -c '.conditions.ref_name.include' "$tmp/posted.json")" = '["~DEFAULT_BRANCH"]' ] \
+    || { cat "$tmp/posted.json" >&2; fail "the POSTed ruleset does not target ~DEFAULT_BRANCH"; }
+  [ "$(jq -r '.name' "$tmp/posted.json")" = "$RULESET_NAME" ] \
+    || fail "the POSTed ruleset is not called $RULESET_NAME"
+  note "one POST: rules $(jq -c '[.rules[].type]' "$tmp/posted.json"), context $REQUIRED_CHECK, ~DEFAULT_BRANCH, no linear history"
+
+  # 3. The region names the owner for the twelve paths, and the repository's own lines stay.
+  platform_region > "$tmp/region.expected"
+  sed -n '/^# plotplot:begin$/,/^# plotplot:end$/p' "$repo/.github/CODEOWNERS" \
+    | cmp -s - "$tmp/region.expected" \
+    || { diff "$tmp/region.expected" <(sed -n '/^# plotplot:begin$/,/^# plotplot:end$/p' "$repo/.github/CODEOWNERS") >&2; fail "the CODEOWNERS region is not the twelve guarded paths naming @$PLATFORM_OWNER"; }
+  head -c "$(wc -c < "$tmp/codeowners.before")" "$repo/.github/CODEOWNERS" | cmp -s - "$tmp/codeowners.before" \
+    || { cat "$repo/.github/CODEOWNERS" >&2; fail "the repository's own CODEOWNERS lines did not survive byte for byte"; }
+  note "CODEOWNERS: twelve lines naming @$PLATFORM_OWNER inside the markers, the repository's own two lines above them untouched"
+
+  # 4. A second run changes nothing and writes nothing to the platform.
+  tree_hash "$repo" > "$tmp/before.hashes"
+  ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" PATH="$path_with_stub" \
+      "$STEM" init --github --harness gemini,codex ) >"$tmp/again.out" 2>"$tmp/again.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/again.out" "$tmp/again.err" >&2; fail "the second init --github exited $status, not 0"; }
+  [ "$(cat "$tmp/again.out")" = "nothing to do" ] \
+    || { cat "$tmp/again.out" >&2; fail "the second init --github did not print exactly 'nothing to do'"; }
+  [ "$(journal_count "$journal" POST)" -eq 1 ] && [ "$(journal_count "$journal" PUT)" -eq 0 ] \
+    || { cat "$journal" >&2; fail "the second init --github wrote to the platform"; }
+  tree_hash "$repo" > "$tmp/after.hashes"
+  diff "$tmp/before.hashes" "$tmp/after.hashes" >/dev/null \
+    || { diff "$tmp/before.hashes" "$tmp/after.hashes" >&2; fail "the second init --github changed files"; }
+  note "second run: nothing to do, no POST or PUT, every file as it was"
+
+  # 5. doctor --platform reads the three rules back.
+  ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" PATH="$path_with_stub" \
+      "$STEM" doctor --platform ) >"$tmp/doctor.out" 2>"$tmp/doctor.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/doctor.out" "$tmp/doctor.err" >&2; fail "plotplot doctor --platform exited $status, not 0"; }
+  platform_table "$tmp/doctor.out" > "$tmp/platform.table"
+  [ "$(wc -l < "$tmp/platform.table" | tr -d ' ')" -eq 3 ] \
+    || { cat "$tmp/doctor.out" >&2; fail "the platform table is not three lines"; }
+  local check
+  for check in "required check" "force push" "deletion"; do
+    [ "$(platform_verdict "$tmp/platform.table" "$check")" = "ok" ] \
+      || { cat "$tmp/doctor.out" >&2; fail "doctor --platform's $check line is not ok"; }
+    grep "^$check  " "$tmp/platform.table" | grep -q 'main' \
+      || { cat "$tmp/platform.table" >&2; fail "the $check line does not name the branch main"; }
+    grep "^$check  " "$tmp/platform.table" | grep -q 'ruleset 41' \
+      || { cat "$tmp/platform.table" >&2; fail "the $check line does not name ruleset 41"; }
+  done
+  [ "$(journal_count "$journal" POST)" -eq 1 ] && [ "$(journal_count "$journal" PUT)" -eq 0 ] \
+    || { cat "$journal" >&2; fail "doctor --platform made a writing call"; }
+  note "doctor --platform: exit 0, read-only calls only"
+  sed 's/^/    /' "$tmp/platform.table"
+
+  # 6. With the force-push rule gone from the branch, doctor says so and exits 3.
+  echo "no-force" > "$stub/rules-mode"
+  ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" PATH="$path_with_stub" \
+      "$STEM" doctor --platform ) >"$tmp/noforce.out" 2>"$tmp/noforce.err"
+  status=$?
+  [ "$status" -eq 3 ] \
+    || { cat "$tmp/noforce.out" "$tmp/noforce.err" >&2; fail "doctor --platform without a force-push rule exited $status, not 3"; }
+  platform_table "$tmp/noforce.out" > "$tmp/noforce.table"
+  [ "$(platform_verdict "$tmp/noforce.table" "force push")" = "fail" ] \
+    || { cat "$tmp/noforce.out" >&2; fail "the force push line does not read fail"; }
+  note "without non_fast_forward: exit 3, $(grep '^force push  ' "$tmp/noforce.table" | tr -s ' ')"
+  echo "all" > "$stub/rules-mode"
+
+  # 7. With no gh on PATH: one unavailable line and exit 3; init --github refuses with 2.
+  path_without_gh="$(no_gh_path "$tmp/nogh")"
+  [ -z "$(PATH="$path_without_gh" command -v gh)" ] \
+    || fail "the PATH meant to hold no gh still finds one: $(PATH="$path_without_gh" command -v gh)"
+  ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" PATH="$path_without_gh" \
+      "$STEM" doctor --platform ) >"$tmp/nogh.out" 2>"$tmp/nogh.err"
+  status=$?
+  [ "$status" -eq 3 ] \
+    || { cat "$tmp/nogh.out" "$tmp/nogh.err" >&2; fail "doctor --platform with no gh exited $status, not 3"; }
+  platform_table "$tmp/nogh.out" > "$tmp/nogh.table"
+  [ "$(wc -l < "$tmp/nogh.table" | tr -d ' ')" -eq 1 ] && [ "$(platform_verdict "$tmp/nogh.table" platform)" = "unavailable" ] \
+    || { cat "$tmp/nogh.out" >&2; fail "with no gh the platform table is not one unavailable line"; }
+  note "no gh, doctor: exit 3, $(tr -s ' ' < "$tmp/nogh.table")"
+
+  local writes_before
+  writes_before="$(grep -c . "$journal")"
+  tree_hash "$repo" > "$tmp/nogh-before.hashes"
+  ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" PATH="$path_without_gh" \
+      "$STEM" init --github --harness gemini,codex ) >"$tmp/nogh-init.out" 2>"$tmp/nogh-init.err"
+  status=$?
+  [ "$status" -eq 2 ] \
+    || { cat "$tmp/nogh-init.out" "$tmp/nogh-init.err" >&2; fail "init --github with no gh exited $status, not 2"; }
+  grep -q 'gh is not on PATH' "$tmp/nogh-init.err" \
+    || { cat "$tmp/nogh-init.err" >&2; fail "init --github did not say that gh is not on PATH"; }
+  tree_hash "$repo" > "$tmp/nogh-after.hashes"
+  diff "$tmp/nogh-before.hashes" "$tmp/nogh-after.hashes" >/dev/null \
+    || { diff "$tmp/nogh-before.hashes" "$tmp/nogh-after.hashes" >&2; fail "init --github with no gh planted something"; }
+  [ "$(grep -c . "$journal")" -eq "$writes_before" ] \
+    || fail "something reached the recording gh while no gh was on PATH"
+  note "no gh, init --github: exit 2, $(grep 'gh is not on PATH' "$tmp/nogh-init.err"), nothing new planted"
+
+  # 8. This repository itself: read-only calls through the real gh, with the planter's own
+  #    login. Not asserted beyond its shape: whether the ruleset is applied yet is the
+  #    conductor's act after this lands.
+  local gh_config="${GH_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/gh}"
+  ( cd "$ROOT" && HOME="$home" CODEX_HOME="$home/.codex" GH_CONFIG_DIR="$gh_config" \
+      "$STEM" doctor --platform ) >"$tmp/self.out" 2>"$tmp/self.err"
+  status=$?
+  { [ "$status" -eq 0 ] || [ "$status" -eq 3 ]; } \
+    || { cat "$tmp/self.out" "$tmp/self.err" >&2; fail "doctor --platform on this repository exited $status, not 0 or 3"; }
+  platform_table "$tmp/self.out" > "$tmp/self.table"
+  local lines
+  lines="$(wc -l < "$tmp/self.table" | tr -d ' ')"
+  if [ "$lines" -eq 3 ]; then
+    for check in "required check" "force push" "deletion"; do
+      grep -q "^$check  " "$tmp/self.table" \
+        || { cat "$tmp/self.out" >&2; fail "this repository's platform table has no $check line"; }
+    done
+  elif [ "$lines" -eq 1 ]; then
+    [ "$(platform_verdict "$tmp/self.table" platform)" = "unavailable" ] \
+      || { cat "$tmp/self.out" >&2; fail "this repository's one platform line is not unavailable"; }
+  else
+    cat "$tmp/self.out" >&2
+    fail "this repository's platform table is $lines lines, neither three nor one unavailable"
+  fi
+  note "this repository (origin $(git -C "$ROOT" remote get-url origin)), doctor --platform exited $status; its platform table, not asserted:"
+  sed 's/^/    /' "$tmp/self.table"
+
+  echo "stem.sh platform: pass"
 }
 
 # ---------------------------------------------------------------------------------------
@@ -1524,8 +1942,9 @@ case "${1:-}" in
   init) check_init ;;
   context) check_context ;;
   doctor-live) check_doctor_live ;;
+  platform) check_platform ;;
   *)
-    echo "usage: stem.sh {bundles | hook-faces | lock | check | init | context | doctor-live}" >&2
+    echo "usage: stem.sh {bundles | hook-faces | lock | check | init | context | doctor-live | platform}" >&2
     exit 2
     ;;
 esac

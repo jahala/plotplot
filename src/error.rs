@@ -36,6 +36,9 @@ pub enum Error {
     /// An `AGENTS.md` whose plotplot markers do not make one replaceable block, so the stem
     /// cannot say which bytes the garden block owns.
     Agents { problem: String },
+    /// A `.github/CODEOWNERS` whose plotplot markers do not make one replaceable region, so
+    /// the stem cannot say which lines are its own.
+    Codeowners { problem: String },
     /// A url that did not give up its bytes: a status outside 2xx, or a transport that
     /// failed before any status arrived.
     Fetch { url: String, problem: String },
@@ -73,7 +76,9 @@ impl fmt::Display for Error {
                 write!(f, "{bed}: {problem}")
             }
             Error::Sarif { gate, problem } => write!(f, "{gate}: {problem}"),
-            Error::Harness { problem } | Error::Agents { problem } => write!(f, "{problem}"),
+            Error::Harness { problem }
+            | Error::Agents { problem }
+            | Error::Codeowners { problem } => write!(f, "{problem}"),
             Error::Git { command, stderr } => write!(f, "{command}: {stderr}"),
             Error::Fetch { url, problem } => write!(f, "{url}: {problem}"),
             Error::Checksum {
@@ -100,6 +105,7 @@ impl std::error::Error for Error {
             | Error::Bed { .. }
             | Error::Sarif { .. }
             | Error::Agents { .. }
+            | Error::Codeowners { .. }
             | Error::Fetch { .. }
             | Error::Checksum { .. }
             | Error::Archive { .. }
@@ -271,6 +277,9 @@ mod tests {
                 problem: "b".to_owned(),
             },
             Error::Agents {
+                problem: "b".to_owned(),
+            },
+            Error::Codeowners {
                 problem: "b".to_owned(),
             },
             Error::Fetch {

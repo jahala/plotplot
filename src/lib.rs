@@ -25,6 +25,7 @@ pub mod layout;
 pub mod lock;
 pub mod manifest;
 pub mod plant;
+pub mod platform;
 pub mod receipt;
 pub mod sarif;
 
