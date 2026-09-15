@@ -63,3 +63,10 @@ version = "0.0.1"
 [judges.pleach.git]
 url = "https://github.com/jahala/pleach"
 rev = "411a1ebcf66c274b67f97d1d6f9058cb706bb12c"
+
+[judges.umbel]
+version = "0.0.1"
+
+[judges.umbel.git]
+url = "https://github.com/jahala/umbel"
+rev = "b772dbb6c7d7f6a0f1883dba97ea1ee371d36664"
