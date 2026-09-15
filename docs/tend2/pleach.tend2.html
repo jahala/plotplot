@@ -21,12 +21,13 @@
 - [ ] (code) staging never destroys a worktree: a node whose tree holds ignored or scratch files at stage time has them reported in the verdict and its work preserved, never disposed · scripts/fit/pleach.sh stage-safety
 - [ ] (code) collection keeps only paths inside the worktree that git does not ignore and reports every other path in the verdict, so a probe written outside the repository or a scratch file can neither reach a gate nor make pleach dispose of a finished tree (P8 and P11) · scripts/fit/pleach.sh collect-in-tree
 - [ ] (code) `pleach validate` warns on a plan whose phases end on impl, because the test command never runs again after that phase · scripts/fit/pleach.sh impl-terminal-warn
-- [ ] (code) the journal redacts secret-shaped strings in anything it quotes from a worker, a commit message or a tool result, so a quoted example credential cannot fail a hygiene gate downstream · scripts/fit/pleach.sh journal-redaction
+- [ ] (code) a planted secret in a worker's output never reaches disk: the journal, the run log, the receipt's handback and quarantine notes pass through the stem's `plotplot redact` before every write, per `contracts/redaction.md`, proven with the contract's fixture rows planted in a worker handback · scripts/fit/pleach.sh journal-redaction
 - [ ] (human) the owner confirms the landing page qualifies the slogan once: code decides what code can decide; the audit is a second model's judgment in a shape code can refuse
 
 ## Needs #weeder #tend2 #umbel #contracts
 
 ## Tried
+- 2026-09-15 journal-redaction rewritten to cite contracts/redaction.md (jahala/plotplot 52, pleach 107): the claim was pleach's own scrubbing of quoted strings; it is now the bed calling the stem's face before every write, one implementation for the garden, and the evidence is the contract's fixture rows planted in a handback; dead-evidence (the verdict carries the worker's tail) now also serves the states rule of contracts/delivery.md, verdict.test.sh, pleach 106
 - 2026-09-05 pleach stays on Bun; porting it to Node buys nothing a user can feel and the review reversed the single-runtime decision
 - 2026-09-05 the RED and GREEN gates check order, not the final state; `bite` closes that hole and belongs in weed, run by pleach
 - 2026-09-05 structured negctrl on stored verdicts, listed as pleach roadmap in its ledger, is satisfied by `bite` rather than built twice
