@@ -4,7 +4,7 @@
   "private": true,
   "description": "plotplot, the umbrella: brand, law, contracts and the map of the garden",
   "scripts": {
-    "test": "for t in contracts/test/*.test.sh; do bash \"$t\" || exit 1; done",
+    "test": "bash scripts/contracts-test.sh",
     "verify": "tend2 verify docs/tend2/contracts.tend2.html"
   },
   "devDependencies": {
