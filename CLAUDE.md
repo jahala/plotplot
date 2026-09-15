@@ -59,8 +59,11 @@ pulls the brand from here by tag, like every bed's page. Read this before changi
   by design cannot pass the green gate; land its script from the quarantine branch and say so.
 - **The contracts tests are not in CI.** The `garden` job runs `plotplot check --strict` and the stem
   job runs cargo; nothing runs `npm test`. Run it before every landing that touches `contracts/`
-  and gate on its exit code, not on a grep of its output (a broken lock fixture merged green on
-  2026-09-15 that way).
+  and gate on its exit code (a broken lock fixture merged green on 2026-09-15 without it). It
+  runs every test; a red that `contracts/test/EXPECTED_RED` records (a bed's to turn green) does
+  not fail it, any other red does, and a recorded test that turns green fails it until its line
+  is removed. Tests that read a bed take `PLOTPLOT_TEND2_SRC`, `PLOTPLOT_PLEACH_SRC`,
+  `PLOTPLOT_UMBEL_SRC` and `PLOTPLOT_PLEACH_BIN`; without them they say unevaluable.
 - **Fixture rows that look like credentials are base64 at rest.** The platform's push protection
   refuses a plain table of provider-shaped tokens (it did, on the redaction fixture), and
   allowing them through would mark the repository as holding secrets. Encode the rows, decode in
