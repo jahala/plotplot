@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # The fit runner resolves a judge pinned by git rev (jahala/plotplot 60): fit_lock_lookup
-# returns the git url and rev for such a judge in contracts/fixtures/garden.lock, lib.sh
+# returns the git url and rev for each such judge in contracts/fixtures/garden.lock (tend2, pleach, umbel), lib.sh
 # defines fit_clone, and fit_clone on a local fixture repository checks out exactly the rev,
 # refusing when the clone's HEAD is not the rev asked for. Run from the repository root, no
 # arguments. Prints one line per assertion. Exits 0 if every assertion passed, 1 otherwise.
@@ -22,7 +22,7 @@ assert() {
 # shellcheck source=/dev/null
 . "$lib"
 
-for judge in tend2 pleach; do
+for judge in tend2 pleach umbel; do
   resolved="$(fit_lock_lookup "$fixture" "$judge" 2>/dev/null || true)"
   url="$(node -e 'try{const j=JSON.parse(process.argv[1]||"{}");process.stdout.write((j.git&&j.git.url)||"")}catch{}' "$resolved")"
   rev="$(node -e 'try{const j=JSON.parse(process.argv[1]||"{}");process.stdout.write((j.git&&j.git.rev)||"")}catch{}' "$resolved")"
