@@ -60,8 +60,10 @@ while [ "$i" -lt "$rows" ]; do
   got_code="$(node -e 'const t=JSON.parse(process.argv[1]||"{}");process.stdout.write(t[process.argv[2]]===undefined?"":String(t[process.argv[2]]))' "$umbel_table" "$reason")"
   [ "$got_code" = "$code" ]; assert $? "umbel returns exit $code for $reason" "got '${got_code:-absent}'"
   node -e 'process.exit(JSON.parse(process.argv[1]||"[]").includes(process.argv[2])?0:1)' "$pleach_union" "$reason"; assert $? "pleach's reason union names $reason"
-  got_klass="$(node -e 'const t=JSON.parse(process.argv[1]||"{}");process.stdout.write(t[process.argv[2]]||"")' "$pleach_classify" "$reason")"
-  [ "$got_klass" = "$klass" ]; assert $? "pleach classifies $reason as $klass" "got '${got_klass:-default (terminal)}'"
+  # A reason pleach's union names but its switch does not list falls to the default branch,
+  # which is terminal; a reason the union does not name has no classification at all.
+  got_klass="$(node -e 'const t=JSON.parse(process.argv[1]||"{}");const u=JSON.parse(process.argv[2]||"[]");const r=process.argv[3];process.stdout.write(t[r]||(u.includes(r)?"terminal":""))' "$pleach_classify" "$pleach_union" "$reason")"
+  [ "$got_klass" = "$klass" ]; assert $? "pleach classifies $reason as $klass" "got '${got_klass:-none: not in the union}'"
   i=$((i+1))
 done
 extra="$(node -e '
