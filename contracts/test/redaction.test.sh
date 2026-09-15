@@ -13,6 +13,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$repo_root" || exit 1
 cases="contracts/fixtures/redaction/cases.jsonl"
 fail=0
+put_away() { if command -v trash >/dev/null 2>&1; then trash "$@" 2>/dev/null || true; fi; }
 assert() {
   local status="$1"; shift
   if [ "$status" -eq 0 ]; then echo "ok - $*"; else echo "not ok - $*"; fail=1; fi
@@ -20,14 +21,15 @@ assert() {
 [ -f "$cases" ]; assert $? "the fixture table exists at $cases"
 [ "$fail" -eq 0 ] || exit 1
 
+scratch="$(mktemp -d "${TMPDIR:-/tmp}/plotplot-redaction.XXXXXX")"
 read -r -a bin <<< "${PLOTPLOT_REDACT_BIN:-plotplot}"
 if ! command -v "${bin[0]}" >/dev/null 2>&1; then
   echo "redaction.test.sh: ${bin[0]} is not on PATH and PLOTPLOT_REDACT_BIN is unset; the face cannot be tested" >&2
-  exit 3
+  put_away "$scratch"; exit 3
 fi
 if ! printf 'probe' | "${bin[@]}" redact >/dev/null 2>&1; then
   echo "redaction.test.sh: '${bin[*]} redact' does not run at $("${bin[@]}" --version 2>/dev/null | head -1); the stem has no redact face yet (jahala/plotplot 52)" >&2
-  exit 3
+  put_away "$scratch"; exit 3
 fi
 echo "redact face: ${bin[*]} ($("${bin[@]}" --version 2>/dev/null | head -1))"
 
@@ -37,12 +39,12 @@ while [ "$i" -lt "$rows" ]; do
   id=$(node -e 'const r=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8").split("\n").filter(Boolean)[+process.argv[2]]);process.stdout.write(r.id)' "$cases" "$i")
   want=$(node -e 'const r=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8").split("\n").filter(Boolean)[+process.argv[2]]);process.stdout.write(Buffer.from(r.out,"base64").toString("utf8"))' "$cases" "$i")
   count=$(node -e 'const r=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8").split("\n").filter(Boolean)[+process.argv[2]]);process.stdout.write(String(r.count))' "$cases" "$i")
-  got=$(node -e 'const r=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8").split("\n").filter(Boolean)[+process.argv[2]]);process.stdout.write(Buffer.from(r.in,"base64").toString("utf8"))' "$cases" "$i" | "${bin[@]}" redact --tally 2>"/tmp/redaction-tally.$$")
+  got=$(node -e 'const r=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8").split("\n").filter(Boolean)[+process.argv[2]]);process.stdout.write(Buffer.from(r.in,"base64").toString("utf8"))' "$cases" "$i" | "${bin[@]}" redact --tally 2>"$scratch/tally.json")
   status=$?
-  total=$(node -e 'try{const t=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"));process.stdout.write(String(t.total))}catch{process.stdout.write("?")}' "/tmp/redaction-tally.$$")
+  total=$(node -e 'try{const t=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"));process.stdout.write(String(t.total))}catch{process.stdout.write("?")}' "$scratch/tally.json")
   [ "$status" -eq 0 ] && [ "$got" = "$want" ]; assert $? "$id: output matches the fixture" "exit $status"
   [ "$total" = "$count" ]; assert $? "$id: tally total is $count" "got $total"
   i=$((i+1))
 done
-rm -f "/tmp/redaction-tally.$$" 2>/dev/null
+put_away "$scratch"
 exit "$fail"

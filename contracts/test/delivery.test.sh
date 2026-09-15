@@ -16,6 +16,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$repo_root" || exit 1
 contract="contracts/delivery.md"
 fail=0
+put_away() { if command -v trash >/dev/null 2>&1; then trash "$@" 2>/dev/null || true; fi; }
 assert() {
   local status="$1"; shift
   if [ "$status" -eq 0 ]; then echo "ok - $*"; else echo "not ok - $*"; fail=1; fi
@@ -63,10 +64,11 @@ check_bed() {
   done
   local rel=()
   for f in "${f_list[@]}"; do rel+=("${f#"$src/"}"); done
-  (cd "$src" && $runner "${rel[@]}") > /tmp/delivery-test-run.$$ 2>&1
+  local log; log="$(mktemp "${TMPDIR:-/tmp}/plotplot-delivery.XXXXXX")"
+  (cd "$src" && $runner "${rel[@]}") > "$log" 2>&1
   local status=$?
-  [ "$status" -eq 0 ]; assert $? "$bed: the citing tests pass under its runner ($runner)" "exit $status: $(tail -n 3 /tmp/delivery-test-run.$$ | tr '\n' ' ')"
-  rm -f /tmp/delivery-test-run.$$ 2>/dev/null
+  [ "$status" -eq 0 ]; assert $? "$bed: the citing tests pass under its runner ($runner)" "exit $status: $(tail -n 3 "$log" | tr '\n' ' ')"
+  put_away "$log"
 }
 
 check_bed tend2 "$PLOTPLOT_TEND2_SRC" "npx --no-install vitest run -c vitest.config.ts" \
