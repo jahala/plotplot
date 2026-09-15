@@ -27,6 +27,16 @@ never again disagree about whose file is whose.
 - The setup line a plan carries is one argv, never a shell string; a plan author who needs a shell
   wraps it once, in the emitter, in the one place that knows the rule.
 
+## What a state must carry
+
+- A conductor's verdict and a runner's status never report a non-progress state (blocked,
+  failed, timed out, aborted, stopped, unevaluable) without a `reason` and a `nextStep`, both
+  non-empty text derived from what was observed: the phase that stalled, how long it waited, the
+  runner's last status, the tail of the worker's output, the claim that could not be evaluated.
+  A null reason is a defect of the state, not a property of the failure (jahala/plotplot 53;
+  the first conducted node on this repository ended `blocked` with `blockedReason: null` after
+  twenty minutes). Held by `contracts/test/verdict.test.sh` against the pinned pleach.
+
 ## What the pin covers
 
 - `--expect-payload` hashes the loop's checks section (claims and evidence paths). A change there is
