@@ -24,9 +24,11 @@ Two new schemas, `manifest` and `lock`, small enough to read in a minute. No fin
 - [x] (code) a plan `tend2 emit-plan` writes from a fixture map validates against pleach's pinned plan schema and `pleach validate` accepts it; every code check yields a phased node, every node carries a cast, setup is one argv, and the fixture covers prompt, phased and command nodes · contracts/test/seam.test.sh @1df7ea8 · by cli
 - [ ] (code) `contracts/delivery.md` is cited by a test in tend2 and a test in pleach at their pinned versions, and each test holds its side: the pin covers the checks section only, `.loop-scratch/` is never collected, whole-map artefacts are re-earned at land · contracts/test/delivery.test.sh
 - [x] (human) the owner reads the two new schemas and agrees they are the whole umbrella — nothing a bed needs to belong is missing, nothing is there that a bed does not need @1fa6281 · by human:jahala
+- [ ] (code) `contracts/redaction.md` holds: the stem's `plotplot redact` turns every positive row of `contracts/fixtures/redaction/cases.jsonl` into its `out` with the expected tally and leaves every negative row (shas, digests, UUIDs, pins, env references, prose) untouched · contracts/test/redaction.test.sh
 
 
 ## Tried
+- 2026-09-15 redaction contract written from the atlas reading (docs/research/atlas-2026-09-15.md, jahala/plotplot 52): scrub at the point of writing, once, in the stem; the fixture table carries as many over-redaction rows as secrets, because a scrubbed digest breaks the lock; the test says unevaluable (exit 3) until the stem has the face, which is the same red-until-the-bed-lands evidence the seam test was, and is landed by hand as that method records; the platform's push protection refused the plain fixture table (four provider shapes), so the rows are base64 at rest and the test decodes, which is recorded on the page
 - 2026-09-05 eleven contracts cut to five after the fan-in test: only findings had many producers and consumers, and findings is SARIF, not ours
 - 2026-09-05 scope-out: no schema registry, no seasons ceremony, no additive-only rule as process — one end-to-end proof on pinned versions keeps contracts honest; fixtures serve the satellites
 - 2026-09-05 the fit runner lives here rather than in the stem because it verifies beds from the umbrella; the stem consumes the lock, this loop defines it
