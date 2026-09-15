@@ -62,8 +62,11 @@ pulls the brand from here by tag, like every bed's page. Read this before changi
   and gate on its exit code (a broken lock fixture merged green on 2026-09-15 without it). It
   runs every test; a red that `contracts/test/EXPECTED_RED` records (a bed's to turn green) does
   not fail it, any other red does, and a recorded test that turns green fails it until its line
-  is removed. Tests that read a bed take `PLOTPLOT_TEND2_SRC`, `PLOTPLOT_PLEACH_SRC`,
-  `PLOTPLOT_UMBEL_SRC` and `PLOTPLOT_PLEACH_BIN`; without them they say unevaluable.
+  is removed. Tests that read a bed take `PLOTPLOT_TEND2_SRC`, `PLOTPLOT_PLEACH_SRC` and
+  `PLOTPLOT_UMBEL_SRC` (checkouts at the pinned revs) and `PLOTPLOT_TEND2_BIN`,
+  `PLOTPLOT_PLEACH_BIN`, `PLOTPLOT_REDACT_BIN` (the pinned tools by path); without a checkout they
+  say unevaluable, and without a bin the seam test falls back to PATH, which on this machine is a
+  live checkout and reads as a false red (six not ok on 2026-09-15). Set all six before `npm test`.
 - **Fixture rows that look like credentials are base64 at rest.** The platform's push protection
   refuses a plain table of provider-shaped tokens (it did, on the redaction fixture), and
   allowing them through would mark the repository as holding secrets. Encode the rows, decode in
