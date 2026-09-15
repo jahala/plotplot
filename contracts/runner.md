@@ -44,6 +44,17 @@ pane's tail. This is the states rule of `contracts/delivery.md` applied to the r
 non-progress reason without a reason and a next step, and a conductor's verdict carries them
 through unchanged.
 
+## The handback is complete when stop is reported
+
+A `stop` result means the worker's final message, its handback, is readable in full: `umbel read`
+after `stop` returns the transcript's final entry, or waits until it is on disk, and never
+returns an earlier one. On 2026-09-16 three handbacks reached the conductor empty or stale
+because the harness fires its Stop hook before the final entry is written (jahala/umbel 86), and
+a conductor that requires a dated Tried line in the handback (contracts/delivery.md) then
+retries or refuses a node for the runner's race, not the worker's work. Until umbel holds this,
+a conductor that finds no handback at stop reads the transcript itself and says so in the
+verdict, as pleach did that day.
+
 ## What each side proves
 
 `contracts/test/runner.test.sh` reads umbel's exit table and pleach's reason union and
