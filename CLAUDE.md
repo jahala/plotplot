@@ -57,6 +57,10 @@ pulls the brand from here by tag, like every bed's page. Read this before changi
   carries its judges; the test requires the evidence file then runs it; smoke `weeder check
   --strict`; audit `tend2 verify … --audit-egress` relayed by a second provider. A test that is red
   by design cannot pass the green gate; land its script from the quarantine branch and say so.
+- **Fixture rows that look like credentials are base64 at rest.** The platform's push protection
+  refuses a plain table of provider-shaped tokens (it did, on the redaction fixture), and
+  allowing them through would mark the repository as holding secrets. Encode the rows, decode in
+  the test, print row ids and never values.
 - **Evidence scripts** compose `scripts/fit/lib.sh`, print one line per claim, exit 0/1/3, and
   answer `unevaluable` with the claim's name for a claim they do not carry.
 
