@@ -1,0 +1,12 @@
+{
+  "goal": "delivery contract, states: a node that fails settles with a reason and a next step",
+  "source": "contracts/delivery.md",
+  "maxConcurrency": 1,
+  "nodes": [
+    {
+      "id": "verdict.c1",
+      "work": { "command": "false" },
+      "policy": { "maxAttempts": 1 }
+    }
+  ]
+}
