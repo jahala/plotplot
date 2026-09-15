@@ -47,3 +47,21 @@ sha256 = "3df16574ed9fc33e4d9c63107994c78d48f93ab0099a37232b4410223e2ad2ea"
 [judges.tend2]
 version = "1.0.0"
 npm = "@plotplot/tend2"
+
+# Judges pinned by git rev (contracts/lock.schema.json, the git variant): the two beds the
+# umbrella must prove before either has a release. Revs read from the pinned masters on
+# 2026-09-15; the fit runner cannot resolve them yet (jahala/plotplot 60).
+
+[judges.tend2]
+version = "1.0.0"
+
+[judges.tend2.git]
+url = "https://github.com/jahala/tend"
+rev = "a33d5fb78572c615771899975fbebec959a2e75b"
+
+[judges.pleach]
+version = "0.0.1"
+
+[judges.pleach.git]
+url = "https://github.com/jahala/pleach"
+rev = "411a1ebcf66c274b67f97d1d6f9058cb706bb12c"
