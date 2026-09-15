@@ -57,6 +57,10 @@ pulls the brand from here by tag, like every bed's page. Read this before changi
   carries its judges; the test requires the evidence file then runs it; smoke `weeder check
   --strict`; audit `tend2 verify … --audit-egress` relayed by a second provider. A test that is red
   by design cannot pass the green gate; land its script from the quarantine branch and say so.
+- **The contracts tests are not in CI.** The `garden` job runs `plotplot check --strict` and the stem
+  job runs cargo; nothing runs `npm test`. Run it before every landing that touches `contracts/`
+  and gate on its exit code, not on a grep of its output (a broken lock fixture merged green on
+  2026-09-15 that way).
 - **Fixture rows that look like credentials are base64 at rest.** The platform's push protection
   refuses a plain table of provider-shaped tokens (it did, on the redaction fixture), and
   allowing them through would mark the repository as holding secrets. Encode the rows, decode in
