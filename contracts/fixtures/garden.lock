@@ -47,8 +47,8 @@ sha256 = "3df16574ed9fc33e4d9c63107994c78d48f93ab0099a37232b4410223e2ad2ea"
 # Judges pinned by git rev (contracts/lock.schema.json, the git variant): the two beds the
 # umbrella must prove before either has a release. tend2 was pinned here by its npm name,
 # but @plotplot/tend2 is not published (its loop's npm check is open), so the pin is the
-# commit. Revs read from the pinned masters on 2026-09-15; the fit runner cannot resolve
-# them yet (jahala/plotplot 60).
+# commit. Revs read from the pinned masters on 2026-09-15; the fit runner resolves them with
+# fit_lock_lookup and fetches them with fit_clone (jahala/plotplot 60).
 
 [judges.tend2]
 version = "1.0.0"
