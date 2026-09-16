@@ -45,7 +45,7 @@ Each tool in the garden claims one accent; the primary palette is shared across 
 | Product | Accent Hex | Role |
 |---------|-----------|------|
 | tilth | #4E88A6 | code intelligence — sky |
-| tend | #D6502F | feature mapping & narration — poppy |
+| tend2 | #D6502F | feature mapping & narration — poppy |
 | petals | #E588A0 | brand intelligence for agents — petal |
 | pleach | #97539B | the conductor — plum |
 | umbel | #E89227 | fan out agent CLIs — sunlight |

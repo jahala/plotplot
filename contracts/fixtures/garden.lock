@@ -55,7 +55,7 @@ version = "1.0.0"
 
 [judges.tend2.git]
 url = "https://github.com/jahala/tend"
-rev = "a33d5fb78572c615771899975fbebec959a2e75b"
+rev = "d1bf1911dc7eba0ae305368050527d7b72680cea"
 
 [judges.pleach]
 version = "0.0.1"
