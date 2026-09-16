@@ -6,5 +6,4 @@
 sarif.test.sh      c3   petals 6 (petals emits no SARIF)
 delivery.test.sh   c8   tend 159 178 162 170, pleach (no test cites contracts/delivery.md)
 verdict.test.sh    c11  pleach 106 (a failed verdict carries no reason)
-fit-git.test.sh    c12  plotplot 60 (lib.sh cannot fetch a git-pinned judge)
 runner.test.sh     c13  pleach 110 (three wait reasons unmapped)

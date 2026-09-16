@@ -18,6 +18,8 @@
 #   fit_fetch <url> <dest-file>                     downloads url (http(s):// or file://) to dest-file
 #   fit_verify_sha256 <file> <expected-sha256>      0 if the file's sha256 matches, 1 otherwise
 #   fit_extract <archive> <dest-dir>                extracts a .tar.gz or .zip, or copies a bare file
+#   fit_clone <url> <rev> <dest>                    clones url into dest (which must not exist) at
+#                                                    exactly rev; non-zero, dest absent, on any failure
 #   fit_clean_path <bin-dir>                        prints a PATH containing only bin-dir and the
 #                                                    minimal system directories, never a garden tool
 #   fit_run <lockfile> <judge> <platform> <bin-name> -- <check-args...>
@@ -121,6 +123,44 @@ fit_extract() {
       cp "$archive" "$dest_dir/"
       ;;
   esac
+}
+
+fit_clone() {
+  local url="$1" rev="$2" dest="$3"
+  if [ -e "$dest" ]; then
+    echo "fit_clone: refusing to clone into '$dest', it already exists" >&2
+    return 1
+  fi
+  # The clone is built in a scratch directory this library mints and moved to dest only once
+  # HEAD is proven to be the rev asked for, so a refusal leaves dest absent without deleting
+  # anything, and a partial clone never sits where a caller would run it.
+  local tmp_dir
+  tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/plotplot-fit.XXXXXX")" || return 1
+  local work="$tmp_dir/clone"
+  mkdir "$work" || { fit_discard_scratch "$tmp_dir"; return 1; }
+  local found="nothing"
+  if git -C "$work" init -q >/dev/null 2>&1 \
+    && git -C "$work" remote add origin "$url" >/dev/null 2>&1; then
+    # Fetch the rev by sha at depth one where the server allows it; otherwise fetch every
+    # branch and tag and check the rev out of that history.
+    if GIT_TERMINAL_PROMPT=0 git -C "$work" fetch -q --depth 1 origin "$rev" >/dev/null 2>&1; then
+      git -C "$work" -c advice.detachedHead=false checkout -q FETCH_HEAD >/dev/null 2>&1
+    elif GIT_TERMINAL_PROMPT=0 git -C "$work" fetch -q --tags origin '+refs/heads/*:refs/remotes/origin/*' >/dev/null 2>&1; then
+      git -C "$work" -c advice.detachedHead=false checkout -q "$rev^{commit}" >/dev/null 2>&1
+    fi
+    found="$(git -C "$work" rev-parse -q --verify HEAD 2>/dev/null)" || found="nothing"
+  fi
+  if [ "$found" != "$rev" ]; then
+    echo "fit_clone: refusing $url: asked for rev $rev, found $found" >&2
+    fit_discard_scratch "$tmp_dir"
+    return 1
+  fi
+  if ! mv "$work" "$dest"; then
+    echo "fit_clone: could not move the verified clone of $url at $rev into '$dest'" >&2
+    fit_discard_scratch "$tmp_dir"
+    return 1
+  fi
+  fit_discard_scratch "$tmp_dir"
 }
 
 fit_clean_path() {
