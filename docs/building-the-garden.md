@@ -86,7 +86,7 @@ A change that breaks one of these is wrong even if every test passes.
 - **Where work lives.** Unplanned work is an issue on the repository it concerns. Planned work
   is a loop on that repository's map, checks written first; the issue then points at the loop
   and closes when the loop closes or a Tried line scopes it out. A plan that needs pages is a
-  file under `docs/plans/` in the same repository, linked from the loop; an issue body never
+  file under `docs/plans/` in the same repository (shape: `docs/plans/README.md`), linked from the loop; an issue body never
   carries the plan. Cross-bed work not yet built lives on the umbrella the same way (owner's
   rule, 2026-09-08).
 - **The failing test is the spec.** Write it first. If you cannot make it fail, you do not yet
