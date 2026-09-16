@@ -45,6 +45,9 @@ pulls the brand from here by tag, like every bed's page. Read this before changi
 
 ## Working here
 
+- **This repository is public. Research names ideas, never vendors or competitors.** A memo
+  describes a product and what to take from it; the owner keeps the link. Issue bodies and
+  comments on public repositories follow the same rule.
 - **Every change lands by pull request.** A ruleset on `master` requires the `garden` check; a
   direct push is refused. Branch → push → `gh pr create` → `gh pr checks <n> --watch --exit-status`
   → `gh pr merge <n> --merge`, in one chain (the law: on green is a command chain).
