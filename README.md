@@ -33,6 +33,7 @@ plotplot check [--strict] [--format sarif|table]
 plotplot lock verify
 plotplot bundle build [claude|gemini|codex]
 plotplot receipt seal|verify|show
+plotplot redact [--tally]
 plotplot hook <harness> <event>
 plotplot version
 ```
@@ -49,6 +50,8 @@ plotplot version
   block, 3 when a gate could not run.
 - `receipt seal` attaches an unsigned in-toto statement to a commit under
   `refs/notes/plotplot/receipts`; `verify` re-derives the subject digests from git.
+- `redact` replaces every secret on stdin with `[REDACTED]` before a bed writes it
+  (`contracts/redaction.md`); `--tally` counts the spans by layer on stderr.
 
 Build it from this repository:
 
