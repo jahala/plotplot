@@ -27,6 +27,7 @@ pub mod manifest;
 pub mod plant;
 pub mod platform;
 pub mod receipt;
+pub mod redact;
 pub mod sarif;
 
 /// The stem's own version, the first line of `plotplot version`.

@@ -15,7 +15,7 @@ use crate::doctor::live;
 use crate::error::{Error, Result};
 use crate::harness::Harness;
 use crate::lock::{Lock, read_lock};
-use crate::{VERSION, bundle, check, doctor, friction, hook, init, lock, receipt};
+use crate::{VERSION, bundle, check, doctor, friction, hook, init, lock, receipt, redact};
 
 /// `plotplot`, the stem of the garden.
 #[derive(Debug, Parser)]
@@ -51,6 +51,8 @@ pub enum Face {
     Check(CheckArgs),
     /// Prove the garden is planted: one line per check, exit 0 when every check passes.
     Doctor(DoctorArgs),
+    /// Replace every secret in the text on stdin with [REDACTED] and write it to stdout.
+    Redact(RedactArgs),
     /// The pinned judges `garden.lock` names.
     Lock {
         #[command(subcommand)]
@@ -170,6 +172,14 @@ pub struct CheckArgs {
     /// How to write the answer; a table at a terminal and SARIF everywhere else.
     #[arg(long, value_name = "sarif|table", value_parser = format_value)]
     pub format: Option<Format>,
+}
+
+/// `plotplot redact [--tally]`.
+#[derive(Debug, ClapArgs)]
+pub struct RedactArgs {
+    /// Also write one JSON object to stderr counting the replaced spans, by layer.
+    #[arg(long)]
+    pub tally: bool,
 }
 
 /// `plotplot hook <harness> <event>`, the call every hook entry in every bundle makes.
@@ -336,6 +346,18 @@ pub fn run(args: Args, root: &Path, stdout: &mut dyn Write, stderr: &mut dyn Wri
             check::run_face(root, &face, format, stdout, stderr)
         }
         Face::Lock { command } => lock::run(root, &command, stdout, stderr),
+        // Read as bytes, so input that is not UTF-8 reaches the face and is refused there
+        // with nothing on stdout, rather than failing in a reader that names no contract.
+        Face::Redact(face) => {
+            let mut input = Vec::new();
+            match std::io::stdin().read_to_end(&mut input) {
+                Ok(_) => redact::run(&face, &input, stdout, stderr),
+                Err(error) => {
+                    let _ = writeln!(stderr, "stdin: {error}");
+                    1
+                }
+            }
+        }
         Face::Doctor(face) => match home() {
             Ok(home) => {
                 doctor::run_face(root, &home, &face, search_path().as_deref(), stdout, stderr)
