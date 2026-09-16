@@ -4,7 +4,7 @@
   "loop_format": {
     "owner": "tend2",
     "version": "1",
-    "source": "FORMAT.md in jahala/tend at the pinned ref, line 1 (\"# The loop format \u2014 contract, version 1\")",
+    "source": "FORMAT.md in jahala/tend at the pinned ref, line 1 (\"# The loop format — contract, version 1\")",
     "read_on": "2026-09-08",
     "repo": "jahala/tend",
     "file": "FORMAT.md",
@@ -14,7 +14,7 @@
   "plan_schema": {
     "owner": "pleach",
     "version": "1.1.5",
-    "source": "docs/contract/plan-schema.md in jahala/pleach at the pinned ref, line 1 (\"# `@agent-contract/plan` v1.1.5 \u2014 canonical text\")",
+    "source": "docs/contract/plan-schema.md in jahala/pleach at the pinned ref, line 1 (\"# `@agent-contract/plan` v1.1.5 — canonical text\")",
     "read_on": "2026-09-08",
     "repo": "jahala/pleach",
     "file": "docs/contract/plan-schema.md",
@@ -27,5 +27,8 @@
     "vendored_at": "contracts/vendor/sarif-schema-2.1.0.json",
     "sha256": "c3b4bb2d6093897483348925aaa73af03b3e3f4bd4ca38cef26dcb4212a2682e",
     "fetched_on": "2026-09-08"
+  },
+  "": {
+    "ref": "e270dd908363b87f6acb612d448f21b7d2aee390"
   }
 }
