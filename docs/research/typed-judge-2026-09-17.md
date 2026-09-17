@@ -28,7 +28,7 @@ its answers flipped less than most generative models' and abstained on a thresho
    contract's states this node is in; how complete the work is against the contract page.
    Confidence gates the verdict, and the calibration ledger grades the judge over its history,
    which is the only way calibration can be read. Filed as an experiment with a kill criterion:
-   jahala/pleach 118. Deterministic gates stay primary; this is one vote.
+   jahala/pleach 117. Deterministic gates stay primary; this is one vote.
 2. **The pane's ambiguous states in umbel.** umbel 67 and 73 made death and stillness
    deterministic; whether a still pane is a worker asking a person something is still a
    pattern match per provider. A yes/no over the last lines of the pane is provider-neutral
