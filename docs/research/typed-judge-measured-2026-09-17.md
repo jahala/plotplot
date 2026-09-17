@@ -119,6 +119,51 @@ anything needing prose.
 6. **The ledger's first gradable judge.** Probabilities make a Brier score possible, which a
    prose judge never gave the ledger. That is plotplot 2's design paying out, not new code.
 
+## The claim check, simulated on merged pull requests
+
+Added the same day. The tool this list points to beyond the garden is a claim check on a pull
+request: each check line the pull request claims, judged against its diff, probabilities
+posted, never a block. Our own history can play it back. A landing is a first-parent commit
+that carries a pull request number. A closed check is a (code) check the landing stamped whose
+evidence file the pull request touched, so the work is in that pull request. A negative is a
+check still open on the page at the landing (10 cases), or a check that another pull request
+of the same repository closed, not stamped at this landing, none of whose named files this
+pull request touched (167 cases): the overclaim the tool exists to catch. That makes 366 cases
+from 60 pull requests in four repositories, at most six closed checks per pull request. The
+loop pages stay out of the diff, since the stamp would leak. The files a claim names come
+first, whole files only, up to 60k characters; 254 of the 366 cases had files left out. umbel
+gave no cases: it squashes, and its stamps and evidence arrive in separate landings.
+
+| | the diff alone | with the pull request's title and body |
+|---|---:|---:|
+| accuracy at 0.5 | 0.92 | 0.94 |
+| Brier | 0.076 | 0.052 |
+| flag below 0.4: verified checks falsely flagged | 9 of 189 | 10 of 189 |
+| flag below 0.4: overclaims caught | 154 of 177 | 172 of 177 |
+| flag below 0.2: verified checks falsely flagged | 0 of 189 | 4 of 189 |
+| flag below 0.2: overclaims caught | 85 of 177 | 146 of 177 |
+| cost per pull request | $0.004 | $0.004 |
+
+On the diff alone, a predicted probability under 0.2 was a closed check 0 times in 85, and one
+over 0.8 was a closed check 130 times in 130. By repository: pleach 0.98, weeder 0.92, tend
+0.90, the umbrella 0.80 on 20 cases. Where the whole diff fit the window, closed checks scored
+0.96; where files were left out, 0.89.
+
+- **As an advisory it works.** Flagging below 0.4, one verified check in twenty draws a false
+  flag and seven overclaims in eight are caught, for four tenths of a cent per pull request.
+  Flagging below 0.2 it never cried wolf in 189 and still caught half.
+- **The description sways it.** With the title and body it catches more, because here the
+  description honestly describes other work. A pull request that overclaims would say so in its
+  description too. The honest estimate for the tool is the diff alone, and the description
+  serves only to find which checks are claimed. This is the fit note's caution, that state is
+  data and never instruction, measured: in weeder, whose descriptions do not list every check,
+  accuracy on closed checks fell from 0.92 to 0.78 once the description was added.
+- **Large pull requests cost seven points, not the tool.** Ordering the diff by the files a
+  claim names holds up, and it fixes the tool's shape: one call per claimed check, never one
+  per pull request.
+- **Kill criterion.** A season on a real repository in which the reader dismisses more than
+  half the flags raised below 0.4.
+
 ## What the owner does
 
 Rotate the generative auditor's key before the comparison run; it appeared in a process
