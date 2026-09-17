@@ -93,23 +93,49 @@ showed is the person's (0.50 on "was this fine"). Stand alone against hostile te
 stamp, by the law. Every use above is advisory or an ordering, so its absence costs nothing:
 there is one such model today, and no gate may depend on it.
 
-## Ranked by value, and what our records can test today
+## Tested the same day, and what it did to the ranking
 
-| rank | use | bed | testable now from records |
+Two of the ideas above could be tested from our records at once, each against the kill
+criterion written before the run. A third test, on context, is in the measured note.
+
+- **Plan-time overlap: passes.** 178 pairs of done nodes on 23 loops; truth is whether the two
+  nodes' own diffs share a changed source file. From the two claims alone the judge reaches an
+  area under the curve of 0.76, against 0.55 for the rule on shared paths and identifiers, and
+  0.80 against 0.67 when tests and documents count as files. The probabilities are calibrated:
+  pairs predicted under 0.2 never overlapped, 0.2 to 0.4 overlapped 38 times in 100, 0.4 to 0.6
+  overlapped 62, and 0.6 to 0.8 overlapped 82. Cost, half a cent. A conductor can use that
+  number as it stands: run the likely-overlapping nodes one after the other.
+- **Check-line lint as a forecast: fails.** 98 done nodes, 13 of which needed a second attempt
+  or failed or blocked first. Eight answers about the claim text (one behaviour, observable,
+  ambiguous, prescribes implementation, several modules, concurrency, end to end, a difficulty
+  score) and a direct guess at a second attempt all sit between 0.36 and 0.58, which is chance
+  at this size. Claim length does no better. The direct guess correlates with worker minutes
+  at minus 0.28. Two readings, both honest: thirteen troubled nodes is a small set, and one
+  careful author wrote every claim, so their quality barely varies. Either way our records do
+  not support the idea, and the same result closes the casting half of the cascade: features of
+  a claim do not forecast how hard a node will be.
+
+The pattern across every test so far: the judge is good at reading what is in front of it, two
+texts and whether they match (a diff and a claim 0.90, a finding and a change 0.95, two claims
+and their files 0.76), and it cannot forecast an outcome (trouble, difficulty) or judge intent
+(0.50). Uses that compare stay; uses that predict go.
+
+## Ranked by value, after the tests
+
+| rank | use | bed | standing |
 |---:|---|---|---|
-| 1 | check-line lint at shape time | tend2 | yes: does the claim text alone predict a second attempt, a failed or a blocked node (209 verdicts) |
-| 2 | pre-gate at handback | pleach, the stem's hook bundle | partly: mutants and claim-to-test alignment; fully only log-only, going forward |
-| 3 | cheap-first cascade and casting | pleach, tend2 cast | no: needs exploration runs on cheaper workers |
-| 4 | plan-time overlap and needs | pleach, tend2 emit-plan | yes: file overlap between node diffs is ground truth (174 diffs) |
-| 5 | consistency notes: claim and test, Tried and diff, docs and code | weeder scan, tend2 gate | partly: made negatives by swapping pairs |
-| 6 | failure and handback classification | pleach, umbel | thin: few labelled failures; record first |
-| 7 | issue folding across repositories | tend2 | thin: this week's folds as seeds |
-| 8 | prose and voice lint | petals, harness hook | needs a labelled set of the owner's accepted and rejected text |
-| 9 | bite scheduling | weeder | when bite exists |
+| 1 | pre-gate at handback | pleach, the stem's hook bundle | supported by the audit seat and claim check runs; the real test is log-only, going forward |
+| 2 | plan-time overlap, for scheduling | pleach, tend2 emit-plan | passed on 178 pairs |
+| 3 | cheap-first worker cascade | pleach | the pre-gate half stands; casting by claim features is closed; needs exploration runs on cheaper workers |
+| 4 | consistency notes: claim and test, Tried and diff, docs and code | weeder scan, tend2 gate | a comparison, so likely; untested |
+| 5 | issue folding across repositories | tend2 | a comparison; this week's folds as seeds |
+| 6 | failure and handback classification | pleach, umbel | few labelled failures; record first |
+| 7 | prose and voice lint | petals, harness hook | needs the owner's accepted and rejected text |
+| 8 | bite scheduling | weeder | when bite exists |
+| 9 | check-line lint at shape time | tend2 | no support in our records; reopen only with claims from several authors |
 | 10 | mid-flight watch | umbel | research-grade |
 
-Kill criteria travel with each. For rank 1: if claim-quality scores do not separate troubled
-nodes from clean ones better than claim length does, the lint is decoration. For rank 3: if a
-hundred explored nodes show no cheaper model passing first time at a useful rate, the cascade
-is closed and the casting ledger stays a report. For rank 4: if predicted overlap does not
-beat a rule on shared path words, the rule wins.
+Kill criteria still open: for the cascade, a hundred explored nodes with no cheaper model
+passing first time at a useful rate closes it. For the pre-gate, a hundred nodes with no drop
+in second attempts or in worker minutes per verified claim, or more than half the nudges
+changing nothing, closes it.
