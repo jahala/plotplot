@@ -161,6 +161,15 @@ over 0.8 was a closed check 130 times in 130. By repository: pleach 0.98, weeder
 - **Large pull requests cost seven points, not the tool.** Ordering the diff by the files a
   claim names holds up, and it fixes the tool's shape: one call per claimed check, never one
   per pull request.
+- **More context did not help.** Four richer packets on the same cases, plus twelve harder
+  negatives (checks still open whose evidence file the pull request did touch, all twelve
+  called not done on the diff alone): whole-function context 0.928, a change map of every file
+  0.925, a 90k window 0.928, against 0.936 for the plain diff, each breaking more answers than
+  it fixed. Adding the full evidence file improved the Brier score from 0.073 to 0.054, and the
+  whole gain sat in cases where the packet said the file was absent at that commit; where the
+  file was present the answers got slightly worse. So the diff alone stays, and "does the
+  evidence file exist, and did the pull request touch it" is a deterministic pre-check beside
+  the judge, which costs nothing.
 - **Kill criterion.** A season on a real repository in which the reader dismisses more than
   half the flags raised below 0.4.
 
