@@ -188,3 +188,52 @@ Sliwerski and others 2005), and grading the judge's own questions without labels
 agree with each other (Ratner and others 2017), which matters because our records are short of
 negatives. One caution governs the first two: session transcripts are private text, and sending
 them to any outside model is the owner's decision, not a default.
+
+## The four tools, tested on real records the same night
+
+Each tool was played back on records the garden already holds, with a truth that comes from a
+record or from construction, and nothing new left the machine: the handbacks and diffs had
+been judged earlier in the day, and the issues are public.
+
+| tool | real data | result |
+|---|---|---|
+| receipts for sentences | 47 worker handbacks, each sentence against its own node's diff and against another node's | AUC 0.95; flagging below 0.3 marks 6 of 144 genuine sentences and catches 98 of 144 foreign ones |
+| a ledger for directives | the same handbacks against the work order's rules | agrees with a regex 0.93 on a structural rule and 0.70 on finding a character; three semantic rules measured at 30, 30 and 18 of 30 |
+| deja vu | 188 issues of the last month, the owner's hand-made folds as the true pairs | AUC 0.89 against 0.70 for text similarity; median rank of a true pair 141 against 275, among 3079 |
+| collision radar | 356 ordered pairs of nodes; truth from the diffs, B uses a name A exports | AUC 0.77 from the two claims alone, against 0.48 for a shared identifier; the right direction in 26 of 38; pairs under 0.2 were dependent once in 95 |
+
+What each run taught beyond its number:
+
+- **Sentences.** A three-way answer matters: supported, not shown, contradicted. The lowest
+  genuine sentences were true statements about things outside the evidence ("landed with the
+  sibling nodes"), which is "not shown" and no accusation. Read by eye, the fifteen lowest held
+  no real overclaim and one judge error at the line. Our history has honest workers, so the
+  tool's worth is in the catch rate on foreign sentences and in a false-flag rate low enough
+  to live with.
+- **Directives.** Mechanical rules stay with code: the judge is weak on characters and no
+  better than a regex on structure. The ledger still found things no judge was needed for: 17
+  of 47 handbacks lack the Tried line the work order demands, all 13 from one bed and none of
+  19 from another, and those reports end with the owner's global closing line, which is two
+  directives competing. It also found a rule that does not fit: "what was rejected and why" is
+  unmet in 12 of 30 Tried lines, every one a final-phase report where nothing was tried. A
+  directive ledger has to store the directives in force beside each output.
+- **Deja vu.** The owner's folds were two relations. Feature fan-outs and seam pairs scored
+  0.74 to 0.86; a batch of unrelated fixes grouped into one loop scored 0.12 to 0.43, rightly,
+  since nothing in the text joins them. The twenty best unfolded pairs were nearly all real:
+  an umbrella contract issue and its bed's side, a scratch-collection cluster across two beds,
+  and one true repeat, the same verifier fault filed a day after its first report was closed.
+- **Collision.** The signal is strongest at the low end, which is what a scheduler needs:
+  pairs it calls independent are.
+
+## Before any run spends calls
+
+Two of tonight's runs first measured a fault in their own design, and a third did in the
+morning. The check that now goes first costs seconds:
+
+1. The truth's base rate sits away from zero and one, with at least ten cases in each class.
+   One label came out true for 95 pairs in 100 because a pattern matched everyday local names.
+2. One packet of each class is read by eye.
+3. The evidence is in the frame the text was written in. Handback sentences about "the working
+   tree" meant the changes since the red-phase commit; against the whole node the judge called
+   them contradicted, correctly, and the AUC was 0.87 where the right frame gives 0.95.
+4. Where a negative is made by construction, count how often it could be true anyway.
