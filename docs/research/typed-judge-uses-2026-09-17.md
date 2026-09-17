@@ -139,3 +139,52 @@ Kill criteria still open: for the cascade, a hundred explored nodes with no chea
 passing first time at a useful rate closes it. For the pre-gate, a hundred nodes with no drop
 in second attempts or in worker minutes per verified claim, or more than half the nudges
 changing nothing, closes it.
+
+## Beyond the beds: a comparator is a query engine
+
+Asked the same evening: what is this kind of model for, at root, and what tool does the garden
+lack that it makes possible. The tests answer the first half. It is a comparator: given two
+texts it says, with a calibrated probability, whether one matches, supports, repeats or
+collides with the other. Computer science has a long list of things to build once a comparator
+is nearly free. The crowd-powered databases of a decade ago worked out sorts, joins, top-k and
+group-by over a slow, costly, noisy human oracle (Franklin and others 2011; Marcus and others
+2011), and the noisy-comparison literature gives the algorithms (Karp and Kleinberg 2007 for
+search; Jamieson and Nowak 2011 for ranking). Recent work names the same operators over tables
+with a language model as the oracle (Patel and others 2024). The garden writes a large record,
+receipts, journals, Tried lines, issues, ledgers, session transcripts, and has no way to ask a
+question of it. Four tools follow, none of which a bed holds today.
+
+1. **Receipts for sentences.** The owner reads an agent's last message and little else. Each
+   factual sentence in that message can be checked against the session's own tool results:
+   supported, unsupported, contradicted. "Tests pass" with no test run in the transcript is the
+   failure the garden exists to prevent, moved from code to prose. This is attribution and
+   summary-faithfulness checking (Laban and others 2022; Bohnet and others 2022), applied to a
+   coding agent's report for the first time we know of. Twenty sentences against the five most
+   similar tool results each is a hundred short calls, a few cents and ten seconds, as a
+   log-only stop hook in the stem's bundle. A generative checker costs a second agent run.
+2. **A ledger for directives.** Every rule in an instruction file costs tokens in every session,
+   and nobody measures whether it is followed. A yes or no question per rule and per agent
+   message, over all transcripts, gives each rule a compliance rate beside its token cost. A
+   rule always followed without being stated can go; a rule often broken should become a hook.
+   Rules with a mechanical truth, such as a banned character, calibrate the judge before the
+   semantic rules are read. Instruction-following research scores models on verifiable rules
+   (Zhou and others 2023); this scores the rules themselves, which is the garden's cost per
+   correct answer turned on its own instructions.
+3. **Deja vu.** Before a worker starts, compare its stated approach with every Tried line in
+   every repository: was this tried, and did it fail. Similarity search finds text that looks
+   alike; the question here is a relation, tried and failed, which needs a judge per candidate
+   and was never affordable across a whole history. The same relation keeps the memory
+   directory and the documents honest: does a new entry repeat or contradict an old one
+   (contradiction detection, de Marneffe and others 2008).
+4. **A collision radar for parallel agents.** Text conflicts are git's; two changes that merge
+   cleanly and break each other are the multi-agent problem. Awareness tools for human teams
+   found these by building every pair of branches (Sarma and others 2003; Brun and others
+   2011), which cost too much to run often. The overlap test passed on claims alone; the next
+   step scores pairs of open diffs, and pollen carries the warning between the two agents.
+
+Two smaller ones use the same comparator: a culprit finder that ranks recent landings by how
+likely each caused a new fault, so a bisect tests the likeliest first (the SZZ line of work,
+Sliwerski and others 2005), and grading the judge's own questions without labels from how they
+agree with each other (Ratner and others 2017), which matters because our records are short of
+negatives. One caution governs the first two: session transcripts are private text, and sending
+them to any outside model is the owner's decision, not a default.
