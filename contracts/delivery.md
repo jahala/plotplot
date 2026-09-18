@@ -46,10 +46,14 @@ minutes a node spends longer in its gates than in its work (jahala/plotplot 121)
 the same inputs and the same pinned tools give the same bytes, so a tree is proven once and the
 record of that proof is what the later gates read.
 
-- **The proof record.** After a first-hand execution that passes, on a tree with no uncommitted
-  change, the verifier writes one record: an in-toto Statement v1 whose subject is the tree
-  (`gitTree` digest), predicate type `https://plotplot.ai/proof/v1`, shaped by
-  `contracts/proof.schema.json`. Its key is the tree, the check (page, id and the digest of the
+- **The proof record.** After a first-hand execution that passes, the verifier writes one
+  record: an in-toto Statement v1 whose subject is the tree (`gitTree` digest), predicate type
+  `https://plotplot.ai/proof/v1`, shaped by `contracts/proof.schema.json`. The tree is the
+  files as they stand when the verifier finishes, committed or not, computed after the stamp
+  is written, through a throwaway index that honours the repository's excludes, so scratch and
+  machine-written state never enter it. A conductor runs its gates on staged files and commits
+  at settle, so a record that waited for a clean tree would never be written; it vouches for
+  bytes, and when the conductor commits exactly those bytes the commit's tree is the same tree. Its key is the tree, the check (page, id and the digest of the
   claim's kind, words and evidence line, path and arguments), the verifier's name and revision, the runner string
   and the platform. It carries the result, the counts, the duration and the time. It holds no
   output, no prompt and no absolute home path.
