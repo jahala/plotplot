@@ -62,9 +62,12 @@ after `stop` returns the transcript's final entry, or waits until it is on disk,
 returns an earlier one. On 2026-09-16 three handbacks reached the conductor empty or stale
 because the harness fires its Stop hook before the final entry is written (jahala/umbel 86), and
 a conductor that requires a dated Tried line in the handback (contracts/delivery.md) then
-retries or refuses a node for the runner's race, not the worker's work. Until umbel holds this,
-a conductor that finds no handback at stop reads the transcript itself and says so in the
-verdict, as pleach did that day.
+retries or refuses a node for the runner's race, not the worker's work. umbel holds this since
+d591bfa (2026-09-18): measured on the live harness, the final text was missing at the stop in
+12 of 13 turns and landed 200 to 400 ms later, and `read` now waits for the turn's final
+message. `contracts/test/handback.test.sh` runs umbel's own test of the rule at the pinned
+revision. A conductor pinned to an older umbel that finds no handback at stop reads the
+transcript itself and says so in the verdict, as pleach did that day.
 
 ## What each side proves
 
