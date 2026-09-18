@@ -1,0 +1,32 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "subject": [
+    {
+      "name": "jahala/quadrat",
+      "digest": {
+        "gitTree": "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+      }
+    }
+  ],
+  "predicateType": "https://plotplot.ai/proof/v1",
+  "predicate": {
+    "check": {
+      "page": "/Users/someone/repo/docs/tend2/baselines.tend2.html",
+      "id": "c5",
+      "claimDigest": "sha256:abababababababababababababababababababababababababababababababab"
+    },
+    "verifier": {
+      "name": "tend2",
+      "revision": "dbd7e444829c"
+    },
+    "runner": "bash {evidence}",
+    "platform": "aarch64-apple-darwin",
+    "result": "stamped",
+    "counts": {
+      "tests": 14,
+      "failed": 0
+    },
+    "durationMs": 1312000,
+    "time": "2026-09-18T18:56:32Z"
+  }
+}

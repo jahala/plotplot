@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotplot.ai/contracts/proof.schema.json",
+  "title": "proof record",
+  "description": "The record a verifier writes after a first-hand execution that passes on a clean tree, per contracts/delivery.md, \"What a gate may trust\". An in-toto Statement v1 whose subject is the proven tree. Kept under the repository's common git directory, never in the tree.",
+  "type": "object",
+  "required": [
+    "_type",
+    "subject",
+    "predicateType",
+    "predicate"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "_type": {
+      "const": "https://in-toto.io/Statement/v1"
+    },
+    "subject": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "digest"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "the repository the tree belongs to, as owner/name or a bare name; never a path on one machine",
+            "pattern": "^[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)?$"
+          },
+          "digest": {
+            "type": "object",
+            "required": [
+              "gitTree"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "gitTree": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"
+              }
+            }
+          }
+        }
+      }
+    },
+    "predicateType": {
+      "const": "https://plotplot.ai/proof/v1"
+    },
+    "predicate": {
+      "type": "object",
+      "required": [
+        "check",
+        "verifier",
+        "runner",
+        "platform",
+        "result",
+        "counts",
+        "durationMs",
+        "time"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "check": {
+          "type": "object",
+          "required": [
+            "page",
+            "id",
+            "claimDigest"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "page": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!/)(?!.*\\.\\./).+$",
+              "description": "the loop page, relative to the repository root"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^c[0-9]+$"
+            },
+            "claimDigest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "description": "digest of the claim's words, kind and evidence path, so a reworded claim never reads as proven"
+            }
+          }
+        },
+        "verifier": {
+          "type": "object",
+          "required": [
+            "name",
+            "revision"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "revision": {
+              "type": "string",
+              "minLength": 7
+            }
+          }
+        },
+        "runner": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the runner string as given, with the evidence placeholder unexpanded"
+        },
+        "platform": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+(-[a-z0-9_]+){2,4}$"
+        },
+        "result": {
+          "const": "stamped",
+          "description": "only a pass is recorded"
+        },
+        "counts": {
+          "type": "object",
+          "required": [
+            "tests"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "tests": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "failed": {
+              "const": 0
+            }
+          }
+        },
+        "durationMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "time": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

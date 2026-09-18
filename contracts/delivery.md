@@ -37,6 +37,45 @@ never again disagree about whose file is whose.
   the first conducted node on this repository ended `blocked` with `blockedReason: null` after
   twenty minutes). Held by `contracts/test/verdict.test.sh` against the pinned pleach.
 
+## What a gate may trust
+
+A conducted node proves the same claim at least four times: the worker in its phases, the smoke
+gate, the audit, the land gate. Each has its reason, and three of them usually execute identical
+evidence on a byte-identical tree. Where a proof takes seconds that is free; where it takes
+minutes a node spends longer in its gates than in its work (jahala/plotplot 121). The law says
+the same inputs and the same pinned tools give the same bytes, so a tree is proven once and the
+record of that proof is what the later gates read.
+
+- **The proof record.** After a first-hand execution that passes, on a tree with no uncommitted
+  change, the verifier writes one record: an in-toto Statement v1 whose subject is the tree
+  (`gitTree` digest), predicate type `https://plotplot.ai/proof/v1`, shaped by
+  `contracts/proof.schema.json`. Its key is the tree, the check (page, id and the digest of the
+  claim's words, kind and evidence path), the verifier's name and revision, the runner string
+  and the platform. It carries the result, the counts, the duration and the time. It holds no
+  output, no prompt and no absolute home path.
+- **Where it lives.** Under the repository's common git directory, never in the tree, never
+  committed, never delivered. A record in the tree would change the tree it vouches for. A
+  clone without records executes, and loses nothing but time.
+- **Who writes it.** Only the verifier, and only for a pass. A failure, an unevaluable run and
+  a killed run are always executed again. A worker never writes one, as it never writes a stamp.
+- **The first gate always executes.** The first gate after a worker stops runs the evidence
+  first-hand and is the one that produces the record. The conductor journals the record's
+  digest, and a later gate accepts that digest and no other, so a record the conductor did not
+  see written is never trusted.
+- **When a later gate may read and not run.** Every key field equals what is in front of it:
+  the same tree, the same check and claim digest, the same verifier revision, the same runner,
+  the same platform. It then reports the claim as proven "from the record of" that time, in
+  those words, never as executed. Any difference, or no record, and it executes.
+- **Independence stays where it is cheap.** When the recorded execution took under the
+  conductor's threshold (sixty seconds unless the plan says otherwise), the audit executes
+  anyway. A second provider's judgement, whether the evidence proves the claim and the diff is
+  honest, is owed on every node whatever the record says.
+- **The land gate** executes when the composed tree differs from the proven tree, and reads the
+  record when it is the same tree.
+- **Flaky evidence is hunted on purpose.** A scheduled run re-executes the whole map on the
+  default branch and ignores records. A pass record contradicted by an execution under the same
+  key is a defect of the evidence, reported on its loop.
+
 ## What the pin covers
 
 - `--expect-payload` hashes the loop's checks section (claims and evidence paths). A change there is
