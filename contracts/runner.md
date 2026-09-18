@@ -36,6 +36,17 @@ may succeed, bounded by the node's policy), `blocked` (a person or the operator 
 A reason not in the table is a seam change: umbel adds the row here first, pleach maps it,
 the test goes green, then either lands.
 
+## A non-zero exit with a reason is a result
+
+`umbel wait` exits with the code in the table and still prints its JSON result on standard
+output. A conductor reads the reason from that JSON whatever the exit code, and treats the call
+as a seam failure only when there is no parsable reason. On 2026-09-18 a conductor that threw
+on any non-zero exit never reached its own classification: a timeout, a provider error and an
+auditor's stall each ended the node with no attempt counted, no receipt and no quarantine, and
+four verified trees were lost in one night (jahala/pleach 120). The second half of the rule is
+the conductor's own: a surprise in any lane settles the node, tree quarantined and receipt
+written with the reason and a next step; it never drops the tree.
+
 ## What a wait result carries
 
 Beside the reason: a `message` naming what was observed (for idle, each source and how long it
