@@ -13,8 +13,8 @@
 #                                weeder at the lock's version
 #   scripts/fit/weeder.sh f3     standalone install: the extracted binary reports the lock's
 #                                version with no other garden tool on PATH, outside any repository
-#   scripts/fit/weeder.sh f4     declared context cost: upfront_tokens is declared and zero, no MCP
-#                                face is registered, and the SKILL.md description costs no more
+#   scripts/fit/weeder.sh f4     declared context cost: upfront_tokens is declared (zero only for a
+#                                bed with no skill or MCP face), no MCP face is registered, and the SKILL.md description costs no more
 #                                than the manifest declares, at four characters per token
 #   scripts/fit/weeder.sh f5     metric committed: the manifest's metric command runs in the tree
 #                                of the pinned tag, what it writes is committed at that tag byte
@@ -518,10 +518,15 @@ check_f4() {
   esac
   ok "$claim: garden.json declares context.upfront_tokens = $declared"
 
-  if [ "$declared" = "0" ]; then
-    ok "$claim: the declared cost is zero"
-  else
-    not_ok "$claim: the declared cost is $declared, not zero"
+  # The schema reserves zero for a bed with no skill and no MCP face; a bed with either pays
+  # something at session start, and the law's F4 asks that the measure sit at or under the
+  # declaration, which the last assertion below reads.
+  if [ "$(jq '(.faces | type) == "object" and ((.faces | has("skill")) or (.faces | has("mcp")))' "$manifest")" = "false" ]; then
+    if [ "$declared" = "0" ]; then
+      ok "$claim: no skill or MCP face is registered and the declared cost is zero"
+    else
+      not_ok "$claim: no skill or MCP face is registered, yet the declared cost is $declared, not zero"
+    fi
   fi
 
   if [ "$(jq 'has("faces") and (.faces | type) == "object" and (.faces | has("mcp"))' "$manifest")" = "false" ]; then
