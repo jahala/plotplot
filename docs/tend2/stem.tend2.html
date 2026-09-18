@@ -20,14 +20,14 @@ The stem is not an orchestrator (pleach conducts), not a runtime (umbel runs), n
 
 ## Tests
 - [x] (code) `plotplot init` on a fixture repo writes the garden block into `AGENTS.md`, the harness project configs, and sets `core.hooksPath` idempotently — running it twice changes nothing · scripts/fit/stem.sh init @d1e81c0 · by cli
-- [ ] (code) `plotplot doctor` proves each installed hook fires by triggering it on Claude Code and Gemini CLI with real binaries, and reports Codex honestly as awaiting project trust · scripts/fit/stem.sh doctor
+- [!] (code) `plotplot doctor` proves each installed hook fires by triggering it on Claude Code and Gemini CLI with real binaries, and reports Codex honestly as awaiting project trust · scripts/fit/stem.sh doctor
 - [x] (code) `plotplot check` runs every gate the manifests declare and emits one valid SARIF 2.1.0 log; exit 2 on any block-level result, 3 when a gate could not run · scripts/fit/stem.sh check @f097cfd · by cli
 - [x] (code) the lockfile wrapper fetches a pinned judge into an ignored directory, verifies its checksum, refuses a mismatch, and no binary is committed anywhere in the repo · scripts/fit/stem.sh lock @57ce447 · by cli
 - [x] (code) the three generated bundles install through each vendor's own mechanism on a clean machine and carry identical hooks, skills, and MCP entries · scripts/fit/stem.sh bundles @9b48921 · by cli
 - [x] (code) the garden block plus the skill description lines cost under 400 tokens on a deferring harness, measured by the same probe that measured 8,300 today · scripts/fit/stem.sh context @8c3dad7 · by cli
 - [ ] (code) the proof run passes end to end on the pinned season · scripts/fit/proof.sh
 - [x] (code) every generated bundle carries the friction emitter and the receipt draft face as hook entries on the events the plans name, and `plotplot hook <harness> <event>` dispatches each event to the right face in under 50 ms · scripts/fit/stem.sh hook-faces @eb84ed9 · by cli
-- [x] (code) `plotplot doctor --live` drives one real session per present harness through umbel and proves from the friction journal and a marker file that each registered hook fired, reporting Codex as awaiting trust when it is · scripts/fit/stem.sh doctor-live @160aea6 · by cli
+- [!] (code) `plotplot doctor --live` drives one real session per present harness through umbel and proves from the friction journal and a marker file that each registered hook fired, reporting Codex as awaiting trust when it is · scripts/fit/stem.sh doctor-live
 - [x] (human) the owner confirms the `plotplot` npm name and the `@plotplot/*` scope, whether the stem's repository is `jahala/plotplot`, which beds `init` plants by default, and whether receipts are drafted by default @ea8368a · by human:jahala
 - [x] (code) `plotplot init --github` applies, through gh, a ruleset on the default branch that requires the garden check, refuses force pushes and refuses deletion, writes the stem's CODEOWNERS region for the guardrail paths naming the owner, and prints verbatim anything it could not apply; `plotplot doctor --platform` reads the required check and the force-push block back with read-only calls, proved on a fixture through a recording gh and on this repository · scripts/fit/stem.sh platform @ba93f89 · by cli
 - [x] (code) `plotplot init --github` requires only a check the default branch's workflow already reports: it reads the pull request gate on the default branch through gh before touching the ruleset, refuses with the reason and no writing call when no job there is named `garden` (a rename lands the workflow first and moves the ruleset after), and `plotplot doctor --platform` reports the gate's job beside the required check; proved on a fixture through a recording gh and on this repository · scripts/fit/stem.sh platform @ad7ef28 · by cli
@@ -35,6 +35,7 @@ The stem is not an orchestrator (pleach conducts), not a runtime (umbel runs), n
 ## Needs #contracts #weeder #tend2 #pleach #umbel
 
 ## Tried
+- 2026-09-18 re-earn under tend2 fc2f075 (a stamp bound to its claim and evidence line, a run that counts no tests refused): the verifier wrote two boxes to failing and left six stamps reading as claimed, because stem.sh prints no TAP lines, check 2 cites `stem.sh doctor` which the script does not have, and doctor-live fails since umbel stopped passing the whole environment to a worker and began refusing a provider at its sign-in screen; all three are the stem's to fix (jahala/plotplot 126); the page is landed as the verifier left it so it says what is true today
 - 2026-09-05 scope-out: no `plotplot run` — a wrapper over `pleach run` adds a name and no capability
 - 2026-09-05 scope-out: no `plotplot walk` — a second attention surface for one user with fifty repos; `tend2 next` with several roots covers it
 - 2026-09-05 scope-out: no MCP gateway — Codex will defer schemas, string dispatch makes tool calls worse, and only nine channel tools would need it
