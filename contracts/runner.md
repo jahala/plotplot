@@ -47,6 +47,21 @@ four verified trees were lost in one night (jahala/pleach 120). The second half 
 the conductor's own: a surprise in any lane settles the node, tree quarantined and receipt
 written with the reason and a next step; it never drops the tree.
 
+## A spawn that needs a person is blocked, and says so by its exit code
+
+`umbel spawn` exits 0 when the worker is up. When the provider's CLI opens on its sign-in
+screen, the spawn is refused, nothing is left behind, and the exit code is 126, the same code
+and the same class as the wait reason `input`: a person is needed, and another attempt will
+meet the same screen. The message names the provider, the line that was recognised, and the
+next step (sign in once, outside the conductor). Every other spawn failure keeps its own code
+and is terminal for that attempt. umbel states this as a table, `SPAWN_EXIT_CODES`, beside its
+`WAIT_EXIT_CODES`, and `contracts/fixtures/runner/spawn-refusals.jsonl` is the row both sides
+cite. On 2026-09-17 a worker sat at a provider's sign-in menu for 46 minutes of a 120 second
+wait and the conductor retried into the same menu (jahala/umbel 98, 105); since umbel 70c8f89
+the refusal exists, and a conductor can only tell it from any other failed spawn by its words
+until the code is its own. The conductor's half is the conductor's: a spawn that exits 126 is
+classed `blocked`, never retried, and the verdict carries the message through.
+
 ## What a wait result carries
 
 Beside the reason: a `message` naming what was observed (for idle, each source and how long it
