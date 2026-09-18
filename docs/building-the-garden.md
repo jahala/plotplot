@@ -126,10 +126,42 @@ using `scripts/fit/<bed>.sh <check>`. Your bed must make each one pass.
 | F4 | measured startup context cost is at or under the cost declared in the manifest | every bed with a skill or MCP face |
 | F5 | the declared metric command runs and its latest result is committed in the bed's repo | every bed |
 | F6 | `.brand/products/<bed>/` exists, the page passes the petals check with zero errors, and the garden footer lists every bed | every bed with a page |
+| F7 | the bed keeps its references: `AGENTS.md` holds the core page within 150 lines, `CLAUDE.md` is one line that imports it, `docs/architecture.md` and `docs/engineering.md` exist, and every path the three cite resolves in the tree | every bed |
 
 Beyond the fit contract, every bed ships: a CLI as its primary face; a `SKILL.md` whose
 description is one sentence and whose body carries everything an instruction block used to;
 its own `docs/tend2/` map; the garden footer with the plotplot band on its page.
+
+### The references every bed keeps (2026-09-18, the owner's word)
+
+Agents change every session and the repository stays. What a repository knows about itself is
+written down once, given to every agent the same way, and made to fail when it stops being true.
+
+**What is written.**
+
+- The core page, `AGENTS.md`, 150 lines at most: what the bed is for and what it is not; its
+  shape (the layers, what may depend on what, where state and I/O live); a glossary, one meaning
+  per word; the numbered invariants; the hard limits; what done means and what counts as
+  evidence. `CLAUDE.md` is one line, `@AGENTS.md`, so every harness reads the same text.
+- `docs/architecture.md`: the long form of the shape, and every decision with its reason and
+  the alternatives that were turned down, so nobody decides it again differently.
+- `docs/engineering.md`: the testing doctrine, the recipes ("to add a rule, copy this file and
+  its test", each naming real code), and the lessons that hardened out of `practices.md`.
+- `docs/design.md` where the bed has a surface a person looks at. What is next and what is
+  parked lives on the map's project page and nowhere else.
+
+**How it reaches an agent.** The harness loads the core page by itself, in every session and
+every spawned worker. A tend2 work order names the three documents and carries the numbered
+invariants and the recipes whose paths the node touches, a few lines, never the documents. The
+auditor is given the same lines and says which the diff keeps and which it breaks.
+
+**How it stays true.** A statement that can be checked names its check, and the check fails
+when the code leaves it. Every path the documents cite resolves, held in CI (F7). A change to
+the shape, an invariant, a decision or a recipe changes the document in the same pull request.
+The core page has its cap, so a new line moves an old one out. One fact has one home: the
+instruction file points and never restates. Closing a loop records what the loop taught, or
+that it taught nothing. Once a month a truth pass reads the documents against the code and
+lands its corrections by pull request.
 
 Rulings on the fit contract (2026-09-05, from tilth's questions; they bind every bed):
 
