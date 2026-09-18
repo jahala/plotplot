@@ -24,25 +24,9 @@ assert() {
 [ -f "$pins" ]; assert $? "$pins exists"
 [ "$fail" -eq 0 ] || { echo "pins.test.sh: cannot continue without $pins"; exit 1; }
 
-# read_pinned NAME: prints the pinned file's text, from an override path or the platform.
-read_pinned() {
-  local name="$1" override_var="PLOTPLOT_PIN_$1_FILE" repo file ref
-  repo="$(node -e "console.log(require('./contracts/pins.json')['$1'.toLowerCase()].repo)")"
-  file="$(node -e "console.log(require('./contracts/pins.json')['$1'.toLowerCase()].file)")"
-  ref="$(node -e "console.log(require('./contracts/pins.json')['$1'.toLowerCase()].ref)")"
-  if [ -n "${!override_var:-}" ]; then
-    [ -f "${!override_var}" ] && cat "${!override_var}" && return 0
-    echo "pins.test.sh: $override_var names a file that does not exist: ${!override_var}" >&2; return 3
-  fi
-  if ! command -v gh >/dev/null 2>&1; then
-    echo "pins.test.sh: gh is not installed and $override_var is unset; $name cannot be verified" >&2; return 3
-  fi
-  local body
-  if ! body="$(gh api "repos/$repo/contents/$file?ref=$ref" --jq .content 2>/dev/null)"; then
-    echo "pins.test.sh: gh could not read $repo:$file at $ref (not authenticated, or the ref is gone); $name cannot be verified" >&2; return 3
-  fi
-  printf '%s' "$body" | base64 -d 2>/dev/null || printf '%s' "$body" | base64 -D
-}
+test_name="pins.test.sh"
+# shellcheck source=contracts/test/lib/pinned.sh
+. contracts/test/lib/pinned.sh
 
 check_pin() {
   local key="$1" label="$2"
