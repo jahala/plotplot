@@ -88,7 +88,7 @@
             "claimDigest": {
               "type": "string",
               "pattern": "^sha256:[0-9a-f]{64}$",
-              "description": "digest of the claim's words, kind and evidence path, so a reworded claim never reads as proven"
+              "description": "sha256 over the claim's kind, words and evidence line (path and arguments), so a reworded or re-aimed claim never reads as proven"
             }
           }
         },

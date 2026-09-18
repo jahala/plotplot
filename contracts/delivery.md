@@ -50,7 +50,7 @@ record of that proof is what the later gates read.
   change, the verifier writes one record: an in-toto Statement v1 whose subject is the tree
   (`gitTree` digest), predicate type `https://plotplot.ai/proof/v1`, shaped by
   `contracts/proof.schema.json`. Its key is the tree, the check (page, id and the digest of the
-  claim's words, kind and evidence path), the verifier's name and revision, the runner string
+  claim's kind, words and evidence line, path and arguments), the verifier's name and revision, the runner string
   and the platform. It carries the result, the counts, the duration and the time. It holds no
   output, no prompt and no absolute home path.
 - **Where it lives.** Under the repository's common git directory, never in the tree, never
