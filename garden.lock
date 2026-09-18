@@ -1,20 +1,24 @@
 season = "2026.09"
 
 [judges.weeder]
-version = "0.2.1"
+version = "0.2.4"
 
 [judges.weeder.platforms.aarch64-apple-darwin]
-sha256 = "4f57938b91b93300fc146c884dab7895f6911510901c4972b9fca23bd908e316"
-url = "https://github.com/jahala/weeder/releases/download/v0.2.1/weeder-aarch64-apple-darwin.tar.gz"
+sha256 = "e999d962ae80e09f2ac2e4a1a4038f76b5fa40ce0e04427c37fdc6a0d314f7b2"
+url = "https://github.com/jahala/weeder/releases/download/v0.2.4/weeder-aarch64-apple-darwin.tar.gz"
 
 [judges.weeder.platforms.aarch64-unknown-linux-musl]
-sha256 = "e99c956a567909639b1f95c4f2e3b416f231e493877e71d3ee40a5e074e0830d"
-url = "https://github.com/jahala/weeder/releases/download/v0.2.1/weeder-aarch64-unknown-linux-musl.tar.gz"
+sha256 = "91829264587e3be67c6f58053b9587c09de54dc81bc0f0bfd08a5805fd1fc6ae"
+url = "https://github.com/jahala/weeder/releases/download/v0.2.4/weeder-aarch64-unknown-linux-musl.tar.gz"
 
 [judges.weeder.platforms.x86_64-apple-darwin]
-sha256 = "575ee35d201c707fa30b799bcca2396787aec3d2215916022b183aa350a11f72"
-url = "https://github.com/jahala/weeder/releases/download/v0.2.1/weeder-x86_64-apple-darwin.tar.gz"
+sha256 = "75577bc4d855e87f867c1bb3cdf1492dfdd7a9b665dc63dc754b5b5435d0ee6d"
+url = "https://github.com/jahala/weeder/releases/download/v0.2.4/weeder-x86_64-apple-darwin.tar.gz"
+
+[judges.weeder.platforms.x86_64-pc-windows-msvc]
+sha256 = "171fbf818904d478008b8d15fcd7a5a258d6879ff00f0db2c862133ba00c5d02"
+url = "https://github.com/jahala/weeder/releases/download/v0.2.4/weeder-x86_64-pc-windows-msvc.tar.gz"
 
 [judges.weeder.platforms.x86_64-unknown-linux-musl]
-sha256 = "52390fec016615acbb3cea07c9b0c6fd1adc0cdee36d70d5ba68e6a99e8ba168"
-url = "https://github.com/jahala/weeder/releases/download/v0.2.1/weeder-x86_64-unknown-linux-musl.tar.gz"
+sha256 = "5ceb9956253e9e4cca81af1198ab0791ed3d881647d2f3618aa1da9aab538d67"
+url = "https://github.com/jahala/weeder/releases/download/v0.2.4/weeder-x86_64-unknown-linux-musl.tar.gz"
