@@ -1,6 +1,6 @@
 {
   "generated": "2026-09-10",
-  "note": "read by contracts/test/pins.test.sh and contracts/test/sarif.test.sh; each pin names the repository, file and commit it was read from, so the test fetches that file at that commit from the platform and never from a path on one machine; a change to a version below is a change to what this repository asserts the garden speaks",
+  "note": "read by contracts/test/pins.test.sh, contracts/test/plan-text.test.sh and contracts/test/sarif.test.sh; each pin names the repository, file and commit it was read from, so the test fetches that file at that commit from the platform and never from a path on one machine; a change to a version below is a change to what this repository asserts the garden speaks",
   "loop_format": {
     "owner": "tend2",
     "version": "1",
@@ -15,11 +15,19 @@
     "owner": "pleach",
     "version": "1.1.5",
     "source": "docs/contract/plan-schema.md in jahala/pleach at the pinned ref, line 1 (\"# `@agent-contract/plan` v1.1.5 — canonical text\")",
-    "read_on": "2026-09-08",
+    "read_on": "2026-09-18",
     "repo": "jahala/pleach",
     "file": "docs/contract/plan-schema.md",
-    "ref": "439e20228e05",
+    "ref": "57f980a607978f8b1390f86ecdb71eb2abd48d25",
     "pattern": "v([0-9]+\\.[0-9]+\\.[0-9]+)"
+  },
+  "plan_schema_vendored": {
+    "owner": "tend2",
+    "source": "docs/bridge/plan-schema.vendored.md in jahala/tend at the pinned ref, tend2's verbatim copy of pleach's canonical text; contracts/test/plan-text.test.sh holds the two byte-identical",
+    "read_on": "2026-09-18",
+    "repo": "jahala/tend",
+    "file": "docs/bridge/plan-schema.vendored.md",
+    "ref": "dbd7e444829c0a377e0454f099044a285ce13126"
   },
   "sarif_schema": {
     "version": "2.1.0",
