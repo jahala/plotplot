@@ -5,10 +5,10 @@
     "owner": "tend2",
     "version": "1",
     "source": "FORMAT.md in jahala/tend at the pinned ref, line 1 (\"# The loop format — contract, version 1\")",
-    "read_on": "2026-09-16",
+    "read_on": "2026-09-18",
     "repo": "jahala/tend",
     "file": "FORMAT.md",
-    "ref": "e270dd908363b87f6acb612d448f21b7d2aee390",
+    "ref": "fc2f075c0ea21e4263d6a1ec8b8bb0a2d9de7f21",
     "pattern": "contract, version ([0-9]+)"
   },
   "plan_schema": {
@@ -27,7 +27,7 @@
     "read_on": "2026-09-18",
     "repo": "jahala/tend",
     "file": "docs/bridge/plan-schema.vendored.md",
-    "ref": "dbd7e444829c0a377e0454f099044a285ce13126"
+    "ref": "fc2f075c0ea21e4263d6a1ec8b8bb0a2d9de7f21"
   },
   "sarif_schema": {
     "version": "2.1.0",
