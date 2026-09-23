@@ -7,7 +7,7 @@ A product layer over the plotplot umbrella. Deltas only; everything absent inher
 | Product | weeder |
 | Tagline | tests still mean what they meant. |
 | Accent | #8E3B5E bramble — the weed that stops you (from the umbrella Product Accents table) |
-| Faces | `weeder check` · `weeder guard` · `weeder hook` · `weeder rules` — `scan` and `bite` join when they land |
+| Faces | `weeder check` · `weeder scan` · `weeder guard` · `weeder hook` · `weeder rules` — `bite` joins when it lands |
 | Commands | `weeder check --format sarif` · `weeder guard install --protect main` |
 
 ## Positioning

@@ -1,0 +1,1491 @@
+<!--
+  plotplot · the garden film, embed.
+  Paste three things into the page: the <style>, the <section class="pp-film"> and the <script>.
+  The film prints straight onto the page: no paper of its own, so the band is the page. On soil-night
+  the inks switch to their night values.
+  This file is the one home of the film's code; build.mjs wraps it into garden.html.
+-->
+<style>
+.pp-film{position:relative;color:var(--pp-text)}
+.pp-film-stage{position:relative;width:100%;aspect-ratio:4 / 1;max-height:520px;min-height:160px;overflow:hidden}
+.pp-film-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+/* the soil fades into whatever follows the band: full ink to the soil line (73%), nothing at the bottom edge */
+.pp-film-stage canvas{-webkit-mask-image:linear-gradient(to bottom,var(--pp-text) 74%,transparent);mask-image:linear-gradient(to bottom,var(--pp-text) 74%,transparent)}
+@media (max-width:880px){.pp-film-stage{aspect-ratio:3 / 1}}
+@media (max-width:520px){.pp-film-stage{aspect-ratio:2 / 1}}
+</style>
+
+<section class="pp-film" aria-label="a garden grows and returns to the soil">
+  <div class="pp-film-stage">
+    <canvas role="img" aria-label="A printed garden in section grows from seed to bloom and returns to the soil."></canvas>
+  </div>
+</section>
+
+<script>
+/* plotplot garden film: a procedural risograph loop. Plain Canvas 2D, no network. */
+(() => {
+'use strict';
+
+/* ── the film ──────────────────────────────────────────────────────────────
+   World space is 1440 × 360: the band's CSS size on a desktop. The canvas fits
+   the world's height and crops or extends its width around the centre, so a
+   phone's 2:1 band shows x 360..1080. Every frame is a pure function of t.   */
+
+const DUR = 24, STILL = 15.4, FPS = 30;
+const START = 1.2;                          // first play opens just before the first sprouts
+const WW = 1440, WH = 360, G0 = 262;
+const QUIET = { x: 648, y: 198 };           // left 45%, top 55%: paper only, for the motto
+const INK_DAY = { sun: '#E89227', petal: '#E588A0', green: '#357E2C', brown: '#3A2718' };
+/* on soil-night the film has no paper to multiply against, so each ink takes its night value;
+   brown, the keyline and soil ink, becomes the night text colour so it still reads */
+const INK_NIGHT = { sun: '#F2A93B', petal: '#E588A0', green: '#84C56A', brown: '#F3ECD9' };
+const night = () => document.documentElement.getAttribute('data-theme') === 'dark';
+let INK = INK_DAY;
+const INKS = ['sun', 'petal', 'green', 'brown'];
+/* rational screen angles (b/a): 26.6°, 71.6°, 45°, 0°. Sunlight carries the big
+   soil tone, so it gets an angle; at 0° it printed as graph paper. */
+const SCREEN = { sun: { a: 2, b: 1 }, petal: { a: 1, b: 3 }, green: { a: 1, b: 1 }, brown: { a: 1, b: 0 } };
+/* registration miss per plate, world units */
+const REG = { sun: [0.9, -0.55], petal: [-0.75, 0.7], green: [0.55, 0.6], brown: [0, 0] };
+const PITCH_CSS = 2.9;                      // dot pitch in CSS px; device pitch = this × dpr
+const TAU = Math.PI * 2;
+const MASK = INK_DAY.brown;                 // coverage masks: only their alpha is ever used
+
+/* ── deterministic randomness and small maths ───────────────────────────── */
+
+function mulberry32(a) {
+  return function () {
+    a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function hash(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+const rngFor = (key) => mulberry32(hash(key));
+const hashInt = (n) => { n = Math.imul(n ^ n >>> 16, 0x45d9f3b); n = Math.imul(n ^ n >>> 16, 0x45d9f3b); return ((n ^ n >>> 16) >>> 0) / 4294967296; };
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, u) => u >= 1 ? b : u <= 0 ? a : a + (b - a) * u;   // exact ends keep the loop's rest poses bit-identical
+const phase = (t, t0, dur) => clamp((t - t0) / dur, 0, 1);
+const smooth = (u) => { u = clamp(u, 0, 1); return u * u * (3 - 2 * u); };
+const easeInQuad = (u) => u * u;
+const easeInOut = (u) => u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+/* the brand's one settle ease, cubic-bezier(0.22, 1, 0.36, 1), solved by bisection */
+function bezier(p1x, p1y, p2x, p2y) {
+  const X = (u) => 3 * (1 - u) * (1 - u) * u * p1x + 3 * (1 - u) * u * u * p2x + u * u * u;
+  const Y = (u) => 3 * (1 - u) * (1 - u) * u * p1y + 3 * (1 - u) * u * u * p2y + u * u * u;
+  return (x) => {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    let lo = 0, hi = 1;
+    for (let i = 0; i < 22; i++) { const m = (lo + hi) / 2; if (X(m) < x) lo = m; else hi = m; }
+    return Y((lo + hi) / 2);
+  };
+}
+const unfold = bezier(0.22, 1, 0.36, 1);
+/* smoothstep inverse: the time a growing stem reaches a fraction of its length */
+const smoothInv = (y) => 0.5 - Math.sin(Math.asin(clamp(1 - 2 * y, -1, 1)) / 3);
+/* a bump on the loop's circle: 1 at c, 0 beyond ±w, smooth, wraps across 0/DUR */
+function bumpC(t, c, w) { let d = Math.abs(t - c) % DUR; d = Math.min(d, DUR - d); return smooth(1 - d / w); }
+/* wander periodic in DUR: every driven element loops exactly */
+function wander(key, cycles) {
+  const r = rngFor(key), hs = cycles.map((c) => [c, r() * 2 - 1, r() * TAU]);
+  const norm = hs.reduce((s, h) => s + Math.abs(h[1]), 0) || 1;
+  return (t) => hs.reduce((s, [c, a, p]) => s + a * Math.sin(TAU * c * t / DUR + p), 0) / norm;
+}
+
+/* ── craft kit (from riso-windowseat, MIT) ─────────────────────────────── */
+/* Copyright (c) 2026 sevenevesai. MIT License; full text in film/THIRD-PARTY.md */
+
+function makeWob(rng, harmonics = 3) {
+  const h = [];
+  for (let i = 0; i < harmonics; i++) h.push([2 + i, rng() * 2 - 1, rng() * TAU]);
+  return (th) => h.reduce((s, [k, a, p]) => s + a * Math.sin(k * th + p), 0) / harmonics;
+}
+function curve(pts, closed, per) {
+  per = per || 12;
+  const n = pts.length, out = [];
+  const at = (i) => pts[closed ? (i + n * 2) % n : clamp(i, 0, n - 1)];
+  const last = closed ? n : n - 1;
+  for (let i = 0; i < last; i++) {
+    const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
+    for (let k = 0; k < per; k++) {
+      const u = k / per, u2 = u * u, u3 = u2 * u;
+      out.push([
+        0.5 * (2 * p1[0] + (p2[0] - p0[0]) * u + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * u2 + (3 * p1[0] - p0[0] - 3 * p2[0] + p3[0]) * u3),
+        0.5 * (2 * p1[1] + (p2[1] - p0[1]) * u + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * u2 + (3 * p1[1] - p0[1] - 3 * p2[1] + p3[1]) * u3),
+      ]);
+    }
+  }
+  if (!closed) out.push(pts[n - 1].slice());
+  return out;
+}
+function ringPts(x, y, rx, ry, n, rot) {
+  const out = [], c = Math.cos(rot || 0), s = Math.sin(rot || 0);
+  for (let i = 0; i < n; i++) {
+    const th = i / n * TAU, px = Math.cos(th) * rx, py = Math.sin(th) * ry;
+    out.push([x + px * c - py * s, y + px * s + py * c]);
+  }
+  return out;
+}
+function cut(pts, rng, o) {
+  o = o || {};
+  const amp = o.amp === undefined ? 3 : o.amp;
+  const c = curve(pts, true, o.per || 10), n = c.length;
+  let area = 0;
+  for (let i = 0; i < n; i++) { const a = c[i], b = c[(i + 1) % n]; area += a[0] * b[1] - b[0] * a[1]; }
+  const sgn = area > 0 ? 1 : -1;
+  const w1 = makeWob(rng, 4), w2 = makeWob(rng, 9), d = new Float32Array(n);
+  for (let i = 0; i < n; i++) { const th = i / n * TAU; d[i] = (w1(th) + w2(th * 3) * 0.3) * amp; }
+  for (let pass = 0; pass < 2; pass++) {
+    const s = Float32Array.from(d);
+    for (let i = 0; i < n; i++) d[i] = (s[(i - 1 + n) % n] + s[i] * 2 + s[(i + 1) % n]) * 0.25;
+  }
+  const p = new Path2D();
+  for (let i = 0; i < n; i++) {
+    const a = c[(i - 1 + n) % n], b = c[(i + 1) % n];
+    let tx = b[0] - a[0], ty = b[1] - a[1];
+    const m = Math.hypot(tx, ty) || 1; tx /= m; ty /= m;
+    const x = c[i][0] + sgn * ty * d[i], y = c[i][1] - sgn * tx * d[i];
+    i ? p.lineTo(x, y) : p.moveTo(x, y);
+  }
+  p.closePath();
+  return p;
+}
+function nib(pts, wfn, o) {
+  o = o || {};
+  const c = o.raw ? pts : curve(pts, false, o.per || 6), n = c.length, L = [], R = [];
+  if (n < 2) return new Path2D();
+  for (let i = 0; i < n; i++) {
+    const a = c[Math.max(0, i - 1)], b = c[Math.min(n - 1, i + 1)];
+    let tx = b[0] - a[0], ty = b[1] - a[1];
+    const m = Math.hypot(tx, ty) || 1; tx /= m; ty /= m;
+    const w = Math.max(0.01, wfn(i / (n - 1)));
+    L.push([c[i][0] - ty * w, c[i][1] + tx * w]);
+    R.push([c[i][0] + ty * w, c[i][1] - tx * w]);
+  }
+  const p = new Path2D();
+  p.moveTo(L[0][0], L[0][1]);
+  for (let i = 1; i < n; i++) p.lineTo(L[i][0], L[i][1]);
+  for (let i = n - 1; i >= 0; i--) p.lineTo(R[i][0], R[i][1]);
+  p.closePath();
+  return p;
+}
+const wLeaf = (w, skew) => (u) => w * Math.pow(Math.sin(Math.PI * Math.pow(u, skew || 0.55)), 1.15);
+const poly = (pts) => { const p = new Path2D(); pts.forEach(([x, y], i) => i ? p.lineTo(x, y) : p.moveTo(x, y)); return p; };
+const disc = (x, y, r) => { const p = new Path2D(); p.arc(x, y, Math.max(0.01, r), 0, TAU); return p; };
+const ellipse = (x, y, rx, ry, rot) => { const p = new Path2D(); p.ellipse(x, y, Math.max(0.01, rx), Math.max(0.01, ry), rot || 0, 0, TAU); return p; };
+const rot = (x, y, a) => [x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a)];
+
+/* ── ground ─────────────────────────────────────────────────────────────── */
+
+const gy = (x) => G0 + 1.9 * Math.sin(x * TAU / 31 + 0.7) + 1.0 * Math.sin(x * TAU / 113 + 2.1);
+const SKY = (() => { const p = new Path2D(); p.moveTo(-900, -60); for (let x = -900; x <= 2340; x += 5) p.lineTo(x, gy(x)); p.lineTo(2340, -60); p.closePath(); return p; })();
+const SOIL = (() => { const p = new Path2D(); p.moveTo(-900, WH + 60); for (let x = -900; x <= 2340; x += 5) p.lineTo(x, gy(x)); p.lineTo(2340, WH + 60); p.closePath(); return p; })();
+const CLIPS = { sky: SKY, soil: SOIL };
+
+/* stones in the section: scattered ones, plus the five the carrot's roots read */
+const CARROT_X = 1255;
+const READ = [[1196, 31, 6.5], [1306, 25, 5.5], [1172, 60, 7.5], [1334, 57, 6.5], [1232, 84, 6]];
+const STONES = (() => {
+  const r = rngFor('garden:stones'), out = [];
+  for (let i = 0; i < 26; i++) {
+    const x = -700 + r() * 2840, d = 20 + r() * 75;
+    if (Math.abs(x - CARROT_X) < 110) continue;
+    out.push({ x, y: gy(x) + d, r: 2.5 + r() * 5.5, key: 'stone:' + i, read: -1 });
+  }
+  READ.forEach(([x, d, rr], i) => out.push({ x, y: gy(x) + d, r: rr, key: 'read:' + i, read: i }));
+  return out;
+})();
+const stonePath = (s) => cut(ringPts(s.x, s.y, s.r, s.r * 0.72, 9, hashInt(hash(s.key)) * 3), rngFor(s.key), { amp: s.r * 0.12 });
+
+/* ── the timeline: one table, everything reads it ───────────────────────── */
+
+/* Each plant: where it stands, when its root starts, when its shoot starts and
+   how long it grows, then its evening: dry, drop seed, fold, sink. The evening
+   sweeps from the sun's side (right) to the left. */
+const PLANTS = [
+  { id: 'tend',   x: 420,  root: 1.6, shoot: 2.4, grow: 5.6, H: 48,  lean: 0.05,  eve: 7 },
+  { id: 'weed',   x: 515,  root: 0.9, shoot: 1.5, grow: 4.0, H: 42,  lean: -0.16, eve: 6 },
+  { id: 'rule',   x: 672,  root: 2.2, shoot: 3.0, grow: 7.8, H: 150, lean: 0.0,   eve: 5 },
+  { id: 'petal',  x: 770,  root: 2.0, shoot: 2.8, grow: 7.6, H: 152, lean: -0.06, eve: 4 },
+  { id: 'pl1',    x: 884,  root: 2.5, shoot: 3.3, grow: 5.0, H: 0,   lean: 0,     eve: 3 },
+  { id: 'pl2',    x: 928,  root: 2.7, shoot: 3.5, grow: 5.0, H: 0,   lean: 0,     eve: 3 },
+  { id: 'umbel',  x: 1045, root: 1.7, shoot: 2.5, grow: 8.3, H: 194, lean: -0.07, eve: 2 },
+  { id: 'grass',  x: 1150, root: 2.3, shoot: 3.1, grow: 7.8, H: 160, lean: 0.12,  eve: 1 },
+  { id: 'carrot', x: 1255, root: 1.2, shoot: 2.2, grow: 8.5, H: 50,  lean: 0,     eve: 0 },
+];
+const SEED_D = 11;                                   // seed depth below the soil line
+for (const p of PLANTS) {
+  if (p.id === 'pl1' || p.id === 'pl2') p.H = gy(p.x) - 134;
+  p.base = [p.x, gy(p.x) + SEED_D];
+  p.dry = 17.8 + p.eve * 0.12;
+  p.drop = 19.0 + p.eve * 0.2;
+  p.fold = 19.2 + p.eve * 0.12;
+  p.sink = 19.9 + p.eve * 0.1;
+  p.ret = 20.8 + p.eve * 0.1;
+  p.sinkD = p.H + 70;                                // deep enough to take the tallest head
+}
+const P = Object.fromEntries(PLANTS.map((p) => [p.id, p]));
+/* the loop closes only if every evening event is over before DUR */
+for (const p of PLANTS) {
+  const last = Math.max(p.sink + 2.8, p.ret + 2.2, p.fold + 1.6);
+  if (last >= DUR) throw new Error('garden film: ' + p.id + ' is still moving at ' + last.toFixed(2) + ' s, past the loop');
+}
+const TL = {
+  sunRise: 0.3, sunSet: 22.6,
+  tie: [8.3, 0.8], untie: [19.25, 0.6],
+  shearLift: [12.4, 1.8], shearOpen: [13.3, 1.1], snip: [17.95, 0.16], shearHome: [19.0, 1.7],
+  umbelOpen: [10.5, 1.8], florets: 11.3, petalOpen: 11.6, daisy: 11.8, blossom: 11.9, anthers: 12.4,
+  pollen: [13.1, 17.6], petalFall: 17.25, seedsSet: 17.0, glowDusk: [20.2, 2.6], glowDawn: [0.9, 2.4],
+};
+const SHOTS = [
+  { id: 'dawn',  start: 0,    end: 1.6,  readAt: 0.8,  action: 'tilled soil in section, seeds at rest, the sun below the line', transition: 'loop join' },
+  { id: 'sprout', start: 1.6, end: 6,    readAt: 4.2,  action: 'roots go down first; shoots arch up through the soil and open', transition: 'continuous' },
+  { id: 'grow',  start: 6,    end: 11.5, readAt: 9.5,  action: 'the row grows; tie, rule, frame and roots each tend their plant', transition: 'continuous' },
+  { id: 'bloom', start: 11.5, end: 17.2, readAt: STILL, action: 'flowers unfold; pollen drifts; shears open at the weed', transition: 'continuous' },
+  { id: 'evening', start: 17.2, end: 21, readAt: 19.6, action: 'snip; petals fall; seed heads drop their seeds', transition: 'continuous' },
+  { id: 'return', start: 21,  end: DUR,  readAt: 22.4, action: 'stems fold and sink into the soil; seeds settle', transition: 'loop join' },
+];
+
+/* ── the display list ───────────────────────────────────────────────────── */
+
+/* Scenes emit ops per ink; the compositor screens them. cov is dot-screen
+   coverage (union = max, because every level of one ink shares its threshold
+   grid). knock() clears its own plate; front ops print after the knocks. */
+class Frame {
+  constructor() { this.ops = { sun: [], petal: [], green: [], brown: [] }; this.st = {}; }
+  scope(st, fn) { const prev = this.st; this.st = Object.assign({}, prev, st); fn(); this.st = prev; }
+  f(ink, cov, path) { if (cov > 0.004) this.ops[ink].push({ k: 'f', cov: q(cov), path, st: this.st }); }
+  s(ink, cov, path, w) { if (cov > 0.004 && w > 0.01) this.ops[ink].push({ k: 's', cov: q(cov), path, w, st: this.st }); }
+  x(ink, path, w) { this.ops[ink].push({ k: 'x', path, w, st: this.st }); }
+}
+const LEVELS = 32;
+const q = (c) => c >= 0.985 ? 1 : Math.max(1, Math.round(c * LEVELS)) / LEVELS;
+
+/* green living, straw when dry */
+function flesh(F, path, dry) {
+  if (dry) { F.f('sun', 1, path); F.f('brown', 0.4, path); }
+  else F.f('green', 1, path);
+}
+
+/* ── plant geometry ─────────────────────────────────────────────────────── */
+
+/* A spine integrated from its base, heading(v) in radians at arc fraction v of
+   the full length H. Only the visible length is walked, so a stem grows from
+   its tip and keeps its lower shape. */
+function spine(base, H, len, heading, N) {
+  N = N || 22;
+  const seg = H / N, pts = [[base[0], base[1]]];
+  let x = base[0], y = base[1], s = 0;
+  while (s < len - 1e-6 && pts.length <= N + 1) {
+    const d = Math.min(seg, len - s), a = heading((s + d * 0.5) / H);
+    x += Math.cos(a) * d; y += Math.sin(a) * d; s += d;
+    pts.push([x, y]);
+  }
+  return { pts, seg, len };
+}
+function spineAt(sp, s) {
+  const { pts, seg } = sp;
+  if (pts.length < 2) return pts[0].slice();
+  const f = clamp(s / seg, 0, pts.length - 1 - 1e-9), i = Math.floor(f), u = f - i;
+  const a = pts[i], b = pts[Math.min(i + 1, pts.length - 1)];
+  return [lerp(a[0], b[0], u), lerp(a[1], b[1], u)];
+}
+function spineDir(sp, s) {
+  const a = spineAt(sp, Math.max(0, s - 1.5)), b = spineAt(sp, Math.min(sp.len, s + 1.5));
+  return Math.atan2(b[1] - a[1], b[0] - a[0]);
+}
+function spineSlice(sp, s0, s1) {
+  const out = [spineAt(sp, s0)];
+  for (let i = 1; i < sp.pts.length - 1; i++) { const s = i * sp.seg; if (s > s0 && s < s1) out.push(sp.pts[i]); }
+  out.push(spineAt(sp, s1));
+  return out;
+}
+
+const SWAY = {}, GUST = wander('garden:gust', [2, 5]);
+const sway = (id) => SWAY[id] || (SWAY[id] = wander('garden:sway:' + id, [3, 7, 11]));
+
+/* growth state of a plant at t */
+function stateOf(p, t) {
+  const total = p.H + SEED_D;
+  const g = smooth(phase(t, p.shoot, p.grow));
+  const fold = easeInOut(phase(t, p.fold, 1.6));
+  const sink = easeInOut(phase(t, p.sink, 2.8));
+  const dry = smooth(phase(t, p.dry, 1.6));
+  const root = smooth(phase(t, p.root, 3.4)) * (1 - smooth(phase(t, p.ret, 2.2)));
+  const hook = 1 - smooth(phase(t, p.shoot + 0.5, 1.6));
+  const under = Math.min(total, SEED_D + 4) * (1 - smooth(phase(t, p.ret, 2.2)));
+  return { total, g, len: total * g, fold, sink, dry, root, hook, under };
+}
+/* above ground: clipped to the sky and sunk into the soil at the end of the day */
+function sky(F, p, S, fn) {
+  if (S.sink >= 0.999) return;
+  F.scope({ clip: 'sky', dy: S.sink * p.sinkD }, fn);
+}
+/* below ground: the stem from seed to surface, withdrawing into the seed */
+function soilStem(F, sp, S, w0, w1) {
+  const L = Math.min(sp.len, S.under);
+  if (L < 0.3) return;
+  const pts = spineSlice(sp, 0, L);
+  F.scope({ clip: 'soil', dy: 0 }, () => F.f('green', 1, nib(pts, (u) => lerp(w0, w1, u * L / S.total), { per: 3 })));
+}
+/* heading function of a plant's main stem */
+function headingOf(p, t, S, o) {
+  o = o || {};
+  const sw = (sway(p.id)(t) * 0.8 + GUST(t) * 0.5) * (o.swayAmp === undefined ? 0.06 : o.swayAmp) * S.g;
+  const dir = o.foldDir || (p.lean < 0 ? -1 : 1);
+  const curl = o.curl || 0;
+  const hookLen = 7;
+  return (v) => {
+    const s = v * S.total;
+    let a = -Math.PI / 2 + p.lean * v + curl * v * v + sw * v * v;
+    // the germination hook: the young tip arches over and straightens as it climbs
+    const hk = clamp((s - (S.len - hookLen)) / hookLen, 0, 1);
+    a += S.hook * 2.3 * hk * dir;
+    // evening: the stem leans a little and its head nods toward the soil
+    a += S.fold * dir * (0.07 + 0.38 * Math.pow(v, 2));
+    return a;
+  };
+}
+function mainStem(p, t, S, o) {
+  return spine(p.base, S.total, S.len, headingOf(p, t, S, o), o && o.N);
+}
+
+/* stem ribbon: living below the dry front, straw above it */
+function drawStem(F, sp, S, w0, w1) {
+  if (sp.len < 0.3) return;
+  const dryFrom = sp.len * (1 - S.dry);
+  // a growing shoot tapers to its tip; a grown one carries its head at full width
+  const young = 1 - smooth(phase(S.g, 0.86, 0.14));
+  const girth = 0.5 + 0.5 * smooth(S.g * 1.3);
+  const wAt = (s) => lerp(w0, w1, s / S.total) * girth * lerp(1, clamp((sp.len - s) / 16, 0.22, 1), young);
+  const seg = (a, b, dry) => {
+    if (b - a < 0.2) return;
+    const pts = spineSlice(sp, a, b);
+    flesh(F, nib(pts, (u) => wAt(lerp(a, b, u)), { per: 3 }), dry);
+  };
+  seg(0, Math.min(dryFrom, sp.len), false);
+  if (S.dry > 0) seg(dryFrom, sp.len, true);
+}
+
+/* the growing tip: a folded bud that is spent as the plant reaches its height */
+function tipBud(F, sp, S) {
+  const k = Math.min(1, (1 - S.g) * 7) * clamp((sp.len - SEED_D) / 10, 0, 1) * (1 - S.hook * 0.6);
+  if (k <= 0.02) return;
+  const tip = spineAt(sp, sp.len), d = spineDir(sp, sp.len);
+  for (const side of [-1, 1]) leaf(F, tip[0] - Math.cos(d) * 2.5, tip[1] - Math.sin(d) * 2.5, d + side * 0.16, 8 * k, 1.7 * k, { bend: 0, skew: 0.45 });
+}
+/* seed leaves: a round pair just above the soil that withers as the plant matures */
+function seedLeaves(F, p, sp, S, t) {
+  const node = SEED_D + 9;
+  if (sp.len < node + 2) return;
+  const open = unfold(phase(t, p.shoot + 1.3, 1.2)) * (1 - smooth(phase(t, p.shoot + p.grow * 0.75, 1.8)));
+  if (open <= 0.02) return;
+  const n = spineAt(sp, node), d = spineDir(sp, node);
+  for (const side of [-1, 1]) leaf(F, n[0], n[1], d + side * 0.72, 10 * open, 2.5 * open, { bend: 0, skew: 0.64 });
+}
+
+/* a leaf from a node: unfolds on the brand ease, droops at evening */
+function leaf(F, x, y, ang, len, wid, o) {
+  o = o || {};
+  if (len < 0.4) return;
+  const bend = o.bend === undefined ? 0.35 : o.bend;
+  const pts = [];
+  // the midrib leaves along ang and droops under its own weight
+  for (let i = 0; i <= 4; i++) {
+    const u = i / 4, d = len * u;
+    pts.push([x + Math.cos(ang) * d, y + Math.sin(ang) * d + bend * len * 0.55 * u * u]);
+  }
+  const path = nib(pts, wLeaf(wid, o.skew || 0.5), { per: 4 });
+  flesh(F, path, o.dry);
+  if (o.vein && len > 6 && !o.dry) F.x('green', nib(pts.slice(0, 4), (u) => 0.28 * (1 - u), { per: 3 }));
+}
+
+/* roots in section: seeded curves that grow from the seed and retract into it */
+const ROOTS = {};
+function rootSet(p, n, depth, spread) {
+  if (ROOTS[p.id]) return ROOTS[p.id];
+  const r = rngFor('garden:roots:' + p.id), set = [];
+  const main = [[0, 0]];
+  for (let i = 1; i <= 6; i++) main.push([(r() - 0.5) * 5 * i / 3, depth * i / 6]);
+  set.push({ pts: main, at: 0, w: 0.95 });
+  for (let k = 0; k < n; k++) {
+    const f = 0.15 + 0.7 * (k + r() * 0.6) / n, side = k % 2 ? 1 : -1;
+    const o = [main[Math.round(f * 6)][0], depth * f];
+    const L = spread * (0.5 + r() * 0.6) * (1 - f * 0.4);
+    const pts = [o];
+    for (let i = 1; i <= 4; i++) pts.push([o[0] + side * L * i / 4, o[1] + L * 0.45 * (i / 4) + (r() - 0.5) * 3]);
+    set.push({ pts, at: f, w: 0.6 });
+  }
+  return (ROOTS[p.id] = set);
+}
+function drawRoots(F, p, S, set) {
+  if (S.root <= 0.001) return;
+  const [bx, by] = p.base;
+  for (const rt of set) {
+    const u = clamp((S.root - rt.at * 0.8) / (1 - rt.at * 0.8), 0, 1);
+    if (u <= 0.01) continue;
+    const c = curve(rt.pts.map(([x, y]) => [bx + x, by + y]), false, 5);
+    const n = Math.max(2, Math.round(c.length * u));
+    F.f('brown', 1, nib(c.slice(0, n), (v) => rt.w * (1 - 0.75 * v), { raw: true }));
+  }
+}
+
+/* a seed: brown, with a paper glint; cracks as the root leaves it */
+function drawSeed(F, x, y, a, scale, crack) {
+  if (scale <= 0.02) return;
+  const path = ellipse(x, y, 3.6 * scale, 2.3 * scale, a);
+  F.f('brown', 1, path);
+  F.x('brown', ellipse(x - 1.1 * scale, y - 0.7 * scale, 0.9 * scale, 0.45 * scale, a));
+  if (crack > 0) F.x('brown', nib([[x - 2.8 * scale * crack, y], [x + 2.8 * scale * crack, y + 0.4]], () => 0.3, { raw: true }));
+}
+
+/* seed life: falls from the head, lands, sinks to its depth, waits for dawn */
+function seedLife(F, p, t, headAt) {
+  const [bx, by] = p.base, land = gy(bx) - 1.6;
+  const tr = rngFor('garden:seed:' + p.id);
+  const a0 = tr() * 3;
+  if (t < p.drop) {
+    // resting from the loop start until the seed coat is spent
+    const spent = smooth(phase(t, p.shoot + 0.6, 2.4));
+    drawSeed(F, bx, by, a0, 1 - spent, phase(t, p.root, 0.5));
+    return;
+  }
+  const h = headAt(p.drop);
+  const fallDur = 0.55 + Math.sqrt(Math.max(0, land - h[1])) * 0.075;
+  const u = phase(t, p.drop, fallDur);
+  const sinkU = smooth(phase(t, p.drop + fallDur + 0.5, 23.4 - (p.drop + fallDur + 0.5)));
+  let x, y;
+  if (u < 1) {
+    const e = easeInQuad(u);
+    x = lerp(h[0], bx, smooth(u)) + Math.sin(u * 5.2 + a0) * 3 * (1 - u);
+    y = lerp(h[1], land, e);
+  } else { x = bx; y = lerp(land, by, sinkU); }
+  const a = lerp(a0 + 2.4, a0, smooth(u));
+  drawSeed(F, x, y, a, 1, 0);
+}
+
+/* ── the scenes ─────────────────────────────────────────────────────────── */
+
+function sceneSun(F, t) {
+  const u = phase(t, TL.sunRise, TL.sunSet - TL.sunRise);
+  const x = lerp(1412, 1290, u), y = gy(x) + 30 - Math.pow(Math.sin(Math.PI * u), 0.75) * 218;
+  if (y > gy(x) + 29) return;
+  const r = rngFor('garden:sun');
+  const R = 23;
+  const body = cut(ringPts(x, y, R, R, 12, 0), r, { amp: 0.8 });
+  F.scope({ clip: 'sky' }, () => {
+    F.f('sun', 0.12, disc(x, y, R + 24));
+    F.f('sun', 0.3, disc(x, y, R + 10));
+    F.f('sun', 1, body);
+    const dusk = smooth(phase(t, 18.3, 3.2));
+    if (dusk > 0) {
+      F.f('petal', Math.ceil(dusk * 4) / 4, body);
+      F.f('petal', 0.12 * dusk, disc(x, y, R + 10));
+    }
+  });
+}
+
+function sceneGlow(F, t) {
+  const dusk = Math.max(bumpC(t, TL.glowDusk[0], TL.glowDusk[1]), 0), dawn = bumpC(t, TL.glowDawn[0], TL.glowDawn[1]);
+  const band = (h, x0, ink, cov) => {
+    if (h < 1) return;
+    const w = makeWob(rngFor('garden:glow:' + ink), 4), pts = [[x0 - 40, gy(x0) + 4]];
+    for (let x = x0 - 40; x <= 2300; x += 16) {
+      const fall = smooth((x - x0) / 260);
+      pts.push([x, gy(x) - h * fall * (0.85 + 0.15 * w(x / 90))]);
+    }
+    pts.push([2300, G0 + 6]);
+    F.f(ink, cov, poly(pts));
+  };
+  F.scope({ clip: 'sky' }, () => {
+    band(dusk * 70, 720, 'petal', 0.1);
+    band(dusk * 34, 820, 'petal', 0.2);
+    band(dusk * 46, 760, 'sun', 0.1);
+    band(dawn * 52, 900, 'sun', 0.12);
+    band(dawn * 24, 980, 'sun', 0.22);
+  });
+}
+
+/* tend: a tended seedling, a cane, a poppy tie */
+function sceneTend(F, t) {
+  const p = P.tend, S = stateOf(p, t);
+  drawRoots(F, p, S, rootSet(p, 3, 18, 10));
+  seedLife(F, p, t, (tt) => spineAt(mainStem(p, tt, stateOf(p, tt)), stateOf(p, tt).len));
+  const sp = mainStem(p, t, S);
+  soilStem(F, sp, S, 1.7, 1.3);
+  sky(F, p, S, () => {
+    drawStem(F, sp, S, 1.7, 1.15);
+    const dir = S.len > 1 ? spineDir(sp, sp.len) : -Math.PI / 2;
+    const tip = spineAt(sp, sp.len);
+    // cotyledons at the tip while young, true leaves above later
+    const cot = unfold(phase(t, p.shoot + 1.4, 1.2)) * (1 - S.hook);
+    const nodeC = spineAt(sp, Math.min(sp.len, SEED_D + 26));
+    const dC = spineDir(sp, Math.min(sp.len, SEED_D + 26));
+    const droop = S.fold * 0.9;
+    for (const side of [-1, 1]) leaf(F, nodeC[0], nodeC[1], dC + side * (1.2 - 0.4 * (1 - cot)) + droop * side, 11 * cot, 3.8, { side, dry: S.dry > 0.6, bend: 0.12, skew: 0.62 });
+    const tl = unfold(phase(t, p.shoot + 3.2, 1.6));
+    for (const side of [-1, 1]) leaf(F, tip[0], tip[1], dir + side * 0.7 + droop * side, 16 * tl, 5, { side: -side, dry: S.dry > 0.2, vein: true, bend: 0.25 });
+    // the tie: a poppy loop from stem to cane, wrapped in, unwrapped at evening
+    const tie = phase(t, TL.tie[0], TL.tie[1]) * (1 - phase(t, TL.untie[0], TL.untie[1]));
+    if (tie > 0 && sp.len > SEED_D + 21) {
+      const a = spineAt(sp, SEED_D + 20), cx = 431.8, cy = a[1];
+      const loop = [];
+      for (let i = 0; i <= 16; i++) { const th = i / 16 * TAU * tie; loop.push([lerp(a[0], cx, 0.5) + Math.cos(th + Math.PI) * (cx - a[0]) * 0.66, cy + Math.sin(th + Math.PI) * 2.3]); }
+      const path = nib(loop, () => 0.95, { raw: true });
+      F.f('petal', 1, path); F.f('sun', 1, path);
+    }
+  });
+}
+
+/* weeder: a stray thistle and the shears that come for it */
+function weedGeo(t) {
+  const p = P.weed, S = stateOf(p, t);
+  return { p, S, sp: mainStem(p, t, S, { swayAmp: 0.12 }) };
+}
+function sceneWeed(F, t) {
+  const { p, S, sp } = weedGeo(t);
+  drawRoots(F, p, S, rootSet(p, 4, 24, 13));
+  seedLife(F, p, t, (tt) => { const g = weedGeo(tt); return spineAt(g.sp, g.sp.len); });
+  // the rosette: toothed leaves low on the soil
+  const ros = unfold(phase(t, p.shoot + 0.9, 1.8));
+  const [bx] = p.base, sy = gy(bx);
+  sky(F, p, S, () => {
+    const r = rngFor('garden:weed:ros');
+    for (let k = 0; k < 5; k++) {
+      const side = k % 2 ? 1 : -1, a = -Math.PI / 2 + side * (0.95 + k * 0.16) + (r() - 0.5) * 0.2 + S.fold * side * 0.4;
+      const L = (17 + r() * 7) * ros;
+      if (L < 0.5) { r(); continue; }
+      const pts = [];
+      for (let i = 0; i <= 12; i++) {
+        const u = i / 12, w = Math.sin(Math.PI * Math.pow(u, 0.7)) * (2.8 + (i % 2 ? 2.1 : 0)) * ros;
+        const [ox, oy] = rot(u * L, -w, a);
+        pts.push([bx + ox, sy - 1 + oy]);
+      }
+      for (let i = 12; i >= 0; i--) {
+        const u = i / 12, w = Math.sin(Math.PI * Math.pow(u, 0.7)) * (2.6 + (i % 2 ? 0 : 1.9)) * ros;
+        const [ox, oy] = rot(u * L, w, a);
+        pts.push([bx + ox, sy - 1 + oy]);
+      }
+      flesh(F, poly(pts), S.dry > 0.7);
+    }
+  });
+  soilStem(F, sp, S, 1.6, 1.2);
+  // the stalk: whole until the snip, then the top falls away and lies on the soil
+  const snipT = TL.snip[0] + TL.snip[1] * 0.8;
+  const cutS = SEED_D + 21;
+  sky(F, p, S, () => {
+    if (t < snipT || sp.len < cutS + 1) { drawStem(F, sp, S, 1.6, 1.05); thistle(F, t, S, sp, 0, [0, 0]); return; }
+    const lower = { pts: spineSlice(sp, 0, cutS), seg: 0, len: cutS };
+    flesh(F, nib(lower.pts, (u) => lerp(1.6, 1.3, u), { per: 3 }), S.dry > 0.7);
+    // the fallen top pivots about the cut and drops to the soil
+    const fu = phase(t, snipT, 0.75), e = easeInQuad(fu);
+    const c = spineAt(sp, cutS), top = spineSlice(sp, cutS, sp.len);
+    const ang = -1.35 * e, drop = e * (sy - c[1] - 2.2) + (fu >= 1 ? 0 : 0);
+    const moved = top.map(([x, y]) => { const [ox, oy] = rot(x - c[0], y - c[1], ang); return [c[0] + ox - e * 4, c[1] + oy + drop]; });
+    flesh(F, nib(moved, (u) => lerp(1.3, 1.05, u), { per: 3 }), S.dry > 0.3);
+    thistle(F, t, S, { pts: moved, seg: 0, len: 0 }, ang, [c[0], c[1]], moved[moved.length - 1], spineDir(sp, sp.len) + ang);
+  });
+}
+function thistle(F, t, S, sp, ang, pivot, tipOverride, dirOverride) {
+  const p = P.weed;
+  const tip = tipOverride || spineAt(sp, sp.len), dir = dirOverride === undefined ? spineDir(sp, sp.len) : dirOverride;
+  const bud = unfold(phase(t, p.shoot + 3.0, 1.2)), open = unfold(phase(t, p.shoot + 5.6, 1.4));
+  if (bud <= 0) return;
+  const [cx, cy] = [tip[0] + Math.cos(dir) * 4.4 * bud, tip[1] + Math.sin(dir) * 4.4 * bud];
+  const body = ellipse(cx, cy, 4.6 * bud, 5.6 * bud, dir + Math.PI / 2);
+  flesh(F, body, S.dry > 0.4);
+  F.f('brown', 0.28, body);
+  if (open > 0) {
+    // the brush: fine petal-ink bristles, overprinted to bramble
+    const r = rngFor('garden:thistle');
+    const brush = new Path2D();
+    for (let i = 0; i < 11; i++) {
+      const a = dir + (i / 10 - 0.5) * 1.6 + (r() - 0.5) * 0.1, L = (8 + r() * 3) * open;
+      const bx = cx + Math.cos(dir) * 3.6 * bud, by = cy + Math.sin(dir) * 3.6 * bud;
+      brush.addPath(nib([[bx, by], [bx + Math.cos(a) * L, by + Math.sin(a) * L]], (u) => 0.95 * (1 - 0.6 * u), { raw: true }));
+    }
+    const fade = 1 - S.dry;
+    if (fade > 0.05) { F.f('petal', 1, brush); F.f('brown', 0.36, brush); }
+    else F.f('brown', 0.5, brush);
+  }
+}
+
+/* the shears: orange handles, bare blades. They rest on the soil, rise and open
+   at the weed, hold, snip at evening, and lie down again. */
+function sceneShears(F, t) {
+  const lift = unfold(phase(t, TL.shearLift[0], TL.shearLift[1]));
+  const home = easeInOut(phase(t, TL.shearHome[0], TL.shearHome[1]));
+  const k = lift * (1 - home);
+  const rest = { x: 574, y: gy(574) - 3.2, a: Math.PI + 0.03 };
+  const aim = { x: 542, y: 240, a: Math.PI - 0.05 };
+  const K = 1.45;
+  const x = lerp(rest.x, aim.x, k), y = lerp(rest.y, aim.y, k) - Math.sin(Math.PI * k) * 5 * (1 - home > 0.5 ? 1 : 0.4);
+  const a = lerp(rest.a, aim.a, k);
+  const open = 0.04 + 0.5 * unfold(phase(t, TL.shearOpen[0], TL.shearOpen[1])) * (1 - easeInQuad(phase(t, TL.snip[0], TL.snip[1])));
+  const blade = (sgn) => {
+    const pts = [];
+    for (let i = 0; i <= 8; i++) {
+      const u = i / 8, w = ((1 - u) * 2.6 + 0.2) * K, curveOff = Math.sin(u * Math.PI) * 1.2 * K * sgn;
+      pts.push([u * 21 * K, curveOff - w * 0.5 * sgn]);
+    }
+    for (let i = 8; i >= 0; i--) {
+      const u = i / 8, w = ((1 - u) * 2.6 + 0.2) * K, curveOff = Math.sin(u * Math.PI) * 1.2 * K * sgn;
+      pts.push([u * 21 * K, curveOff + w * 0.5 * sgn * 0.1]);
+    }
+    const ba = a + sgn * open / 2;
+    return poly(pts.map(([px, py]) => { const [ox, oy] = rot(px, py, ba); return [x + ox, y + oy]; }));
+  };
+  const handle = (sgn) => {
+    const ha = a + Math.PI - sgn * open / 2;
+    const pts = [[0, -1.2], [8, -1.6 + sgn * 0.6], [16, -2.4 + sgn * 1.8], [21, -1.2 + sgn * 2.6], [21.5, 1.6 + sgn * 2.6], [16, 1.4 + sgn * 1.6], [8, 1.3 + sgn * 0.4], [0, 1.2]];
+    const outer = curve(pts, true, 4).map(([px, py]) => { const [ox, oy] = rot(px * K, py * K, ha); return [x + ox, y + oy]; });
+    return poly(outer);
+  };
+  F.scope({ clip: null }, () => {
+    for (const sgn of [-1, 1]) {
+      const b = blade(sgn);
+      F.f('brown', 0.22, b);
+      F.s('brown', 1, b, 0.7);
+      const h = handle(-sgn);
+      F.f('sun', 1, h);
+      F.s('brown', 1, h, 0.55);
+    }
+    F.f('brown', 1, disc(x, y, 1.7));
+    F.x('brown', disc(x - 0.4, y - 0.4, 0.55));
+  });
+}
+
+/* copeca: a stem measured against a rule; the marker steps up tick by tick */
+const RULE = { x: 686, w: 13, top: 100, tick: 8 };
+function copecaGeo(t) { const p = P.rule, S = stateOf(p, t); return { p, S, sp: mainStem(p, t, S, { swayAmp: 0.025 }) }; }
+function heightAt(t) { const g = copecaGeo(t); const tip = spineAt(g.sp, g.sp.len); return Math.max(0, gy(g.p.x) - tip[1] - g.S.sink * g.p.sinkD); }
+function sceneRule(F, t) {
+  const { p, S, sp } = copecaGeo(t);
+  drawRoots(F, p, S, rootSet(p, 5, 34, 16));
+  seedLife(F, p, t, (tt) => { const g = copecaGeo(tt); return spineAt(g.sp, g.sp.len); });
+  soilStem(F, sp, S, 2.0, 1.5);
+  sky(F, p, S, () => {
+    drawStem(F, sp, S, 2.0, 1.3);
+    seedLeaves(F, p, sp, S, t); tipBud(F, sp, S);
+    const nodes = [0.3, 0.5, 0.68, 0.84];
+    nodes.forEach((v, i) => {
+      const s = SEED_D + v * p.H;
+      if (sp.len < s) return;
+      const tn = p.shoot + p.grow * smoothInv(s / S.total);
+      const lg = unfold(phase(t, tn, 1.3));
+      const n = spineAt(sp, s), d = spineDir(sp, s);
+      const side = i % 2 ? 1 : -1;
+      leaf(F, n[0], n[1], d + side * (0.95 + S.fold * 0.8), (21 - i * 2.5) * lg, 3.1, { side, dry: S.dry > 1 - v, skew: 0.68, bend: 0.4, vein: true });
+    });
+    // the daisy: paper rays in a brown keyline, a sunlight eye
+    const tip = spineAt(sp, sp.len), dir = spineDir(sp, sp.len);
+    const bud = unfold(phase(t, p.shoot + p.grow - 1.4, 1.2)), open = unfold(phase(t, TL.daisy, 1.3));
+    const drop = smooth(phase(t, TL.petalFall + 0.9, 1.6));
+    if (bud > 0) {
+      const c = [tip[0] + Math.cos(dir) * 2.4, tip[1] + Math.sin(dir) * 2.4];
+      if (open > 0 && drop < 1) {
+        const rays = new Path2D();
+        for (let i = 0; i < 9; i++) {
+          const a = dir + (i / 9) * TAU + 0.2, L = 9.5 * open * (1 - drop * (i % 3 === 0 ? 1 : smooth(drop * 1.6 - 0.3)));
+          if (L < 0.6) continue;
+          const [ox, oy] = [Math.cos(a), Math.sin(a)];
+          rays.addPath(ellipse(c[0] + ox * (2.4 + L / 2), c[1] + oy * (2.4 + L / 2), L / 2, 1.5, a));
+        }
+        F.s('brown', 1, rays, 0.45);
+      }
+      F.f(S.dry > 0.2 ? 'brown' : 'sun', 1, disc(c[0], c[1], 3 * bud));
+      if (S.dry > 0.2) F.f('sun', 0.5, disc(c[0], c[1], 3 * bud));
+    }
+  });
+  // the marker: a sunlight notch at the tick below the tip, stepping between ticks
+  const h = heightAt(t);
+  if (h > 1) {
+    const k = Math.floor(h / RULE.tick);
+    let y;
+    if (k < 1) y = gy(RULE.x);
+    else {
+      // when did the tip cross this tick? bisection on the monotone stretch
+      const rising = t < p.fold;
+      let lo = rising ? p.shoot : p.fold, hi = t;
+      for (let i = 0; i < 18; i++) { const m = (lo + hi) / 2; const hm = heightAt(m); if (rising ? hm < k * RULE.tick : hm > (k + 1) * RULE.tick) lo = m; else hi = m; }
+      const since = t - hi, e = unfold(clamp(since / 0.35, 0, 1));
+      const from = rising ? (k - 1) : (k + 1), to = k;
+      y = gy(RULE.x) - lerp(from, to, e) * RULE.tick;
+    }
+    const mx = RULE.x - 0.5;
+    F.f('sun', 1, poly([[mx, y], [mx - 7, y - 3.6], [mx - 7, y + 3.6]]));
+    const tip = spineAt(sp, sp.len);
+    const dash = new Path2D();
+    for (let xx = tip[0] + 4; xx < mx - 6; xx += 3) { dash.moveTo(xx, y); dash.lineTo(Math.min(xx + 1.4, mx - 6), y); }
+    F.s('brown', 1, dash, 0.4);
+  }
+}
+
+/* petals: an open five-petal flower; its petals fall at evening */
+function petalGeo(t) { const p = P.petal, S = stateOf(p, t); return { p, S, sp: mainStem(p, t, S, { swayAmp: 0.05 }) }; }
+function petalShape(cx, cy, a, len, wid, key) {
+  const pts = [];
+  const n = 9;
+  for (let i = 0; i <= n; i++) { const u = i / n, w = Math.pow(Math.sin(Math.PI * Math.pow(u, 0.42)), 0.55) * wid; pts.push([u * len, -w]); }
+  for (let i = n; i >= 0; i--) { const u = i / n, w = Math.pow(Math.sin(Math.PI * Math.pow(u, 0.42)), 0.55) * wid; pts.push([u * len, w]); }
+  // a shallow notch at the tip
+  pts[n] = [len * 0.93, 0];
+  return cut(pts.map(([x, y]) => { const [ox, oy] = rot(x, y, a); return [cx + ox, cy + oy]; }), rngFor(key), { amp: 0.35, per: 3 });
+}
+function scenePetal(F, t) {
+  const { p, S, sp } = petalGeo(t);
+  drawRoots(F, p, S, rootSet(p, 5, 36, 18));
+  const headAt = (tt) => { const g = petalGeo(tt); return spineAt(g.sp, g.sp.len); };
+  seedLife(F, p, t, headAt);
+  soilStem(F, sp, S, 2.3, 1.7);
+  const dy = S.sink * p.sinkD;
+  sky(F, p, S, () => {
+    drawStem(F, sp, S, 2.3, 1.5);
+    seedLeaves(F, p, sp, S, t); tipBud(F, sp, S);
+    [[0.24, -1, 27], [0.43, 1, 24], [0.62, -1, 19]].forEach(([v, side, L]) => {
+      const s = SEED_D + v * p.H;
+      if (sp.len < s) return;
+      const tn = p.shoot + p.grow * smoothInv(s / S.total);
+      const lg = unfold(phase(t, tn, 1.5));
+      const n = spineAt(sp, s), d = spineDir(sp, s);
+      leaf(F, n[0], n[1], d + side * (0.85 + S.fold * 0.9), L * lg, 5.4, { side, dry: S.dry > 1 - v, vein: true, bend: 0.45 });
+    });
+  });
+  const tip = spineAt(sp, sp.len), dir = spineDir(sp, sp.len);
+  const bud = unfold(phase(t, p.shoot + p.grow - 1.8, 1.4));
+  if (bud <= 0) return;
+  const R = 30, c = [tip[0] + Math.cos(dir) * 3, tip[1] + Math.sin(dir) * 3];
+  const face = -Math.PI / 2 - 0.3;
+  sky(F, p, S, () => {
+    // sepals: the green cup behind the flower
+    for (let i = 0; i < 5; i++) {
+      const a = dir + (i - 2) * 0.42 * (0.4 + 0.6 * bud);
+      leaf(F, c[0] - Math.cos(dir) * 2, c[1] - Math.sin(dir) * 2, a, 7 * bud, 1.6, { bend: 0, dry: S.dry > 0.1 });
+    }
+    for (let i = 0; i < 5; i++) {
+      const o = unfold(phase(t, TL.petalOpen + i * 0.1, 1.5));
+      const fall = TL.petalFall + [0, 0.9, 0.35, 1.5, 0.6][i];
+      if (t >= fall) continue;
+      const a = lerp(dir + (i - 2) * 0.16, face + i * TAU / 5, o);
+      const len = lerp(7 * bud, R, o), wid = lerp(2.6 * bud, 13.5, o);
+      const path = petalShape(c[0], c[1], a, len, wid, 'garden:petal:' + i);
+      F.f('petal', 1, path);
+      F.f('sun', 0.3, ellipse(c[0] + Math.cos(a) * len * 0.22, c[1] + Math.sin(a) * len * 0.22, len * 0.2, wid * 0.36, a));
+      if (o > 0.6) for (const off of [-0.2, 0, 0.2]) {
+        const va = a + off;
+        F.x('petal', nib([[c[0] + Math.cos(va) * 8, c[1] + Math.sin(va) * 8], [c[0] + Math.cos(va) * len * 0.72, c[1] + Math.sin(va) * len * 0.72]], (u) => 0.3 * (1 - u), { raw: true }));
+      }
+    }
+    const open = unfold(phase(t, TL.petalOpen, 1.6));
+    if (open > 0) {
+      const ripe = smooth(phase(t, TL.petalFall + 1.2, 1.6));
+      const eye = disc(c[0], c[1], 5.4 * open);
+      F.x('petal', disc(c[0], c[1], 5.8 * open));
+      if (ripe < 1) F.f('sun', 1, eye);
+      F.f('brown', ripe > 0 ? 0.35 + 0.6 * ripe : 0, eye);
+      if (ripe > 0.5) F.f('green', 0.4, eye);
+      const st = new Path2D();
+      for (let i = 0; i < 11; i++) { const a = i / 11 * TAU + 0.2; st.addPath(disc(c[0] + Math.cos(a) * 7.2 * open, c[1] + Math.sin(a) * 7.2 * open, 0.9 * (1 - ripe))); }
+      F.f('brown', 1, st);
+    }
+  });
+  // fallen petals: drift like leaves, land flat, sink with the soil
+  for (let i = 0; i < 5; i++) {
+    const fall = TL.petalFall + [0, 0.9, 0.35, 1.5, 0.6][i];
+    if (t < fall) continue;
+    const r = rngFor('garden:fallen:' + i);
+    const a0 = face + i * TAU / 5;
+    const hc = headAt(fall);
+    const sx = hc[0] + Math.cos(a0) * R * 0.5, sy = hc[1] + Math.sin(a0) * R * 0.5;
+    const lx = sx + (r() - 0.35) * 70, ly = gy(lx) - 1.5;
+    const dur = 2.6 + r() * 0.8, u = phase(t, fall, dur);
+    const pr = u * 0.72 + smooth(u) * 0.28;
+    const x = lerp(sx, lx, pr) + Math.sin((t - fall) * 2.3 + i) * 9 * (1 - u);
+    const y = lerp(sy, ly, pr);
+    const ang = a0 + (r() - 0.5) * 3 * u + Math.sin((t - fall) * 2.3 + i) * 0.5 * (1 - u);
+    const flat = lerp(1, 0.42, smooth(phase(u, 0.8, 0.2)));
+    const sinkDy = easeInQuad(phase(t, 21.2 + i * 0.12, 1.6)) * 30;
+    if (sinkDy >= 30) continue;
+    F.scope({ clip: 'sky', dy: sinkDy }, () => {
+      const path = petalShape(x - Math.cos(ang) * 11, y - Math.sin(ang) * 11, ang, R * 0.82, 11 * flat, 'garden:petal:' + i);
+      F.f('petal', 1, path);
+    });
+  }
+}
+
+/* pleach: two young trees on a frame, their arms woven over and under */
+const FRAME = { x0: 846, x1: 964, top: 110, wires: [210, 172, 134] };
+function scenePleach(F, t) {
+  const p1 = P.pl1, p2 = P.pl2, S1 = stateOf(p1, t), S2 = stateOf(p2, t);
+  drawRoots(F, p1, S1, rootSet(p1, 5, 40, 18));
+  drawRoots(F, p2, S2, rootSet(p2, 5, 38, 18));
+  const trunk = (p, S) => spine(p.base, S.total, S.len, headingOf(p, t, S, { swayAmp: 0.01 }), 16);
+  const sp1 = trunk(p1, S1), sp2 = trunk(p2, S2);
+  seedLife(F, p1, t, (tt) => spineAt(trunk(p1, stateOf(p1, tt)), stateOf(p1, tt).len));
+  seedLife(F, p2, t, (tt) => spineAt(trunk(p2, stateOf(p2, tt)), stateOf(p2, tt).len));
+  soilStem(F, sp1, S1, 2.7, 2.1); soilStem(F, sp2, S2, 2.7, 2.1);
+  const armT = [[6.2, 7.1, 7.9], [6.6, 7.5, 8.3]];
+  const armGrow = (tree, w) => smooth(phase(t, armT[tree][w], 3.2)) * (1 - smooth(phase(t, 20.0 + w * 0.2, 1.6)));
+  sky(F, p1, S1.sink > S2.sink ? S1 : S2, () => {
+    drawStem(F, sp1, S1, 2.7, 1.8); drawStem(F, sp2, S2, 2.7, 1.8);
+    seedLeaves(F, p1, sp1, S1, t); seedLeaves(F, p2, sp2, S2, t); tipBud(F, sp1, S1); tipBud(F, sp2, S2);
+    const lam = 6, A = 2.3;
+    const arms = [];
+    FRAME.wires.forEach((wy, w) => {
+      // tree 1: right arm to the far post (woven), short left arm; tree 2 mirrors it
+      arms.push({ tree: 0, w, x0: p1.x, x1: FRAME.x1 + 2, wy, sgn: 1 });
+      arms.push({ tree: 0, w, x0: p1.x, x1: FRAME.x0 - 2, wy, sgn: 1 });
+      arms.push({ tree: 1, w, x0: p2.x, x1: FRAME.x0 - 2, wy, sgn: -1 });
+      arms.push({ tree: 1, w, x0: p2.x, x1: FRAME.x1 + 2, wy, sgn: -1 });
+    });
+    const S = [S1, S2], sps = [sp1, sp2];
+    const armY = (arm, x) => arm.wy + arm.sgn * A * Math.sin((x - p1.x) / lam) * smooth(Math.abs(x - arm.x0) / 8);
+    const blossoms = [];
+    for (const arm of arms) {
+      const trunkTop = gy(PLANTS[arm.tree === 0 ? 4 : 5].x) - sps[arm.tree].len + SEED_D;
+      if (trunkTop > arm.wy + 1) continue;             // the trunk has not reached this wire
+      const g = armGrow(arm.tree, arm.w);
+      if (g <= 0.01) continue;
+      const xe = lerp(arm.x0, arm.x1, g), pts = [];
+      const n = Math.max(2, Math.ceil(Math.abs(xe - arm.x0) / 2));
+      for (let i = 0; i <= n; i++) { const x = lerp(arm.x0, xe, i / n); pts.push([x, armY(arm, x)]); }
+      const dry = S[arm.tree].dry > 0.3;
+      flesh(F, nib(pts, (u) => lerp(1.6, 0.8, u), { raw: true }), dry);
+      // leaves and blossoms along the arm, alternating
+      const step = 7, dir = Math.sign(arm.x1 - arm.x0);
+      for (let d = 5, i = 0; d < Math.abs(xe - arm.x0) - 2; d += step, i++) {
+        const x = arm.x0 + dir * d, y = armY(arm, x), side = i % 2 ? 1 : -1;
+        const tn = armT[arm.tree][arm.w] + 3.2 * smoothInv(clamp(d / Math.abs(arm.x1 - arm.x0), 0, 1));
+        const lg = unfold(phase(t, tn + 0.3, 1.1)) * g;
+        leaf(F, x, y, (dir > 0 ? 0 : Math.PI) + side * (1.05 + S[arm.tree].fold * 0.5) * dir, 8 * lg, 2.9, { side: side * dir, dry, bend: 0.15, skew: 0.62 });
+        if (i % 3 === 1 && arm.w < 3) blossoms.push({ x, y: y + side * -3.6, key: arm.tree + ':' + arm.w + ':' + i, tree: arm.tree });
+      }
+    }
+    // weave: at every crossing the front arm is haloed in paper and reprinted on top
+    FRAME.wires.forEach((wy, w) => {
+      const ga = armGrow(0, w), gb = armGrow(1, w);
+      const reachA = lerp(p1.x, FRAME.x1 + 2, ga), reachB = lerp(p2.x, FRAME.x0 - 2, gb);
+      for (let k = Math.ceil((FRAME.x0 - p1.x) / (Math.PI * lam)); k <= Math.floor((FRAME.x1 - p1.x) / (Math.PI * lam)); k++) {
+        const xc = p1.x + k * Math.PI * lam;
+        if (xc < p1.x + 3 || xc > p2.x - 3) continue;
+        if (xc > reachA - 3 || xc < reachB + 3) continue;
+        const front = (k % 2 === 0) ? { sgn: 1 } : { sgn: -1 };
+        const pts = [];
+        for (let i = -4; i <= 4; i++) { const x = xc + i * 1.4; pts.push([x, wy + front.sgn * A * Math.sin((x - p1.x) / lam)]); }
+        const dry = S1.dry > 0.3;
+        F.x('green', nib(pts, () => 1.5 + 1.1, { raw: true }));
+        F.scope({ front: true }, () => flesh(F, nib(pts, () => 1.3, { raw: true }), dry));
+      }
+    });
+    // blossoms: small five-dot flowers along the arms; they drop at evening
+    for (const b of blossoms) {
+      const bl = unfold(phase(t, TL.blossom + hashInt(hash(b.key)) * 1.2, 1.0));
+      const fall = TL.petalFall + 0.3 + hashInt(hash(b.key + 'f')) * 1.8;
+      if (bl <= 0) continue;
+      let x = b.x, y = b.y, s = bl;
+      if (t > fall) {
+        const u = phase(t, fall, 1.6);
+        y = lerp(b.y, gy(b.x) - 1, u * u); x += Math.sin(u * 7) * 3 * (1 - u); s = bl * (1 - 0.35 * u);
+        if (u >= 1) continue;
+      }
+      const fl = new Path2D();
+      for (let i = 0; i < 5; i++) { const a = i / 5 * TAU + hashInt(hash(b.key)) * 2; fl.addPath(disc(x + Math.cos(a) * 1.9 * s, y + Math.sin(a) * 1.9 * s, 1.35 * s)); }
+      F.x('green', fl);                               // a blossom owns its paper: no mud over leaves
+      F.f('petal', 1, fl);
+      F.f('sun', 1, disc(x, y, 0.8 * s));
+    }
+  });
+}
+
+/* umbel: rays from one point to a dome of umbellets; florets become seeds */
+function umbelGeo(t) { const p = P.umbel, S = stateOf(p, t); return { p, S, sp: mainStem(p, t, S, { swayAmp: 0.05, curl: 0.08 }) }; }
+function sceneUmbel(F, t) {
+  const { p, S, sp } = umbelGeo(t);
+  drawRoots(F, p, S, rootSet(p, 6, 52, 22));
+  const headAt = (tt) => { const g = umbelGeo(tt); const tip = spineAt(g.sp, g.sp.len); return [tip[0] + 8, tip[1] - 28]; };
+  seedLife(F, p, t, headAt);
+  soilStem(F, sp, S, 3.1, 2.2);
+  sky(F, p, S, () => {
+    drawStem(F, sp, S, 3.1, 1.7);
+    seedLeaves(F, p, sp, S, t); tipBud(F, sp, S);
+    // thread leaves: a sheath and fine pinnae, fennel-like
+    [[0.2, -1, 38], [0.36, 1, 34], [0.52, -1, 26]].forEach(([v, side, L], li) => {
+      const s = SEED_D + v * p.H;
+      if (sp.len < s) return;
+      const tn = p.shoot + p.grow * smoothInv(s / S.total);
+      const lg = unfold(phase(t, tn, 1.8));
+      if (lg <= 0.02) return;
+      const n = spineAt(sp, s), d = spineDir(sp, s) + side * (0.82 + S.fold * 0.7);
+      const rach = [];
+      for (let i = 0; i <= 6; i++) { const u = i / 6, a = d + side * 0.5 * u * u; rach.push([n[0] + Math.cos(a) * L * lg * u, n[1] + Math.sin(a) * L * lg * u + u * u * 6 * lg]); }
+      const c = curve(rach, false, 3);
+      const threads = new Path2D();
+      threads.addPath(nib(c, (u) => 0.75 * (1 - 0.6 * u), { raw: true }));
+      for (let i = 2; i < c.length - 1; i += 2) {
+        const [x0, y0] = c[i], [x1, y1] = c[i + 1], ta = Math.atan2(y1 - y0, x1 - x0);
+        const pl = (7.5 - i * 0.28) * lg;
+        for (const ps of [-1, 1]) {
+          const a = ta + ps * 0.95;
+          threads.addPath(nib([[x0, y0], [x0 + Math.cos(a) * pl * 0.6, y0 + Math.sin(a) * pl * 0.6 - 0.8], [x0 + Math.cos(a - ps * 0.3) * pl, y0 + Math.sin(a - ps * 0.3) * pl - 2]], (u) => 0.42 * (1 - 0.7 * u), { per: 3 }));
+        }
+      }
+      flesh(F, threads, S.dry > 1 - v);
+    });
+  });
+  // the umbel
+  const tip = spineAt(sp, sp.len), dir = spineDir(sp, sp.len);
+  const open = unfold(phase(t, TL.umbelOpen[0], TL.umbelOpen[1]));
+  const bud = unfold(phase(t, p.shoot + p.grow - 2.2, 1.4));
+  if (bud <= 0) return;
+  const tilt = dir + Math.PI / 2;               // the head turns with the stalk
+  const N = 13, r = rngFor('garden:umbel');
+  const rays = new Path2D(), sub = new Path2D();
+  const florets = [], seeds = [];
+  for (let k = 0; k < N; k++) {
+    const sN = k / (N - 1) * 2 - 1;
+    const jx = (r() - 0.5) * 5, jy = (r() - 0.5) * 5, delay = r();
+    const E = [sN * 58 + jx, -30 + 15 * sN * sN + jy];
+    const C = [sN * 3, -9 * bud];
+    const [ex, ey] = rot(lerp(C[0], E[0], open), lerp(C[1], E[1], open), tilt);
+    const end = [tip[0] + ex, tip[1] + ey];
+    const mid = [tip[0] + ex * 0.5 - Math.sin(tilt) * 0 + sN * 3 * open, tip[1] + ey * 0.5 - 3 * open];
+    rays.addPath(nib(curve([tip, mid, end], false, 5), (u) => 0.75 - 0.25 * u, { raw: true }));
+    // the umbellet: six short rays to florets
+    const uo = unfold(phase(t, TL.umbelOpen[0] + 0.5 + delay * 0.5, 1.3));
+    for (let j = 0; j < 6; j++) {
+      const sj = j / 5 * 2 - 1;
+      const [fx, fy] = rot(sj * 7.5 * uo, (-6 + 3 * sj * sj) * uo - 1.2, tilt);
+      const f = [end[0] + fx, end[1] + fy];
+      sub.addPath(nib([end, f], () => 0.3, { raw: true }));
+      const fl = unfold(phase(t, TL.florets + delay * 0.9 + j * 0.06, 0.7));
+      const sd = smooth(phase(t, TL.seedsSet + delay * 1.2 + j * 0.08, 0.8));
+      const dropK = t > p.drop + 0.1 + delay * 0.8;
+      if (fl > 0) florets.push([f[0], f[1], 2.0 * fl * (1 - sd)]);
+      if (sd > 0 && !dropK) seeds.push([f[0], f[1], sd, tilt + sj * 0.6]);
+    }
+  }
+  sky(F, p, S, () => {
+    flesh(F, rays, S.dry > 0.05);
+    flesh(F, sub, S.dry > 0.05);
+    const fl = new Path2D();
+    for (const [x, y, rr] of florets) if (rr > 0.05) fl.addPath(disc(x, y, rr));
+    F.f('sun', 1, fl);
+    const sd = new Path2D();
+    for (const [x, y, s, a] of seeds) sd.addPath(ellipse(x, y - 0.4, 0.95 * s, 1.9 * s, a));
+    F.f('brown', 1, sd);
+    // bracts at the ray base
+    for (const side of [-1, 1]) leaf(F, tip[0], tip[1], dir + Math.PI + side * 0.5, 5 * bud, 0.9, { bend: 0, dry: S.dry > 0.05 });
+  });
+}
+
+/* pollen: a grass whose hanging anthers shed grains that drift to the flower */
+function grassGeo(t) { const p = P.grass, S = stateOf(p, t); return { p, S, sp: mainStem(p, t, S, { swayAmp: 0.08, curl: -0.55 }) }; }
+function antherPoints(t) {
+  const { S, sp } = grassGeo(t);
+  const tip = spineAt(sp, sp.len), dir = spineDir(sp, sp.len);
+  const head = [];
+  const HL = 50 * unfold(phase(t, P.grass.shoot + P.grass.grow - 2.4, 2.0));
+  for (let i = 0; i <= 8; i++) { const u = i / 8, a = dir + 0.9 * u; head.push([tip[0] + Math.cos(dir) * HL * u + Math.cos(a) * 0, tip[1] + Math.sin(dir) * HL * u + u * u * HL * 0.55]); }
+  const an = unfold(phase(t, TL.anthers, 1.0)) * (1 - smooth(phase(t, P.grass.dry, 1.2)));
+  const pts = [];
+  const sw = wander('garden:anther', [5, 9]);
+  for (let i = 0; i < 8; i++) {
+    const u = 0.14 + i * 0.1, h = head[Math.min(8, Math.round(u * 8))];
+    const L = (7 + (i % 3) * 2.2) * an, a = Math.PI / 2 + sw(t + i * 0.7) * 0.35 + (i % 2 ? 0.25 : -0.2);
+    pts.push({ at: h, end: [h[0] + Math.cos(a) * L, h[1] + Math.sin(a) * L], a, an });
+  }
+  return { head, pts, S, sp, HL };
+}
+function sceneGrass(F, t) {
+  const { p, S, sp } = grassGeo(t);
+  drawRoots(F, p, S, rootSet(p, 7, 30, 20));
+  const A = antherPoints(t);
+  seedLife(F, p, t, (tt) => { const h = antherPoints(tt).head; return h[4]; });
+  soilStem(F, sp, S, 1.7, 1.2);
+  sky(F, p, S, () => {
+    drawStem(F, sp, S, 1.7, 1.0);
+    tipBud(F, sp, S);
+    // blades from the base, long and arching
+    const bl = unfold(phase(t, p.shoot + 1.2, 2.6));
+    [[-1, 58, 0.5], [1, 46, 0.62], [-1, 34, 0.9]].forEach(([side, L, a0], i) => {
+      const s = SEED_D + 6 + i * 10;
+      if (sp.len < s) return;
+      const n = spineAt(sp, s);
+      const pts = [];
+      const Lg = L * bl * (1 - S.fold * 0.2);
+      for (let k = 0; k <= 6; k++) { const u = k / 6, a = -Math.PI / 2 + side * (a0 + 1.4 * u * u + S.fold * 0.8 * u); pts.push([n[0] + side * 0 + Math.cos(a) * Lg * u * 0.9 + side * u * 2, n[1] + Math.sin(a) * Lg * u * 0.75]); }
+      flesh(F, nib(curve(pts, false, 3), (u) => 1.6 * (1 - u) * Math.min(1, u * 8), { raw: true }), S.dry > 0.5);
+    });
+    // the head: spikelets along a nodding rachis
+    if (A.HL > 0.5) {
+      const rach = nib(A.head, () => 0.6, { per: 2 });
+      const sk = new Path2D();
+      for (let i = 1; i <= 8; i++) {
+        const h = A.head[i], prev = A.head[i - 1], a = Math.atan2(h[1] - prev[1], h[0] - prev[0]);
+        const side = i % 2 ? 1 : -1, s = Math.min(1, A.HL / 20);
+        sk.addPath(ellipse(h[0] + Math.cos(a + side * 1.2) * 2.2 * s, h[1] + Math.sin(a + side * 1.2) * 2.2 * s, 4.6 * s, 1.9 * s, a + side * 0.55));
+      }
+      flesh(F, rach, S.dry > 0.1);
+      flesh(F, sk, S.dry > 0.1);
+      const fil = new Path2D(), anth = new Path2D();
+      for (const q of A.pts) {
+        if (q.an <= 0.02) continue;
+        fil.moveTo(q.at[0], q.at[1]); fil.lineTo(q.end[0], q.end[1]);
+        anth.addPath(ellipse(q.end[0] + Math.cos(q.a) * 2.2, q.end[1] + Math.sin(q.a) * 2.2, 3.0 * q.an, 1.3 * q.an, q.a));
+      }
+      F.s('brown', 1, fil, 0.4);
+      F.f('sun', 1, anth);
+      F.f('brown', 0.25, anth);
+    }
+  });
+}
+
+/* the grains: seeded births, curved drifts, grown in and shrunk out, never popped */
+const GRAINS = (() => {
+  const r = rngFor('garden:grains'), out = [];
+  const [a, b] = TL.pollen;
+  const n = 36;
+  for (let i = 0; i < n; i++) {
+    const birth = a + (i / n) * (b - a - 3.9) + r() * 0.12;
+    const kind = r();
+    let to;
+    if (kind < 0.72) to = [771 + (r() - 0.5) * 14, 112 + (r() - 0.5) * 10];     // to the flower
+    else if (kind < 0.9) to = [1030 + (r() - 0.5) * 70, 86 + r() * 10];        // into the umbel
+    else to = [1000 + r() * 110, gy(1050) - 2];                             // to the soil
+    out.push({ birth, dur: 3.7 + r() * 0.7, anther: Math.floor(r() * 8), to, lift: 22 + r() * 8, wob: 2 + r() * 2.5, ph: r() * TAU, r: 1.2 + r() * 0.5 });
+  }
+  return out;
+})();
+const ANTHER_CACHE = new Map();
+function sceneGrains(F, t) {
+  const path = new Path2D();
+  let any = false;
+  for (const g of GRAINS) {
+    const u = (t - g.birth) / g.dur;
+    if (u <= 0 || u >= 1) continue;
+    let A = ANTHER_CACHE.get(g.birth);
+    if (!A) { A = antherPoints(g.birth).pts[g.anther]; ANTHER_CACHE.set(g.birth, A); }
+    const o = [A.end[0] + Math.cos(A.a) * 3.2, A.end[1] + Math.sin(A.a) * 3.2];
+    const e = u * 0.35 + smooth(u) * 0.65;
+    const mx = (o[0] + g.to[0]) / 2, my = Math.min(o[1], g.to[1]) - g.lift;
+    const x = (1 - e) * (1 - e) * o[0] + 2 * (1 - e) * e * mx + e * e * g.to[0] + Math.sin(t * 1.9 + g.ph) * g.wob * Math.sin(Math.PI * u);
+    const y = (1 - e) * (1 - e) * o[1] + 2 * (1 - e) * e * my + e * e * g.to[1] + Math.cos(t * 1.3 + g.ph) * g.wob * 0.6 * Math.sin(Math.PI * u);
+    const life = smooth(u / 0.1) * smooth((1 - u) / 0.12);
+    if (x < QUIET.x && y < QUIET.y) continue;
+    path.addPath(disc(x, y, g.r * life)); any = true;
+  }
+  if (any) F.f('sun', 1, path);
+}
+
+/* tilth: a carrot in section; its fine roots read the stones around it */
+const ROOTLETS = READ.map(([x, d, rr], i) => {
+  const r = rngFor('garden:rootlet:' + i);
+  const fromD = 8 + i * 6, side = x < CARROT_X ? -1 : 1;
+  return { from: fromD, side, stone: i, mid: [lerp(CARROT_X, x, 0.5) + (r() - 0.5) * 10, fromD + (d - fromD) * 0.4 + 6], start: 6.6 + i * 0.55 };
+});
+function sceneCarrot(F, t) {
+  const p = P.carrot, S = stateOf(p, t);
+  const x = p.x, sy = gy(x);
+  const swell = smooth(phase(t, p.shoot + 0.8, 8.5)) * (1 - smooth(phase(t, p.ret - 0.3, 2.4)));
+  const L = 50 * Math.max(swell, S.root * 0.35), Wt = 8.2 * swell;
+  seedLife(F, p, t, () => [x + 4, sy - 34]);
+  F.scope({ clip: 'soil' }, () => {
+    // the tail root and the rootlets draw first so the carrot sits over them
+    if (S.root > 0.01) {
+      const tail = [[x, sy + SEED_D], [x + 1, sy + L * 0.9], [x - 1.5, sy + L + 18 * S.root], [x + 1, sy + L + 34 * S.root]];
+      F.f('brown', 1, nib(tail, (u) => 0.85 * (1 - 0.7 * u), { per: 4 }));
+    }
+    for (const rl of ROOTLETS) {
+      const st = STONES.find((s) => s.read === rl.stone);
+      const u = smooth(phase(t, rl.start, 2.6)) * (1 - smooth(phase(t, p.ret + rl.stone * 0.12, 1.6)));
+      if (u <= 0.01) continue;
+      const a = [x + rl.side * Math.max(1, Wt * (1 - rl.from / 60)), sy + rl.from];
+      const dxs = st.x - a[0], dys = st.y - a[1], dl = Math.hypot(dxs, dys);
+      const b = [st.x - dxs / dl * st.r * 0.9, st.y - dys / dl * st.r * 0.9];
+      const c = curve([a, [rl.mid[0], sy + rl.mid[1]], b], false, 8);
+      const n = Math.max(2, Math.round(c.length * u));
+      F.f('brown', 1, nib(c.slice(0, n), (v) => 0.62 * (1 - 0.6 * v), { raw: true }));
+      if (u > 0.985) {
+        const read = smooth(phase(t, rl.start + 2.6, 0.7)) * (1 - smooth(phase(t, p.ret + rl.stone * 0.12, 0.5)));
+        if (read > 0) F.f('sun', read > 0.5 ? 0.55 : 0.28, stonePath(st));
+      }
+    }
+    if (L > 0.5) {
+      const body = [];
+      for (let i = 0; i <= 14; i++) { const u = i / 14; body.push([x + Math.sin(u * 2.4) * 1.2, sy - 2 + L * u]); }
+      const shape = nib(body, (u) => Wt * Math.pow(1 - u, 0.85) * Math.min(1, 0.55 + u * 6), { raw: true });
+      F.f('sun', 1, shape);
+      const rings = new Path2D();
+      for (let yy = 5, i = 0; yy < L - 4; yy += 5.2, i++) {
+        const u = yy / L, w = Wt * Math.pow(1 - u, 0.85);
+        const s = i % 2 ? 1 : -1;
+        rings.addPath(nib([[x + s * w * 0.95, sy - 2 + yy], [x + s * w * 0.35, sy - 2 + yy + 0.9]], () => 0.34, { raw: true }));
+      }
+      F.f('brown', 1, rings);
+      F.f('green', 0.5, ellipse(x, sy - 0.5, Wt * 0.8, 1.6 * swell, 0));
+    }
+  });
+  // feathery tops
+  sky(F, p, S, () => {
+    const r = rngFor('garden:carrot:fronds');
+    const fronds = new Path2D();
+    for (let k = 0; k < 6; k++) {
+      const side = k % 2 ? 1 : -1, a0 = -Math.PI / 2 + side * (0.18 + k * 0.1) + (r() - 0.5) * 0.1;
+      const Lf = (30 + r() * 20) * unfold(phase(t, p.shoot + 0.8 + k * 0.4, 5.5));
+      if (Lf < 1) continue;
+      const sw = sway('carrot' + k)(t) * 0.1;
+      const pts = [];
+      for (let i = 0; i <= 5; i++) { const u = i / 5, a = a0 + side * (0.5 + S.fold * 1.6) * u * u + sw * u; pts.push([x + Math.cos(a) * Lf * u + side * 0.8, sy - 2 + Math.sin(a) * Lf * u]); }
+      const c = curve(pts, false, 4);
+      fronds.addPath(nib(c, (u) => 0.7 * (1 - 0.6 * u), { raw: true }));
+      for (let i = 3; i < c.length - 1; i += 2) {
+        const [x0, y0] = c[i], [x1, y1] = c[i + 1], ta = Math.atan2(y1 - y0, x1 - x0), pl = 3.8 * (1 - i / c.length * 0.5) * Math.min(1, Lf / 20);
+        for (const ps of [-1, 1]) {
+          const a = ta + ps * 0.8;
+          fronds.addPath(nib([[x0, y0], [x0 + Math.cos(a) * pl, y0 + Math.sin(a) * pl], [x0 + Math.cos(a + ps * 0.5) * pl * 1.6, y0 + Math.sin(a + ps * 0.5) * pl * 1.6]], (u) => 0.4 * (1 - 0.6 * u), { per: 2 }));
+        }
+      }
+    }
+    flesh(F, fronds, S.dry > 0.4);
+  });
+}
+
+/* ground cover: small tufts between the beds, the garden's second scale */
+const TUFTS = (() => {
+  const r = rngFor('garden:tufts'), out = [];
+  for (let i = 0; i < 46; i++) {
+    const x = -560 + r() * 2560;
+    if (PLANTS.some((p) => Math.abs(p.x - x) < 16) || Math.abs(x - 568) < 40 || (x > FRAME.x0 - 6 && x < FRAME.x1 + 6)) { r(); r(); continue; }
+    const eve = clamp((1300 - x) / 125, 0, 8);
+    out.push({ x, n: 3 + Math.floor(r() * 4), h: 4 + r() * 6, t0: 3.2 + r() * 4.5, eve, key: 'tuft:' + i });
+  }
+  return out;
+})();
+function sceneTufts(F, t) {
+  const live = new Path2D(), dry = new Path2D();
+  let anyL = false, anyD = false;
+  for (const tf of TUFTS) {
+    const g = unfold(phase(t, tf.t0, 2.4));
+    const sink = easeInOut(phase(t, 19.9 + tf.eve * 0.1, 2.4));
+    if (g <= 0.01 || sink >= 1) continue;
+    const isDry = t > 18.0 + tf.eve * 0.12;
+    const r = rngFor(tf.key), y0 = gy(tf.x) + 0.6 + sink * (tf.h + 3);
+    const sw = sway('tuft')(t + tf.x * 0.01) * 0.12;
+    const path = isDry ? dry : live;
+    for (let k = 0; k < tf.n; k++) {
+      const a = -Math.PI / 2 + (k / (tf.n - 1 || 1) - 0.5) * 1.3 + (r() - 0.5) * 0.3 + sw;
+      const L = tf.h * (0.6 + r() * 0.5) * g, bx = tf.x + (k - tf.n / 2) * 0.9;
+      path.addPath(nib([[bx, y0], [bx + Math.cos(a) * L * 0.5, y0 + Math.sin(a) * L * 0.5], [bx + Math.cos(a + 0.25 * Math.sign(a + Math.PI / 2)) * L, y0 + Math.sin(a) * L + L * 0.08]], (u) => 0.55 * (1 - u), { per: 3 }));
+    }
+    if (isDry) anyD = true; else anyL = true;
+  }
+  F.scope({ clip: 'sky' }, () => { if (anyL) F.f('green', 1, live); if (anyD) flesh(F, dry, true); });
+}
+
+/* ── the static print: paper, soil, gear ────────────────────────────────── */
+
+function drawSoilPlates(g, ink) {
+  // g draws coverage in world space; alpha is tone
+  const r = rngFor('garden:soil:' + ink);
+  if (ink === 'sun') {
+    // warm topsoil fading with depth, a warmer subsoil band at the foot of the section
+    g.save(); g.clip(SOIL);
+    const grd = g.createLinearGradient(0, G0 - 3, 0, WH);
+    grd.addColorStop(0, 'rgba(0,0,0,0.34)'); grd.addColorStop(0.18, 'rgba(0,0,0,0.2)');
+    grd.addColorStop(0.42, 'rgba(0,0,0,0.1)'); grd.addColorStop(0.75, 'rgba(0,0,0,0.13)'); grd.addColorStop(1, 'rgba(0,0,0,0.19)');
+    g.fillStyle = grd; g.fillRect(-900, G0 - 10, 3300, WH - G0 + 80);
+    g.restore();
+    g.save(); g.globalCompositeOperation = 'destination-out';
+    for (const s of STONES) g.fill(stonePath(s));
+    g.fill(ruleBody(true));
+    g.restore();
+  }
+  if (ink === 'brown') {
+    // the ground line, heavy as in a section drawing
+    const line = [];
+    for (let x = -900; x <= 2340; x += 4) line.push([x, gy(x) - 0.2]);
+    const wob = makeWob(r, 5);
+    g.fill(nib(line, (u) => 0.72 + 0.14 * wob(u * 90), { raw: true }));
+    // topsoil stipple thinning with depth; sparse grit below
+    g.fillStyle = MASK;
+    for (let i = 0; i < 12000; i++) {
+      const x = -900 + r() * 3240, d = -Math.log(1 - r() * 0.985) * 13, rr = 0.32 + r() * 0.75;
+      const y = gy(x) + 1.6 + d;
+      if (y > WH + 4) continue;
+      g.globalAlpha = 0.55 + r() * 0.45;
+      g.beginPath(); g.arc(x, y, rr, 0, TAU); g.fill();
+    }
+    for (let i = 0; i < 2200; i++) {
+      const x = -900 + r() * 3240, y = G0 + 38 + r() * 70, rr = 0.25 + r() * 0.5;
+      g.globalAlpha = 0.5 + r() * 0.5;
+      g.beginPath(); g.arc(x, y, rr, 0, TAU); g.fill();
+    }
+    g.globalAlpha = 1;
+    // strata: broken lines, as a draughtsman marks soil horizons
+    for (const [d, w] of [[44, 0.34], [79, 0.3]]) {
+      const sw = makeWob(r, 4);
+      for (let x = -900; x < 2340;) {
+        const len = 5 + r() * 16, pts = [];
+        for (let k = 0; k <= 3; k++) { const xx = x + len * k / 3; pts.push([xx, G0 + d + sw(xx / 140) * 3]); }
+        g.fill(nib(pts, () => w, { raw: true }));
+        x += len + 3 + r() * 9;
+      }
+    }
+    for (const s of STONES) { g.lineWidth = 0.7; g.stroke(stonePath(s)); }
+    // gear: the rule, the cane, the frame
+    g.save(); g.globalCompositeOperation = 'destination-out'; g.fill(ruleBody(false)); g.restore();
+    g.lineWidth = 0.7; g.stroke(ruleBody(false));
+    for (let yy = gy(RULE.x) - RULE.tick, i = 1; yy > RULE.top + 2; yy -= RULE.tick, i++) {
+      const long = i % 5 === 0;
+      g.fill(nib([[RULE.x, yy], [RULE.x + (long ? 7.5 : 4.2), yy]], () => long ? 0.45 : 0.34, { raw: true }));
+    }
+    g.fill(nib([[433, gy(433) + 9], [432.4, 232], [431.8, 203]], (u) => 1.2 - 0.3 * u, { per: 4 }));
+    for (const px of [FRAME.x0, FRAME.x1]) {
+      g.fill(nib([[px, gy(px) + 10], [px + 0.4, 190], [px - 0.2, FRAME.top]], () => 1.15, { per: 4 }));
+      g.fill(ellipse(px, FRAME.top - 0.6, 1.9, 1.1, 0));
+    }
+    for (const wy of FRAME.wires) { g.fill(nib([[FRAME.x0, wy], [(FRAME.x0 + FRAME.x1) / 2, wy + 0.8], [FRAME.x1, wy]], () => 0.33, { per: 6 })); }
+  }
+}
+function ruleBody(under) {
+  const x = RULE.x, top = under ? gy(x) - 1 : RULE.top, bot = gy(x) + 9;
+  return poly([[x, top], [x + RULE.w, top - 0.6], [x + RULE.w, bot], [x, bot]]);
+}
+
+/* ── the printer ────────────────────────────────────────────────────────── */
+
+function createFilm(canvas) {
+  const main = canvas.getContext('2d');
+  const mk = () => { const c = document.createElement('canvas'); return [c, c.getContext('2d')]; };
+  const [sxC, sx] = mk(), [s2C, s2] = mk();
+  const staticC = {}, screens = {}, starve = {};
+  let W = 0, H = 0, S = 1, OX = 0, OY = 0, DPR = 1;
+  const stats = {};
+
+  function buildScreen(ink, pitch) {
+    const { a, b } = SCREEN[ink], n = a * a + b * b, rn = Math.sqrt(n);
+    const Sz = Math.max(2, Math.round(pitch * rn)), Pp = Sz / rn;
+    const M = Math.max(1, Math.ceil(140 / Sz)), T = Sz * M;
+    const ux = a / rn, uy = b / rn, th = new Float32Array(T * T), seed = hash('garden:screen:' + ink);
+    for (let y = 0; y < T; y++) for (let x = 0; x < T; x++) {
+      const pxx = x + 0.5, pyy = y + 0.5;
+      const mi = Math.round((pxx * ux + pyy * uy) / Pp), ki = Math.round((-pxx * uy + pyy * ux) / Pp);
+      const cx = (mi * ux - ki * uy) * Pp, cy = (mi * uy + ki * ux) * Pp;
+      const d2 = (pxx - cx) * (pxx - cx) + (pyy - cy) * (pyy - cy);
+      const wx = ((Math.round(cx * 4) % (T * 4)) + T * 4) % (T * 4), wy = ((Math.round(cy * 4) % (T * 4)) + T * 4) % (T * 4);
+      const j = 0.86 + 0.28 * hashInt(seed ^ (wx * 73856093) ^ (wy * 19349663));
+      // clamped inside (0, 1): zero coverage prints nothing, full coverage closes
+      th[y * T + x] = clamp(Math.PI * d2 / (Pp * Pp * j * j) + (hashInt(seed + y * T + x) - 0.5) * 0.06, 0.006, 0.994);
+    }
+    return { T, th, pats: new Map() };
+  }
+  function pattern(ink, cov) {
+    const sc = screens[ink];
+    let pat = sc.pats.get(cov);
+    if (!pat) {
+      const c = document.createElement('canvas'); c.width = c.height = sc.T;
+      const x = c.getContext('2d'), img = x.createImageData(sc.T, sc.T);
+      for (let i = 0; i < sc.th.length; i++) img.data[i * 4 + 3] = cov > sc.th[i] ? 255 : 0;
+      x.putImageData(img, 0, 0);
+      pat = s2.createPattern(c, 'repeat');
+      sc.pats.set(cov, pat);
+    }
+    return pat;
+  }
+  function screenCanvas(cv, ink) {
+    const g = cv.getContext('2d'), img = g.getImageData(0, 0, W, H), d = img.data, sc = screens[ink], T = sc.T;
+    for (let y = 0; y < H; y++) {
+      const row = (y % T) * T;
+      for (let x = 0; x < W; x++) { const i = (y * W + x) * 4 + 3; d[i] = d[i] / 255 > sc.th[row + (x % T)] ? 255 : 0; }
+    }
+    g.putImageData(img, 0, 0);
+  }
+  function world(g) { g.setTransform(S, 0, 0, S, OX, OY); }
+  function bakeStarve(ink) {
+    const T = 397 + INKS.indexOf(ink) * 58, c = document.createElement('canvas'); c.width = c.height = T;
+    const g = c.getContext('2d'), r = rngFor('garden:starve:' + ink);
+    const n = document.createElement('canvas'); n.width = n.height = 9;
+    const nx = n.getContext('2d'), img = nx.createImageData(9, 9);
+    for (let i = 0; i < 81; i++) img.data[i * 4 + 3] = Math.pow(r(), 2) * 255 * 0.16;
+    nx.putImageData(img, 0, 0);
+    g.imageSmoothingEnabled = true; g.drawImage(n, -T / 9, -T / 9, T * 11 / 9, T * 11 / 9);
+    const k = DPR / 2;
+    for (let i = 0; i < T * 0.7; i++) {
+      g.globalAlpha = 0.35 + r() * 0.65;
+      g.beginPath(); g.arc(r() * T, r() * T, (0.35 + r() * 0.75) * Math.max(0.7, k * 1.2), 0, TAU); g.fill();
+    }
+    starve[ink] = sx.createPattern(c, 'repeat');
+  }
+  function bake(w, h, dpr) {
+    W = w; H = h; DPR = dpr;
+    S = H / WH; OX = (W - WW * S) / 2; OY = 0;
+    canvas.width = W; canvas.height = H;
+    for (const [c] of [[sxC], [s2C]]) { c.width = W; c.height = H; }
+    const pitch = Math.max(3.4, PITCH_CSS * dpr);
+    for (const ink of INKS) { screens[ink] = buildScreen(ink, pitch); bakeStarve(ink); }
+    for (const ink of ['sun', 'brown']) {
+      const c = staticC[ink] || (staticC[ink] = document.createElement('canvas'));
+      c.width = W; c.height = H;
+      const g = c.getContext('2d', { willReadFrequently: true });
+      g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H);
+      world(g); g.fillStyle = g.strokeStyle = MASK; g.lineCap = g.lineJoin = 'round';
+      drawSoilPlates(g, ink);
+      screenCanvas(c, ink);
+    }
+  }
+  /* Ops that share kind, clip, offset and width merge into one path: within a
+     band every fill is a union, so one fill call does the work of many, and the
+     ground clip is set once per run instead of once per leaf. */
+  function drawOps(g, ops) {
+    const runs = new Map();
+    for (const op of ops) {
+      const key = op.k + '|' + (op.st.clip || '') + '|' + (op.st.dy || 0) + '|' + (op.w || 0);
+      let r = runs.get(key);
+      if (!r) runs.set(key, r = { op, path: new Path2D() });
+      r.path.addPath(op.path);
+    }
+    for (const { op, path } of runs.values()) {
+      const st = op.st, needs = st.clip || st.dy;
+      if (needs) { g.save(); if (st.clip) g.clip(CLIPS[st.clip]); if (st.dy) g.translate(0, st.dy); }
+      if (op.w) { g.lineWidth = op.w; g.stroke(path); } else g.fill(path);
+      if (needs) g.restore();
+    }
+  }
+  function bands(ink, ops) {
+    const groups = new Map();
+    for (const op of ops) { let a = groups.get(op.cov); if (!a) groups.set(op.cov, a = []); a.push(op); }
+    for (const c of [...groups.keys()].sort((a, b) => a - b)) {
+      const list = groups.get(c);
+      if (c >= 1) { world(sx); drawOps(sx, list); continue; }
+      stats.bands++;
+      s2.setTransform(1, 0, 0, 1, 0, 0); s2.globalCompositeOperation = 'source-over'; s2.clearRect(0, 0, W, H);
+      world(s2); drawOps(s2, list);
+      s2.setTransform(1, 0, 0, 1, 0, 0); s2.globalCompositeOperation = 'destination-in';
+      s2.fillStyle = pattern(ink, c); s2.fillRect(0, 0, W, H);
+      s2.globalCompositeOperation = 'source-over';
+      sx.setTransform(1, 0, 0, 1, 0, 0); sx.drawImage(s2C, 0, 0);
+    }
+  }
+  function plate(ink, ops) {
+    sx.setTransform(1, 0, 0, 1, 0, 0); sx.globalCompositeOperation = 'source-over'; sx.globalAlpha = 1;
+    sx.clearRect(0, 0, W, H);
+    sx.fillStyle = sx.strokeStyle = s2.fillStyle = s2.strokeStyle = MASK;
+    sx.lineCap = sx.lineJoin = s2.lineCap = s2.lineJoin = 'round';
+    if (staticC[ink]) sx.drawImage(staticC[ink], 0, 0);
+    const back = [], knock = [], front = [];
+    for (const op of ops) (op.k === 'x' ? knock : op.st.front ? front : back).push(op);
+    bands(ink, back);
+    if (knock.length) {
+      world(sx); sx.globalCompositeOperation = 'destination-out';
+      drawOps(sx, knock);
+      sx.globalCompositeOperation = 'source-over';
+    }
+    sx.fillStyle = MASK;
+    bands(ink, front);
+    sx.setTransform(1, 0, 0, 1, 0, 0);
+    sx.globalCompositeOperation = 'destination-out'; sx.fillStyle = starve[ink]; sx.fillRect(0, 0, W, H);
+    sx.globalCompositeOperation = 'source-in'; sx.fillStyle = INK[ink]; sx.fillRect(0, 0, W, H);
+    sx.globalCompositeOperation = 'source-over'; sx.fillStyle = MASK;
+  }
+  function frameOps(t) {
+    const F = new Frame();
+    sceneGlow(F, t); sceneSun(F, t); sceneTufts(F, t);
+    sceneCarrot(F, t); sceneGrass(F, t); sceneUmbel(F, t); scenePleach(F, t);
+    scenePetal(F, t); sceneRule(F, t); sceneWeed(F, t); sceneShears(F, t); sceneTend(F, t);
+    sceneGrains(F, t);
+    return F;
+  }
+  function render(t) {
+    if (!W) return;
+    t = t > DUR ? t % DUR : Math.max(0, t);
+    const t0 = performance.now();
+    const F = frameOps(t);
+    stats.scene = performance.now() - t0; stats.bands = 0;
+    stats.ops = INKS.map((i) => F.ops[i].length).join('/');
+    main.setTransform(1, 0, 0, 1, 0, 0); main.globalCompositeOperation = 'source-over'; main.globalAlpha = 1;
+    main.clearRect(0, 0, W, H);
+    INK = night() ? INK_NIGHT : INK_DAY;
+    for (const ink of INKS) {
+      plate(ink, F.ops[ink]);
+      main.globalCompositeOperation = 'multiply';
+      main.drawImage(sxC, Math.round(REG[ink][0] * S), Math.round(REG[ink][1] * S));
+      main.globalCompositeOperation = 'source-over';
+    }
+  }
+  return { bake, render, size: () => [W, H], stats };
+}
+
+/* ── the player: sized to its box, paused off screen, still when asked ─── */
+
+function mount(root) {
+  const stage = root.querySelector('.pp-film-stage'), canvas = stage.querySelector('canvas');
+  const film = createFilm(canvas);
+  const reduce = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  const api = { duration: DUR, ready: false, still: STILL, shots: SHOTS, quiet: QUIET, playing: false };
+  let at = START, last = null, raf = 0, visible = true, wanted = true, pending = 0, cost = [], fps = FPS, shown = -1;
+  const size = () => {
+    const r = stage.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+    return [Math.max(2, Math.round(r.width * dpr)), Math.max(2, Math.round(r.height * dpr)), dpr];
+  };
+  function rebake() {
+    const [w, h, dpr] = size();
+    const [cw, ch] = film.size();
+    if (w === cw && h === ch) return;
+    film.bake(w, h, dpr);
+    api.ready = true;
+    shown = -1;
+    film.render(reduce.matches || api.degraded ? STILL : at);
+  }
+  function frame(now) {
+    raf = 0;
+    if (!api.playing) return;
+    if (last !== null) at = (at + Math.min(0.1, (now - last) / 1000)) % DUR;
+    last = now;
+    const step = Math.floor(at * fps);
+    if (step !== shown) {
+      shown = step;
+      const t0 = performance.now();
+      film.render(step / fps);
+      cost.push(performance.now() - t0); if (cost.length > 45) cost.shift();
+      // without a GPU canvas a frame can cost 80 ms or more: fall back to a
+      // 12 fps flip-book, and past that to the still, rather than jank the page
+      if (cost.length === 45) {
+        const med = cost.slice().sort((a, b) => a - b)[22];
+        if (fps === FPS && med > 26) { fps = 12; cost = []; }
+        else if (fps === 12 && med > 40) { api.degraded = true; api.playing = false; film.render(STILL); return; }
+      }
+    }
+    raf = requestAnimationFrame(frame);
+  }
+  function update() {
+    const go = wanted && visible && !document.hidden && !reduce.matches && api.ready && !api.degraded;
+    if (go && !api.playing) { api.playing = true; last = null; raf = raf || requestAnimationFrame(frame); }
+    if (!go && api.playing) { api.playing = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
+    if (reduce.matches && api.ready) film.render(STILL);
+  }
+  api.seek = (t) => { api.playing = false; wanted = false; if (raf) cancelAnimationFrame(raf); raf = 0; at = t; film.render(t); };
+  api.play = () => { wanted = true; update(); };
+  api.pause = () => { wanted = false; update(); };
+  api.cost = () => cost.slice();
+  api.fps = () => fps;
+  api.render = (t) => film.render(t);
+  api.stats = film.stats;
+  new ResizeObserver(() => { clearTimeout(pending); pending = setTimeout(() => { rebake(); update(); }, api.ready ? 150 : 0); }).observe(stage);
+  if ('IntersectionObserver' in window) new IntersectionObserver((es) => { visible = es[es.length - 1].isIntersecting; update(); }).observe(stage);
+  document.addEventListener('visibilitychange', update);
+  // a theme switch changes the inks; redraw now if the film is not playing to pick it up
+  new MutationObserver(() => { if (api.ready && !api.playing) film.render(reduce.matches || api.degraded ? STILL : at); })
+    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (reduce.addEventListener) reduce.addEventListener('change', update);
+  root.__film = api;
+  rebake(); update();
+}
+
+document.querySelectorAll('.pp-film').forEach(mount);
+})();
+</script>
