@@ -31,7 +31,7 @@ Border color defaults to `#E2D8C0` on paper surfaces and `#403628` inside termin
 
 ## Shadow Recipes
 
-Shadows are always ink-tinted — `rgba(58, 39, 24, …)`, never pure black and never blue-gray. Two layers: a close contact shadow plus a soft ambient one.
+Shadows are always ink-tinted — `rgba(58, 39, 24, …)`, never pure black and never blue-gray. On soil-night they are soil-tinted, `rgba(8, 6, 4, …)`, the dark values in `tokens.css`, because an ink-brown shadow vanishes on soil. Two layers: a close contact shadow plus a soft ambient one.
 
 | Token | Value | Usage |
 |-------|-------|-------|
@@ -121,6 +121,7 @@ Rules:
 - Required on every **product** page: the **plotplot band** (links back to plotplot.ai), the forest surface, the garden row (full garden, bloom dots, current highlighted), and the "a plotplot garden tool" attribution. The umbrella page keeps the forest footer but omits the band.
 - Default is **three columns** — identity · the garden · nearby — collapsing to one at 880; a page with nothing "nearby" may drop to two. The umbrella page (plotplot.ai) uses the same three columns (identity · the garden · the project).
 - The band is a **shared family surface**: built from fixed family tokens (`--pp-forest`, `--pp-term-text`, `--pp-term-green`) so it renders identically in every theme **and on every product** — never wire it to theme-flipping vars, and never re-tint it to the product's accent. Per-product colour lives only in the garden-row dots and the current-pill highlight.
+- Garden-row links go to each bed's page where it has one (`https://jahala.github.io/<bed>/`), as the reference pages do; the snippet below shows repository links, which stand in for a bed with no page yet.
 - `/petals check` verifies the footer's colors and forest↔cream contrast, not its DOM; the garden row's completeness is a convention the building agent applies and review confirms.
 
 ### Reference implementation
