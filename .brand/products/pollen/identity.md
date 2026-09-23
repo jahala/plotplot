@@ -37,11 +37,11 @@ Files: `assets/pollen-mark.svg` (paper) · `assets/pollen-mark-night.svg` (soil-
 
 ## Logo usage
 
-- Minimum size: 16px mark height (checked at 16 · 20 · 28 · 48). Below 16, drop the small
+- Minimum size: 16px mark height (checked at 16 · 24 · 32 · 64). Below 16, drop the small
   grain rather than shrink everything.
 - Clear space: half the mark height on every side.
 - Fills are exact — anther gold `#C8B330` and growth green `#357E2C` on paper; on soil-night
-  the gold brightens to `#D9C44A` and the stems to `#84C56A` (the night file). Never recolour
-  outside these four values.
+  the gold brightens to `#D9C44A` and the stems to `#84C56A`. The night file is derived by
+  `scripts/marks.py`, never drawn. Never recolour outside these four values.
 - Never: add a bee, level the two heads into symmetry, close the stems into a V that touches,
   outline the wordmark, or set the wordmark in anything but the body face.

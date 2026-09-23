@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="pleach">
+  <!-- pleach mark: two branches woven into one stem that ends in a single bud; only what passed the weave ships -->
+  <path d="M6 22 C6 17.2 18 16.4 12 10.6" stroke="#357E2C" stroke-width="2"/>
+  <path d="M18 22 C18 17.2 6 16.4 12 10.6" stroke="#97539B" stroke-width="2"/>
+  <path d="M12 11.4 C9.8 9.4 9.6 5.8 12 2.4 C14.4 5.8 14.2 9.4 12 11.4 Z" fill="#97539B"/>
+</svg>
