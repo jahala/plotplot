@@ -5,6 +5,14 @@
   mark and name in the header, the direction sign, the filled plot on the key plan, the hero, the
   bed's own sections, and the footer's identity column and current pill. Everything else is the
   family's. The inchworm's source is ../assets/inchworm.html.
+
+  Things a copy must take from the bed's own layer in products/<bed>/:
+  - the mark: inline products/<bed>/assets/<bed>-mark.svg in the header, its two inks as tokens
+    (growth green as --pp-primary so it brightens at night, the accent as the bed's bloom);
+  - the wordmark's face, when the bed's identity.md sets one (pollen's is the body face);
+  - voice and colours: check the page with `petals check <page> --product <bed>` so the bed's own
+    terms and colour rules are read, not only the umbrella's.
+  The page's :root carries the tokens it uses, valued as tokens.css; take new ones from there.
 -->
 <html lang="en">
 <head>
@@ -61,7 +69,7 @@
     --pp-primary:#84C56A; --pp-accent:#F2A93B; --pp-leaf:#9FD08A;
     --pp-text:#F3ECD9; --pp-text-soft:#C9BBA0;
     --pp-bg:#1C1610; --pp-bg-band:#211A12; --pp-surface:#262019; --pp-border:#403628;
-    --pp-pollen-ink:#D9C44A;
+    --pp-pollen:#D9C44A; --pp-pollen-ink:#D9C44A;
     --pp-weeder-word:#B85C82;
     --pp-shadow-rest:0 1px 0 #403628, 0 12px 40px -16px rgba(8,6,4,0.6);
     --pp-shadow-lift:0 2px 4px rgba(8,6,4,0.3), 0 14px 32px rgba(8,6,4,0.45);
@@ -111,7 +119,7 @@
     padding-top:var(--pp-space-xs);padding-bottom:var(--pp-space-xs)}
   .brand{display:inline-flex;align-items:center;gap:var(--pp-space-3xs);color:var(--pp-text)}
   .wordmark{font-family:var(--pp-font-heading);font-weight:600;font-size:1.4rem;letter-spacing:-.01em}
-  .wmark{width:32px;height:32px;flex:none}
+  .wmark{width:28px;height:28px;flex:none}
   .w-plant{fill:none;stroke:var(--pp-primary);stroke-linecap:round}
   .w-leaf{fill:var(--pp-primary)}
   .w-shear{fill:none;stroke:var(--pp-weeder);stroke-linecap:round}
@@ -135,17 +143,17 @@
   /* ── direction sign: back to the garden, this bed, the next bed ── */
   .waysign{background:var(--bed);color:var(--bed-on)}
   .waysign .wrap{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch}
-  .waysign :focus-visible{outline-color:var(--pp-term-text)}
+  .waysign :focus-visible{outline-color:var(--bed-on)}
   .way{display:flex;align-items:center;gap:var(--pp-space-2xs);padding:var(--pp-space-2xs) 0;
     font-family:var(--pp-font-code);font-size:.72rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--bed-on)}
   a.way{transition:gap .2s ease-out}
   a.way:hover{gap:var(--pp-space-xs)}
   .way .big{font-size:1.1rem;letter-spacing:0}
-  .way.here{padding:var(--pp-space-2xs) var(--pp-space-md);border-left:1px solid rgba(243,236,217,.3);border-right:1px solid rgba(243,236,217,.3)}
+  .way.here{padding:var(--pp-space-2xs) var(--pp-space-md);border-left:1px solid color-mix(in srgb,var(--bed-on) 30%,transparent);border-right:1px solid color-mix(in srgb,var(--bed-on) 30%,transparent)}
   .way.next{justify-content:flex-end}
   .way .sep{opacity:.5}
-  .w-node{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--pp-term-text);display:inline-flex;align-items:center;justify-content:center;font-weight:700;letter-spacing:0}
-  .w-plate{height:30px;min-width:30px;border-radius:var(--pp-radius-sm);border:1.5px solid var(--pp-term-text);display:inline-flex;align-items:center;justify-content:center;font-weight:700;letter-spacing:0;padding:0 var(--pp-space-4xs)}
+  .w-node{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--bed-on);display:inline-flex;align-items:center;justify-content:center;font-weight:700;letter-spacing:0}
+  .w-plate{height:30px;min-width:30px;border-radius:var(--pp-radius-sm);border:1.5px solid var(--bed-on);display:inline-flex;align-items:center;justify-content:center;font-weight:700;letter-spacing:0;padding:0 var(--pp-space-4xs)}
   .pn{font-family:var(--pp-font-heading);font-weight:600;font-size:1.05rem;letter-spacing:0;text-transform:none}
   .big-pn{font-size:1.5rem;font-style:italic;font-variation-settings:"SOFT" 100,"WONK" 1}
 
@@ -321,7 +329,7 @@
     .margin,.content,.hero-title,.hero-copy,.hero-term,.here-map{grid-column:1 / -1}
     .waysign .wrap{grid-template-columns:1fr 1fr}
     .way.here{grid-column:1 / -1;grid-row:1;padding-left:0;padding-right:0;
-      border:0;border-bottom:1px solid rgba(243,236,217,.3)}
+      border:0;border-bottom:1px solid color-mix(in srgb,var(--bed-on) 30%,transparent)}
     .here-map{justify-self:start;max-width:280px;grid-row:3}
     .hero-term{grid-row:4}
     .sec{row-gap:var(--pp-space-sm)}
@@ -359,18 +367,13 @@
 <header class="site">
   <div class="wrap">
     <a class="brand" href="#top" aria-label="weeder home">
-      <svg class="wmark" viewBox="0 0 32 32" aria-hidden="true">
-        <path class="w-plant" stroke-width="1.9" d="M13.2 28.4 C12.8 22.4, 13.2 13.4, 13.8 6.2"/>
-        <path class="w-plant" stroke-width="1.1" d="M13 25.6 L11.5 24.9"/>
-        <path class="w-plant" stroke-width="1.1" d="M13.4 13 L15.1 12.3"/>
-        <path class="w-plant" stroke-width="1.1" d="M13.6 9.8 L12.1 9.2"/>
-        <ellipse class="w-leaf" cx="9.6" cy="24.2" rx="2.8" ry="1.2" transform="rotate(30 9.6 24.2)"/>
-        <ellipse class="w-leaf" cx="17.5" cy="11.2" rx="2.8" ry="1.2" transform="rotate(-30 17.5 11.2)"/>
-        <ellipse class="w-leaf" cx="10.2" cy="8.6" rx="2.8" ry="1.2" transform="rotate(30 10.2 8.6)"/>
-        <path class="w-shear" stroke-width="1.9" d="M11.2 16.1 L24.5 22.75"/>
-        <path class="w-shear" stroke-width="1.9" d="M11.2 21.9 L24.5 15.25"/>
-        <circle class="w-shear" stroke-width="1.6" cx="26.5" cy="23.75" r="2.2"/>
-        <circle class="w-shear" stroke-width="1.6" cx="26.5" cy="14.25" r="2.2"/>
+      <svg class="wmark" viewBox="0 0 24 24" aria-hidden="true">
+        <path class="w-plant" stroke-width="2" d="M7.5 22 C7.3 16.5 7.4 9.5 7.8 3"/>
+        <path class="w-leaf" d="M7.4 20.2 C4.9 19.9 3.1 18.3 2.7 15.9 C5.3 16 7.1 17.7 7.4 20.2 Z"/>
+        <path class="w-leaf" d="M7.7 7.6 C10.2 7.4 12 5.8 12.4 3.4 C9.8 3.5 8 5.1 7.7 7.6 Z"/>
+        <path class="w-shear" stroke-width="2" d="M10.2 12 L16.8 17.8 M10.2 18 L16.8 12.2"/>
+        <circle class="w-shear" stroke-width="2" cx="18.3" cy="19.1" r="1.9"/>
+        <circle class="w-shear" stroke-width="2" cx="18.3" cy="10.9" r="1.9"/>
       </svg>
       <span class="wordmark">weeder</span>
     </a>
@@ -413,7 +416,8 @@
           <h1 id="hero-title">Tests still mean what they <em>meant</em>.</h1>
         </div>
 
-        <!-- swap: the key plan. move .hm-here and .hm-num to this bed's plot; slots are signed beds, fallow is fallow -->
+        <!-- swap: the key plan. move .hm-here and .hm-num to this bed's plot; slots are signed beds, fallow is fallow.
+             the pin sits in the next plot along the row; for a bed at a row's end, inside its own plot beside the numeral -->
         <figure class="here-map rise">
           <a href="https://plotplot.ai/#garden" aria-label="You are here: row D, bed 08 weeder. See the whole garden">
             <svg viewBox="0 0 200 196" aria-hidden="true">

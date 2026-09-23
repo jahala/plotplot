@@ -61,7 +61,7 @@ Family-wide canonical terms live here; each product may add its own table in `pr
 - **Buttons are verb-first** and three words or fewer: "Install tilth", "Browse the garden", "View source".
 - **Errors** state what happened, why it matters, and the next action, in that order. No jokes, no "Oops".
 - **No exclamation marks** in interface copy. Numerals for numbers. Playfulness comes from wit and imagery, not punctuation.
-- **No em dashes in copy.** A comma, a full stop, or a colon before a list does the work. Imitated chrome (a terminal window title) is not copy.
+- **No em dashes in copy.** A comma, a full stop, or a colon before a list does the work. Imitated chrome (a terminal window title) is not copy, and neither is real tool output quoted verbatim: a terminal pane shows what the tool prints, dashes and all.
 
 ## Before / After Examples
 
