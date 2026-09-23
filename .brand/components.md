@@ -116,11 +116,11 @@ Copy this verbatim and change only the three marked spots: the **identity** colu
     <!-- 0 · plotplot band: same on every product page; links home (the umbrella page omits this) -->
     <div class="gf-plot">
       <a class="gf-plotbrand" href="https://plotplot.ai" aria-label="plotplot home">
-        <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
-          <path class="m-stem" d="M14 26 V12"/>
-          <path class="m-leaf" d="M14 18.5 C9 17.5 6 13.5 6.6 9 C11 9.8 14 13.2 14 18.5 Z"/>
-          <path class="m-leaf" d="M14 15.5 C19 14.5 22 10.5 21.4 6 C17 6.8 14 10.2 14 15.5 Z"/>
-          <circle class="m-bloom" cx="14" cy="8" r="3"/>
+        <svg class="mark" viewBox="0 0 24 24" aria-hidden="true">
+          <path class="m-stem" d="M12 22 V8"/>
+          <path class="m-leaf" d="M12 17.6 C7.8 16.8 5.2 13.6 5.6 9.8 C9.3 10.4 12 13.2 12 17.6 Z"/>
+          <path class="m-leaf" d="M12 14.6 C16.2 13.8 18.8 10.6 18.4 6.8 C14.7 7.4 12 10.2 12 14.6 Z"/>
+          <circle class="m-bloom" cx="12" cy="4.6" r="2.5"/>
         </svg>
         <span class="wordmark">plotplot</span>
       </a>
@@ -182,7 +182,7 @@ Copy this verbatim and change only the three marked spots: the **identity** colu
 .gf .mark    { width: 28px; height: 28px; flex: none; }
 .gf .m-stem  { fill: none; stroke: var(--pp-term-green); stroke-width: 2; stroke-linecap: round; }
 .gf .m-leaf  { fill: var(--pp-term-green); }
-.gf .m-bloom { fill: var(--pp-accent); }
+.gf .m-bloom { fill: var(--pp-marigold); }
 .gf-plot     { display: flex; flex-wrap: wrap; align-items: center; gap: var(--pp-space-2xs) var(--pp-space-md);
                padding-bottom: var(--pp-space-md); margin-bottom: var(--pp-space-lg);
                border-bottom: 1px solid rgba(243,236,217,.14); }
