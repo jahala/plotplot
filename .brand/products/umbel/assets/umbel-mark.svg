@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="umbel">
+  <!-- umbel mark: an umbel, five rays fanned from one stem, each carrying its own bloom -->
+  <path d="M12 22 V14.5" stroke="#357E2C" stroke-width="2"/>
+  <path d="M12 14.5 C8.4 14.3 5.6 12.6 4.2 9.6 M12 14.5 C9.6 12.8 8 9.8 7.6 6.4 M12 14.5 V5 M12 14.5 C14.4 12.8 16 9.8 16.4 6.4 M12 14.5 C15.6 14.3 18.4 12.6 19.8 9.6" stroke="#357E2C" stroke-width="2"/>
+  <circle cx="4.2" cy="9.2" r="2" fill="#E89227"/>
+  <circle cx="7.6" cy="5.6" r="2" fill="#E89227"/>
+  <circle cx="12" cy="4.2" r="2" fill="#E89227"/>
+  <circle cx="16.4" cy="5.6" r="2" fill="#E89227"/>
+  <circle cx="19.8" cy="9.2" r="2" fill="#E89227"/>
+</svg>

@@ -11,7 +11,7 @@ line and a terminology table, merged with the umbrella at read time.
 |---|---|---|
 | finding | violation, error, issue | weeder reports what it found; the severity says how much it matters. |
 | block / warn / note | fail, pass, critical, info | The three levels the rules use; say them the same way in prose. `block` is the only one that stops anything. |
-| rule | check, policy, lint | A rule has an id and a fixture. "Check" is tend2's word for a claim; do not borrow it. |
+| rule | check, policy, lint | A rule has an id and a fixture. "Check" is tend's word for a claim; do not borrow it. |
 | judge | reviewer, linter, scanner | weeder judges a diff; it does not review code or scan for style. |
 | allowance | suppression, ignore, override | A person let a finding through, on the record. `Weed-allow` is the trailer; the allowance is a finding too. |
 | the diff / the tree | the change, the PR, the code | `check` reads the diff; `scan` reads the tree. Name which. |

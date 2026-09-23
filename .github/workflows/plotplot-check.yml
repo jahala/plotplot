@@ -33,3 +33,7 @@ jobs:
 
       - name: plotplot check --strict
         run: plotplot check --strict
+
+      - name: the marks hold their rules
+        # One grid, two inks, night files derived from paper (.brand/DESIGN.md, section 7).
+        run: python3 scripts/marks.py --check

@@ -54,6 +54,15 @@ Every page closes with the **garden footer**: a fixed forest band whose **garden
 
 Icons feel like botanical diagrams with character — sprouts, leaves, plots, nodes, roots, stems, coordinate marks — drawn in thin, lively linework. A plotplot sprout mark is welcome as the family motif. Avoid generic Material Design icons, sparkle/"AI" clichés, and heavy filled shapes. Icons clarify function first, then express the garden.
 
+**Marks.** Every bed's mark is a plant, drawn to one set of rules so the garden reads as one family:
+
+1. **One grid.** A 24-unit square with 2 units of clear margin. Lines are 2 units, round caps and joins; leaves and blooms are filled shapes. No detail smaller than 1.5 units, so every mark reads at 16px.
+2. **Two inks.** Growth green is what grows; the bed's accent carries the idea. No third colour, no tile baked in.
+3. **One ink works too.** Parts are separated by space, never by colour alone, so a mark survives as a stamp, a terminal glyph or a README badge.
+4. **Night and tile are derived.** The paper file is the only drawing. `scripts/marks.py` writes the night file through the tokens and prints a tile (`marks.py tile <bed> [--night]`) for favicons and app icons; `marks.py --check` holds the rules.
+
+Files: `assets/plotplot-mark.svg` and `products/<bed>/assets/<bed>-mark.svg`, each with its `-night.svg`.
+
 ## 8. Illustration
 
 Illustration is a playful garden: characterful botanical line-art, plotted beds, blooms, small growth scenes, and field notes. The feel is warm, witty, and a little hand-drawn; a recurring sprout/mascot motif is allowed. Keep it useful and literate — it can be playful without becoming precious. Avoid glossy gradients, stock 3D, and generic futuristic AI visuals.

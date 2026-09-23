@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="petals">
+  <!-- petals mark: one petal held between two leaves; the brand carried into what grows -->
+  <path d="M12 21 C9.6 16.2 9.6 11 12 7 C14.4 11 14.4 16.2 12 21 Z" fill="#357E2C" transform="rotate(-42 12 21)"/>
+  <path d="M12 21 C9.6 16.2 9.6 11 12 7 C14.4 11 14.4 16.2 12 21 Z" fill="#357E2C" transform="rotate(42 12 21)"/>
+  <path d="M12 21 C8.9 15 8.9 8.5 12 3 C15.1 8.5 15.1 15 12 21 Z" fill="#E588A0"/>
+</svg>
