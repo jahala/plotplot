@@ -16,9 +16,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BRAND = ROOT / ".brand"
 
-# bed -> the token its accent comes from. plotplot's bloom is the brand's own accent.
+# bed -> the token its accent comes from. plotplot's bloom is marigold, kept apart from umbel's sunlight.
 BEDS = {
-    "plotplot": "accent",
+    "plotplot": "marigold",
     "tend": "tend",
     "tilth": "tilth",
     "petals": "petals",

@@ -12,7 +12,8 @@ petal, and muted are display/decorative colors — never body text on paper.
 | Primary — growth green | #357E2C | rgb(53,126,44) | Primary actions, links, buttons, selected states. Vibrant growth green, legible as text on paper (4.6:1). |
 | Primary (deep) | #2C6B2A | rgb(44,107,42) | Hover / pressed — one step deeper into the leaf. |
 | Forest green | #214A2C | rgb(33,74,44) | Depth: dark sections, secondary buttons, footer. Cream reads on it (9.3:1). |
-| Sunlight | #E89227 | rgb(232,146,39) | The warm accent — CTA fills (ink text), highlights, underlines, marks. Display/fill only; never body text on paper (2.3:1). |
+| Sunlight | #E89227 | rgb(232,146,39) | The warm accent — CTA fills (ink text), highlights, underlines. Display/fill only; never body text on paper (2.3:1). |
+| Marigold | #F4B63A | rgb(244,182,58) | The plotplot mark's bloom, and nothing else, so the mark stays apart from umbel's sunlight. Decorative; never text. |
 | Leaf (vibrant) | #4A9E3F | rgb(74,158,63) | Decorative only — marks and illustration fills. Never text (3.1:1). |
 
 ## Paper & Ink
@@ -149,6 +150,7 @@ Dark mode is "soil at night," not a harsh developer theme. Embedded terminal pan
   --pp-leaf:         #4A9E3F;  /* decorative vibrant leaf — marks only */
   --pp-forest:       #214A2C;  /* deep green — depth, sections */
   --pp-accent:       #E89227;  /* sunlight — fills, highlights (ink text) */
+  --pp-marigold:     #F4B63A;  /* the plotplot mark's bloom only */
   --pp-amber-ink:    #A86518;  /* amber as a word — labels */
 
   --pp-text:      #3A2718;     /* deep-brown ink — headings + body */
