@@ -127,6 +127,10 @@ Charts draw from the family — never library defaults.
 | Pollen (bloom) | #C8B330 | #D9C44A |
 | Weeder (bloom) | #8E3B5E | #8E3B5E as fill · #B85C82 as a word |
 
+## The Garden Film's Inks
+
+The film prints four inks from the palette onto the page, multiplied where they overlap. By day: sunlight #E89227, petal #E588A0, growth green #357E2C and ink #3A2718. On soil-night there is no paper to multiply against, so each ink takes its night value: sunlight #F2A93B, petal #E588A0, green #84C56A, and the ink becomes night text #F3ECD9 so keylines and soil still read. No other colours enter the film. Poppy, bramble, straw and coral come from overprints.
+
 ## Soil-Night Surfaces
 
 Dark mode is "soil at night," not a harsh developer theme. Embedded terminal panes (the landing-page demos) run the deepest soil so the warm paper reads above them.

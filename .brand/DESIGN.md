@@ -21,6 +21,7 @@ plotplot is built around one belief: good work is grown, not rushed. The brand s
 | Playful, not childish | Character through Fraunces, botanical marks, and a little wit. Never cartoon, never hype, never meme. |
 | A garden of beds | Show the family as a cultivated plot — each tool a bed with its own bloom. Composition and relationship over flat lists. |
 | Honest about craft | The tools are files, skills, and terminals. Show real commands and real output; never a fake dashboard. |
+| A site plan you can read | The garden is drawn as an allotment site plan, read like good public signage. One stem runs through four lettered rows (A plan, B read, C run, D judge); every bed is a numbered plot with a sign in its bloom; empty plots are drawn fallow, which says there is room to grow. A Swiss grid and wayfinding carry the structure; Fraunces, the sprout and the blooms keep it a garden, not a transit map. |
 | Calm motion | Things unfold and settle like leaves. Alive, not restless. |
 | Make AI accountable | AI-generated output exposes its sources, confidence, and reasoning, with clear points for human review. |
 
@@ -63,9 +64,16 @@ Icons feel like botanical diagrams with character — sprouts, leaves, plots, no
 
 Files: `assets/plotplot-mark.svg` and `products/<bed>/assets/<bed>-mark.svg`, each with its `-night.svg`.
 
+Bed signs carry a pictogram: one 24-unit grid, a 1.75 stroke in `currentColor`, no fills (map, node tree, swatch, fan, gate, envelope, ruler, balance). A pictogram is illustration of what the bed does, never the bed's logo; only a bed's own mark in `products/<bed>/assets/` is its logo.
+
 ## 8. Illustration
 
 Illustration is a playful garden: characterful botanical line-art, plotted beds, blooms, small growth scenes, and field notes. The feel is warm, witty, and a little hand-drawn; a recurring sprout/mascot motif is allowed. Keep it useful and literate — it can be playful without becoming precious. Avoid glossy gradients, stock 3D, and generic futuristic AI visuals.
+
+Two illustrations are the family's own and are shared, never redrawn:
+
+- **The site plan** is the umbrella page's hero: the stem, the four rows, a sign per bed, fallow plots, the shed and the compost heap, the gate. A bed page shows the same plan small, as a "you are here" key plan with its own plot filled.
+- **The garden film** is the one moving illustration: a printed (risograph) garden in section that grows from seed to bloom and returns to the soil, a 24-second seamless loop. It prints straight onto the page, with no paper of its own, and its soil fades into the section that follows. Its source is `assets/garden-film/`.
 
 ## 9. Agent Prompt Guide
 
@@ -73,7 +81,7 @@ When generating UI or design output, follow these constraints:
 
 1. **Colors:** use only the palette in `colors.md`, referenced by semantic role, not raw hex. Sunlight, leaf, petal, and muted are display/decorative — never body text.
 2. **Typography:** apply the hierarchy in `typography.md`. Never introduce fonts outside Fraunces / Hanken Grotesk / JetBrains Mono.
-3. **Components:** follow `components.md`. Reuse patterns before inventing new ones.
+3. **Components:** follow `components.md`. Start from the reference pages in `reference/` (the umbrella page and a bed page): copy one, then change only the marked spots. Reuse patterns before inventing new ones.
 4. **Spacing:** adhere to the 4px scale in `layout.md`. Never use arbitrary pixel values.
 5. **Elevation:** use the ink-tinted shadow recipes by level. Never pure-black shadows.
 6. **Motion:** entrances unfold with `ease-petal`; honour `prefers-reduced-motion`; never bounce or confetti.

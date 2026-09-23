@@ -58,6 +58,7 @@ Rules:
 - `prefers-reduced-motion: reduce` MUST disable all entrances, blooms, and staggers. Non-negotiable.
 - Forbidden: bounce easings, pulsing/looping attention effects, parallax, confetti, spinners where progress is knowable.
 - Playful character comes from the `bloom` arrival and the illustration — never from breaking the no-bounce rule.
+- Two looping motions are allowed, and only these two, because they are illustration rather than attention: the **inchworm** on the header line and the **garden film**. Both keep a calm pace (an inchworm stride takes about 1.2 s; the film is a 24 s loop), pause when off screen or when the tab is hidden, and yield to `prefers-reduced-motion`: the inchworm is hidden, and the film shows one still frame. Anything else that loops is still forbidden.
 
 ## Component Conventions
 
@@ -71,7 +72,25 @@ Rules:
 | Terminal pane | Soil-night background + border from `colors.md`, radius-md, titlebar dots in error/caution/healthy order |
 | Pill / badge | radius-full, surface background, mono text |
 | Focus state | 2px solid primary outline, 3px offset, radius-xs — on every interactive element |
+| Bed hover | Speaks in the bed's own bloom: a 2px underline under the bed's name, or a tint of the bloom (about 30% into the surface) on a plot. The name stays ink. Never set the name in its bloom, because petals, pollen and sunlight are display-only on paper. Keyboard focus shows the same as hover. |
 | Footer | The garden footer — fixed forest band, cream text, a row of bloom-dot pills linking the whole garden (current product highlighted), and a "a plotplot garden tool" bottom bar. Full spec below. |
+
+## The allotment plan
+
+The family's pages are built from these pieces. `reference/landing.html` (the umbrella page) and `reference/product.html` (a bed page, weeder) are the pieces assembled; start from one, change only its marked `swap:` spots, and keep these values. Class names below are the reference pages' own.
+
+**Sign ink.** A sign keeps its bloom in both themes, so the numeral on it uses a fixed ink: `--sign-dark` (soil, `--pp-term-bg`) on the light blooms (tend, tilth, petals, umbel, pollen, copeca) and `--sign-light` (cream, `--pp-term-text`) on the dark ones (pleach, weeder). Each sign sets `--bloom` and `--on`. A bed page sets its own three aliases once in `:root`: `--bed` (its bloom), `--bed-word` (its bloom as a word: the bloom where it reads, else its ink variant, e.g. `--pp-weeder-word`, `--pp-pollen-ink`, `--pp-amber-ink`) and `--bed-on` (its sign ink).
+
+| Component | Convention |
+|---|---|
+| Site plan (`.plan-slot` › `.sheet`) | The umbrella hero's illustration, one SVG (viewBox 592 × 708) on a card: surface, hairline border, radius-lg, shadow-rest. The stem is a 5-unit growth-green line from the gate up to the sprout. Rows hang off it as circle nodes (r 18, ink 2-unit stroke on paper) lettered A–D in mono 700. Plots are 154 × 96, radius 8, filled with the bloom at 16% into the surface and stroked in the bloom at 1.5. A plot holds a 36-unit plate in the bloom with its two-digit numeral (mono 700, 16px, in `--on`), a pictogram at top right, the name in Fraunces 600 at 23px, and a status dot (healthy fill for live, a muted ring for soon). Fallow plots are dashed in muted (4 5). Below the rows: the shed ("your repo") and the compost heap ("what was tried feeds the next bed"), then the gate. Each plot links to its bed. |
+| Bed sign plate (`.plate`) | 44px square, radius-sm, the bloom as fill, the numeral in mono 700 at .95rem in `--on`. A bed that is not yet live wears a 2px inset ring of its bloom with an ink numeral instead of the fill. |
+| Index of beds (`.index` › `.rows` › `.row`) | The garden as an open index on the 12-column grid, with no cards and no frame. Each row starts with a hairline; its margin (columns 1–3) carries the row letter in light Fraunces, the row's name and its question; its content (columns 4–12) lists its beds. A bed (`.bed`) is one line: plate · name (Fraunces 540, 1.5rem) with its role as a mono label · one sentence of description · status. At 880 the status drops under the description; at 520 the bed stacks beside its plate. |
+| Direction sign (`.waysign`) | The strip under a bed page's header, filled with `--bed`, text in `--bed-on`, in three parts: ← plotplot · the garden; the bed itself (row node and name, plate, name); the next bed along the plan →. Mono labels, uppercase, tracked .16em. |
+| Key plan (`.here-map`) | A bed page's small site plan, "you are here" (SVG 200 × 196): the stem, four row nodes, every plot as an outline (fallow ones faint), this bed's plot filled with `--bed` and its numeral in `--bed-on`, and a pin. It links to the garden on plotplot.ai. |
+| Motto rule (`.motto-rule`) | The motto as a single italic line centred between two hairlines, the sprout leading it, the supporting line in body type beneath (type in `typography.md`, Display pairings). On phones the hairlines give way and the sprout stands over the words. |
+| Garden film band (`.pp-film`) | The shared film from `assets/garden-film/`, pasted verbatim. |
+| Inchworm (`.inchworm`) | The shared looper from `assets/inchworm.html`, the last child of the sticky header. |
 
 ## Footer — the garden footer
 

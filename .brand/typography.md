@@ -38,6 +38,12 @@ Base: `html { font-size: 18px }`. Sizes are in `rem` for fluid scaling; the clam
 | stat | 3.75rem | 1.0 | 700 | Display numerals |
 | code | 0.95rem | 1.6 | 400 | Code / terminal text |
 
+### Display pairings
+
+- **Hero title.** The roman line at 80% of the h1 scale (`clamp(2.72rem, 5.12vw, 4.4rem)`, weight 620), and the one live word in italic, growth green, on its own line at 1.75em of that, `line-height: .72`, `SOFT` 100 and `WONK` 1. The italic word is lowercase, so it needs this margin to read as larger: its x-height must clear the roman line's cap height. At the same size it reads only as heavier. No full stop after a title set this way.
+- **Plot numerals.** JetBrains Mono 700, two digits (`01`), set in the bed's sign plate. On the plan they are 16px.
+- **The motto rule.** One italic Fraunces line (`clamp(1.7rem, 3vw, 2.5rem)`, weight 500, `SOFT` 100, `WONK` 1) led by the sprout mark, with the supporting line in body type beneath it.
+
 ## Spacing
 
 The spacing scale lives in `layout.md`, with the containers, breakpoints, and density rules it belongs to. Typography owns type only.
