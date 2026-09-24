@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>plotplot</title>
+<link rel="stylesheet" href="./loop.css">
+<body>
+<noscript>This page renders its markdown payload with JavaScript — enable JS, or read the raw payload in the page source.</noscript>
+<script type="text/markdown" id="loop">
+# Agents say done, and nothing checks
+**Pain.** An agent finishes a task and says it is done. Done is decided by the agent's own prose: the tests it says it ran, the review it says it gave, the doc it says it updated. Across many agents on many vendors, over months, the claims drift from the code, the documents drift from both, and the person who owns the repository cannot tell what is proven from what is asserted without reading everything.
+
+## Why it persists
+Every harness ships its own loop and its own notion of finished, and none of them is a file a person can diff. Vendors sell the agent, not the harness around it, so "done" stays a signal only the agent produces. Fixing it for one vendor fixes nothing for the next.
+
+## Signals
+- metric: on the garden's own maps, the share of checks proven by the verifier against those merely claimed, read from `tend2 next` per repository
+- metric: the share of landings that carry a receipt naming what verified the change, read from `plotplot receipt verify --range`
+- metric: the share of a bed's fit contract that holds at its pinned version, read from `scripts/fit/<bed>.sh` on the umbrella
+- risk: proof theater, a check whose evidence cannot fail (sixteen such claims were found in one repository on 2026-09-18) reads as proven and is not
+- risk: the harness itself is what an agent edits, so a gate an agent can move is no gate; guardrail files change only by allowance
+
+## Solved by #plotplot
+</script>
+<script src="./loop.js"></script>

@@ -34,6 +34,10 @@ Two new schemas, `manifest` and `lock`, small enough to read in a minute. No fin
 - [x] (code) `contracts/proof.schema.json` validates the proof record a gate may trust (`contracts/delivery.md`, "What a gate may trust") and rejects a record of a failure, one with no claim digest, one whose subject is a commit, one that carries output, one with an absolute path and one that counted nothing · contracts/test/proof.test.sh @26dbc00 · by cli
 
 
+## For
+- #the-tool-author
+- #the-worker-agent
+
 ## Tried
 - 2026-09-18 c14 green and stamped at tend2 fc2f075 (tend pull request 235, tend 226 and 228 closed): the vendored plan schema is byte-identical to pleach's canonical text at 57f980a, Layer B reads the canonical home from a named checkout and never from an agent's workspace, and both of the umbrella's tend2 pins (the loop format and the vendored text) move to that commit; the same pin carries tend 229, so a stamp is now bound to its claim's kind, words and evidence line, and the verifier that stamped this line is the one built from it
 - 2026-09-18 c17 added (jahala/plotplot 121, tend 230, pleach 129): the owner asked why every proof runs four times per conducted node; it is the garden's recipe (worker, smoke, audit, land), free where evidence takes seconds and hours where one pass extracts nine histories, as in jahala/quadrat today; delivery.md gains "What a gate may trust": a tree is proven once, the verifier writes a proof record (in-toto Statement v1, subject the gitTree digest, kept under the common git directory, a pass only), the first gate always executes and the conductor journals the record's digest, a later gate reads the record only on an identical key, the audit still executes cheap evidence and still owes its judgement, and a scheduled run ignores records to hunt flaky evidence; named proof record and not receipt, since a receipt here is the per-commit provenance statement; the schema and seven fixtures are the umbrella's half, the beds' halves are the two issues

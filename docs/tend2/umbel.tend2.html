@@ -20,6 +20,10 @@
 
 ## Needs #contracts
 
+## For
+- #the-worker-agent
+- #the-tool-author
+
 ## Tried
 - 2026-09-16 umbel 73 landed by pleach's agent (pull request 89, master 16f6ccb, rebase-merged, CI green on the ubuntu runner, six checks stamped by the pinned verifier after landing): umbel's launch wrapper records the worker's exit status or signal into the events directory the moment the process ends, on any platform, and wait, kill and status read that record first with tmux's pane status as a fallback only; built as one more node on the branch after the runner's tmux 3.4 reported a dead pane with no status (umbel 91, closed with it), red test first; the ruling that shaped it was the umbrella's; umbel's tier one is complete (53, 67, 77, 73; 72 closed on evidence); still open from the tier: the installed umbel binary is the 2026-09-05 build (the owner rebuilds from master), 81, 86, 84, 79
 - 2026-09-16 umbel 77 landed by pleach's agent (pull request 87, master 06aee5a, rebase-merged, 4 of 4 checks stamped by the pinned verifier): codex readiness is the idle prompt line plus a settle window with late dialogs dismissed, send confirms the turn started and re-sends Enter up to three times while a paste is pending, and fails typed with the pane when it never lands, so codex can return to the audit seat once the installed umbel is rebuilt from master; from the landing: umbel 88 (an old end-to-end test's timing premise, fixed by enforcing it in the fake, closed) and umbel 86 (read at Stop races the transcript, Claude Code fires Stop before the final entry is on disk, so three handbacks today reached the conductor empty or stale and the Tried lines were transcribed from transcripts); 73 placed next, the agent holds after it
