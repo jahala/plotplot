@@ -40,6 +40,34 @@ asked; it blocks only where a claim's anchor is gone, the way weeder's cited-pat
   re-read against the head of the default branch and the corrections land as one pull
   request a person reads.
 
+## How it differs from weeder, and the line between them
+
+weeder is the gate. Everything it judges is a property of one diff, or of the tree as it
+stands at one moment: a deleted test, a skip, a stub, a swallowed error, a secret, an import
+against the declared direction, a cited path that no longer exists. Each rule decides in
+milliseconds from the bytes in front of it, with no history and no execution, and a block-level
+finding stops the commit. Its `scan` face reads the whole tree the same way, never blocks, and
+already carries the simplest anchor, a cited path or symbol that is missing.
+
+stake is the caretaker. Everything it judges needs one of three things weeder never uses:
+
+- **history**: this document or test usually moves with that code and did not; this partner is
+  missing from this change; this claim has gone unverified through many changes;
+- **execution**: the number in a document equals what a named command prints; a version
+  matches the lockfile; a diagram derived from the code equals the one a page embeds;
+- **a schedule**: on a day, or on a word, every rule is re-read against the head of the
+  default branch and the corrections land as one pull request a person reads.
+
+So the line is mechanical: no history, no execution, no schedule, weeder's; any of the three,
+stake's. stake never re-implements a weeder rule. Its truth pass runs weeder's `scan` and adds
+its own findings beside it, in the same SARIF channel, and it never blocks.
+
+One honest alternative, which the rough check decides: if stake's own rules turn out to be few,
+because the anchors are mostly weeder's scan, the partner rules are quadrat's engine and the
+diagrams are tilth's, then stake is not a bed but a face on the stem, `plotplot truth`, that
+composes the three on a schedule. A bed earns its place only if it holds rules no other bed
+can.
+
 ## What it is not
 
 Not a gate on prose quality or naming (a reader of meaning does that). Not a second home for
