@@ -68,6 +68,52 @@ diagrams are tilth's, then stake is not a bed but a face on the stem, `plotplot 
 composes the three on a schedule. A bed earns its place only if it holds rules no other bed
 can.
 
+## Boundaries: tend, graft and stake
+
+Each answers one question, from one kind of evidence, at one time, and writes one kind of
+file. That is the whole rule; the rest follows from it.
+
+| | tend | graft | stake |
+|---|---|---|---|
+| question | what should be true here, and is it | does what we built fit the people it is for | is what we say about ourselves still what the code does |
+| evidence | the repository's own evidence scripts and tests, run now; agent checks graded by a rubric; a person's word | a calibrated judge over descriptions of places, features, people and jobs; never the code running | the code's structure (tilth), its history (the engine quadrat left), and what named commands print, re-read over time |
+| when | at every landing, on the claim the landing touches | before a build, and again after it, on the whole product | on a schedule, or on a word, on the whole repository |
+| writes | the map: loops with checks, personas, opportunities, flows, shapes, Tried, practices; stamps and proof records | findings as SARIF, a report with its maps, and proposals written into the map as pages marked guessed, once | findings as SARIF, and a pull request of corrections to the documents and diagrams |
+| never writes | findings | a decision, a stamp, a page a person has edited | a decision, a stamp, a new claim |
+
+**tend is not the documenting bed with the others checking.** A tend page is an article and a
+fitness function in one file: it says what a thing is for and how it works, and it proves its
+claims through checks that only the verifier stamps. tend checks its own claims. What it
+cannot check is whether the product fits people (graft) or whether its prose still matches the
+code and its history (stake); those two read tend's map and write back into it in the one
+form each is allowed.
+
+**One writer per kind of file.** Map pages are written by people and agents through tend, and
+by graft once, as guessed proposals. Findings are written by the judges (weeder, copeca, graft,
+stake) into the SARIF channel and never by tend, which only lists them beside a page's checks.
+Decisions are Tried lines, written by a person or by tend's change skill. Corrections to the
+references are pull requests stake opens and a person merges.
+
+**Things that could have gone either way, settled:**
+
+- tend's `discover` maps an existing codebase into loops; graft's `discover` proposes people,
+  jobs and outcomes from docs and issues. Different inputs, different outputs; both stay, and
+  the skills say which is which in their first line.
+- The narrative-scope lint (prose that promises what no check proves) is tend's: it is a
+  property of one page.
+- The wireframe comparison (does the built screen realise the shape) is tend's agent check.
+- The references law's rules split by the line above: a cited path that is missing is a tree
+  fact, weeder's scan; a diagram that no longer equals the code is a tend check, so a landing
+  that breaks it goes red; the monthly truth pass, and the scheduled re-verification the proof
+  record's contract asks for, are stake's; the work order carrying the invariants a node
+  touches is tend's.
+- A persona nobody serves is graft's finding (a job no feature does). A loop that names a
+  persona page that does not exist is tend's lint.
+- Whether a repair helped is copeca's, not stake's: stake says what drifted, never what it cost.
+
+Once the owner settles these, they move to the law's §6a as settled boundaries; this page is
+where they were proposed.
+
 ## What it is not
 
 Not a gate on prose quality or naming (a reader of meaning does that). Not a second home for
