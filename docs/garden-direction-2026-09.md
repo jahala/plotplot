@@ -122,7 +122,7 @@ Filter (a candidate must pass every line):
 |---|---|---|---|---|
 | 1 | **hedge** | the boundary | all six | Gemini/Codex hooks cannot express deny-with-reason on shell calls |
 | 2 | **plotplot** (the trowel) | the on-ramp | 1–5; it is the umbrella's own product, not a bed | bed installs cannot be made idempotent one-shot |
-| 3 | **graft** | doc truth | all six | under 30% of claims in the garden's own docs can be anchored mechanically |
+| 3 | **stake** (named graft until 2026-09-24) | doc truth | all six | under 30% of claims in the garden's own docs can be anchored mechanically |
 | 4 | **pollen** (adopt walkie-clawkie) | peer messaging | all six; already built | one real multi-agent run finds no message umbel cannot carry |
 | 5 | **mull** (revive) | cross-session learning | 1–4; spark uncertain | Dreaming goes cross-harness, or under half of proposals are accepted |
 | 6 | **o-o** (revive, rename) | living documents | 1–4; spark uncertain | no second user beyond Jan after a public release |
@@ -143,7 +143,7 @@ the page's "grow the whole plot" true. It is the umbrella product, and it is als
 the practices pack lives (the skills in §4), so the practices ship with the tools instead
 of living in one home directory.
 
-**graft.** Every claim in CLAUDE.md, README, and ARCHITECTURE anchored to a symbol, a
+**stake** (named graft until 2026-09-24; the name graft went to the product-fit judge). Every claim in CLAUDE.md, README, and ARCHITECTURE anchored to a symbol, a
 path, or a command's output; tilth resolves the symbols. The check fails when an anchor
 is gone or an output changed. The agent layer proposes the rewrite; only the human
 lands it. This is tend2's "only the verifier writes pass" applied to prose. Swimm sells
@@ -201,7 +201,7 @@ honest "seed".
 2. Plant hedge. The desktop grid has two empty placeholders; this fills the first.
 3. Adopt pollen. Fills the second; the grid is full at eight.
 4. Build the trowel (the plotplot CLI with the practices pack inside).
-5. Build graft.
+5. Build stake (the doc-truth anchors; named graft in this memo until 2026-09-24).
 6. mull and o-o only if the spark returns.
 
 ## 10. Housekeeping surfaced while reading
