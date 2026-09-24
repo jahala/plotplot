@@ -121,6 +121,28 @@ screen's shape (the wireframe, its regions, hierarchy and states) authored by a 
 agent, and the agent check that compares the built screen with the shape. petals holds the
 look: tokens, type, colour, voice. Nobody else is needed. graft never writes a wireframe or
 a decision, and a finding it raises becomes direction only when a person records it in tend.
+In practice graft supplies the direction and the person supplies the yes: on Savire the owner
+did not know what each role needed, and the rounds said. A proposal has to be complete enough
+that a yes is all it needs.
+
+**Coherence is graft's too.** The Savire review found that most of what a reviewer objects
+to is one thing: the same kind of thing should look and behave the same way everywhere.
+People build a model of an app from its frame, where they are, how they move, where things
+go, and each section had invented its own. That is not fit to people, it is fit to itself,
+and it is decided mostly by code from the same inventory graft already reads: list each
+page's navigation, sub-navigation, header, breadcrumb and content width, group the pages
+that match, flag the odd ones; declare the rules a product keeps (one stable top level, one
+breadcrumb grammar, one width rule, the house part kept apart from the person's part) in
+`graft.toml` the way weeder.toml declares boundaries, with `docs/design.md` pointing at them,
+and check every page against them. Of the four questions to ask of every control, two are
+code (does it offer every source the product has; can anyone say what it feeds downstream)
+and two need the judge (is it named for what the person gets; does its space follow its
+importance). Starting points (a new customer's defaults, per persona) and ownership levels
+(organisation, then brand) are the `own` round applied to settings. So graft's question
+widens by one clause: does what we built fit the people it is for, and hold together as one
+thing. No new bed: the inventory, the rounds, the findings and the declared rules are all
+shapes graft has.
+
 
 Once the owner settles these, they move to the law's §6a as settled boundaries; this page is
 where they were proposed.
