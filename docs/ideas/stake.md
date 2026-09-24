@@ -111,6 +111,17 @@ references are pull requests stake opens and a person merges.
   persona page that does not exist is tend's lint.
 - Whether a repair helped is copeca's, not stake's: stake says what drifted, never what it cost.
 
+**Flows and layout, the same rule applied.** Direction for a user flow, a feature flow or
+what goes where on a screen is set by a person; the beds propose, record and prove.
+graft proposes: from people, places and what each person reaches for, it proposes flows as
+guessed flow pages written into the map, and its findings say what is forced, missing, split
+by role, uncovered, and, per screen and state, which control is primary, visible, in a menu
+or elsewhere. tend holds: the flow page with its moments and its walkthrough check, the
+screen's shape (the wireframe, its regions, hierarchy and states) authored by a person or an
+agent, and the agent check that compares the built screen with the shape. petals holds the
+look: tokens, type, colour, voice. Nobody else is needed. graft never writes a wireframe or
+a decision, and a finding it raises becomes direction only when a person records it in tend.
+
 Once the owner settles these, they move to the law's §6a as settled boundaries; this page is
 where they were proposed.
 
