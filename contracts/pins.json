@@ -5,10 +5,10 @@
     "owner": "tend2",
     "version": "1",
     "source": "FORMAT.md in jahala/tend at the pinned ref, line 1 (\"# The loop format — contract, version 1\")",
-    "read_on": "2026-09-18",
+    "read_on": "2026-09-24",
     "repo": "jahala/tend",
     "file": "FORMAT.md",
-    "ref": "fc2f075c0ea21e4263d6a1ec8b8bb0a2d9de7f21",
+    "ref": "c17ed38d7a89937501fc6b16fe8707c428482b2b",
     "pattern": "contract, version ([0-9]+)"
   },
   "plan_schema": {
@@ -24,10 +24,10 @@
   "plan_schema_vendored": {
     "owner": "tend2",
     "source": "docs/bridge/plan-schema.vendored.md in jahala/tend at the pinned ref, tend2's verbatim copy of pleach's canonical text; contracts/test/plan-text.test.sh holds the two byte-identical",
-    "read_on": "2026-09-18",
+    "read_on": "2026-09-24",
     "repo": "jahala/tend",
     "file": "docs/bridge/plan-schema.vendored.md",
-    "ref": "fc2f075c0ea21e4263d6a1ec8b8bb0a2d9de7f21"
+    "ref": "c17ed38d7a89937501fc6b16fe8707c428482b2b"
   },
   "sarif_schema": {
     "version": "2.1.0",
