@@ -20,6 +20,9 @@
       "$ref": "#/$defs/record"
     },
     {
+      "$ref": "#/$defs/gone"
+    },
+    {
       "$ref": "#/$defs/state"
     }
   ],
@@ -305,6 +308,31 @@
         },
         "cursor": {
           "description": "any JSON value the adapter reads back from the next start line"
+        }
+      }
+    },
+    "gone": {
+      "type": "object",
+      "required": [
+        "type",
+        "from",
+        "address"
+      ],
+      "additionalProperties": false,
+      "description": "adapter to runner: the source says the item at this address was deleted; mull removes it at the next prune when the source's terms require deletion",
+      "properties": {
+        "type": {
+          "const": "gone"
+        },
+        "from": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._:-]{1,128}$",
+          "description": "the fetch whose response said so"
+        },
+        "address": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the url or locator of the deleted item, as its record holds it"
         }
       }
     }

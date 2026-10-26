@@ -19,7 +19,7 @@ The adapter never opens a connection, never reads a key and never sees the salt.
 2. mull starts the program named by the manifest's `run`, from the adapter's folder, never through a shell, with an empty environment except `PATH`.
 3. mull writes one `start` line: the protocol version, the window, the cursor from the adapter's last `state` line for this capture plan entry (or null), and the entry's configuration. The property the manifest names in `reaches.config_paths` arrives resolved to absolute paths, so the adapter can name them in `file:` requests.
 4. The adapter writes `fetch` lines. For each, mull writes back one `response` line, live or replayed, or one `refused` line with the reason. Answers come in the order the fetches were asked.
-5. The adapter writes `record` lines, each naming the fetch it was read from.
+5. The adapter writes `record` lines, each naming the fetch it was read from. When the source says an item it read before was deleted, the adapter writes a `gone` line for its address. mull keeps these with the run, and `mull prune` removes every line at that address, and every response that held one, for a source whose terms require deletion.
 6. The adapter writes one `state` line. mull closes the adapter's input, and the adapter exits 0.
 
 The run is kept whole or not at all. Only a run whose last line is a valid `state` and whose exit status is 0 has its records stored and its cursor saved. Responses are kept either way, because a fetched response may have been paid for.
@@ -33,6 +33,7 @@ The run is kept whole or not at all. Only a run whose last line is a valid `stat
 | `response` | mull to adapter | `id`, `status`, `headers` (names in lowercase), `body` (base64), `received_at`. A `file:` request is answered with the file's bytes; for a folder, with a JSON array of `{"name", "folder"}` entries sorted by name, under the header `content-type: application/vnd.mull.folder+json`; for a path with nothing there, status 404 |
 | `refused` | mull to adapter | `id` and `reason`: `host-not-declared`, `access-not-ready`, `ceiling`, `unsettled-claim`, `not-recorded` (a replay with no kept response), `rate-limit-exhausted`, `unanswered` (the request failed before the source answered; a paid request stays claimed and is never resent) |
 | `record` | adapter to mull | `kind` (`post`, `document`, `observation`, `subject` or `reaction`), `from` (the fetch id), `fields` |
+| `gone` | adapter to mull | `from` (the fetch whose response said so) and `address` (the url or locator of an item the source says was deleted) |
 | `state` | adapter to mull | `cursor`: any JSON value, read back on the next `start` |
 
 Standard error is free text. mull keeps it in the run's log and never parses it.
