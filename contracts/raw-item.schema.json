@@ -89,6 +89,29 @@
       "minLength": 1,
       "description": "the source's own statement of the author's relation to the channel as fetched, verbatim, such as GitHub's author association (MEMBER, OWNER, COLLABORATOR, CONTRIBUTOR, NONE); absent when the source states none, never inferred; a snapshot at fetched_at, like labels"
     },
+    "author_kind": {
+      "type": "object",
+      "required": [
+        "kind",
+        "from"
+      ],
+      "additionalProperties": false,
+      "description": "whether the author is a person or a program, and who said so: the source (such as GitHub naming an account a Bot) or the owner's capture plan (a handle listed under bots); absent when neither says",
+      "properties": {
+        "kind": {
+          "enum": [
+            "person",
+            "bot"
+          ]
+        },
+        "from": {
+          "enum": [
+            "source",
+            "plan"
+          ]
+        }
+      }
+    },
     "parent": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$",

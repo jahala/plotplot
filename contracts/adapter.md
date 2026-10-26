@@ -75,7 +75,7 @@ One rule is held by the schema whatever any ruling says: a `human_step` makes th
 
 ### Split
 
-For each kind the adapter emits, `split` names each field the adapter writes and where it is read from in a response, in a sentence a person can check against a recorded response. Field names are those of the protocol's `record` lines (`contracts/protocol.md`): `handle` for the author, `parent_address` for the parent. A field the source does not give says so. The keys of `split` are exactly the kinds in `emits`.
+For each kind the adapter emits, `split` names each field the adapter writes and where it is read from in a response, in a sentence a person can check against a recorded response. An adapter whose source says what an account is writes `author_kind` (`person` or `bot`) and names where it reads it in `split`. Field names are those of the protocol's `record` lines (`contracts/protocol.md`): `handle` for the author, `parent_address` for the parent. A field the source does not give says so. The keys of `split` are exactly the kinds in `emits`.
 
 ## Rules a reader may rely on
 

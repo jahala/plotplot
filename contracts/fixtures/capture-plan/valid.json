@@ -26,7 +26,11 @@
       },
       "from": "2025-01-01",
       "why": "Users of the tool asking for what it lacks.",
-      "private": false
+      "private": false,
+      "bots": [
+        "release-helper",
+        "ci-reporter"
+      ]
     },
     {
       "adapter": "local-files",

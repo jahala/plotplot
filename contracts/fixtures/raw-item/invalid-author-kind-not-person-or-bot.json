@@ -1,0 +1,18 @@
+{
+  "id": "896fe954f9b49e2d4fb576def93f81976837da716f6b1c5bc58ae03e882f52aa",
+  "source": "github-issues",
+  "channel": "github.com/example-org/example-tool",
+  "url": "https://github.com/example-org/example-tool/issues/38",
+  "title": "Bump csv-parse from 5.5.0 to 5.6.0",
+  "text": "Bump csv-parse from 5.5.0 to 5.6.0",
+  "said_at": "2026-09-30T04:00:00Z",
+  "fetched_at": "2026-10-26T14:00:00Z",
+  "author": "25cc4582d5be42c4ec1028aa911edf9e274436a2cd439a3c4d7481e71268d336",
+  "author_role": "NONE",
+  "author_kind": {
+    "kind": "robot",
+    "from": "source"
+  },
+  "private": false,
+  "raw_ref": "responses/3f/3f1c0e5b.json.gz"
+}

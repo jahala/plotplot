@@ -26,6 +26,7 @@ Each source entry holds:
 | `lifetime_days` | for a private stream | how long its records are kept before the prune command deletes them |
 | `terms` | when the manifest sets `terms_per_site` | the site's own terms, as facts, in the manifest's shape |
 | `ruling` | when the source's terms restrict the use | the owner's ruling: `use` (`allowed` or `refused`), `by`, `on` and `says` |
+| `bots` | no | handles on this source the owner knows to be programs, as the source writes them; their records are marked `author_kind` bot, from the plan |
 
 ## Rules a reader may rely on
 
