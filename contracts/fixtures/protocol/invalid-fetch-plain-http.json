@@ -1,0 +1,11 @@
+{
+  "type": "fetch",
+  "id": "issue-41",
+  "request": {
+    "method": "GET",
+    "url": "http://api.github.com/repos/example-org/example-tool/issues/41",
+    "headers": {
+      "accept": "application/vnd.github+json"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "plan": "1",
+  "project": "example-tool",
+  "portfolio": "owner",
+  "subjects": [
+    {
+      "name": "example-tool",
+      "identifiers": [
+        {
+          "scheme": "npm",
+          "value": "example-tool"
+        },
+        {
+          "scheme": "github",
+          "value": "example-org/example-tool"
+        }
+      ]
+    }
+  ],
+  "sources": []
+}

@@ -1,0 +1,90 @@
+{
+  "adapter": "forum",
+  "version": "1.0.0",
+  "protocol": "1",
+  "run": [
+    "node",
+    "adapter.ts"
+  ],
+  "source": {
+    "name": "Discourse",
+    "url": "https://www.discourse.org"
+  },
+  "kind": "expand",
+  "emits": [
+    "post"
+  ],
+  "reaches": {
+    "hosts": [],
+    "files": false,
+    "config_hosts": "site"
+  },
+  "config": {
+    "type": "object",
+    "required": [
+      "site"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "site": {
+        "type": "string",
+        "description": "the forum's host name"
+      }
+    }
+  },
+  "terms_per_site": true,
+  "channel": "The forum's host name, one channel per forum.",
+  "audiences": [
+    "the members of each configured forum's community"
+  ],
+  "carries": [
+    "wanting",
+    "harm"
+  ],
+  "terms": {
+    "url": "https://docs.discourse.org",
+    "read_on": "2026-10-26",
+    "licence": "Each forum sets its own licence for posts; the software sets none.",
+    "attribution": {
+      "required": false
+    },
+    "commercial_use": "not-stated",
+    "rate_limit": {
+      "requests": 1,
+      "per_seconds": 2,
+      "stated_by": "adapter"
+    },
+    "use": "allowed"
+  },
+  "access": {
+    "method": "none",
+    "credentials": [],
+    "account": null,
+    "automation": "not-stated",
+    "obtain": {
+      "how": "Public topics are readable as JSON by adding .json to their address.",
+      "approval": false,
+      "cost": "free",
+      "status": "ready"
+    },
+    "scopes": {
+      "least": [],
+      "read_only": true
+    },
+    "expiry": null,
+    "human_step": null,
+    "paid": false
+  },
+  "private": false,
+  "split": {
+    "post": {
+      "text": "The post's raw field, the markdown its author wrote.",
+      "url": "The topic's address with the post's post_number.",
+      "title": "The topic's title.",
+      "said_at": "The post's created_at field.",
+      "handle": "The post's username field.",
+      "parent_address": "The address of the post named by reply_to_post_number; a post replying to the topic has none.",
+      "reactions": "The post's reaction counts, counted at the response's moment."
+    }
+  }
+}

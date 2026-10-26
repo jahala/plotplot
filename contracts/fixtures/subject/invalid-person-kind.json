@@ -1,0 +1,23 @@
+{
+  "id": "2aacd93c965eb17496591868ceaf01089f69539c2dc86630d2906c647031155f",
+  "source": "npm-registry",
+  "kind": "person",
+  "name": "example-tool",
+  "identifiers": [
+    {
+      "scheme": "npm",
+      "value": "example-tool"
+    },
+    {
+      "scheme": "github",
+      "value": "example-org/example-tool"
+    },
+    {
+      "scheme": "domain",
+      "value": "example-tool.dev"
+    }
+  ],
+  "fetched_at": "2026-10-26T14:00:00Z",
+  "private": false,
+  "raw_ref": "responses/9a/9a0d77e1.json.gz"
+}

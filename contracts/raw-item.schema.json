@@ -55,7 +55,7 @@
       "description": "when the adapter fetched it"
     },
     "author": {
-      "description": "lowercase hex sha256 of a salt the owner keeps and the author's handle on that channel, so one person counts once without being named; null when the source gives no author",
+      "description": "lowercase hex sha256 of the owner's salt, a newline, the channel, a newline, and the author's handle there, so one person counts once per channel without being named; null when the source gives no author",
       "anyOf": [
         { "type": "string", "pattern": "^[0-9a-f]{64}$" },
         { "type": "null" }

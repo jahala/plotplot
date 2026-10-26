@@ -24,7 +24,7 @@ A file of JSON Lines, one item per line. Each item holds:
 | `text` | yes | what the person said, verbatim |
 | `said_at` | yes, may be null | when they said it |
 | `fetched_at` | yes | when it was fetched |
-| `author` | yes, may be null | sha256 of the owner's salt and the author's handle on that channel |
+| `author` | yes, may be null | sha256 of the owner's salt, a newline, the channel, a newline, and the author's handle there, as lowercase hex |
 | `parent` | no | the id of the item it replies to |
 | `reactions` | no | counts of votes and reactions, each with the moment it was counted |
 | `signals` | no | numbers the source gave, under the source's own field names |
@@ -38,7 +38,8 @@ A file of JSON Lines, one item per line. Each item holds:
 - **Stable identity.** The same thing said in the same place has the same `id` on every run, so
   fetching is append-only and a re-run adds only what is new.
 - **People count once, unnamed.** `author` is a salted hash. The salt stays with the owner and is
-  never written into an item. The same person on the same channel hashes the same, so readers count
+  never written into an item. mull computes the hash; an adapter only hands mull the handle
+  (`contracts/protocol.md`). The same person on the same channel hashes the same, so readers count
   distinct people; across channels they stay apart.
 - **Nothing is filled in.** A source that gives no date or no author writes `null`. Whether an
   undated item counts as evidence is the reader's rule, written in the reader's own docs.

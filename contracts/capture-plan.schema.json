@@ -1,0 +1,297 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotplot.ai/contracts/capture-plan.schema.json",
+  "title": "capture plan",
+  "description": "What one project asks mull to read: its subjects, its sources with their configuration, and, for each private stream, the consent behind it and its lifetime. Kept in the project's repository. See contracts/capture-plan.md.",
+  "type": "object",
+  "required": [
+    "plan",
+    "project",
+    "portfolio",
+    "subjects",
+    "sources"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "plan": {
+      "const": "1",
+      "description": "the capture plan format version"
+    },
+    "project": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "the project's name"
+    },
+    "portfolio": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "the portfolio whose salt and stores the project uses"
+    },
+    "subjects": {
+      "type": "array",
+      "uniqueItems": true,
+      "description": "the products and projects the project listens about, by exact identifiers",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "identifiers"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "identifiers": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "required": [
+                "scheme",
+                "value"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9-]*$"
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "description": "one entry per source read, in any order",
+      "items": {
+        "type": "object",
+        "required": [
+          "adapter",
+          "config",
+          "from",
+          "private"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "adapter": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "description": "the adapter's id, as in its manifest"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "description": "the adapter's major version the plan was written for; the runner refuses a different major version"
+          },
+          "config": {
+            "type": "object",
+            "description": "valid against the adapter manifest's config schema; an empty object for an adapter with none"
+          },
+          "from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ],
+            "description": "the earliest moment of saying to read; each run continues from the last cursor"
+          },
+          "why": {
+            "type": "string",
+            "minLength": 1,
+            "description": "whom this source lets the project hear, in a sentence"
+          },
+          "private": {
+            "type": "boolean",
+            "description": "true for a private stream; its records go to the project's own store"
+          },
+          "consent": {
+            "type": "object",
+            "required": [
+              "given_by",
+              "given_on",
+              "scope",
+              "evidence"
+            ],
+            "additionalProperties": false,
+            "description": "who agreed that this private stream may be read, when, for what, and where that agreement is kept",
+            "properties": {
+              "given_by": {
+                "type": "string",
+                "minLength": 1
+              },
+              "given_on": {
+                "type": "string",
+                "format": "date"
+              },
+              "scope": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence": {
+                "type": "string",
+                "minLength": 1,
+                "description": "a path in the project's repository or an address where the consent is kept"
+              }
+            }
+          },
+          "lifetime_days": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "how long a private stream's records are kept before the prune command deletes them"
+          },
+          "terms": {
+            "type": "object",
+            "required": [
+              "url",
+              "read_on",
+              "licence",
+              "attribution",
+              "commercial_use",
+              "rate_limit",
+              "use"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "where the terms were read"
+              },
+              "read_on": {
+                "type": "string",
+                "format": "date",
+                "description": "the day they were read"
+              },
+              "licence": {
+                "type": "string",
+                "minLength": 1,
+                "description": "the licence of what people post there, as the terms name it, or the words the terms use when they name none"
+              },
+              "attribution": {
+                "type": "object",
+                "required": [
+                  "required"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "required": {
+                    "type": "boolean"
+                  },
+                  "how": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "what a reader that quotes an item must show"
+                  }
+                },
+                "if": {
+                  "properties": {
+                    "required": {
+                      "const": true
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "required",
+                    "how"
+                  ]
+                }
+              },
+              "commercial_use": {
+                "enum": [
+                  "allowed",
+                  "forbidden",
+                  "not-stated"
+                ],
+                "description": "whether the terms allow reading for a commercial purpose"
+              },
+              "rate_limit": {
+                "type": "object",
+                "required": [
+                  "requests",
+                  "per_seconds",
+                  "stated_by"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "requests": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "per_seconds": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "stated_by": {
+                    "enum": [
+                      "source",
+                      "adapter"
+                    ],
+                    "description": "source when the terms or documentation state the limit; adapter when they state none and the adapter keeps its own, lower one"
+                  }
+                }
+              },
+              "use": {
+                "enum": [
+                  "allowed",
+                  "refused"
+                ],
+                "description": "the adapter's reading of the terms for the garden's use; refused means the runner reads nothing and says why"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1,
+                "description": "why the use is refused, citing the terms"
+              }
+            },
+            "if": {
+              "properties": {
+                "use": {
+                  "const": "refused"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "reason"
+              ]
+            },
+            "description": "the site's own terms, read as an adapter manifest's terms are; required when the adapter's manifest sets terms_per_site"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "private": {
+                  "const": true
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "consent",
+                "lifetime_days"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "dba96ab3ee7ab4cd99ab4d6629d22c5bc99fda2ec63b51fc39c7da1f5e0553db",
+  "source": "github-issues",
+  "channel": "github.com/example-org/example-tool",
+  "target": "b73d69f359e59b80f10c9b3cab7e88c15d053805d2b19261b0c79546e4878ccf",
+  "kind": "+1",
+  "author": null,
+  "said_at": "2026-10-02T09:15:00Z",
+  "fetched_at": "2026-10-26T14:00:00Z",
+  "private": false,
+  "raw_ref": "responses/3f/3f1c0e5b.json.gz"
+}
