@@ -1,10 +1,12 @@
-# The spending ledger: one door for every paid call to the judge
+# The spending ledger: one door for every paid call
 
-The contract every program that spends on a shared budget follows until well exists, and the shape
-well will keep. Today two clients write it: cultivate (`cultivate/ledger.py`) and the owner's judge
-runner (`jev-run.mjs`). The rule lives in two runtimes, so its home is the test vector, not either
-client: `contracts/fixtures/ledger/vector.json`. Schema: `contracts/ledger.schema.json`. Drafted by
-cultivate; the umbrella's `contracts/` holds it as well's ledger.
+The contract every program that spends on a shared budget follows: well's ledger (`jahala/well`).
+well implements it (`src/ledger.ts`) and offers it as a command, `well run`, which a program in any
+language can spend through. Programs that carry the rule themselves must pass the same vector:
+cultivate (`cultivate/ledger.py`) and the owner's judge runner (a pinned copy of well's
+`src/ledger.ts`). The rule's home is the test vector, not any client:
+`contracts/fixtures/ledger/vector.json`. Schema: `contracts/ledger.schema.json`. First drafted by
+cultivate; changed since by well.
 
 ## Files
 
@@ -29,6 +31,7 @@ what it is about to spend refuses to spend.
 | `event` | `reserve`, `settle` or `release` |
 | `usd` | for `reserve`, the estimate; for `settle`, what the provider charged; for `release`, 0 |
 | `why` | on `release` only: `not-sent` (the call never left), `refused` (the provider refused it without charging), or `reconciled` (a person checked the bill) |
+| `cap_usd` | on `reserve` only: the cap the decision compared against. Reserve lines written before this field existed lack it, and are never rewritten to add it |
 
 ## Decisions
 
@@ -41,6 +44,9 @@ later `settle` or `release` for the same key, in this period or the one before.
 | `reserve` | the key has no open reservation, and spent plus every open reservation plus this estimate is at most the cap | `unsettled` or `cap` |
 | `settle` | the key has an open reservation; the charge may exceed the estimate | `no-reservation` |
 | `release` | the key has an open reservation | `no-reservation` |
+
+An allowed `reserve` writes the cap it was decided under as `cap_usd`. The vector marks each one
+with `writes`, and a step with `owner_sets_cap_usd` changes the budget's cap before it is decided.
 
 A reservation that never settles blocks sending the same request again until a person reconciles it,
 because the provider may already have charged it. Only a rate limit (HTTP 429 or 529) or a failure
@@ -59,6 +65,15 @@ writer that died and may be removed by the next one. The lock holds no data.
   file, so one program's call in flight counts against the next program's reservation.
 - **Nothing is rewritten.** A mistake is corrected by a later event, never by editing a line.
 - **The ledger holds money, not answers.** Each program keeps its own recorded answers for replay.
+
+## Breaches
+
+A month breaches when its settled spend passes the highest `cap_usd` its reserve lines carry. A
+charge may exceed its estimate, so spend can pass the cap even when every reservation fit. A month
+whose reserve lines carry no cap, because they were written before reserves carried it, is judged
+against the cap the budgets file names today, and a reader says which cap it used: `ledger` or
+`budgets`. A cap the owner changes later never moves the line for a month the ledger already
+records. The vector's `breaches` block holds the cases.
 
 ## Lifetime
 

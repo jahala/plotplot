@@ -30,7 +30,10 @@
    "key": "68ae63d94863d3a996625895633aff8af8ffdeb0b727b5d0354a0ad6358914f7",
    "usd": 0.4,
    "expect": "allow",
-   "because": "a first reservation fits"
+   "because": "a first reservation fits",
+   "writes": {
+    "cap_usd": 1.0
+   }
   },
   {
    "tool": "b",
@@ -38,7 +41,10 @@
    "key": "e9d87fe099e877be2f52a742f65c178f6da9f32b000e3e87de5fc3c0e8be72b4",
    "usd": 0.5,
    "expect": "allow",
-   "because": "a second program's reservation fits beside the first"
+   "because": "a second program's reservation fits beside the first",
+   "writes": {
+    "cap_usd": 1.0
+   }
   },
   {
    "tool": "b",
@@ -62,7 +68,10 @@
    "key": "92faed3ca2b606ee355c8b0eac080772390bd1c2372b21402473639cbe2002ed",
    "usd": 0.1,
    "expect": "allow",
-   "because": "0.38 spent + 0.50 open + 0.10 = 0.98"
+   "because": "0.38 spent + 0.50 open + 0.10 = 0.98",
+   "writes": {
+    "cap_usd": 1.0
+   }
   },
   {
    "tool": "b",
@@ -87,7 +96,10 @@
    "key": "e9d87fe099e877be2f52a742f65c178f6da9f32b000e3e87de5fc3c0e8be72b4",
    "usd": 0.5,
    "expect": "allow",
-   "because": "released, so the request may be reserved again: 0.38 + 0.10 + 0.50 = 0.98"
+   "because": "released, so the request may be reserved again: 0.38 + 0.10 + 0.50 = 0.98",
+   "writes": {
+    "cap_usd": 1.0
+   }
   },
   {
    "tool": "a",
@@ -128,7 +140,10 @@
    "key": "7bdff1b69968ce334c017069dcf3ebe87a50fb11a4c64454f9c1e06cae932b5a",
    "usd": 0.07,
    "expect": "allow",
-   "because": "0.93 + 0.07 is exactly the cap, which is allowed; compared in millionths, so rounding cannot refuse it"
+   "because": "0.93 + 0.07 is exactly the cap, which is allowed; compared in millionths, so rounding cannot refuse it",
+   "writes": {
+    "cap_usd": 1.0
+   }
   },
   {
    "tool": "b",
@@ -138,6 +153,191 @@
    "expect": "allow",
    "because": "the provider refused the request without charging",
    "why": "refused"
+  },
+  {
+   "owner_sets_cap_usd": 1.5,
+   "tool": "a",
+   "event": "reserve",
+   "key": "ef2aaa8ea13baa6808d62f15e87bc505d9dadedce90b67c596a872d7cd66c5d7",
+   "usd": 0.4,
+   "expect": "allow",
+   "because": "the owner raised the cap to 1.50 before this step: 0.93 spent + 0.40 = 1.33",
+   "writes": {
+    "cap_usd": 1.5
+   }
+  },
+  {
+   "tool": "a",
+   "event": "settle",
+   "key": "ef2aaa8ea13baa6808d62f15e87bc505d9dadedce90b67c596a872d7cd66c5d7",
+   "usd": 0.45,
+   "expect": "allow",
+   "because": "a's call cost 0.45, so 1.38 is spent"
+  },
+  {
+   "owner_sets_cap_usd": 1.0,
+   "tool": "b",
+   "event": "reserve",
+   "key": "2ac3a96c3cb367d9b1a2addf11f6b4effae5579293a10cb9587ae7d45e4b22c0",
+   "usd": 0.01,
+   "expect": "refuse:cap",
+   "because": "the owner lowered the cap back to 1.00, which the 1.38 already spent passes"
   }
- ]
+ ],
+ "breaches": {
+  "note": "A month breaches when its settled spend passes the highest cap_usd its reserve lines carry. A month whose reserve lines carry none, because they were written before reserve lines carried the cap, is judged against the cap the budgets file names today, and the answer says which cap it used: ledger or budgets.",
+  "after_steps": {
+   "today_cap_usd": 1.0,
+   "expect": {
+    "spent_usd": 1.38,
+    "cap_usd": 1.5,
+    "cap_from": "ledger",
+    "breach": false
+   },
+   "because": "the 1.38 was spent under a cap of 1.50; lowering the cap later does not make the month a breach"
+  },
+  "months": [
+   {
+    "because": "old lines carry no cap, so the month is judged against today's cap, and a charge above its estimate passes it",
+    "today_cap_usd": 1.0,
+    "lines": [
+     {
+      "at": "2026-09-10T10:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-09",
+      "tool": "a",
+      "key": "267393ea7a059703f85cd57a4e0806bc8bc9a08871cec77816efb6a09910688b",
+      "event": "reserve",
+      "usd": 0.9
+     },
+     {
+      "at": "2026-09-10T10:01:00.000Z",
+      "budget": "judge",
+      "period": "2026-09",
+      "tool": "a",
+      "key": "267393ea7a059703f85cd57a4e0806bc8bc9a08871cec77816efb6a09910688b",
+      "event": "settle",
+      "usd": 1.2
+     }
+    ],
+    "expect": {
+     "spent_usd": 1.2,
+     "cap_usd": 1.0,
+     "cap_from": "budgets",
+     "breach": true
+    }
+   },
+   {
+    "because": "a cap raised after the month does not hide its breach",
+    "today_cap_usd": 2.0,
+    "lines": [
+     {
+      "at": "2026-09-11T10:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-09",
+      "tool": "a",
+      "key": "6078f51217232d09c8d465b90c90efb9f9f3044b11583f1802ba251a624e6a50",
+      "event": "reserve",
+      "usd": 0.9,
+      "cap_usd": 1.0
+     },
+     {
+      "at": "2026-09-11T10:01:00.000Z",
+      "budget": "judge",
+      "period": "2026-09",
+      "tool": "a",
+      "key": "6078f51217232d09c8d465b90c90efb9f9f3044b11583f1802ba251a624e6a50",
+      "event": "settle",
+      "usd": 1.2
+     }
+    ],
+    "expect": {
+     "spent_usd": 1.2,
+     "cap_usd": 1.0,
+     "cap_from": "ledger",
+     "breach": true
+    }
+   },
+   {
+    "because": "once any reserve carries a cap, the highest carried cap decides, not today's",
+    "today_cap_usd": 5.0,
+    "lines": [
+     {
+      "at": "2026-09-12T10:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-09",
+      "tool": "a",
+      "key": "42b8f200abd137de9926db29b84baea27c87d347395dbbaee7442d2a48a239ef",
+      "event": "reserve",
+      "usd": 0.3
+     },
+     {
+      "at": "2026-09-12T10:01:00.000Z",
+      "budget": "judge",
+      "period": "2026-09",
+      "tool": "a",
+      "key": "42b8f200abd137de9926db29b84baea27c87d347395dbbaee7442d2a48a239ef",
+      "event": "settle",
+      "usd": 0.3
+     },
+     {
+      "at": "2026-09-12T11:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-09",
+      "tool": "b",
+      "key": "55df72be19f7465f8b24c69c9f1140438574ff0041fcdfa63ddbd570bade464d",
+      "event": "reserve",
+      "usd": 0.4,
+      "cap_usd": 0.8
+     },
+     {
+      "at": "2026-09-12T11:01:00.000Z",
+      "budget": "judge",
+      "period": "2026-09",
+      "tool": "b",
+      "key": "55df72be19f7465f8b24c69c9f1140438574ff0041fcdfa63ddbd570bade464d",
+      "event": "settle",
+      "usd": 0.6
+     }
+    ],
+    "expect": {
+     "spent_usd": 0.9,
+     "cap_usd": 0.8,
+     "cap_from": "ledger",
+     "breach": true
+    }
+   },
+   {
+    "because": "spend equal to the cap is not a breach",
+    "today_cap_usd": 1.0,
+    "lines": [
+     {
+      "at": "2026-09-13T10:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-09",
+      "tool": "a",
+      "key": "3b3530a5a827f0115bd3f2f514660174332ee4a9fa850e8fba9196aca865987b",
+      "event": "reserve",
+      "usd": 1.0,
+      "cap_usd": 1.0
+     },
+     {
+      "at": "2026-09-13T10:01:00.000Z",
+      "budget": "judge",
+      "period": "2026-09",
+      "tool": "a",
+      "key": "3b3530a5a827f0115bd3f2f514660174332ee4a9fa850e8fba9196aca865987b",
+      "event": "settle",
+      "usd": 1.0
+     }
+    ],
+    "expect": {
+     "spent_usd": 1.0,
+     "cap_usd": 1.0,
+     "cap_from": "ledger",
+     "breach": false
+    }
+   }
+  ]
+ }
 }
