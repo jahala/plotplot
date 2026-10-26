@@ -16,7 +16,7 @@ needs.
 
 | Field | Required | Meaning |
 |---|---|---|
-| `format` | yes | `cultivate-needs/1`; a change of meaning is a new version, never an edit |
+| `format` | yes | `cultivate-needs/1`; a change of meaning is a new version, never an edit. Version 1 gained the state `unknown` on 2026-10-26, agreed with the umbrella before any reader depended on the three states alone |
 | `product` | yes | the product the needs are about, by name |
 | `run` | yes | `at` (the run's date), `previous` (the run it is compared with, or null), and `window` (`from`, `to`), the period the window counts cover |
 | `scope` | yes | the channels read, each with how many raw items it gave, so a reader knows what was searched |
@@ -37,7 +37,7 @@ Each need holds:
 | `members` | yes | the raw items merged into it: `item` (raw item id), `url` when public, `said_at`, `lead`, and `same`, the judge's probability that it asks the same as the lead (null for the lead) |
 | `first_seen`, `last_seen` | yes | the earliest and latest moment any person engaged with the need, in what was read |
 | `people` | yes | distinct people by role, below |
-| `state` | yes | `open`, `answered` or `closed`, with when and how, read from the lead thread's own state |
+| `state` | yes | `open`, `answered`, `closed` or `unknown`, with when and how, read from the lead post's own `status` as its source states it; `unknown`, with `at` and `how` null, when the source states none, such as call notes |
 | `activity` | no | events (reactions and comments) per week over the window, for movement and sparklines |
 | `signals` | yes | reasons the need matters now, each with its rule and basis; may be empty |
 
@@ -67,6 +67,10 @@ Each signal names its `kind`, its `basis` (`counted` by code, or `judged` under 
 rule it passed, its numbers, and the raw item ids that show it (`evidence`). Kinds in version 1:
 `movement` (the pace changed by the movement rule), `intent_to_leave` (people say they would leave,
 above the warning rule), and `answered` (the lead thread closed as done since the previous run).
+
+How cultivate reads a source's status into a state is cultivate's rule: a post whose status is closed
+with the reason completed is `answered`; closed for any other reason is `closed`; open is `open`; no
+status is `unknown`. Words are compared without regard to case, because sources spell them differently.
 
 ## Rules a reader may rely on
 
