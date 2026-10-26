@@ -1,0 +1,143 @@
+{
+ "budget": "judge",
+ "period": "2026-10",
+ "cap_usd": 1.0,
+ "request_key": {
+  "note": "computed by jev-run.mjs's own requestHash; every client must reproduce it",
+  "body": {
+   "model": "jev-1.13.0",
+   "state": {
+    "items": [
+     "Add support for jj SCM",
+     "Smooth scrolling ✓"
+    ],
+    "n": 2,
+    "ok": true
+   },
+   "questions": {
+    "q0": {
+     "type": "noul",
+     "instructions": "Same request as `item`?"
+    }
+   }
+  },
+  "key": "cab98527996f71f322acda61c9c0c496609e9df45579864a62bfa15b811cbf68"
+ },
+ "steps": [
+  {
+   "tool": "a",
+   "event": "reserve",
+   "key": "68ae63d94863d3a996625895633aff8af8ffdeb0b727b5d0354a0ad6358914f7",
+   "usd": 0.4,
+   "expect": "allow",
+   "because": "a first reservation fits"
+  },
+  {
+   "tool": "b",
+   "event": "reserve",
+   "key": "e9d87fe099e877be2f52a742f65c178f6da9f32b000e3e87de5fc3c0e8be72b4",
+   "usd": 0.5,
+   "expect": "allow",
+   "because": "a second program's reservation fits beside the first"
+  },
+  {
+   "tool": "b",
+   "event": "reserve",
+   "key": "a09876a6e9f0ad0b7bc2e9ed485a3efb4d3fe11464500d7371f4e23a6363963a",
+   "usd": 0.2,
+   "expect": "refuse:cap",
+   "because": "the two-process case: a's call in flight counts against b, 0.40 + 0.50 + 0.20 passes 1.00"
+  },
+  {
+   "tool": "a",
+   "event": "settle",
+   "key": "68ae63d94863d3a996625895633aff8af8ffdeb0b727b5d0354a0ad6358914f7",
+   "usd": 0.38,
+   "expect": "allow",
+   "because": "a settles for less than it reserved"
+  },
+  {
+   "tool": "a",
+   "event": "reserve",
+   "key": "92faed3ca2b606ee355c8b0eac080772390bd1c2372b21402473639cbe2002ed",
+   "usd": 0.1,
+   "expect": "allow",
+   "because": "0.38 spent + 0.50 open + 0.10 = 0.98"
+  },
+  {
+   "tool": "b",
+   "event": "reserve",
+   "key": "e9d87fe099e877be2f52a742f65c178f6da9f32b000e3e87de5fc3c0e8be72b4",
+   "usd": 0.5,
+   "expect": "refuse:unsettled",
+   "because": "the same request may not be sent again while its reservation is open"
+  },
+  {
+   "tool": "b",
+   "event": "release",
+   "key": "e9d87fe099e877be2f52a742f65c178f6da9f32b000e3e87de5fc3c0e8be72b4",
+   "usd": 0,
+   "expect": "allow",
+   "because": "b's call never left the machine",
+   "why": "not-sent"
+  },
+  {
+   "tool": "b",
+   "event": "reserve",
+   "key": "e9d87fe099e877be2f52a742f65c178f6da9f32b000e3e87de5fc3c0e8be72b4",
+   "usd": 0.5,
+   "expect": "allow",
+   "because": "released, so the request may be reserved again: 0.38 + 0.10 + 0.50 = 0.98"
+  },
+  {
+   "tool": "a",
+   "event": "settle",
+   "key": "f8dfd0fe31de0b5527f6058669a08a7566d16a1645987691bb5a540eaac87c67",
+   "usd": 0.1,
+   "expect": "refuse:no-reservation",
+   "because": "a settlement needs an open reservation"
+  },
+  {
+   "tool": "a",
+   "event": "release",
+   "key": "92faed3ca2b606ee355c8b0eac080772390bd1c2372b21402473639cbe2002ed",
+   "usd": 0,
+   "expect": "allow",
+   "because": "a person checked the bill for a's call",
+   "why": "reconciled"
+  },
+  {
+   "tool": "b",
+   "event": "settle",
+   "key": "e9d87fe099e877be2f52a742f65c178f6da9f32b000e3e87de5fc3c0e8be72b4",
+   "usd": 0.55,
+   "expect": "allow",
+   "because": "a charge may exceed its estimate"
+  },
+  {
+   "tool": "a",
+   "event": "reserve",
+   "key": "824aa2d5d46195ee64bc5524f7b6a8d3ba616586108a272989275d3b162cb903",
+   "usd": 0.1,
+   "expect": "refuse:cap",
+   "because": "0.93 spent + 0.10 passes 1.00"
+  },
+  {
+   "tool": "a",
+   "event": "reserve",
+   "key": "7bdff1b69968ce334c017069dcf3ebe87a50fb11a4c64454f9c1e06cae932b5a",
+   "usd": 0.07,
+   "expect": "allow",
+   "because": "0.93 + 0.07 is exactly the cap, which is allowed; compared in millionths, so rounding cannot refuse it"
+  },
+  {
+   "tool": "b",
+   "event": "release",
+   "key": "7bdff1b69968ce334c017069dcf3ebe87a50fb11a4c64454f9c1e06cae932b5a",
+   "usd": 0,
+   "expect": "allow",
+   "because": "the provider refused the request without charging",
+   "why": "refused"
+  }
+ ]
+}

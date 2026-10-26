@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotplot.ai/contracts/ledger.schema.json",
+  "title": "ledger event",
+  "description": "One line of a spending ledger: a reservation before a paid call, its settlement after, or a release. See contracts/ledger.md.",
+  "type": "object",
+  "required": ["at", "budget", "period", "tool", "key", "event", "usd"],
+  "additionalProperties": false,
+  "properties": {
+    "at": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$"},
+    "budget": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "period": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}$"},
+    "tool": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "key": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "event": {"enum": ["reserve", "settle", "release"]},
+    "usd": {"type": "number", "minimum": 0},
+    "why": {"enum": ["not-sent", "refused", "reconciled"]}
+  }
+}
