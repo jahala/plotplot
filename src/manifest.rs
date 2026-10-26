@@ -300,7 +300,7 @@ pub fn to_bed(manifest: &Manifest) -> Result<Bed> {
         })?;
         let mut entries = Vec::with_capacity(events.len());
         for declared in events {
-            entries.push(hook_entry(harness, declared).map_err(&refuse)?);
+            entries.push(hook_entry(harness, declared).map_err(refuse)?);
         }
         if !entries.is_empty() {
             hooks.insert(harness, entries);
