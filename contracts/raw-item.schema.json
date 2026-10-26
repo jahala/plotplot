@@ -4,7 +4,17 @@
   "title": "raw item",
   "description": "One thing one person said, kept verbatim with where and when, as mull writes it and every reader of the world reads it. One item per line of a JSON Lines file. See contracts/raw-item.md.",
   "type": "object",
-  "required": ["id", "source", "channel", "text", "said_at", "fetched_at", "author", "private", "raw_ref"],
+  "required": [
+    "id",
+    "source",
+    "channel",
+    "text",
+    "said_at",
+    "fetched_at",
+    "author",
+    "private",
+    "raw_ref"
+  ],
   "additionalProperties": false,
   "properties": {
     "id": {
@@ -44,9 +54,17 @@
     "said_at": {
       "description": "when the person said it, as a date or a date-time; null when the source gives no date, and a reader decides whether an undated item counts as evidence",
       "anyOf": [
-        { "type": "string", "format": "date-time" },
-        { "type": "string", "format": "date" },
-        { "type": "null" }
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date"
+        },
+        {
+          "type": "null"
+        }
       ]
     },
     "fetched_at": {
@@ -57,8 +75,13 @@
     "author": {
       "description": "lowercase hex sha256 of the owner's salt, a newline, the channel, a newline, and the author's handle there, so one person counts once per channel without being named; null when the source gives no author",
       "anyOf": [
-        { "type": "string", "pattern": "^[0-9a-f]{64}$" },
-        { "type": "null" }
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
       ]
     },
     "parent": {
@@ -71,19 +94,43 @@
       "description": "votes and reactions as counted at a moment, so counts can be compared over time",
       "items": {
         "type": "object",
-        "required": ["kind", "count", "at"],
+        "required": [
+          "kind",
+          "count",
+          "at"
+        ],
         "additionalProperties": false,
         "properties": {
-          "kind": { "type": "string", "minLength": 1 },
-          "count": { "type": "integer", "minimum": 0 },
-          "at": { "type": "string", "format": "date-time" }
+          "kind": {
+            "type": "string",
+            "minLength": 1
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       }
+    },
+    "labels": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "the source's own labels on the item as fetched, verbatim (issue labels, flair, tags); absent when the source has none, never inferred; a snapshot at fetched_at, like reactions"
     },
     "signals": {
       "type": "object",
       "description": "numbers the source itself gave about the item, such as a search provider's relevance or authority score, keyed by the provider's own field name",
-      "additionalProperties": { "type": "number" }
+      "additionalProperties": {
+        "type": "number"
+      }
     },
     "private": {
       "type": "boolean",
@@ -97,12 +144,41 @@
   },
   "allOf": [
     {
-      "if": { "properties": { "private": { "const": false } } },
-      "then": { "required": ["url"] }
+      "if": {
+        "properties": {
+          "private": {
+            "const": false
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "url"
+        ]
+      }
     },
     {
-      "if": { "properties": { "private": { "const": true } } },
-      "then": { "anyOf": [{ "required": ["url"] }, { "required": ["locator"] }] }
+      "if": {
+        "properties": {
+          "private": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "anyOf": [
+          {
+            "required": [
+              "url"
+            ]
+          },
+          {
+            "required": [
+              "locator"
+            ]
+          }
+        ]
+      }
     }
   ]
 }
