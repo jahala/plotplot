@@ -43,6 +43,15 @@
       "per_seconds": 3600,
       "stated_by": "source"
     },
+    "restrictions": [
+      {
+        "says": "you agree not to display, distribute, license, perform, publish, reproduce, duplicate, copy, create derivative works from, modify, sell, resell, exploit, transfer or upload for any commercial purposes, any portion of the Site",
+        "url": "https://www.ycombinator.com/legal/"
+      }
+    ],
+    "deletion": {
+      "required": false
+    },
     "use": "allowed"
   },
   "access": {

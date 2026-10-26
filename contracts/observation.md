@@ -10,7 +10,7 @@ Schema: `contracts/observation.schema.json`. Fixtures: `contracts/fixtures/obser
 | `source` | yes | the adapter that fetched it |
 | `subject` | yes | the id of the subject the number is about |
 | `metric` | yes | the source's own name for the number: `downloads`, `stargazers_count` |
-| `value` | yes | the number as the source gave it |
+| `value` | yes | the number, or for a metric that is a moment (such as a repository's last push) the date-time, as the source gave it |
 | `unit` | no | the unit, when the source gives one |
 | `at` | one of `at` or `period` | the moment a count read at a moment holds |
 | `period` | one of `at` or `period` | the span a count over a span covers: `from` included, `to` not |

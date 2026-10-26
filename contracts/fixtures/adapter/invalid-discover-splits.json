@@ -42,11 +42,14 @@
       "per_seconds": 3600,
       "stated_by": "source"
     },
-    "use": "allowed",
-    "ruling": {
-      "by": "the owner",
-      "on": "2026-10-26",
-      "says": "The garden reads these threads to learn what people need and to measure its own scoring, not to display, sell or otherwise use the site's content for a commercial purpose. The use is not commercial, so the clause does not apply."
+    "restrictions": [
+      {
+        "says": "you agree not to display, distribute, license, perform, publish, reproduce, duplicate, copy, create derivative works from, modify, sell, resell, exploit, transfer or upload for any commercial purposes, any portion of the Site",
+        "url": "https://www.ycombinator.com/legal/"
+      }
+    ],
+    "deletion": {
+      "required": false
     }
   },
   "access": {

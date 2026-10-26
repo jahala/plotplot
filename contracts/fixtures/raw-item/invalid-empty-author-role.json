@@ -1,0 +1,17 @@
+{
+  "id": "060741d4fcc86d960bdefb6173f7e803791b48d50d5313a9ce531fc110fa308e",
+  "source": "github-issues",
+  "channel": "github.com/example-org/example-tool",
+  "url": "https://github.com/example-org/example-tool/issues/39",
+  "title": "Dark mode for the export dialog",
+  "text": "Please add a dark mode to the export dialog; it is the only light screen left.",
+  "said_at": "2026-09-02T10:00:00Z",
+  "fetched_at": "2026-10-26T14:00:00Z",
+  "author": "b861384ad9b8257f0cc5132a98750eca060ce0c09204be4c7f003525b1bd1d1f",
+  "author_role": "",
+  "status": {
+    "state": "open"
+  },
+  "private": false,
+  "raw_ref": "responses/3f/3f1c0e5b.json.gz"
+}

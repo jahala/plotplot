@@ -54,7 +54,10 @@
       "per_seconds": 2,
       "stated_by": "adapter"
     },
-    "use": "allowed"
+    "restrictions": [],
+    "deletion": {
+      "required": false
+    }
   },
   "access": {
     "method": "none",

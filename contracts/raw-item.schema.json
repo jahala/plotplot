@@ -84,6 +84,11 @@
         }
       ]
     },
+    "author_role": {
+      "type": "string",
+      "minLength": 1,
+      "description": "the source's own statement of the author's relation to the channel as fetched, verbatim, such as GitHub's author association (MEMBER, OWNER, COLLABORATOR, CONTRIBUTOR, NONE); absent when the source states none, never inferred; a snapshot at fetched_at, like labels"
+    },
     "parent": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$",

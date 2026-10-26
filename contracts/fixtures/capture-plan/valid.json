@@ -46,6 +46,41 @@
         "evidence": "docs/consent/call-notes.md"
       },
       "lifetime_days": 365
+    },
+    {
+      "adapter": "discourse-forum",
+      "version": "1",
+      "config": {
+        "site": "forum.example.org"
+      },
+      "from": "2025-01-01",
+      "why": "Members of a hobby community describing what their tools lack.",
+      "private": false,
+      "terms": {
+        "url": "https://forum.example.org/tos",
+        "read_on": "2026-10-26",
+        "licence": "Posts are licensed CC BY-NC-SA 3.0.",
+        "attribution": {
+          "required": true,
+          "how": "Name the forum and link the post."
+        },
+        "commercial_use": "forbidden",
+        "rate_limit": {
+          "requests": 1,
+          "per_seconds": 2,
+          "stated_by": "adapter"
+        },
+        "restrictions": [],
+        "deletion": {
+          "required": false
+        }
+      },
+      "ruling": {
+        "use": "allowed",
+        "by": "the owner",
+        "on": "2026-10-26",
+        "says": "The garden reads this forum for research into which needs are real, not for commercial use."
+      }
     }
   ]
 }

@@ -37,8 +37,16 @@
       "description": "the source's own name for the number, such as downloads or stargazers_count"
     },
     "value": {
-      "type": "number",
-      "description": "the number as the source gave it"
+      "description": "the number, or the moment, as the source gave it; the metric says which",
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        }
+      ]
     },
     "unit": {
       "type": "string",

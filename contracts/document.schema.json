@@ -75,6 +75,11 @@
       ],
       "description": "when the page says it was published; null when it does not say"
     },
+    "captured_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "when the source itself captured the page, for a source that serves captures, such as a web archive's snapshot moment; absent otherwise"
+    },
     "subjects": {
       "type": "array",
       "uniqueItems": true,
