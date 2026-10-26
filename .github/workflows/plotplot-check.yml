@@ -24,6 +24,9 @@ jobs:
           # A gate that judges a diff needs the base of the pull request, not one commit.
           fetch-depth: 0
 
+      - name: Rust toolchain from rust-toolchain.toml
+        run: rustup toolchain install
+
       - name: plant the stem
         # This repository is the stem's own, so the gate builds it from the checkout.
         run: cargo install --locked --path .

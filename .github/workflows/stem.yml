@@ -30,9 +30,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
+      - name: Rust toolchain from rust-toolchain.toml
+        run: rustup toolchain install
 
       - name: cargo fmt --check
         run: cargo fmt --check
