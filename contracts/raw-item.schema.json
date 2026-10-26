@@ -125,6 +125,31 @@
       },
       "description": "the source's own labels on the item as fetched, verbatim (issue labels, flair, tags); absent when the source has none, never inferred; a snapshot at fetched_at, like reactions"
     },
+    "status": {
+      "type": "object",
+      "required": [
+        "state"
+      ],
+      "additionalProperties": false,
+      "description": "the source's own statement of the thread's state as fetched, verbatim, such as an issue's state and state reason and when it changed; absent when the source states none, never inferred; a snapshot at fetched_at, like labels",
+      "properties": {
+        "state": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the state as the source names it, such as open or closed"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "description": "why, as the source names it, such as completed or not_planned"
+        },
+        "changed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "when the state last changed, as the source gives it, such as an issue's closed_at"
+        }
+      }
+    },
     "signals": {
       "type": "object",
       "description": "numbers the source itself gave about the item, such as a search provider's relevance or authority score, keyed by the provider's own field name",
