@@ -318,6 +318,11 @@
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]*$",
           "description": "for a generic adapter, the configuration property that names the hosts it may reach for one capture plan entry; the runner adds them to hosts for that entry only"
+        },
+        "config_paths": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "for an adapter that reads files, the configuration property that names the file or folder, or the list of them, it may read for one capture plan entry; the runner refuses a file outside them"
         }
       }
     },
@@ -712,6 +717,34 @@
         "properties": {
           "emits": {
             "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "reaches": {
+            "properties": {
+              "files": {
+                "const": true
+              }
+            },
+            "required": [
+              "files"
+            ]
+          }
+        },
+        "required": [
+          "reaches"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reaches": {
+            "required": [
+              "config_paths"
+            ]
           }
         }
       }

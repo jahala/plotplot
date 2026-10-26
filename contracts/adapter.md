@@ -17,7 +17,7 @@ One JSON object per adapter, kept beside the adapter's program.
 | `source` | yes | the source's own name and home address |
 | `kind` | yes | `discover`, `expand` or `stream` |
 | `emits` | yes | the record kinds it writes: `post`, `document`, `observation`, `subject`, `reaction`; empty for discover |
-| `reaches` | yes | `hosts` it may fetch from, whether it reads `files`, and for a generic adapter `config_hosts`, the configuration property naming more hosts |
+| `reaches` | yes | `hosts` it may fetch from, whether it reads `files`, for a generic adapter `config_hosts`, the configuration property naming more hosts, and for an adapter that reads files `config_paths`, the configuration property naming the files or folders it may read |
 | `config` | yes, may be null | for a generic adapter, the JSON Schema its capture plan configuration must satisfy |
 | `channel` | for expand and stream | how it fills a record's `channel`, in a sentence |
 | `audiences` | yes | the groups of people the source reaches, in words a compass would use |
