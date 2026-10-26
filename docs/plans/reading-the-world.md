@@ -46,32 +46,124 @@ Two rules, from the rough test:
    the compass's elders, people with aphasia and Dharma learners have no tested source; finding
    one is work, not a reason to score them on nothing.
 
-## Adapters
+## Capture: a protocol, adapters on both sides, and plans per project
 
-mull owns every adapter. One adapter reads one source. Each ships:
+The owner's direction (2026-10-26): mull should capture any kind of data a project needs, for
+thousands of projects. That is not thousands of adapters inside mull. mull is a small runner
+around one protocol; most needs are configuration of a few generic adapters; the rare source gets
+a small adapter an agent writes; and the output side is questions and formats, never one adapter
+per tool. The old mull (tag `extraction-final` in `jahala/mull`) designed adapters on both sides
+already, and its catalogue, cursor rules and transport middleware are read as prior art.
 
-- **A manifest**, a contract beside the raw item (`contracts/adapter.md`, to be drafted by mull):
-  the source, its kind (discover, expand or stream), the audiences and signals it covers, its
-  terms (licence, attribution, commercial use, rate limit), the key it needs by name (read through
-  well, `docs/ideas/well.md`), and how it splits a page into posts.
-- **One command shape:** given a window and a cursor, it returns raw items, the raw responses it
-  read and the next cursor. The same window gives the same bytes, so fetching is incremental and
-  append-only.
-- **A census on every run:** items per channel per period, and a warning when a channel goes
-  quiet or a label stops being used.
-- **A refusal** when the source's terms forbid the use, rather than a workaround.
+```
+ sources          adapters in             mull                      adapters out         readers
+ forum, HN    ─┐  generic: forum, feed,   runs adapters             query: questions     cultivate
+ Discord log  ─┼► page to document,    ─► checks every record    ─► formats: JSON Lines, glean
+ news article ─┤  export-file mapper,     stores once, shared        Parquet, Markdown    harvest
+ downloads    ─┘  search (discovery);     census, limits, terms      digest, MCP tool     agents, people
+                  custom: small programs  consent, lifetimes
+```
 
-The first adapters, in order of what is already waiting on them:
+### The protocol
 
-1. Hacker News, for glean's second test and its standing yardstick (below). Seed:
-   `hn-wayw-fetch.py` in the owner's accelerando workspace.
-2. Local files and GitHub issues and discussions, moving cultivate's three adapters
-   (`cultivate/sources.py`) into mull with cultivate's tests still passing.
-3. Web search as discovery, moving glean's rough-test search script into mull behind its door.
-4. Discourse forums and Stack Exchange as expanders: per-post, with authors, open terms.
+An adapter is a small program in any language. It prints records, one JSON object per line, and
+ends with one `state` record holding its cursor. mull runs it, checks every record against the
+contracts, stores what passes and refuses what does not. The pattern is proven in open
+data-integration tools with thousands of community connectors.
 
-Until an adapter exists in mull, a tool may fetch with a stand-in script kept beside the test
-that needs it, writing the same raw items. The stand-in moves into mull whole.
+### Five record kinds
+
+| Kind | Covers | Contract |
+|---|---|---|
+| post | anything one person said: comments, messages, reviews, emails | `contracts/raw-item.md` (landed) |
+| document | a dated, verbatim snapshot of a page: an article, release notes, a pricing page | to draft |
+| observation | a number about a subject at a moment: downloads, stars, prices, ranks | to draft |
+| subject | one product or project and its exact identifiers across sources (a domain, a repository, a package, an app id) | to draft |
+| state | where the adapter stopped, so the next run continues | part of the protocol |
+
+mull links subjects only on exact identifiers. A fuzzy match is a judgment and belongs to
+cultivate or glean.
+
+### The adapter manifest
+
+Every adapter ships a manifest (`contracts/adapter.md`, drafted by mull), recorded fixtures, and
+tests that replay them. The manifest holds:
+
+- the source, the adapter's kind (discover, expand or stream), the record kinds it emits, and the
+  protocol version;
+- the audiences and signals it carries;
+- the source's terms (licence, attribution, commercial use, rate limit) and the adapter's use,
+  allowed or refused with the reason;
+- the hosts it may reach, and nothing else;
+- for a generic adapter, the schema of its configuration;
+- how a response splits into records, field by field;
+- **access**: the method (`none`, `api-key`, `bearer`, `oauth2`, `basic`, `session-login`,
+  `signed-request`, `export-file`); each credential by its Keychain name, fixed or refreshed;
+  whose account it runs as; whether that account's terms allow automation; how access is
+  obtained, whether approval is needed, its cost and its status; the least scopes it needs and
+  whether they are read-only; when access expires and how it renews; any step a program must not
+  take alone (two-factor, a captcha, a login the terms forbid automating); and whether calls are
+  paid.
+
+Code refuses a source whose terms forbid the use or the automation, and never works around a
+captcha or two-factor: such a source becomes an export file the owner provides, or a refusal on
+record. well (`docs/ideas/well.md`) owns every secret's life: storage, reading at call time,
+refresh, and a warning before expiry. Access that is not ready reaches the owner as a request in
+gate, not as a failed run.
+
+### Generic adapters first
+
+One forum adapter covers every site on the same forum software; one feed adapter covers every
+feed; one page adapter turns any article into a document; one export mapper reads a chat, mail or
+spreadsheet export through a field map. A custom adapter is only for what is left. An agent
+writes it from the manifest template; it must pass its fixture tests, and mull refuses it until
+it does. The runner composes login, rate limit, retry and recording around every adapter as
+layers, so no adapter carries its own.
+
+The first adapters, in order of what waits on them: Hacker News (glean's second test and
+yardstick); local files and GitHub issues and discussions (cultivate's three, with cultivate's
+tests still passing); web search as discovery (glean's stand-in); Discourse forums and Stack
+Exchange as expanders. Until an adapter exists in mull, a tool may fetch with a stand-in script
+beside the test that needs it, writing the same records; the stand-in moves into mull whole.
+
+### Safety
+
+Adapters are code from many authors. Each runs reaching only its manifest's hosts, receives its
+keys from well at call time, and may write nothing but its records. The umbrella's redaction
+contract (`contracts/redaction.md`) applies to documents that carry personal data. A source whose
+site changes and breaks its adapter shows in the census, and upkeep opens the repair.
+
+### Capture plans
+
+Each project keeps a capture plan in its repository: its sources and their configuration, its
+subjects, the consent behind each private stream, and each stream's lifetime. cultivate can draft
+it from "whom are we listening to"; mull runs it. Public sources are fetched once into a shared
+public store and each project reads its slice, so a thousand projects never fetch the same forum
+a thousand times. Private streams stay in that project's own store.
+
+### The output side: questions and formats
+
+Readers never open mull's storage. They ask `mull query`, which answers the questions they need
+and returns the contract formats:
+
+| Reader | Asks |
+|---|---|
+| cultivate | every post in a window per channel or subject, with its thread |
+| glean | posts and observations about a need as of a date, from sources reaching its people; one author's posts over time |
+| harvest | posts after a release that mention a feature, and each asker's address, to reply there |
+| upkeep | release notes, end-of-support notices and advisories for a product's dependencies |
+
+Formats are delivery adapters, as the old mull named them: JSON Lines for tools, Parquet or CSV
+for analysis, a Markdown digest for people and agents, and an MCP tool of at most three tools for
+an agent in a session (law §1, invariant 5). A new reader needs a new question at most, never a
+new store, and the storage behind `mull query` can change without any reader changing.
+
+### Kill criteria, written before the build
+
+- The generic adapters cover at least 80 percent of the first ten projects' sources by
+  configuration alone.
+- An agent writes a new adapter that passes its fixture tests in one session.
+- A re-run over the same window gives byte-identical records.
 
 ## The store
 
@@ -80,7 +172,7 @@ text, except the quote a seed cites.
 
 | Layer | Owner | Holds | Where | Lifetime |
 |---|---|---|---|---|
-| Raw items | mull | one post per line, partitioned by source and month: `raw/<source>/<channel>/<yyyy-mm>.jsonl` | a data folder outside git, one per portfolio | public items kept; private items for the owner's set period, then deleted on schedule |
+| Records | mull | one record per line, by kind, source and month: `<kind>/<source>/<channel>/<yyyy-mm>.jsonl` | a data folder outside git: one shared public store, one private store per project | public items kept; private items for the owner's set period, then deleted on schedule |
 | Raw responses | mull | what each source returned, compressed, named by its sha256, cited from each item's `raw_ref` | the same data folder, outside git | kept while any item cites them |
 | Census | mull | items per channel per period, per run | the data folder | kept, compacted to one line per channel per month after a year |
 | Needs | cultivate | member item ids; distinct people counted by role (wanting, paying, building, gone quiet); counts per month; first and last seen | the product's or portfolio's repository | life of the portfolio |
@@ -90,8 +182,15 @@ text, except the quote a seed cites.
 
 Files stay the truth. A closed month of raw items may be compacted into a columnar file
 (Parquet) and read with an embedded query engine (DuckDB) for heavy counts; the compacted file is
-derived and can always be rebuilt from the lines. The scale designed for is about ten million
-items: roughly 10 GB of lines, a few GB compacted, on a local disk.
+derived and can always be rebuilt from the lines, and a full-text index is derived the same way.
+The scale designed for starts at about ten million records (roughly 10 GB of lines, a few GB
+compacted) and stays on files into the hundreds of millions when partitioned; on more than one
+machine the same files live in a bucket.
+
+**Measured before it is built.** Before mull builds the store, it loads the Hacker News corpus
+plus about ten million generated records and times every question in the output table. If those
+are too slow, or two machines must write at once, the next step is a real database. That breaks
+the law's invariant 2, so it is the owner's decision, made with the numbers.
 
 ## Time, identity and reproducibility
 
@@ -119,8 +218,8 @@ needs only, and says so.
 
 ## What is hard to change
 
-The raw item contract (already landed), the adapter manifest, and the role counts in cultivate's
-needs format. A wrong choice in any of these is paid for by every adapter and every reader.
+The raw item contract (already landed), the protocol, the adapter manifest, the document,
+observation and subject contracts, and the role counts in cultivate's needs format. A wrong choice in any of these is paid for by every adapter and every reader.
 
 ## Open issues
 
