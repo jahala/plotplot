@@ -34,6 +34,7 @@
   },
   "terms_per_site": true,
   "channel": "The forum's host name, one channel per forum.",
+  "identity_space": "channel",
   "audiences": [
     "the members of each configured forum's community"
   ],

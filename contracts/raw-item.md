@@ -24,7 +24,7 @@ A file of JSON Lines, one item per line. Each item holds:
 | `text` | yes | what the person said, verbatim |
 | `said_at` | yes, may be null | when they said it |
 | `fetched_at` | yes | when it was fetched |
-| `author` | yes, may be null | sha256 of the owner's salt, a newline, the channel, a newline, and the author's handle there, as lowercase hex |
+| `author` | yes, may be null | sha256 of the owner's salt, a newline, the source's identity space, a newline, and the author's handle there, as lowercase hex. The identity space is the platform's account space for platform accounts (`github.com` for every GitHub repository) and the channel itself for a source with no shared identity; the adapter manifest declares which |
 | `author_role` | no | the source's own statement of the author's relation to the channel as fetched, verbatim: GitHub's author association (MEMBER, OWNER, COLLABORATOR, CONTRIBUTOR, NONE) |
 | `parent` | no | the id of the item it replies to |
 | `reactions` | no | counts of votes and reactions, each with the moment it was counted |
@@ -40,10 +40,11 @@ A file of JSON Lines, one item per line. Each item holds:
   shortens, translates or cleans it beyond decoding.
 - **Stable identity.** The same thing said in the same place has the same `id` on every run, so
   fetching is append-only and a re-run adds only what is new.
-- **People count once, unnamed.** `author` is a salted hash. The salt stays with the owner and is
-  never written into an item. mull computes the hash; an adapter only hands mull the handle
-  (`contracts/protocol.md`). The same person on the same channel hashes the same, so readers count
-  distinct people; across channels they stay apart.
+- **People count once per platform, unnamed.** `author` is a salted hash. The salt stays with the
+  owner and is never written into an item. mull computes the hash over the source's identity space,
+  which the adapter manifest declares; an adapter only hands mull the handle (`contracts/protocol.md`).
+  The same account hashes the same across every channel of one platform, so readers count a person
+  once there; across platforms, and across sources with no shared identity, people stay apart.
 - **Labels, reactions, status and author role are snapshots.** They change after a person posts,
   so each is as of the item's `fetched_at`. The same `id` may appear on more than one line, appended
   again only when its labels, reactions, status or author role differ from its latest line; the latest line is current, and

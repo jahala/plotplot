@@ -73,7 +73,7 @@
       "description": "when the adapter fetched it"
     },
     "author": {
-      "description": "lowercase hex sha256 of the owner's salt, a newline, the channel, a newline, and the author's handle there, so one person counts once per channel without being named; null when the source gives no author",
+      "description": "lowercase hex sha256 of the owner's salt, a newline, the source's identity space (declared in its adapter manifest: the platform's account space, or the channel), a newline, and the author's handle there, so one person counts once per platform without being named; null when the source gives no author",
       "anyOf": [
         {
           "type": "string",

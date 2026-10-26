@@ -66,6 +66,11 @@
       "minLength": 1,
       "description": "how the adapter fills a raw item's channel, in a sentence; absent for a discover adapter, which writes no items"
     },
+    "identity_space": {
+      "type": "string",
+      "pattern": "^(channel|[a-z0-9-]+(\\.[a-z0-9-]+)+)$",
+      "description": "where an author's handle names one person: the platform's account space as its host name (github.com for every GitHub repository), or the word channel when each channel has its own people (call notes, a chat export, separate forums); the author hash is taken over it"
+    },
     "audiences": {
       "type": "array",
       "minItems": 1,
@@ -645,6 +650,11 @@
               "required": [
                 "channel"
               ]
+            },
+            {
+              "required": [
+                "identity_space"
+              ]
             }
           ]
         },
@@ -657,7 +667,8 @@
       "else": {
         "required": [
           "split",
-          "channel"
+          "channel",
+          "identity_space"
         ]
       }
     },
