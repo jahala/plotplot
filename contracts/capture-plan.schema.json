@@ -350,6 +350,11 @@
               "minLength": 1
             },
             "description": "handles on this source the owner knows to be programs, as the source writes them; mull marks their records author_kind bot, from the plan"
+          },
+          "budget": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "description": "the well budget this entry spends; required when the adapter is paid, which the runner checks against the manifest"
           }
         },
         "allOf": [

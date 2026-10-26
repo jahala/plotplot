@@ -85,6 +85,20 @@
         "on": "2026-10-26",
         "says": "The garden reads this forum for research into which needs are real, not for commercial use."
       }
+    },
+    {
+      "adapter": "web-search",
+      "version": "0",
+      "config": {
+        "queries": [
+          "invoice export breaks after a thousand rows"
+        ],
+        "count": 20
+      },
+      "from": "2026-01-01",
+      "why": "Finds the forums and trackers where people describe the need, for expanding adapters to read.",
+      "private": false,
+      "budget": "search"
     }
   ]
 }
