@@ -1,0 +1,16 @@
+{
+  "source": "web-search",
+  "channel": "forum.example.org",
+  "url": "https://forum.example.org/t/1234",
+  "title": "Is there a tool that tells me if my fuel price is fair?",
+  "text": "Every week I drive past three stations and still cannot tell which one is overcharging. I keep a spreadsheet of prices by hand.",
+  "said_at": "2026-09-30",
+  "author": "39f9fdfec4affa9d596a7f95a3b37717e28c6e1dc55a4d244c2c286a72316586",
+  "private": false,
+  "signals": {
+    "rerank_score": 1.8,
+    "authority": 3
+  },
+  "raw_ref": "raw/web-search/2026-10-26/c75de8c1b7c3ae5252091267a736a9bf57001d80e82668b3cb3cd09e2f6a43cb.json",
+  "id": "ed64eb7b9ff7e2628e1db41e8db8708e94c930942c1ef490d4a83971974fc23b"
+}

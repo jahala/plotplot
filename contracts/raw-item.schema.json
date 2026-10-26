@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotplot.ai/contracts/raw-item.schema.json",
+  "title": "raw item",
+  "description": "One thing one person said, kept verbatim with where and when, as mull writes it and every reader of the world reads it. One item per line of a JSON Lines file. See contracts/raw-item.md.",
+  "type": "object",
+  "required": ["id", "source", "channel", "text", "said_at", "fetched_at", "author", "private", "raw_ref"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "lowercase hex sha256 of source, a newline, the url (or the locator when there is no url), a newline, and the text"
+    },
+    "source": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "the adapter that fetched the item, such as web-search, github-issues or local-file"
+    },
+    "channel": {
+      "type": "string",
+      "minLength": 1,
+      "description": "where the person said it: a site, a tracker, a forum, an inbox"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "the public address of the item; required when the item is public"
+    },
+    "locator": {
+      "type": "string",
+      "minLength": 1,
+      "description": "where a private item is found when it has no public address: a file and line, a message id"
+    },
+    "title": {
+      "type": "string",
+      "description": "the title of the thread or page the item belongs to, when it has one"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "description": "what the person said, verbatim, never paraphrased"
+    },
+    "said_at": {
+      "description": "when the person said it, as a date or a date-time; null when the source gives no date, and a reader decides whether an undated item counts as evidence",
+      "anyOf": [
+        { "type": "string", "format": "date-time" },
+        { "type": "string", "format": "date" },
+        { "type": "null" }
+      ]
+    },
+    "fetched_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "when the adapter fetched it"
+    },
+    "author": {
+      "description": "lowercase hex sha256 of a salt the owner keeps and the author's handle on that channel, so one person counts once without being named; null when the source gives no author",
+      "anyOf": [
+        { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        { "type": "null" }
+      ]
+    },
+    "parent": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "the id of the item this one replies to"
+    },
+    "reactions": {
+      "type": "array",
+      "description": "votes and reactions as counted at a moment, so counts can be compared over time",
+      "items": {
+        "type": "object",
+        "required": ["kind", "count", "at"],
+        "additionalProperties": false,
+        "properties": {
+          "kind": { "type": "string", "minLength": 1 },
+          "count": { "type": "integer", "minimum": 0 },
+          "at": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "signals": {
+      "type": "object",
+      "description": "numbers the source itself gave about the item, such as a search provider's relevance or authority score, keyed by the provider's own field name",
+      "additionalProperties": { "type": "number" }
+    },
+    "private": {
+      "type": "boolean",
+      "description": "true for an item from a private stream the owner consented to, such as a support inbox; it follows the owner's lifetime for private items"
+    },
+    "raw_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "where the raw response the item came from is kept, relative to the item store"
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "private": { "const": false } } },
+      "then": { "required": ["url"] }
+    },
+    {
+      "if": { "properties": { "private": { "const": true } } },
+      "then": { "anyOf": [{ "required": ["url"] }, { "required": ["locator"] }] }
+    }
+  ]
+}
