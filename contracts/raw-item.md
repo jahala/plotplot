@@ -27,6 +27,7 @@ A file of JSON Lines, one item per line. Each item holds:
 | `author` | yes, may be null | sha256 of the owner's salt, a newline, the channel, a newline, and the author's handle there, as lowercase hex |
 | `parent` | no | the id of the item it replies to |
 | `reactions` | no | counts of votes and reactions, each with the moment it was counted |
+| `labels` | no | the source's own labels on the item as fetched, verbatim: issue labels, flair, tags |
 | `signals` | no | numbers the source gave, under the source's own field names |
 | `private` | yes | whether it came from a private stream |
 | `raw_ref` | yes | where the raw response it came from is kept |
@@ -41,6 +42,10 @@ A file of JSON Lines, one item per line. Each item holds:
   never written into an item. mull computes the hash; an adapter only hands mull the handle
   (`contracts/protocol.md`). The same person on the same channel hashes the same, so readers count
   distinct people; across channels they stay apart.
+- **Labels and reactions are snapshots.** They change after a person posts, so each is as of the
+  item's `fetched_at`. The same `id` may appear on more than one line, appended again only when
+  its labels or reactions differ from its latest line; the latest line is current, and the earlier
+  ones answer "as of" a date. A source's labels are copied, never inferred.
 - **Nothing is filled in.** A source that gives no date or no author writes `null`. Whether an
   undated item counts as evidence is the reader's rule, written in the reader's own docs.
 - **Private items** carry `private: true` and follow the owner's lifetime for private data; public

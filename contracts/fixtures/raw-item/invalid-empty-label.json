@@ -1,0 +1,24 @@
+{
+  "id": "b73d69f359e59b80f10c9b3cab7e88c15d053805d2b19261b0c79546e4878ccf",
+  "source": "github-issues",
+  "channel": "github.com/example-org/example-tool",
+  "url": "https://github.com/example-org/example-tool/issues/41",
+  "title": "CSV export stops at 1,000 rows",
+  "text": "Exporting a project to CSV drops every row after the first thousand. I export weekly for my accountant, so I split the file by hand each time.",
+  "said_at": "2026-10-01T18:02:11Z",
+  "fetched_at": "2026-10-26T14:00:00Z",
+  "author": "b861384ad9b8257f0cc5132a98750eca060ce0c09204be4c7f003525b1bd1d1f",
+  "reactions": [
+    {
+      "kind": "+1",
+      "count": 2,
+      "at": "2026-10-26T14:00:00Z"
+    }
+  ],
+  "labels": [
+    "bug",
+    ""
+  ],
+  "private": false,
+  "raw_ref": "responses/3f/3f1c0e5b.json.gz"
+}
