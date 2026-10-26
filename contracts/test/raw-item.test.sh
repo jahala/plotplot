@@ -72,6 +72,7 @@ declare_negative "$fixdir/invalid-id-not-sha256.json" "an id that is not a sha25
 declare_negative "$fixdir/invalid-unknown-field.json" "a field the contract does not name"
 declare_negative "$fixdir/invalid-no-private-flag.json" "an item that does not say whether it is private"
 declare_negative "$fixdir/invalid-empty-label.json" "a label that is an empty string"
+declare_negative "$fixdir/invalid-empty-status-state.json" "a status whose state is empty"
 
 if [ "$fail" -eq 0 ]; then
   echo "raw-item.test.sh: all assertions passed"
