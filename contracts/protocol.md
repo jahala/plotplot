@@ -17,7 +17,7 @@ The adapter never opens a connection, never reads a key and never sees the salt.
 
 1. mull reads the adapter's manifest (`contracts/adapter.md`) and refuses to start when the manifest is invalid, its use is refused, or its access is not ready. Access that is not ready becomes a request to the owner.
 2. mull starts the program named by the manifest's `run`, from the adapter's folder, never through a shell, with an empty environment except `PATH`.
-3. mull writes one `start` line: the protocol version, the window, the cursor from the adapter's last `state` line for this capture plan entry (or null), and the entry's configuration.
+3. mull writes one `start` line: the protocol version, the window, the cursor from the adapter's last `state` line for this capture plan entry (or null), and the entry's configuration. The property the manifest names in `reaches.config_paths` arrives resolved to absolute paths, so the adapter can name them in `file:` requests.
 4. The adapter writes `fetch` lines. For each, mull writes back one `response` line, live or replayed, or one `refused` line with the reason. Answers come in the order the fetches were asked.
 5. The adapter writes `record` lines, each naming the fetch it was read from.
 6. The adapter writes one `state` line. mull closes the adapter's input, and the adapter exits 0.
@@ -30,7 +30,7 @@ The run is kept whole or not at all. Only a run whose last line is a valid `stat
 |---|---|---|
 | `start` | mull to adapter | `protocol` (`"1"`), `window` (`from` included, `to` not), `cursor`, `config` |
 | `fetch` | adapter to mull | `id` (the adapter's name for the fetch, unique in the run) and `request`: `method` (`GET` or `POST`), `url` (`https://` or `file:`), `headers` (never credentials), `body` (base64) |
-| `response` | mull to adapter | `id`, `status`, `headers` (names in lowercase), `body` (base64), `received_at` |
+| `response` | mull to adapter | `id`, `status`, `headers` (names in lowercase), `body` (base64), `received_at`. A `file:` request is answered with the file's bytes; for a folder, with a JSON array of `{"name", "folder"}` entries sorted by name, under the header `content-type: application/vnd.mull.folder+json`; for a path with nothing there, status 404 |
 | `refused` | mull to adapter | `id` and `reason`: `host-not-declared`, `access-not-ready`, `ceiling`, `unsettled-claim`, `not-recorded` (a replay with no kept response), `rate-limit-exhausted`, `unanswered` (the request failed before the source answered; a paid request stays claimed and is never resent) |
 | `record` | adapter to mull | `kind` (`post`, `document`, `observation`, `subject` or `reaction`), `from` (the fetch id), `fields` |
 | `state` | adapter to mull | `cursor`: any JSON value, read back on the next `start` |
