@@ -74,6 +74,7 @@ declare_negative "$fixdir/invalid-no-private-flag.json" "an item that does not s
 declare_negative "$fixdir/invalid-empty-label.json" "a label that is an empty string"
 declare_negative "$fixdir/invalid-empty-status-state.json" "a status whose state is empty"
 declare_negative "$fixdir/invalid-empty-author-role.json" "an author role that is an empty string"
+declare_negative "$fixdir/invalid-author-kind-not-person-or-bot.json" "an author kind that is neither person nor bot"
 
 if [ "$fail" -eq 0 ]; then
   echo "raw-item.test.sh: all assertions passed"

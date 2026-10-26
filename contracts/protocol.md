@@ -47,6 +47,7 @@ An adapter writes what it read. mull writes what only mull can know, so no adapt
 - `raw_ref`: where that response is kept.
 - `private`: from the capture plan entry.
 - `author`: the adapter writes `handle`, the author's handle on the channel, or null; mull writes the salted hash.
+- `author_kind`: the adapter writes `author_kind` as `person` or `bot` when the source says what the account is; mull writes it with `from: source`, or as `bot` with `from: plan` when the capture plan entry lists the handle under `bots`, which wins.
 - `parent` and a reaction's `target`: the adapter writes `parent_address` or `target_address`, the post's address; mull writes the id of the post at that address, from the same run or the store.
 - a document's `subjects` and an observation's `subject`: the adapter writes exact identifiers (`subject_identifiers`, `subject_identifier`); mull writes the subject ids.
 - `id`: computed by each kind's rule after the rest is complete.

@@ -341,6 +341,15 @@
                 "description": "the ruling, in the owner's words or a faithful sentence"
               }
             }
+          },
+          "bots": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "handles on this source the owner knows to be programs, as the source writes them; mull marks their records author_kind bot, from the plan"
           }
         },
         "allOf": [

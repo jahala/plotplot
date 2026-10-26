@@ -26,6 +26,7 @@ A file of JSON Lines, one item per line. Each item holds:
 | `fetched_at` | yes | when it was fetched |
 | `author` | yes, may be null | sha256 of the owner's salt, a newline, the source's identity space, a newline, and the author's handle there, as lowercase hex. The identity space is the platform's account space for platform accounts (`github.com` for every GitHub repository) and the channel itself for a source with no shared identity; the adapter manifest declares which |
 | `author_role` | no | the source's own statement of the author's relation to the channel as fetched, verbatim: GitHub's author association (MEMBER, OWNER, COLLABORATOR, CONTRIBUTOR, NONE) |
+| `author_kind` | no | `kind` (`person` or `bot`) and `from` (`source` when the source says so, such as GitHub's Bot accounts; `plan` when the owner's capture plan lists the handle under `bots`) |
 | `parent` | no | the id of the item it replies to |
 | `reactions` | no | counts of votes and reactions, each with the moment it was counted |
 | `labels` | no | the source's own labels on the item as fetched, verbatim: issue labels, flair, tags |
@@ -49,6 +50,7 @@ A file of JSON Lines, one item per line. Each item holds:
   so each is as of the item's `fetched_at`. The same `id` may appear on more than one line, appended
   again only when its labels, reactions, status or author role differ from its latest line; the latest line is current, and
   the earlier ones answer "as of" a date. A source's labels and status are copied, never inferred.
+- **Programs are marked, never guessed.** `author_kind` is set only when the source says what an account is or the owner lists the handle as a bot in the capture plan, and it says which; a plan's listing wins over the source. A reader counting people leaves out authors marked bot.
 - **Nothing is filled in.** A source that gives no date or no author writes `null`. Whether an
   undated item counts as evidence is the reader's rule, written in the reader's own docs.
 - **Private items** carry `private: true` and follow the owner's lifetime for private data; public
