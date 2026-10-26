@@ -1,0 +1,80 @@
+{
+  "adapter": "hackernews",
+  "version": "1.0.0",
+  "protocol": "1",
+  "run": [
+    "node",
+    "adapter.ts"
+  ],
+  "source": {
+    "name": "Hacker News",
+    "url": "https://news.ycombinator.com"
+  },
+  "kind": "stream",
+  "emits": [
+    "post"
+  ],
+  "reaches": {
+    "hosts": [
+      "hn.algolia.com"
+    ],
+    "files": false
+  },
+  "config": null,
+  "channel": "The site, news.ycombinator.com, for every item: one community where any member can reply to any thread.",
+  "audiences": [
+    "software developers",
+    "technical founders and builders"
+  ],
+  "carries": [
+    "building",
+    "wanting"
+  ],
+  "terms": {
+    "url": "https://www.ycombinator.com/legal/",
+    "read_on": "2026-10-26",
+    "licence": "No licence is named for posts. The Terms of Use reserve Y Combinator's rights in the site's content.",
+    "attribution": {
+      "required": true
+    },
+    "commercial_use": "forbidden",
+    "rate_limit": {
+      "requests": 10000,
+      "per_seconds": 3600,
+      "stated_by": "source"
+    },
+    "use": "refused",
+    "reason": "The Terms of Use say: 'you agree not to display, distribute, license, perform, publish, reproduce, duplicate, copy, create derivative works from, modify, sell, resell, exploit, transfer or upload for any commercial purposes, any portion of the Site'. Keeping posts verbatim to decide which products to build is such a use until the owner rules otherwise or Y Combinator grants permission."
+  },
+  "access": {
+    "method": "none",
+    "credentials": [],
+    "account": null,
+    "automation": "not-stated",
+    "obtain": {
+      "how": "The search API is open to anyone without an account.",
+      "approval": false,
+      "cost": "free",
+      "status": "ready"
+    },
+    "scopes": {
+      "least": [],
+      "read_only": true
+    },
+    "expiry": null,
+    "human_step": null,
+    "paid": false
+  },
+  "private": false,
+  "split": {
+    "post": {
+      "text": "The node's text field, as the API returns it.",
+      "url": "The site's item address built from the node's id.",
+      "title": "The thread's title, from the root node's title field.",
+      "said_at": "The node's created_at field.",
+      "handle": "The node's author field, the poster's handle on the site.",
+      "parent_address": "The item address of the node's parent_id; the thread's own post has none.",
+      "reactions": "The root node's points field, counted at the response's moment; comments carry none."
+    }
+  }
+}

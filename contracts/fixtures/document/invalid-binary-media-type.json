@@ -1,0 +1,16 @@
+{
+  "id": "15a5e6ef5614ac591e19ffe0cc228c02ef25f0bb2f0d22d5b71d55282a2027c0",
+  "source": "web-page",
+  "channel": "example-tool.dev",
+  "url": "https://example-tool.dev/releases/2.4",
+  "title": "example-tool 2.4",
+  "media_type": "application/pdf",
+  "content": "<html><head><title>example-tool 2.4</title></head><body><h1>2.4</h1><p>CSV export no longer stops at 1,000 rows.</p></body></html>",
+  "published_at": "2026-10-20",
+  "subjects": [
+    "2aacd93c965eb17496591868ceaf01089f69539c2dc86630d2906c647031155f"
+  ],
+  "fetched_at": "2026-10-26T14:00:00Z",
+  "private": false,
+  "raw_ref": "responses/c4/c4a1d2e3.json.gz"
+}

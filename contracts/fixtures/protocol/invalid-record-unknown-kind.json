@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "kind": "page",
+  "from": "issue-41",
+  "fields": {
+    "channel": "github.com/example-org/example-tool",
+    "url": "https://github.com/example-org/example-tool/issues/41",
+    "title": "CSV export stops at 1,000 rows",
+    "text": "Exporting a project to CSV drops every row after the first thousand. I export weekly for my accountant, so I split the file by hand each time.",
+    "said_at": "2026-10-01T18:02:11Z",
+    "handle": "maria-k"
+  }
+}

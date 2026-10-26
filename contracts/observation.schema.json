@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotplot.ai/contracts/observation.schema.json",
+  "title": "observation",
+  "description": "A number about a subject at a moment or over a period: downloads, stars, prices, ranks. See contracts/observation.md.",
+  "type": "object",
+  "required": [
+    "id",
+    "source",
+    "subject",
+    "metric",
+    "value",
+    "fetched_at",
+    "private",
+    "raw_ref"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "lowercase hex sha256 of the word observation, source, subject, metric, the moment or the period's start and end joined by a slash, and value as written, each followed by a newline except the last"
+    },
+    "source": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "the adapter that fetched it"
+    },
+    "subject": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "the id of the subject the number is about"
+    },
+    "metric": {
+      "type": "string",
+      "minLength": 1,
+      "description": "the source's own name for the number, such as downloads or stargazers_count"
+    },
+    "value": {
+      "type": "number",
+      "description": "the number as the source gave it"
+    },
+    "unit": {
+      "type": "string",
+      "minLength": 1,
+      "description": "the unit, when the source gives one, such as USD"
+    },
+    "at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "the moment the value holds, for a count read at a moment"
+    },
+    "period": {
+      "type": "object",
+      "required": [
+        "from",
+        "to"
+      ],
+      "additionalProperties": false,
+      "description": "the span the value covers, for a count over a span; from is included, to is not",
+      "properties": {
+        "from": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "string",
+              "format": "date"
+            }
+          ]
+        },
+        "to": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "string",
+              "format": "date"
+            }
+          ]
+        }
+      }
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "where the number can be seen, when it has an address"
+    },
+    "fetched_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "when the response it came from was received, read from the kept response"
+    },
+    "private": {
+      "type": "boolean",
+      "description": "true when it came from a private stream the owner consented to"
+    },
+    "raw_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "where the raw response it came from is kept, relative to the store"
+    }
+  },
+  "allOf": [
+    {
+      "oneOf": [
+        {
+          "required": [
+            "at"
+          ]
+        },
+        {
+          "required": [
+            "period"
+          ]
+        }
+      ]
+    }
+  ]
+}

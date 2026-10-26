@@ -1,0 +1,671 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotplot.ai/contracts/adapter.schema.json",
+  "title": "adapter manifest",
+  "description": "What one adapter declares about the one source it reads: what it is, how mull runs it, what it emits and may reach, whom the source reaches, the source's terms, the access it needs, and how a response becomes records field by field. See contracts/adapter.md.",
+  "type": "object",
+  "required": [
+    "adapter",
+    "version",
+    "protocol",
+    "run",
+    "source",
+    "kind",
+    "emits",
+    "reaches",
+    "config",
+    "audiences",
+    "carries",
+    "terms",
+    "access",
+    "private"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "adapter": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "the adapter's id; every raw item it writes carries this as its source"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "the adapter's version; a change to how it splits a response into items is a new major version, because the same response then gives different bytes"
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "name",
+        "url"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the source's own name"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://",
+          "description": "the source's home address"
+        }
+      }
+    },
+    "kind": {
+      "enum": [
+        "discover",
+        "expand",
+        "stream"
+      ],
+      "description": "discover returns addresses and never items; expand reads one address into posts; stream reads a channel over a window"
+    },
+    "channel": {
+      "type": "string",
+      "minLength": 1,
+      "description": "how the adapter fills a raw item's channel, in a sentence; absent for a discover adapter, which writes no items"
+    },
+    "audiences": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "the groups of people the source reaches, in plain words a compass would use; a reader scores a need only on sources that reach its people"
+    },
+    "carries": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "wanting",
+          "paying",
+          "building",
+          "harm",
+          "stranded",
+          "movement",
+          "own"
+        ]
+      },
+      "description": "the kinds of signal the source carries, from the umbrella's plan for reading the world: people wanting something, people paying, builders and their outcomes, harm and complaints, people left stranded, movement, and the owner's own"
+    },
+    "terms": {
+      "type": "object",
+      "required": [
+        "url",
+        "read_on",
+        "licence",
+        "attribution",
+        "commercial_use",
+        "rate_limit",
+        "use"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "where the terms were read"
+        },
+        "read_on": {
+          "type": "string",
+          "format": "date",
+          "description": "the day they were read"
+        },
+        "licence": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the licence of what people post there, as the terms name it, or the words the terms use when they name none"
+        },
+        "attribution": {
+          "type": "object",
+          "required": [
+            "required"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "required": {
+              "type": "boolean"
+            },
+            "how": {
+              "type": "string",
+              "minLength": 1,
+              "description": "what a reader that quotes an item must show"
+            }
+          },
+          "if": {
+            "properties": {
+              "required": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "required",
+              "how"
+            ]
+          }
+        },
+        "commercial_use": {
+          "enum": [
+            "allowed",
+            "forbidden",
+            "not-stated"
+          ],
+          "description": "whether the terms allow reading for a commercial purpose"
+        },
+        "rate_limit": {
+          "type": "object",
+          "required": [
+            "requests",
+            "per_seconds",
+            "stated_by"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "requests": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "per_seconds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "stated_by": {
+              "enum": [
+                "source",
+                "adapter"
+              ],
+              "description": "source when the terms or documentation state the limit; adapter when they state none and the adapter keeps its own, lower one"
+            }
+          }
+        },
+        "use": {
+          "enum": [
+            "allowed",
+            "refused"
+          ],
+          "description": "the adapter's reading of the terms for the garden's use; refused means the runner reads nothing and says why"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "description": "why the use is refused, citing the terms"
+        }
+      },
+      "if": {
+        "properties": {
+          "use": {
+            "const": "refused"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "reason"
+        ]
+      }
+    },
+    "private": {
+      "type": "boolean",
+      "description": "true when the source is a private stream the owner consented to; every item the adapter writes then carries private: true"
+    },
+    "protocol": {
+      "const": "1",
+      "description": "the protocol version the adapter speaks (contracts/protocol.md)"
+    },
+    "run": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "the program and its arguments, as an argv array run from the adapter's folder, never through a shell"
+    },
+    "emits": {
+      "type": "array",
+      "minItems": 0,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "post",
+          "document",
+          "observation",
+          "subject",
+          "reaction"
+        ]
+      },
+      "description": "the record kinds the adapter writes; the runner refuses a record of any other kind"
+    },
+    "reaches": {
+      "type": "object",
+      "required": [
+        "hosts",
+        "files"
+      ],
+      "additionalProperties": false,
+      "description": "everything the adapter may fetch; the runner refuses any other request",
+      "properties": {
+        "hosts": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^(\\*\\.)?[a-z0-9-]+(\\.[a-z0-9-]+)+$"
+          },
+          "description": "exact host names, or a leading *. for every subdomain of one name"
+        },
+        "files": {
+          "type": "boolean",
+          "description": "true when the adapter reads files, and then only under the paths its capture plan entry names"
+        },
+        "config_hosts": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "for a generic adapter, the configuration property that names the hosts it may reach for one capture plan entry; the runner adds them to hosts for that entry only"
+        }
+      }
+    },
+    "config": {
+      "description": "for a generic adapter, the JSON Schema its capture plan configuration must satisfy; null for an adapter with no configuration",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "object"
+            }
+          }
+        }
+      ]
+    },
+    "access": {
+      "type": "object",
+      "required": [
+        "method",
+        "credentials",
+        "account",
+        "automation",
+        "obtain",
+        "scopes",
+        "expiry",
+        "human_step",
+        "paid"
+      ],
+      "additionalProperties": false,
+      "description": "what reading the source needs, so access that is not ready reaches the owner as a request, not a failed run",
+      "properties": {
+        "method": {
+          "enum": [
+            "none",
+            "api-key",
+            "bearer",
+            "oauth2",
+            "basic",
+            "session-login",
+            "signed-request",
+            "export-file"
+          ]
+        },
+        "credentials": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "refreshed"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9.-]*$",
+                "description": "the credential's name in the Keychain, never its value"
+              },
+              "refreshed": {
+                "type": "boolean",
+                "description": "true when the credential is renewed by a refresh, as an OAuth access token is"
+              }
+            }
+          },
+          "description": "each secret by name; the runner reads it at the moment of the call and the adapter never sees it"
+        },
+        "account": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ],
+          "description": "whose account the calls run as, such as the owner's own; null for method none"
+        },
+        "automation": {
+          "enum": [
+            "allowed",
+            "forbidden",
+            "not-stated"
+          ],
+          "description": "whether the account's terms allow a program to use it"
+        },
+        "obtain": {
+          "type": "object",
+          "required": [
+            "how",
+            "approval",
+            "cost",
+            "status"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "how": {
+              "type": "string",
+              "minLength": 1
+            },
+            "approval": {
+              "type": "boolean",
+              "description": "true when someone must approve the access first"
+            },
+            "cost": {
+              "type": "string",
+              "minLength": 1,
+              "description": "what the access costs, in the source's own terms, or free"
+            },
+            "status": {
+              "enum": [
+                "ready",
+                "requested",
+                "not-started",
+                "refused"
+              ]
+            }
+          }
+        },
+        "scopes": {
+          "type": "object",
+          "required": [
+            "least",
+            "read_only"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "least": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": "the fewest scopes that do the job"
+            },
+            "read_only": {
+              "type": "boolean"
+            }
+          }
+        },
+        "expiry": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "required": [
+                "expires",
+                "renews"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "expires": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "when or after how long access ends"
+                },
+                "renews": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "how it is renewed"
+                }
+              }
+            }
+          ],
+          "description": "null when access does not expire"
+        },
+        "human_step": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ],
+          "description": "a step a program must not take alone, such as two-factor, a captcha or a login the terms forbid automating; null when there is none"
+        },
+        "paid": {
+          "type": "boolean",
+          "description": "true when each call costs money, so every call goes through the source's door"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "const": "none"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "credentials": {
+                "maxItems": 0
+              },
+              "account": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "enum": [
+                  "api-key",
+                  "bearer",
+                  "oauth2",
+                  "basic",
+                  "session-login",
+                  "signed-request"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "credentials": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "human_step"
+            ],
+            "properties": {
+              "human_step": {
+                "type": "string"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "method": {
+                "enum": [
+                  "export-file"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "split": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "description": "for each kind the adapter emits, where each field is read from in a response, in a sentence a person can check against a recorded response; a field the source does not give says so",
+      "properties": {
+        "post": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "document": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "observation": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "subject": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "reaction": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "terms_per_site": {
+      "type": "boolean",
+      "description": "true for a generic adapter whose sites each have their own terms; the manifest's terms then describe the software every site runs, and each capture plan entry must carry the site's own terms"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "discover"
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "split"
+              ]
+            },
+            {
+              "required": [
+                "channel"
+              ]
+            }
+          ]
+        },
+        "properties": {
+          "emits": {
+            "maxItems": 0
+          }
+        }
+      },
+      "else": {
+        "required": [
+          "split",
+          "channel"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "access": {
+            "properties": {
+              "automation": {
+                "const": "forbidden"
+              }
+            },
+            "required": [
+              "automation"
+            ]
+          }
+        },
+        "required": [
+          "access"
+        ]
+      },
+      "then": {
+        "properties": {
+          "terms": {
+            "properties": {
+              "use": {
+                "const": "refused"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "expand",
+              "stream"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "emits": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ]
+}

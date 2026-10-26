@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotplot.ai/contracts/document.schema.json",
+  "title": "document",
+  "description": "A dated, verbatim snapshot of a page: an article, release notes, a pricing page. See contracts/document.md.",
+  "type": "object",
+  "required": [
+    "id",
+    "source",
+    "channel",
+    "media_type",
+    "content",
+    "published_at",
+    "fetched_at",
+    "private",
+    "raw_ref"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "lowercase hex sha256 of the word document, source, the url (or locator), and content, each followed by a newline except the last"
+    },
+    "source": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "the adapter that fetched it"
+    },
+    "channel": {
+      "type": "string",
+      "minLength": 1,
+      "description": "the site or publisher the page belongs to"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "the page's public address; required when the document is public"
+    },
+    "locator": {
+      "type": "string",
+      "minLength": 1,
+      "description": "where a private document is found when it has no public address"
+    },
+    "title": {
+      "type": "string",
+      "description": "the page's title, when it has one"
+    },
+    "media_type": {
+      "enum": [
+        "text/html",
+        "text/markdown",
+        "text/plain"
+      ],
+      "description": "how content is written; a reader that wants plain text extracts it"
+    },
+    "content": {
+      "type": "string",
+      "minLength": 1,
+      "description": "the page as the source served it, decoded to text and never cleaned or shortened"
+    },
+    "published_at": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "when the page says it was published; null when it does not say"
+    },
+    "subjects": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "description": "the ids of the subjects the page is about, when the adapter knows them by an exact identifier"
+    },
+    "fetched_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "when the response it came from was received, read from the kept response"
+    },
+    "private": {
+      "type": "boolean",
+      "description": "true when it came from a private stream the owner consented to"
+    },
+    "raw_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "where the raw response it came from is kept, relative to the store"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "private": {
+            "const": false
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "url"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "private": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "anyOf": [
+          {
+            "required": [
+              "url"
+            ]
+          },
+          {
+            "required": [
+              "locator"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

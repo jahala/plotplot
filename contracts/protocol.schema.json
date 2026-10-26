@@ -1,0 +1,311 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotplot.ai/contracts/protocol.schema.json",
+  "title": "adapter protocol line",
+  "description": "One line of the adapter protocol, version 1, in either direction. See contracts/protocol.md.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/start"
+    },
+    {
+      "$ref": "#/$defs/fetch"
+    },
+    {
+      "$ref": "#/$defs/response"
+    },
+    {
+      "$ref": "#/$defs/refused"
+    },
+    {
+      "$ref": "#/$defs/record"
+    },
+    {
+      "$ref": "#/$defs/state"
+    }
+  ],
+  "$defs": {
+    "start": {
+      "type": "object",
+      "required": [
+        "type",
+        "protocol",
+        "window",
+        "cursor",
+        "config"
+      ],
+      "additionalProperties": false,
+      "description": "runner to adapter, the first line on the adapter's input",
+      "properties": {
+        "type": {
+          "const": "start"
+        },
+        "protocol": {
+          "const": "1"
+        },
+        "window": {
+          "type": "object",
+          "required": [
+            "from",
+            "to"
+          ],
+          "additionalProperties": false,
+          "description": "the span of saying the run covers; from is included, to is not",
+          "properties": {
+            "from": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "string",
+                  "format": "date"
+                }
+              ]
+            },
+            "to": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "string",
+                  "format": "date"
+                }
+              ]
+            }
+          }
+        },
+        "cursor": {
+          "description": "the cursor of the last state line this adapter wrote for this source in this plan, or null on the first run"
+        },
+        "config": {
+          "type": "object",
+          "description": "the capture plan's configuration for this source, valid against the manifest's config schema"
+        }
+      }
+    },
+    "fetch": {
+      "type": "object",
+      "required": [
+        "type",
+        "id",
+        "request"
+      ],
+      "additionalProperties": false,
+      "description": "adapter to runner: ask the runner to fetch, so the runner records, limits and authorizes every request",
+      "properties": {
+        "type": {
+          "const": "fetch"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._:-]{1,128}$",
+          "description": "the adapter's own name for one fetch, unique within the run"
+        },
+        "request": {
+          "type": "object",
+          "required": [
+            "method",
+            "url"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "method": {
+              "enum": [
+                "GET",
+                "POST"
+              ]
+            },
+            "url": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^(https://|file:)"
+            },
+            "headers": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "headers the adapter needs, never credentials; the runner adds those from access"
+            },
+            "body": {
+              "type": "string",
+              "contentEncoding": "base64",
+              "description": "bytes, base64-encoded"
+            }
+          }
+        }
+      }
+    },
+    "response": {
+      "type": "object",
+      "required": [
+        "type",
+        "id",
+        "status",
+        "headers",
+        "body",
+        "received_at"
+      ],
+      "additionalProperties": false,
+      "description": "runner to adapter: the answer to one fetch, live or replayed from the kept response",
+      "properties": {
+        "type": {
+          "const": "response"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._:-]{1,128}$",
+          "description": "the adapter's own name for one fetch, unique within the run"
+        },
+        "status": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 599
+        },
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "response headers, names in lowercase"
+        },
+        "body": {
+          "type": "string",
+          "contentEncoding": "base64",
+          "description": "bytes, base64-encoded"
+        },
+        "received_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "when the response was received; becomes fetched_at on every record made from it"
+        }
+      }
+    },
+    "refused": {
+      "type": "object",
+      "required": [
+        "type",
+        "id",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "description": "runner to adapter: the fetch was not sent, and why",
+      "properties": {
+        "type": {
+          "const": "refused"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._:-]{1,128}$",
+          "description": "the adapter's own name for one fetch, unique within the run"
+        },
+        "reason": {
+          "enum": [
+            "host-not-declared",
+            "access-not-ready",
+            "ceiling",
+            "unsettled-claim",
+            "not-recorded",
+            "rate-limit-exhausted"
+          ]
+        },
+        "detail": {
+          "type": "string"
+        }
+      }
+    },
+    "record": {
+      "type": "object",
+      "required": [
+        "type",
+        "kind",
+        "from",
+        "fields"
+      ],
+      "additionalProperties": false,
+      "description": "adapter to runner: one record, without the fields the runner completes",
+      "properties": {
+        "type": {
+          "const": "record"
+        },
+        "kind": {
+          "enum": [
+            "post",
+            "document",
+            "observation",
+            "subject",
+            "reaction"
+          ]
+        },
+        "from": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._:-]{1,128}$",
+          "description": "the fetch whose response the record was read from"
+        },
+        "fields": {
+          "type": "object",
+          "description": "the kind's fields as the adapter read them; the runner fills id, source, fetched_at, raw_ref and private, turns handle into author, and turns parent_address, target_address and subject identifiers into ids",
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "id"
+                ]
+              },
+              {
+                "required": [
+                  "source"
+                ]
+              },
+              {
+                "required": [
+                  "fetched_at"
+                ]
+              },
+              {
+                "required": [
+                  "raw_ref"
+                ]
+              },
+              {
+                "required": [
+                  "private"
+                ]
+              },
+              {
+                "required": [
+                  "author"
+                ]
+              },
+              {
+                "required": [
+                  "target"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "state": {
+      "type": "object",
+      "required": [
+        "type",
+        "cursor"
+      ],
+      "additionalProperties": false,
+      "description": "adapter to runner: the last line of a run, holding where the next run continues",
+      "properties": {
+        "type": {
+          "const": "state"
+        },
+        "cursor": {
+          "description": "any JSON value the adapter reads back from the next start line"
+        }
+      }
+    }
+  }
+}

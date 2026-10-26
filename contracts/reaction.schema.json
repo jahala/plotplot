@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotplot.ai/contracts/reaction.schema.json",
+  "title": "reaction",
+  "description": "One person's reaction or vote on a post, for a source that names who reacted. See contracts/reaction.md.",
+  "type": "object",
+  "required": [
+    "id",
+    "source",
+    "channel",
+    "target",
+    "kind",
+    "author",
+    "said_at",
+    "fetched_at",
+    "private",
+    "raw_ref"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "lowercase hex sha256 of the word reaction, source, target, kind and author, each followed by a newline except the last"
+    },
+    "source": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "the adapter that fetched it"
+    },
+    "channel": {
+      "type": "string",
+      "minLength": 1,
+      "description": "where the reaction was given; the target post's channel"
+    },
+    "target": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "the id of the post reacted to"
+    },
+    "kind": {
+      "type": "string",
+      "minLength": 1,
+      "description": "the reaction as the source names it, such as +1, heart or upvote"
+    },
+    "author": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "the salted hash of who reacted, made as a post's author is"
+    },
+    "said_at": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "when the reaction was given; null when the source does not say"
+    },
+    "fetched_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "when the response it came from was received, read from the kept response"
+    },
+    "private": {
+      "type": "boolean",
+      "description": "true when it came from a private stream the owner consented to"
+    },
+    "raw_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "where the raw response it came from is kept, relative to the store"
+    }
+  }
+}
