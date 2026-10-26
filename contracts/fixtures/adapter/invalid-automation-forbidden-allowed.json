@@ -43,7 +43,12 @@
       "per_seconds": 3600,
       "stated_by": "source"
     },
-    "use": "allowed"
+    "use": "allowed",
+    "ruling": {
+      "by": "the owner",
+      "on": "2026-10-26",
+      "says": "The garden reads these threads to learn what people need and to measure its own scoring, not to display, sell or otherwise use the site's content for a commercial purpose. The use is not commercial, so the clause does not apply."
+    }
   },
   "access": {
     "method": "none",

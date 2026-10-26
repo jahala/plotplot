@@ -196,20 +196,69 @@
           "type": "string",
           "minLength": 1,
           "description": "why the use is refused, citing the terms"
-        }
-      },
-      "if": {
-        "properties": {
-          "use": {
-            "const": "refused"
+        },
+        "ruling": {
+          "type": "object",
+          "required": [
+            "by",
+            "on",
+            "says"
+          ],
+          "additionalProperties": false,
+          "description": "the owner's ruling on how the terms apply to the garden's use, when the adapter's reading alone does not settle it",
+          "properties": {
+            "by": {
+              "type": "string",
+              "minLength": 1
+            },
+            "on": {
+              "type": "string",
+              "format": "date"
+            },
+            "says": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         }
       },
-      "then": {
-        "required": [
-          "reason"
-        ]
-      }
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "use": {
+                "const": "refused"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "reason"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "commercial_use": {
+                "const": "forbidden"
+              },
+              "use": {
+                "const": "allowed"
+              }
+            },
+            "required": [
+              "commercial_use",
+              "use"
+            ]
+          },
+          "then": {
+            "required": [
+              "ruling"
+            ]
+          }
+        }
+      ]
     },
     "private": {
       "type": "boolean",

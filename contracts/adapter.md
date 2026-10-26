@@ -47,7 +47,8 @@ One adapter has one kind. A source read two ways gets two adapters.
 - `attribution`: whether a reader that quotes a record must attribute it, and how.
 - `commercial_use`: `allowed`, `forbidden` or `not-stated`.
 - `rate_limit`: requests per span of seconds, `stated_by` the `source` or, when it states none, the `adapter`, which then keeps its own. mull holds this limit.
-- `use`: `allowed`, or `refused` with a `reason` citing the terms. mull runs nothing for a refused adapter. A refusal stays in the manifest, so the source is not proposed again without new terms.
+- `use`: `allowed`, or `refused` with a `reason` citing the terms.
+- `ruling`: the owner's ruling on how the terms apply to the garden's use: `by`, `on`, `says`. Required when the terms forbid commercial use and the use is allowed, since only the owner can say the use is not commercial. mull runs nothing for a refused adapter. A refusal stays in the manifest, so the source is not proposed again without new terms.
 
 A generic adapter that reads many sites (`terms_per_site: true`) states the software's own limits here, and each capture plan entry carries the site's terms in the same shape.
 
