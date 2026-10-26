@@ -1,0 +1,19 @@
+{
+  "id": "d67894c51d971a1217c5ab1e6270915a4cbcb549caf799b3a9c51aa874035902",
+  "source": "brreg-enhetsregisteret",
+  "kind": "organization",
+  "name": "EQUINOR ASA",
+  "identifiers": [
+    {
+      "scheme": "no-orgnr",
+      "value": "92360901"
+    },
+    {
+      "scheme": "domain",
+      "value": "equinor.com"
+    }
+  ],
+  "fetched_at": "2026-10-26T14:00:00Z",
+  "private": false,
+  "raw_ref": "responses/bb/bb22.json.gz"
+}

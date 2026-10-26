@@ -1,0 +1,14 @@
+{
+  "id": "7dbdfb3ae4cbea28c40e97ca92895c6047514112388fc04534068fdd8763c63f",
+  "source": "archive-cdx",
+  "channel": "example-tool.dev",
+  "url": "https://web.archive.org/web/20250301120000/https://example-tool.dev/pricing",
+  "title": "Pricing",
+  "media_type": "text/html",
+  "content": "<html><body><h1>Pricing</h1><p>Pro: 9 USD a month.</p></body></html>",
+  "published_at": null,
+  "captured_at": "March 2025",
+  "fetched_at": "2026-10-26T14:00:00Z",
+  "private": false,
+  "raw_ref": "responses/aa/aa11.json.gz"
+}

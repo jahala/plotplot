@@ -42,13 +42,15 @@ One adapter has one kind. A source read two ways gets two adapters.
 
 ### Terms
 
+What the source's terms say, as read, as fact. A manifest never decides whether a use is allowed: mull serves many owners, and each owner rules for their own use, in their capture plan (`contracts/capture-plan.md`).
+
 - `url` and `read_on`: where the terms were read, and the day.
 - `licence`: the licence of what people post, as the terms name it, or the terms' own words when they name none.
 - `attribution`: whether a reader that quotes a record must attribute it, and how.
 - `commercial_use`: `allowed`, `forbidden` or `not-stated`.
-- `rate_limit`: requests per span of seconds, `stated_by` the `source` or, when it states none, the `adapter`, which then keeps its own. mull holds this limit.
-- `use`: `allowed`, or `refused` with a `reason` citing the terms.
-- `ruling`: the owner's ruling on how the terms apply to the garden's use: `by`, `on`, `says`. Required when the terms forbid commercial use and the use is allowed, since only the owner can say the use is not commercial. mull runs nothing for a refused adapter. A refusal stays in the manifest, so the source is not proposed again without new terms.
+- `rate_limit`: requests per span of seconds, `stated_by` the `source` or, when it states none, the `adapter`, which then keeps its own. mull holds this limit as a budget per span, whatever any ruling says.
+- `restrictions`: each clause that restricts reading the source by program or using what is read, quoted, with where it was read. Empty when the terms restrict nothing.
+- `deletion`: whether the source requires that what was read be deleted when its author deletes it or after a time, how soon, and how. mull complies, whatever any ruling says.
 
 A generic adapter that reads many sites (`terms_per_site: true`) states the software's own limits here, and each capture plan entry carries the site's terms in the same shape.
 
@@ -68,7 +70,7 @@ A generic adapter that reads many sites (`terms_per_site: true`) states the soft
 | `human_step` | a step a program must not take alone: two-factor, a captcha, a login the terms forbid automating; null when there is none |
 | `paid` | true when each call costs money, so every call goes through the source's door |
 
-Two refusals are held by the schema. An account whose terms forbid automation makes the use `refused`. A `human_step` makes the method `export-file`: the owner exports the data and the adapter reads the file, and mull never works around a captcha or two-factor. well, when it exists, owns each secret's life: storage, reading at call time, refresh, and a warning before expiry (`jahala/plotplot:docs/ideas/well.md`).
+One rule is held by the schema whatever any ruling says: a `human_step` makes the method `export-file`, so the owner exports the data and the adapter reads the file. mull never works around a captcha, two-factor or a login it was not given. An account whose terms forbid automation is a restriction like any other, ruled on in the capture plan. well, when it exists, owns each secret's life: storage, reading at call time, refresh, and a warning before expiry (`jahala/plotplot:docs/ideas/well.md`).
 
 ### Split
 
@@ -77,6 +79,6 @@ For each kind the adapter emits, `split` names each field the adapter writes and
 ## Rules a reader may rely on
 
 - **One source per adapter.** An adapter's records all carry its `adapter` id as `source`.
-- **The manifest is read before the source.** No adapter reads a source its manifest refuses, or a host it does not name.
+- **The manifest is read before the source.** No adapter reads a host its manifest does not name, and no capture plan entry runs on a source with restrictions unless its owner's ruling allows it.
 - **Same version, same records.** The same response under the same major version gives the same records.
 - **Audiences are claims to check.** An audience names whom the source reaches by who posts there, not whom the reader hopes to hear.

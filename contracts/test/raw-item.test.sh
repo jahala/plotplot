@@ -73,6 +73,7 @@ declare_negative "$fixdir/invalid-unknown-field.json" "a field the contract does
 declare_negative "$fixdir/invalid-no-private-flag.json" "an item that does not say whether it is private"
 declare_negative "$fixdir/invalid-empty-label.json" "a label that is an empty string"
 declare_negative "$fixdir/invalid-empty-status-state.json" "a status whose state is empty"
+declare_negative "$fixdir/invalid-empty-author-role.json" "an author role that is an empty string"
 
 if [ "$fail" -eq 0 ]; then
   echo "raw-item.test.sh: all assertions passed"

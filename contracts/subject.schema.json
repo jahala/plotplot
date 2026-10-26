@@ -65,7 +65,41 @@
             "type": "string",
             "minLength": 1
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "scheme": {
+                  "const": "no-orgnr"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "value": {
+                  "pattern": "^[0-9]{9}$"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "scheme": {
+                  "const": "gb-company"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "value": {
+                  "pattern": "^[A-Z0-9]{8}$"
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "fetched_at": {

@@ -24,10 +24,12 @@ Each source entry holds:
 | `private` | yes | true for a private stream |
 | `consent` | for a private stream | `given_by`, `given_on`, `scope` and `evidence` (where the consent is kept) |
 | `lifetime_days` | for a private stream | how long its records are kept before the prune command deletes them |
-| `terms` | when the manifest sets `terms_per_site` | the site's own terms, in the manifest's shape |
+| `terms` | when the manifest sets `terms_per_site` | the site's own terms, as facts, in the manifest's shape |
+| `ruling` | when the source's terms restrict the use | the owner's ruling: `use` (`allowed` or `refused`), `by`, `on` and `says` |
 
 ## Rules a reader may rely on
 
 - **Public once, private apart.** A public source is fetched once into the shared public store, and every project reads its slice; a thousand projects never fetch the same forum a thousand times. A private stream's records go to that project's own store and nowhere else.
 - **No private stream without consent and a lifetime.** mull refuses an entry that lacks either.
+- **Each owner rules for their own use.** An entry whose source's terms carry restrictions, forbid commercial use, or come from an account whose terms forbid automation runs only when its `ruling` allows it; an entry whose ruling refuses never runs. No ruling changes a source's rate limit, its deletion requirements, or mull's refusal to work around a captcha, two-factor or a login it was not given.
 - **No cadence here.** When the plan runs is the operating system's scheduler or a workflow file, never the plan (law §6).

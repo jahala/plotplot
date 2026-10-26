@@ -25,6 +25,7 @@ A file of JSON Lines, one item per line. Each item holds:
 | `said_at` | yes, may be null | when they said it |
 | `fetched_at` | yes | when it was fetched |
 | `author` | yes, may be null | sha256 of the owner's salt, a newline, the channel, a newline, and the author's handle there, as lowercase hex |
+| `author_role` | no | the source's own statement of the author's relation to the channel as fetched, verbatim: GitHub's author association (MEMBER, OWNER, COLLABORATOR, CONTRIBUTOR, NONE) |
 | `parent` | no | the id of the item it replies to |
 | `reactions` | no | counts of votes and reactions, each with the moment it was counted |
 | `labels` | no | the source's own labels on the item as fetched, verbatim: issue labels, flair, tags |
@@ -43,9 +44,9 @@ A file of JSON Lines, one item per line. Each item holds:
   never written into an item. mull computes the hash; an adapter only hands mull the handle
   (`contracts/protocol.md`). The same person on the same channel hashes the same, so readers count
   distinct people; across channels they stay apart.
-- **Labels, reactions and status are snapshots.** They change after a person posts, so each is as
-  of the item's `fetched_at`. The same `id` may appear on more than one line, appended again only
-  when its labels, reactions or status differ from its latest line; the latest line is current, and
+- **Labels, reactions, status and author role are snapshots.** They change after a person posts,
+  so each is as of the item's `fetched_at`. The same `id` may appear on more than one line, appended
+  again only when its labels, reactions, status or author role differ from its latest line; the latest line is current, and
   the earlier ones answer "as of" a date. A source's labels and status are copied, never inferred.
 - **Nothing is filled in.** A source that gives no date or no author writes `null`. Whether an
   undated item counts as evidence is the reader's rule, written in the reader's own docs.

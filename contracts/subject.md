@@ -26,6 +26,8 @@ A value is written in its scheme's form before it is stored, so the same thing a
 | `crates` | the crate name in lowercase |
 | `app-store` | the numeric app id |
 | `play-store` | the application id, such as `com.example.app` |
+| `no-orgnr` | a Norwegian organisation number from the Brønnøysund registers: nine digits, no spaces |
+| `gb-company` | a UK Companies House company number: eight characters, digits and capital letters, leading zeros kept |
 | `url` | an absolute `https://` address, as written by the source |
 
 A new scheme is a change to this contract.

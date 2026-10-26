@@ -102,7 +102,8 @@
         "attribution",
         "commercial_use",
         "rate_limit",
-        "use"
+        "restrictions",
+        "deletion"
       ],
       "additionalProperties": false,
       "properties": {
@@ -185,80 +186,68 @@
             }
           }
         },
-        "use": {
-          "enum": [
-            "allowed",
-            "refused"
-          ],
-          "description": "the adapter's reading of the terms for the garden's use; refused means the runner reads nothing and says why"
+        "restrictions": {
+          "type": "array",
+          "description": "each clause of the source's terms that restricts reading it by program or using what is read, quoted, with where it was read; empty when the terms restrict nothing. An entry whose source has any restriction runs only on its owner's ruling",
+          "items": {
+            "type": "object",
+            "required": [
+              "says",
+              "url"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "says": {
+                "type": "string",
+                "minLength": 1,
+                "description": "the clause, quoted"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "where it was read"
+              }
+            }
+          }
         },
-        "reason": {
-          "type": "string",
-          "minLength": 1,
-          "description": "why the use is refused, citing the terms"
-        },
-        "ruling": {
+        "deletion": {
           "type": "object",
           "required": [
-            "by",
-            "on",
-            "says"
+            "required"
           ],
           "additionalProperties": false,
-          "description": "the owner's ruling on how the terms apply to the garden's use, when the adapter's reading alone does not settle it",
+          "description": "whether the source requires that what was read be deleted when its author deletes it, or after a time; no ruling changes this",
           "properties": {
-            "by": {
-              "type": "string",
-              "minLength": 1
+            "required": {
+              "type": "boolean"
             },
-            "on": {
-              "type": "string",
-              "format": "date"
+            "within_hours": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "how soon after the source's deletion, or after reading, it must go"
             },
-            "says": {
+            "how": {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "description": "what the source requires, in a sentence, and how mull learns of a deletion"
             }
+          },
+          "if": {
+            "properties": {
+              "required": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "required",
+              "how"
+            ]
           }
         }
       },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "use": {
-                "const": "refused"
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "reason"
-            ]
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "commercial_use": {
-                "const": "forbidden"
-              },
-              "use": {
-                "const": "allowed"
-              }
-            },
-            "required": [
-              "commercial_use",
-              "use"
-            ]
-          },
-          "then": {
-            "required": [
-              "ruling"
-            ]
-          }
-        }
-      ]
+      "description": "what the source's terms say, as read, as fact; whether a use is allowed is the ruling of the owner whose capture plan runs the adapter (contracts/capture-plan.md)"
     },
     "private": {
       "type": "boolean",
@@ -670,36 +659,6 @@
           "split",
           "channel"
         ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "access": {
-            "properties": {
-              "automation": {
-                "const": "forbidden"
-              }
-            },
-            "required": [
-              "automation"
-            ]
-          }
-        },
-        "required": [
-          "access"
-        ]
-      },
-      "then": {
-        "properties": {
-          "terms": {
-            "properties": {
-              "use": {
-                "const": "refused"
-              }
-            }
-          }
-        }
       }
     },
     {

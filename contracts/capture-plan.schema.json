@@ -163,7 +163,8 @@
               "attribution",
               "commercial_use",
               "rate_limit",
-              "use"
+              "restrictions",
+              "deletion"
             ],
             "additionalProperties": false,
             "properties": {
@@ -246,32 +247,100 @@
                   }
                 }
               },
+              "restrictions": {
+                "type": "array",
+                "description": "each clause of the source's terms that restricts reading it by program or using what is read, quoted, with where it was read; empty when the terms restrict nothing. An entry whose source has any restriction runs only on its owner's ruling",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "says",
+                    "url"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "says": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "the clause, quoted"
+                    },
+                    "url": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "where it was read"
+                    }
+                  }
+                }
+              },
+              "deletion": {
+                "type": "object",
+                "required": [
+                  "required"
+                ],
+                "additionalProperties": false,
+                "description": "whether the source requires that what was read be deleted when its author deletes it, or after a time; no ruling changes this",
+                "properties": {
+                  "required": {
+                    "type": "boolean"
+                  },
+                  "within_hours": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "how soon after the source's deletion, or after reading, it must go"
+                  },
+                  "how": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "what the source requires, in a sentence, and how mull learns of a deletion"
+                  }
+                },
+                "if": {
+                  "properties": {
+                    "required": {
+                      "const": true
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "required",
+                    "how"
+                  ]
+                }
+              }
+            },
+            "description": "the site's own terms, as facts, in the shape of an adapter manifest's terms; required when the adapter's manifest sets terms_per_site"
+          },
+          "ruling": {
+            "type": "object",
+            "required": [
+              "use",
+              "by",
+              "on",
+              "says"
+            ],
+            "additionalProperties": false,
+            "description": "the owner's ruling on this use of this source. An entry whose source's terms carry restrictions, forbid commercial use, or come from an account whose terms forbid automation runs only when its ruling allows it; an entry whose ruling refuses never runs",
+            "properties": {
               "use": {
                 "enum": [
                   "allowed",
                   "refused"
-                ],
-                "description": "the adapter's reading of the terms for the garden's use; refused means the runner reads nothing and says why"
+                ]
               },
-              "reason": {
+              "by": {
+                "type": "string",
+                "minLength": 1
+              },
+              "on": {
+                "type": "string",
+                "format": "date"
+              },
+              "says": {
                 "type": "string",
                 "minLength": 1,
-                "description": "why the use is refused, citing the terms"
+                "description": "the ruling, in the owner's words or a faithful sentence"
               }
-            },
-            "if": {
-              "properties": {
-                "use": {
-                  "const": "refused"
-                }
-              }
-            },
-            "then": {
-              "required": [
-                "reason"
-              ]
-            },
-            "description": "the site's own terms, read as an adapter manifest's terms are; required when the adapter's manifest sets terms_per_site"
+            }
           }
         },
         "allOf": [
@@ -287,6 +356,44 @@
               "required": [
                 "consent",
                 "lifetime_days"
+              ]
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "terms"
+              ],
+              "properties": {
+                "terms": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "restrictions": {
+                          "minItems": 1
+                        }
+                      },
+                      "required": [
+                        "restrictions"
+                      ]
+                    },
+                    {
+                      "properties": {
+                        "commercial_use": {
+                          "const": "forbidden"
+                        }
+                      },
+                      "required": [
+                        "commercial_use"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "ruling"
               ]
             }
           }

@@ -15,6 +15,7 @@ Schema: `contracts/document.schema.json`. Fixtures: `contracts/fixtures/document
 | `media_type` | yes | `text/html`, `text/markdown` or `text/plain` |
 | `content` | yes | the page as served, decoded to text, never cleaned or shortened |
 | `published_at` | yes, may be null | when the page says it was published |
+| `captured_at` | no | when the source itself captured the page, for a source that serves captures, such as a web archive's snapshot moment |
 | `subjects` | no | ids of the subjects the page is about, known by an exact identifier |
 | `fetched_at`, `private`, `raw_ref` | yes | as for every record |
 
