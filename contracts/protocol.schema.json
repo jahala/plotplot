@@ -209,7 +209,8 @@
             "ceiling",
             "unsettled-claim",
             "not-recorded",
-            "rate-limit-exhausted"
+            "rate-limit-exhausted",
+            "unanswered"
           ]
         },
         "detail": {
