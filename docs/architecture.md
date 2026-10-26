@@ -7,7 +7,8 @@ differently. Written 2026-09-24 from the project notes this page replaces.
 ## The shape, in full
 
 - The umbrella is the root of a garden of independent tools ("beds"), four rows by question
-  (plan, read, run, judge; law §0). It owns what no bed owns: the law, the contracts, the
+  (plan, read, run, judge; law §0), growing into one bed per layer of building a product
+  (`docs/decisions/2026-10-26-layers.md`). It owns what no bed owns: the law, the contracts, the
   brand, the fit runner, the stem and the map of fit loops.
 - `contracts/` defines each contract once as a schema or a page with a fixture and a test; beds
   cite the page in their own tests, which is the seam rule (law §8).

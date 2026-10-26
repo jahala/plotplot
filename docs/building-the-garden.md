@@ -17,7 +17,8 @@ and the vital choices), `docs/plotplot-architecture-review-2026-09.md` §13 (the
 survived review), `docs/garden-2031.md` §5 (each tool's what, how, why). The v1 architecture
 document is superseded where the review says so.
 
-Four rows, eight beds, one stem:
+The beds planted today, in four rows. The garden's layers and the tools still to plant are in
+`docs/decisions/2026-10-26-layers.md`, which holds where it differs from this page:
 
 | Row | Beds | Question |
 |---|---|---|
