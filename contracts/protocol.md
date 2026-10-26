@@ -20,7 +20,7 @@ The adapter never opens a connection, never reads a key and never sees the salt.
 3. mull writes one `start` line: the protocol version, the window, the cursor from the adapter's last `state` line for this capture plan entry (or null), and the entry's configuration.
 4. The adapter writes `fetch` lines. For each, mull writes back one `response` line, live or replayed, or one `refused` line with the reason. Answers come in the order the fetches were asked.
 5. The adapter writes `record` lines, each naming the fetch it was read from.
-6. The adapter writes one `state` line and exits 0.
+6. The adapter writes one `state` line. mull closes the adapter's input, and the adapter exits 0.
 
 The run is kept whole or not at all. Only a run whose last line is a valid `state` and whose exit status is 0 has its records stored and its cursor saved. Responses are kept either way, because a fetched response may have been paid for.
 
@@ -31,7 +31,7 @@ The run is kept whole or not at all. Only a run whose last line is a valid `stat
 | `start` | mull to adapter | `protocol` (`"1"`), `window` (`from` included, `to` not), `cursor`, `config` |
 | `fetch` | adapter to mull | `id` (the adapter's name for the fetch, unique in the run) and `request`: `method` (`GET` or `POST`), `url` (`https://` or `file:`), `headers` (never credentials), `body` (base64) |
 | `response` | mull to adapter | `id`, `status`, `headers` (names in lowercase), `body` (base64), `received_at` |
-| `refused` | mull to adapter | `id` and `reason`: `host-not-declared`, `access-not-ready`, `ceiling`, `unsettled-claim`, `not-recorded` (a replay with no kept response), `rate-limit-exhausted` |
+| `refused` | mull to adapter | `id` and `reason`: `host-not-declared`, `access-not-ready`, `ceiling`, `unsettled-claim`, `not-recorded` (a replay with no kept response), `rate-limit-exhausted`, `unanswered` (the request failed before the source answered; a paid request stays claimed and is never resent) |
 | `record` | adapter to mull | `kind` (`post`, `document`, `observation`, `subject` or `reaction`), `from` (the fetch id), `fields` |
 | `state` | adapter to mull | `cursor`: any JSON value, read back on the next `start` |
 
