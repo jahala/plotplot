@@ -1,0 +1,5966 @@
+{
+ "format": "cultivate-needs/1",
+ "product": "Zed",
+ "run": {
+  "at": "2026-10-26",
+  "previous": "2026-09-20",
+  "window": {
+   "from": "2025-10-27",
+   "to": "2026-10-25"
+  }
+ },
+ "scope": {
+  "channels": [
+   {
+    "channel": "github.com/zed-industries/zed",
+    "sources": [
+     "github-discussions",
+     "github-issues"
+    ],
+    "items": 1620
+   }
+  ],
+  "note": "the threads of the 36 needs on the September report and the duplicates found for them, not the whole tracker"
+ },
+ "features": {
+  "source": "Zed's 75-feature category map, scripts/validation/category/category-map.json"
+ },
+ "rules": {
+  "merge_at": 0.7,
+  "quiet_after_days": 180,
+  "movement": "A need moves when its last 4 weeks are 2 times its usual rate or more, or half or less, by at least 20 events.",
+  "intent_to_leave": "3 or more different people say they would leave, above the base rate of every judged comment with a one-sided Poisson p under 0.01"
+ },
+ "judge": {
+  "model": "jev-1.13.0",
+  "questions": "same: cultivate.judge.PAIR_Q; intent to leave: scripts/board/feel.py feel-v1"
+ },
+ "needs": [
+  {
+   "id": "need:0529d28076fbd702",
+   "lead": "0529d28076fbd70263befa67389314220fc4590f244d4f6137feaf556bce8806",
+   "label": "GitHub Copilot broken in v0.222.3",
+   "label_source": "lead_title",
+   "kind": "problem",
+   "features": [
+    {
+     "name": "AI model providers, keys, plans and quotas",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "0529d28076fbd70263befa67389314220fc4590f244d4f6137feaf556bce8806",
+     "url": "https://github.com/zed-industries/zed/issues/48543",
+     "said_at": "2026-02-06",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "a6735c36b078346b1ace8a72b37c40248c6300b2492713deb4f79d123d2712b9",
+     "url": "https://github.com/zed-industries/zed/issues/62592",
+     "said_at": "2026-08-13",
+     "lead": false,
+     "same": 0.94
+    },
+    {
+     "item": "efe5a4f679df935f0c9088e5a00debb60d180ffbf3b8f9cdf87306e51ea89ff6",
+     "url": "https://github.com/zed-industries/zed/issues/59532",
+     "said_at": "2026-06-18",
+     "lead": false,
+     "same": 0.87
+    },
+    {
+     "item": "bdbf6ab5bfe79c0e4610477137feccf4874ab931859b73fb939939e894349a05",
+     "url": "https://github.com/zed-industries/zed/issues/58194",
+     "said_at": "2026-06-01",
+     "lead": false,
+     "same": 0.79
+    },
+    {
+     "item": "c26e9d6d1b9f493f931e4ecb09629849a6923ed79ec01e263d07561e43d6a8d9",
+     "url": "https://github.com/zed-industries/zed/issues/60029",
+     "said_at": "2026-06-28",
+     "lead": false,
+     "same": 0.77
+    }
+   ],
+   "first_seen": "2026-02-06",
+   "last_seen": "2026-10-25",
+   "people": {
+    "wanting": {
+     "count": 116,
+     "in_window": 116,
+     "first_seen": "2026-02-06",
+     "last_seen": "2026-10-25",
+     "by_month": {
+      "2026-02": 40,
+      "2026-06": 17,
+      "2026-07": 37,
+      "2026-08": 18,
+      "2026-09": 8,
+      "2026-10": 6
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 39,
+     "in_window": 39,
+     "first_seen": "2026-02-06",
+     "last_seen": "2026-02-09",
+     "by_month": {
+      "2026-02": 39
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "answered",
+    "at": "2026-02-06",
+    "how": "the lead thread was closed as completed"
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     46,
+     2,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     2,
+     0,
+     2,
+     7,
+     20,
+     11,
+     4,
+     6,
+     8,
+     4,
+     8,
+     7,
+     5,
+     4,
+     0,
+     2,
+     1,
+     3,
+     1,
+     6,
+     1
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:0ad2e12756c3f60a",
+   "lead": "0ad2e12756c3f60a736abb19a5fd0f63aba7fedc0db4199f5438d78b8ab016e6",
+   "label": "Git status synchronization failure in Git Panel, Editor, and Project Panel",
+   "label_source": "lead_title",
+   "kind": "problem",
+   "features": [
+    {
+     "name": "Staging and committing changes",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "0ad2e12756c3f60a736abb19a5fd0f63aba7fedc0db4199f5438d78b8ab016e6",
+     "url": "https://github.com/zed-industries/zed/issues/51398",
+     "said_at": "2026-03-12",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "f3ddf7867eac14886ae11e7d42ad7c26ef5a03996f259fed106d05e3aa725819",
+     "url": "https://github.com/zed-industries/zed/issues/60102",
+     "said_at": "2026-06-29",
+     "lead": false,
+     "same": 0.91
+    },
+    {
+     "item": "f05fe0dfcfa7dde1a470dc357f1b25b223c8cd70896a2766c6681dc96c09edaa",
+     "url": "https://github.com/zed-industries/zed/issues/64729",
+     "said_at": "2026-09-24",
+     "lead": false,
+     "same": 0.89
+    },
+    {
+     "item": "e58d9886e9c93e6a88638c882420f47407803f37c0467ffd05843670168c5b2a",
+     "url": "https://github.com/zed-industries/zed/issues/55590",
+     "said_at": "2026-05-04",
+     "lead": false,
+     "same": 0.88
+    },
+    {
+     "item": "5b612dc74f13e37c88b8a75a8fcfe12990dc5f0d2a48ca4eafaa6bc964022f94",
+     "url": "https://github.com/zed-industries/zed/discussions/48583",
+     "said_at": "2026-02-06",
+     "lead": false,
+     "same": 0.84
+    },
+    {
+     "item": "423ee4b676fe9e4bb6c108d27e0c9b78da0bbe341dcaf2d1affc791c72ff6651",
+     "url": "https://github.com/zed-industries/zed/issues/52427",
+     "said_at": "2026-03-25",
+     "lead": false,
+     "same": 0.83
+    },
+    {
+     "item": "6ce994bb9c82530bc2478cddfa602c2cd3cf664755ee3c5d467e989ff4cb0e1a",
+     "url": "https://github.com/zed-industries/zed/issues/60241",
+     "said_at": "2026-07-02",
+     "lead": false,
+     "same": 0.79
+    },
+    {
+     "item": "1e578930774140251b721d289fec00ff7edfe626113355f559c8944d2cffe62d",
+     "url": "https://github.com/zed-industries/zed/issues/64206",
+     "said_at": "2026-09-15",
+     "lead": false,
+     "same": 0.73
+    },
+    {
+     "item": "3b34ef6273550b94e173e100a891f23e103c53bfa0f585903d4a182f269b4f0d",
+     "url": "https://github.com/zed-industries/zed/issues/60882",
+     "said_at": "2026-07-13",
+     "lead": false,
+     "same": 0.71
+    },
+    {
+     "item": "ac4742630f913bbc28ab71c2e5860cfc81ced584c68fac861410ba48e80667b9",
+     "url": "https://github.com/zed-industries/zed/issues/65332",
+     "said_at": "2026-10-08",
+     "lead": false,
+     "same": 0.7
+    }
+   ],
+   "first_seen": "2026-02-06",
+   "last_seen": "2026-10-23",
+   "people": {
+    "wanting": {
+     "count": 110,
+     "in_window": 110,
+     "first_seen": "2026-02-06",
+     "last_seen": "2026-10-23",
+     "by_month": {
+      "2026-02": 1,
+      "2026-03": 13,
+      "2026-04": 19,
+      "2026-05": 9,
+      "2026-06": 5,
+      "2026-07": 49,
+      "2026-08": 3,
+      "2026-09": 6,
+      "2026-10": 17
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 29,
+     "in_window": 29,
+     "first_seen": "2026-02-06",
+     "last_seen": "2026-04-28",
+     "by_month": {
+      "2026-02": 1,
+      "2026-03": 10,
+      "2026-04": 18
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "closed",
+    "at": "2026-05-04",
+    "how": "the lead thread was closed as duplicate"
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     2,
+     9,
+     6,
+     5,
+     8,
+     6,
+     9,
+     5,
+     5,
+     2,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     30,
+     13,
+     12,
+     14,
+     2,
+     1,
+     2,
+     0,
+     0,
+     2,
+     0,
+     1,
+     1,
+     2,
+     3,
+     10,
+     15
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:108faae0fe21bf81",
+   "lead": "108faae0fe21bf81f2c8e5e9b4d4511de0034d0b63b98b864a0b4484dcc38d92",
+   "label": "Diffing two branches (Similar to jet brains)",
+   "label_source": "lead_title",
+   "kind": "ask",
+   "features": [
+    {
+     "name": "Changed-line marks and diffs",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "108faae0fe21bf81f2c8e5e9b4d4511de0034d0b63b98b864a0b4484dcc38d92",
+     "url": "https://github.com/zed-industries/zed/discussions/55880",
+     "said_at": "2026-05-06",
+     "lead": true,
+     "same": null
+    }
+   ],
+   "first_seen": "2026-05-06",
+   "last_seen": "2026-05-06",
+   "people": {
+    "wanting": {
+     "count": 1,
+     "in_window": 1,
+     "first_seen": "2026-05-06",
+     "last_seen": "2026-05-06",
+     "by_month": {
+      "2026-05": 1
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 0,
+     "in_window": 0,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:1884e2ed0d4f0312",
+   "lead": "1884e2ed0d4f0312a0de534ef2a584f5065d11db69cf62759ccc5c1cb0680514",
+   "label": "Add 'Show Call Hierarchy' panel",
+   "label_source": "lead_title",
+   "kind": "ask",
+   "features": [
+    {
+     "name": "Go to definition and find references",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "1884e2ed0d4f0312a0de534ef2a584f5065d11db69cf62759ccc5c1cb0680514",
+     "url": "https://github.com/zed-industries/zed/issues/14203",
+     "said_at": "2024-07-11",
+     "lead": true,
+     "same": null
+    }
+   ],
+   "first_seen": "2024-07-11",
+   "last_seen": "2026-10-18",
+   "people": {
+    "wanting": {
+     "count": 122,
+     "in_window": 79,
+     "first_seen": "2024-07-11",
+     "last_seen": "2026-10-18",
+     "by_month": {
+      "2024-07": 2,
+      "2024-10": 4,
+      "2024-11": 1,
+      "2025-01": 1,
+      "2025-02": 5,
+      "2025-03": 1,
+      "2025-04": 1,
+      "2025-05": 1,
+      "2025-06": 6,
+      "2025-07": 5,
+      "2025-08": 6,
+      "2025-09": 8,
+      "2025-10": 10,
+      "2025-11": 13,
+      "2025-12": 5,
+      "2026-01": 5,
+      "2026-02": 7,
+      "2026-03": 6,
+      "2026-04": 3,
+      "2026-05": 8,
+      "2026-06": 10,
+      "2026-07": 5,
+      "2026-08": 11,
+      "2026-09": 4,
+      "2026-10": 2
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 83,
+     "in_window": 40,
+     "first_seen": "2024-07-15",
+     "last_seen": "2026-04-18",
+     "by_month": {
+      "2024-07": 1,
+      "2024-10": 3,
+      "2024-11": 1,
+      "2025-01": 1,
+      "2025-02": 4,
+      "2025-04": 1,
+      "2025-05": 1,
+      "2025-06": 6,
+      "2025-07": 4,
+      "2025-08": 6,
+      "2025-09": 8,
+      "2025-10": 9,
+      "2025-11": 13,
+      "2025-12": 5,
+      "2026-01": 5,
+      "2026-02": 7,
+      "2026-03": 6,
+      "2026-04": 2
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     4,
+     3,
+     5,
+     6,
+     1,
+     1,
+     1,
+     3,
+     1,
+     0,
+     3,
+     0,
+     2,
+     2,
+     1,
+     1,
+     2,
+     4,
+     1,
+     2,
+     2,
+     2,
+     0,
+     1,
+     1,
+     0,
+     2,
+     0,
+     2,
+     1,
+     5,
+     1,
+     1,
+     6,
+     3,
+     3,
+     3,
+     0,
+     2,
+     2,
+     0,
+     1,
+     3,
+     9,
+     1,
+     4,
+     0,
+     0,
+     0,
+     0,
+     3,
+     0
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:214f09c3265be477",
+   "lead": "214f09c3265be4779ee75e1a18896c08da046752224bcb4210671241fb25a20d",
+   "label": "Add secondary editor windows to support multi-monitor setup",
+   "label_source": "lead_title",
+   "kind": "ask",
+   "features": [
+    {
+     "name": "Application windows and the title bar",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "214f09c3265be4779ee75e1a18896c08da046752224bcb4210671241fb25a20d",
+     "url": "https://github.com/zed-industries/zed/issues/9662",
+     "said_at": "2024-03-21",
+     "lead": true,
+     "same": null
+    }
+   ],
+   "first_seen": "2024-03-21",
+   "last_seen": "2026-10-25",
+   "people": {
+    "wanting": {
+     "count": 478,
+     "in_window": 352,
+     "first_seen": "2024-03-21",
+     "last_seen": "2026-10-25",
+     "by_month": {
+      "2024-03": 1,
+      "2024-04": 1,
+      "2024-05": 1,
+      "2024-09": 2,
+      "2024-10": 1,
+      "2024-11": 2,
+      "2024-12": 1,
+      "2025-01": 3,
+      "2025-02": 7,
+      "2025-03": 6,
+      "2025-04": 6,
+      "2025-05": 10,
+      "2025-06": 16,
+      "2025-07": 19,
+      "2025-08": 14,
+      "2025-09": 20,
+      "2025-10": 29,
+      "2025-11": 24,
+      "2025-12": 32,
+      "2026-01": 41,
+      "2026-02": 41,
+      "2026-03": 18,
+      "2026-04": 32,
+      "2026-05": 48,
+      "2026-06": 33,
+      "2026-07": 27,
+      "2026-08": 34,
+      "2026-09": 22,
+      "2026-10": 14
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 297,
+     "in_window": 171,
+     "first_seen": "2024-04-11",
+     "last_seen": "2026-04-28",
+     "by_month": {
+      "2024-04": 1,
+      "2024-05": 1,
+      "2024-09": 2,
+      "2024-10": 1,
+      "2024-11": 2,
+      "2024-12": 1,
+      "2025-01": 3,
+      "2025-02": 7,
+      "2025-03": 6,
+      "2025-04": 6,
+      "2025-05": 8,
+      "2025-06": 15,
+      "2025-07": 18,
+      "2025-08": 12,
+      "2025-09": 19,
+      "2025-10": 28,
+      "2025-11": 20,
+      "2025-12": 29,
+      "2026-01": 39,
+      "2026-02": 37,
+      "2026-03": 18,
+      "2026-04": 24
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     9,
+     5,
+     3,
+     13,
+     5,
+     13,
+     10,
+     8,
+     5,
+     4,
+     13,
+     8,
+     10,
+     10,
+     9,
+     13,
+     15,
+     9,
+     4,
+     4,
+     5,
+     4,
+     3,
+     8,
+     9,
+     12,
+     12,
+     17,
+     8,
+     9,
+     13,
+     9,
+     10,
+     13,
+     5,
+     6,
+     5,
+     6,
+     4,
+     8,
+     8,
+     9,
+     13,
+     5,
+     6,
+     8,
+     5,
+     5,
+     3,
+     5,
+     4,
+     3
+    ]
+   },
+   "signals": [
+    {
+     "kind": "intent_to_leave",
+     "basis": "judged",
+     "rule": "3 or more people, above the base rate with p under 0.01",
+     "values": {
+      "people": 4,
+      "commenters": 28,
+      "share": 0.143,
+      "p": 0.0032
+     },
+     "bar": {
+      "graded": 17,
+      "agreed": 15,
+      "source": "docs/research/validation-feel-2026-10-26.md"
+     },
+     "evidence": [
+      "5fe8e4aa6d446c6d970c86567e5a2c0a89a6123de4a045e8397c0359d875bb39",
+      "be19e2a7bc85c8472f572b2653fd9cf6ff5775257c0599c43d03a66c11ef2fe1",
+      "c156422a99c6d19a0340dbb6f1b53df23ee2d66bb7278ea5f330cdcea437a750",
+      "eb7b43132065d71eed9b99341bae2b4bdb66e7bd8201a6c18ed717f2e4eaf500"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "need:2bbb7bed9118c154",
+   "lead": "2bbb7bed9118c154e4ac711adf25e095570fe78052ed9aa8d9f59d719c5ecc7d",
+   "label": "Zed is slow from the last updates",
+   "label_source": "lead_title",
+   "kind": "problem",
+   "features": [
+    {
+     "name": "Crashes, freezes and speed",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "2bbb7bed9118c154e4ac711adf25e095570fe78052ed9aa8d9f59d719c5ecc7d",
+     "url": "https://github.com/zed-industries/zed/issues/54822",
+     "said_at": "2026-04-24",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "0d8e79b058757c467ec12e5c3d8919724b5b9dad18d3db51ce86b9d0aa101e86",
+     "url": "https://github.com/zed-industries/zed/issues/43338",
+     "said_at": "2025-11-22",
+     "lead": false,
+     "same": 0.84
+    },
+    {
+     "item": "70b6501c132bda22de50628c658def032dc01460986c85a830241305cfe63954",
+     "url": "https://github.com/zed-industries/zed/issues/57574",
+     "said_at": "2026-05-23",
+     "lead": false,
+     "same": 0.72
+    }
+   ],
+   "first_seen": "2025-11-22",
+   "last_seen": "2026-09-25",
+   "people": {
+    "wanting": {
+     "count": 39,
+     "in_window": 39,
+     "first_seen": "2025-11-22",
+     "last_seen": "2026-09-25",
+     "by_month": {
+      "2025-11": 3,
+      "2025-12": 6,
+      "2026-01": 9,
+      "2026-02": 4,
+      "2026-03": 2,
+      "2026-04": 5,
+      "2026-05": 4,
+      "2026-06": 4,
+      "2026-07": 3,
+      "2026-08": 1,
+      "2026-09": 1
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 25,
+     "in_window": 25,
+     "first_seen": "2025-11-22",
+     "last_seen": "2026-04-27",
+     "by_month": {
+      "2025-11": 3,
+      "2025-12": 5,
+      "2026-01": 9,
+      "2026-02": 4,
+      "2026-03": 2,
+      "2026-04": 2
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "closed",
+    "at": "2026-07-01",
+    "how": "the lead thread was closed as not planned"
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     3,
+     1,
+     2,
+     1,
+     3,
+     7,
+     1,
+     1,
+     2,
+     7,
+     2,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     1,
+     1,
+     0,
+     0,
+     1,
+     3,
+     1,
+     0,
+     1,
+     4,
+     1,
+     1,
+     2,
+     0,
+     3,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:2e5d2b6434d43f59",
+   "lead": "2e5d2b6434d43f59c19eb3f09aa66ebc969b1c50ff99fc2327912c69360f11fc",
+   "label": "Flash.nvim style search in a document.",
+   "label_source": "lead_title",
+   "kind": "ask",
+   "features": [
+    {
+     "name": "Find and replace in one file",
+     "confident": false
+    }
+   ],
+   "members": [
+    {
+     "item": "2e5d2b6434d43f59c19eb3f09aa66ebc969b1c50ff99fc2327912c69360f11fc",
+     "url": "https://github.com/zed-industries/zed/issues/14801",
+     "said_at": "2024-07-19",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "87265f3d1a6b7e36a7b4d7378e3847517e6280f4afac5721e33f648fab8a7d6d",
+     "url": "https://github.com/zed-industries/zed/issues/17966",
+     "said_at": "2024-09-17",
+     "lead": false,
+     "same": 0.96
+    },
+    {
+     "item": "9145e9331c8ed6110662fc67b7b2990d8e377c250ad0249b5e1f0baae314b5c1",
+     "url": "https://github.com/zed-industries/zed/discussions/34534",
+     "said_at": "2025-07-16",
+     "lead": false,
+     "same": 0.86
+    }
+   ],
+   "first_seen": "2024-07-19",
+   "last_seen": "2026-10-24",
+   "people": {
+    "wanting": {
+     "count": 437,
+     "in_window": 170,
+     "first_seen": "2024-07-19",
+     "last_seen": "2026-10-24",
+     "by_month": {
+      "2024-07": 9,
+      "2024-08": 16,
+      "2024-09": 11,
+      "2024-10": 5,
+      "2024-11": 10,
+      "2024-12": 9,
+      "2025-01": 11,
+      "2025-02": 4,
+      "2025-03": 16,
+      "2025-04": 7,
+      "2025-05": 23,
+      "2025-06": 16,
+      "2025-07": 47,
+      "2025-08": 26,
+      "2025-09": 45,
+      "2025-10": 47,
+      "2025-11": 21,
+      "2025-12": 23,
+      "2026-01": 33,
+      "2026-02": 19,
+      "2026-03": 9,
+      "2026-04": 18,
+      "2026-05": 15,
+      "2026-06": 14,
+      "2026-07": 5,
+      "2026-08": 6,
+      "2026-09": 6,
+      "2026-10": 5
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 384,
+     "in_window": 117,
+     "first_seen": "2024-07-19",
+     "last_seen": "2026-04-28",
+     "by_month": {
+      "2024-07": 8,
+      "2024-08": 15,
+      "2024-09": 9,
+      "2024-10": 5,
+      "2024-11": 9,
+      "2024-12": 8,
+      "2025-01": 11,
+      "2025-02": 4,
+      "2025-03": 14,
+      "2025-04": 4,
+      "2025-05": 20,
+      "2025-06": 16,
+      "2025-07": 43,
+      "2025-08": 23,
+      "2025-09": 41,
+      "2025-10": 43,
+      "2025-11": 20,
+      "2025-12": 21,
+      "2026-01": 31,
+      "2026-02": 18,
+      "2026-03": 9,
+      "2026-04": 12
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     13,
+     1,
+     8,
+     3,
+     9,
+     6,
+     14,
+     8,
+     4,
+     6,
+     14,
+     12,
+     7,
+     9,
+     5,
+     3,
+     9,
+     7,
+     1,
+     0,
+     6,
+     4,
+     2,
+     3,
+     0,
+     7,
+     12,
+     5,
+     12,
+     1,
+     9,
+     6,
+     5,
+     5,
+     1,
+     1,
+     1,
+     0,
+     6,
+     0,
+     0,
+     5,
+     1,
+     2,
+     2,
+     5,
+     2,
+     1,
+     2,
+     0,
+     2,
+     3
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:337694aea2bddb2a",
+   "lead": "337694aea2bddb2a04a4f9346c89c4625ef086d4f38076b25360cb8a5f6f09af",
+   "label": "Context window overflow detection",
+   "label_source": "lead_title",
+   "kind": "ask",
+   "features": [
+    {
+     "name": "What the AI can see",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "337694aea2bddb2a04a4f9346c89c4625ef086d4f38076b25360cb8a5f6f09af",
+     "url": "https://github.com/zed-industries/zed/discussions/45865",
+     "said_at": "2025-12-30",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "34e8439b1ffaf316e50f9b1779da34f8e3821c112df1243472cbb07a253f345c",
+     "url": "https://github.com/zed-industries/zed/issues/63393",
+     "said_at": "2026-08-29",
+     "lead": false,
+     "same": 0.88
+    },
+    {
+     "item": "bc69d0cd6099fae7060b83bd9abf1d3d0e1bd4c76aab169a84c712d198ee0e1e",
+     "url": "https://github.com/zed-industries/zed/discussions/49472",
+     "said_at": "2026-02-18",
+     "lead": false,
+     "same": 0.87
+    },
+    {
+     "item": "cba8538f3c93c97bc8d01978547ed4e445ef1c7a6a7c93fa5fdc1141112ebc7b",
+     "url": "https://github.com/zed-industries/zed/issues/57166",
+     "said_at": "2026-05-19",
+     "lead": false,
+     "same": 0.79
+    },
+    {
+     "item": "0cdbb6b8f826eb844eb76605aafa81e7f7e9fc5de239f98cf01ed94743f3232f",
+     "url": "https://github.com/zed-industries/zed/issues/63237",
+     "said_at": "2026-08-26",
+     "lead": false,
+     "same": 0.74
+    },
+    {
+     "item": "088c7e67ddfce5f7f4e4b5b122e3094282b7f567300433578b68b24645283bb8",
+     "url": "https://github.com/zed-industries/zed/issues/59401",
+     "said_at": "2026-06-16",
+     "lead": false,
+     "same": 0.73
+    },
+    {
+     "item": "594819ed2e7edf75ee8e243b124bc2a86a0e7f55c83202ca4981de36a955c3f4",
+     "url": "https://github.com/zed-industries/zed/issues/65307",
+     "said_at": "2026-10-08",
+     "lead": false,
+     "same": 0.72
+    },
+    {
+     "item": "73a1245f871b5b64c00b75c0bf91e14128b766e1a802c8d0553b97f9e1eec328",
+     "url": "https://github.com/zed-industries/zed/issues/64838",
+     "said_at": "2026-09-27",
+     "lead": false,
+     "same": 0.7
+    }
+   ],
+   "first_seen": "2025-12-30",
+   "last_seen": "2026-10-23",
+   "people": {
+    "wanting": {
+     "count": 113,
+     "in_window": 113,
+     "first_seen": "2025-12-30",
+     "last_seen": "2026-10-23",
+     "by_month": {
+      "2025-12": 1,
+      "2026-02": 1,
+      "2026-03": 4,
+      "2026-04": 17,
+      "2026-05": 29,
+      "2026-06": 22,
+      "2026-07": 7,
+      "2026-08": 16,
+      "2026-09": 12,
+      "2026-10": 8
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 22,
+     "in_window": 22,
+     "first_seen": "2025-12-30",
+     "last_seen": "2026-04-28",
+     "by_month": {
+      "2025-12": 1,
+      "2026-02": 1,
+      "2026-03": 3,
+      "2026-04": 17
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     2,
+     2,
+     0,
+     1,
+     2,
+     1,
+     10,
+     6,
+     8,
+     11,
+     7,
+     2,
+     7,
+     6,
+     7,
+     6,
+     2,
+     4,
+     1,
+     0,
+     1,
+     3,
+     6,
+     1,
+     12,
+     6,
+     6,
+     2,
+     1,
+     0,
+     4,
+     1,
+     3
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:3550bf59006a77d2",
+   "lead": "3550bf59006a77d26998d74f0699195d5b666ea2ac3a6aeec99c400b375723a7",
+   "label": "easymotion vim",
+   "label_source": "lead_title",
+   "kind": "ask",
+   "features": [
+    {
+     "name": "Modal editing, Vim and Helix keys",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "3550bf59006a77d26998d74f0699195d5b666ea2ac3a6aeec99c400b375723a7",
+     "url": "https://github.com/zed-industries/zed/issues/4930",
+     "said_at": "2023-03-15",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "f6e6c5d670e8a1b99f7d2b0ed1ac551ad4846091e41d632f7955729c6015d5e2",
+     "url": "https://github.com/zed-industries/zed/issues/11092",
+     "said_at": "2024-04-27",
+     "lead": false,
+     "same": 0.8
+    }
+   ],
+   "first_seen": "2023-03-15",
+   "last_seen": "2026-10-16",
+   "people": {
+    "wanting": {
+     "count": 493,
+     "in_window": 166,
+     "first_seen": "2023-03-15",
+     "last_seen": "2026-10-16",
+     "by_month": {
+      "2023-03": 5,
+      "2023-06": 1,
+      "2023-08": 1,
+      "2023-09": 2,
+      "2023-10": 2,
+      "2023-11": 1,
+      "2023-12": 1,
+      "2024-01": 5,
+      "2024-02": 5,
+      "2024-03": 6,
+      "2024-04": 25,
+      "2024-05": 14,
+      "2024-06": 14,
+      "2024-07": 14,
+      "2024-08": 16,
+      "2024-09": 18,
+      "2024-10": 22,
+      "2024-11": 18,
+      "2024-12": 9,
+      "2025-01": 19,
+      "2025-02": 3,
+      "2025-03": 16,
+      "2025-04": 16,
+      "2025-05": 21,
+      "2025-06": 31,
+      "2025-07": 16,
+      "2025-08": 14,
+      "2025-09": 12,
+      "2025-10": 28,
+      "2025-11": 22,
+      "2025-12": 24,
+      "2026-01": 18,
+      "2026-02": 13,
+      "2026-03": 13,
+      "2026-04": 8,
+      "2026-05": 16,
+      "2026-06": 14,
+      "2026-07": 8,
+      "2026-08": 13,
+      "2026-09": 4,
+      "2026-10": 5
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 431,
+     "in_window": 104,
+     "first_seen": "2023-03-15",
+     "last_seen": "2026-04-20",
+     "by_month": {
+      "2023-03": 4,
+      "2023-06": 1,
+      "2023-08": 1,
+      "2023-09": 2,
+      "2023-10": 2,
+      "2023-11": 1,
+      "2024-01": 5,
+      "2024-02": 5,
+      "2024-03": 6,
+      "2024-04": 24,
+      "2024-05": 13,
+      "2024-06": 14,
+      "2024-07": 14,
+      "2024-08": 15,
+      "2024-09": 16,
+      "2024-10": 20,
+      "2024-11": 16,
+      "2024-12": 7,
+      "2025-01": 18,
+      "2025-02": 3,
+      "2025-03": 16,
+      "2025-04": 15,
+      "2025-05": 21,
+      "2025-06": 31,
+      "2025-07": 15,
+      "2025-08": 13,
+      "2025-09": 10,
+      "2025-10": 27,
+      "2025-11": 22,
+      "2025-12": 24,
+      "2026-01": 18,
+      "2026-02": 13,
+      "2026-03": 13,
+      "2026-04": 6
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     10,
+     4,
+     3,
+     10,
+     4,
+     13,
+     13,
+     4,
+     2,
+     3,
+     3,
+     8,
+     4,
+     6,
+     3,
+     2,
+     4,
+     6,
+     7,
+     3,
+     1,
+     2,
+     0,
+     5,
+     1,
+     3,
+     4,
+     5,
+     3,
+     5,
+     3,
+     1,
+     8,
+     5,
+     3,
+     6,
+     1,
+     1,
+     1,
+     3,
+     2,
+     3,
+     2,
+     3,
+     3,
+     1,
+     0,
+     1,
+     1,
+     3,
+     1,
+     0
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:380994221099c67c",
+   "lead": "380994221099c67c372985c81beb1a8cc57e7691bdba6840660f569d8e80e5ac",
+   "label": "Add support for jj SCM",
+   "label_source": "lead_title",
+   "kind": "ask",
+   "features": [
+    {
+     "name": "Branches, worktrees, stashes and remotes",
+     "confident": false
+    }
+   ],
+   "members": [
+    {
+     "item": "380994221099c67c372985c81beb1a8cc57e7691bdba6840660f569d8e80e5ac",
+     "url": "https://github.com/zed-industries/zed/issues/21538",
+     "said_at": "2024-12-04",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "8e76655bf47c576b24167be1b9c31b8291a5f76cf6212fc3f7d2c70282413084",
+     "url": "https://github.com/zed-industries/zed/discussions/37583",
+     "said_at": "2025-09-04",
+     "lead": false,
+     "same": 0.86
+    }
+   ],
+   "first_seen": "2024-12-04",
+   "last_seen": "2026-10-25",
+   "people": {
+    "wanting": {
+     "count": 633,
+     "in_window": 457,
+     "first_seen": "2024-12-04",
+     "last_seen": "2026-10-25",
+     "by_month": {
+      "2024-12": 13,
+      "2025-01": 4,
+      "2025-02": 7,
+      "2025-03": 9,
+      "2025-04": 3,
+      "2025-05": 32,
+      "2025-06": 22,
+      "2025-07": 42,
+      "2025-08": 25,
+      "2025-09": 19,
+      "2025-10": 37,
+      "2025-11": 31,
+      "2025-12": 34,
+      "2026-01": 32,
+      "2026-02": 34,
+      "2026-03": 43,
+      "2026-04": 49,
+      "2026-05": 58,
+      "2026-06": 38,
+      "2026-07": 58,
+      "2026-08": 41,
+      "2026-09": 35,
+      "2026-10": 19
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 384,
+     "in_window": 208,
+     "first_seen": "2024-12-04",
+     "last_seen": "2026-04-27",
+     "by_month": {
+      "2024-12": 12,
+      "2025-01": 3,
+      "2025-02": 5,
+      "2025-03": 7,
+      "2025-04": 3,
+      "2025-05": 26,
+      "2025-06": 20,
+      "2025-07": 37,
+      "2025-08": 23,
+      "2025-09": 14,
+      "2025-10": 34,
+      "2025-11": 29,
+      "2025-12": 34,
+      "2026-01": 29,
+      "2026-02": 31,
+      "2026-03": 41,
+      "2026-04": 36
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     10,
+     4,
+     18,
+     10,
+     13,
+     10,
+     12,
+     8,
+     4,
+     11,
+     14,
+     12,
+     7,
+     16,
+     11,
+     9,
+     8,
+     15,
+     17,
+     15,
+     7,
+     8,
+     13,
+     11,
+     5,
+     28,
+     23,
+     19,
+     10,
+     13,
+     23,
+     12,
+     9,
+     22,
+     15,
+     21,
+     18,
+     19,
+     17,
+     12,
+     17,
+     11,
+     23,
+     8,
+     23,
+     8,
+     15,
+     10,
+     3,
+     3,
+     12,
+     4
+    ]
+   },
+   "signals": [
+    {
+     "kind": "movement",
+     "basis": "counted",
+     "rule": "A need moves when its last 4 weeks are 2 times its usual rate or more, or half or less, by at least 20 events.",
+     "values": {
+      "direction": "falling",
+      "last_4_weeks": 22,
+      "usual_4_weeks": 60.3
+     },
+     "evidence": [
+      "380994221099c67c372985c81beb1a8cc57e7691bdba6840660f569d8e80e5ac",
+      "8e76655bf47c576b24167be1b9c31b8291a5f76cf6212fc3f7d2c70282413084"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "need:3f64817e0a53db73",
+   "lead": "3f64817e0a53db735ff52a89a8d762a45f9535f3abe6a32cb65c0d5255370f2f",
+   "label": "Zed leaves orphan background processes on Windows when closed via window close button",
+   "label_source": "lead_title",
+   "kind": "remove",
+   "features": [
+    {
+     "name": "Setting up language servers",
+     "confident": false
+    }
+   ],
+   "members": [
+    {
+     "item": "3f64817e0a53db735ff52a89a8d762a45f9535f3abe6a32cb65c0d5255370f2f",
+     "url": "https://github.com/zed-industries/zed/issues/54856",
+     "said_at": "2026-04-25",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "17011095cc0603a0ad0a9ce3e4dbcef6de3d674d5d8071d09b48ca05521af466",
+     "url": "https://github.com/zed-industries/zed/issues/55267",
+     "said_at": "2026-04-30",
+     "lead": false,
+     "same": 0.89
+    },
+    {
+     "item": "22011554f08ca3a9d655359271e10fc1ba2f4be4ac576822d8346da6533603a8",
+     "url": "https://github.com/zed-industries/zed/issues/54848",
+     "said_at": "2026-04-25",
+     "lead": false,
+     "same": 0.86
+    }
+   ],
+   "first_seen": "2026-04-25",
+   "last_seen": "2026-04-30",
+   "people": {
+    "wanting": {
+     "count": 29,
+     "in_window": 29,
+     "first_seen": "2026-04-25",
+     "last_seen": "2026-04-30",
+     "by_month": {
+      "2026-04": 29
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 24,
+     "in_window": 24,
+     "first_seen": "2026-04-25",
+     "last_seen": "2026-04-28",
+     "by_month": {
+      "2026-04": 24
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "answered",
+    "at": "2026-04-28",
+    "how": "the lead thread was closed as completed"
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     18,
+     21,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:45a3059ac2ba8b8a",
+   "lead": "45a3059ac2ba8b8a2e5e8c1963ae57a341585fe00b12f92cf40b5a982ab5f631",
+   "label": "Settings Sync",
+   "label_source": "lead_title",
+   "kind": "ask",
+   "features": [
+    {
+     "name": "Settings",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "45a3059ac2ba8b8a2e5e8c1963ae57a341585fe00b12f92cf40b5a982ab5f631",
+     "url": "https://github.com/zed-industries/zed/discussions/6569",
+     "said_at": "2023-02-14",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "38b6794aa667e144a2f308ec61d980432b72df1981863b778172ed0760b76c79",
+     "url": "https://github.com/zed-industries/zed/issues/5010",
+     "said_at": "2023-02-14",
+     "lead": false,
+     "same": 0.91
+    },
+    {
+     "item": "d48716307755259b837ac7d2db75bda34fae710f98bc086bdd05f366b875b1a9",
+     "url": "https://github.com/zed-industries/zed/issues/59978",
+     "said_at": "2026-06-26",
+     "lead": false,
+     "same": 0.89
+    }
+   ],
+   "first_seen": "2023-02-14",
+   "last_seen": "2026-10-25",
+   "people": {
+    "wanting": {
+     "count": 440,
+     "in_window": 326,
+     "first_seen": "2023-02-14",
+     "last_seen": "2026-10-25",
+     "by_month": {
+      "2023-02": 5,
+      "2023-03": 1,
+      "2023-04": 2,
+      "2023-06": 1,
+      "2024-01": 2,
+      "2024-02": 1,
+      "2024-04": 3,
+      "2024-05": 2,
+      "2024-06": 2,
+      "2024-07": 3,
+      "2024-08": 13,
+      "2024-09": 3,
+      "2024-10": 3,
+      "2024-11": 3,
+      "2024-12": 1,
+      "2025-01": 1,
+      "2025-02": 3,
+      "2025-03": 8,
+      "2025-04": 5,
+      "2025-05": 7,
+      "2025-06": 14,
+      "2025-07": 13,
+      "2025-08": 4,
+      "2025-09": 12,
+      "2025-10": 19,
+      "2025-11": 17,
+      "2025-12": 11,
+      "2026-01": 16,
+      "2026-02": 18,
+      "2026-03": 24,
+      "2026-04": 15,
+      "2026-05": 43,
+      "2026-06": 55,
+      "2026-07": 68,
+      "2026-08": 36,
+      "2026-09": 38,
+      "2026-10": 22
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 193,
+     "in_window": 79,
+     "first_seen": "2023-02-14",
+     "last_seen": "2026-04-26",
+     "by_month": {
+      "2023-02": 5,
+      "2023-03": 1,
+      "2023-04": 2,
+      "2024-01": 2,
+      "2024-02": 1,
+      "2024-04": 3,
+      "2024-05": 1,
+      "2024-06": 2,
+      "2024-07": 2,
+      "2024-08": 12,
+      "2024-09": 3,
+      "2024-10": 2,
+      "2024-11": 3,
+      "2024-12": 1,
+      "2025-01": 1,
+      "2025-02": 3,
+      "2025-03": 8,
+      "2025-04": 5,
+      "2025-05": 7,
+      "2025-06": 8,
+      "2025-07": 11,
+      "2025-08": 4,
+      "2025-09": 10,
+      "2025-10": 19,
+      "2025-11": 13,
+      "2025-12": 10,
+      "2026-01": 10,
+      "2026-02": 11,
+      "2026-03": 20,
+      "2026-04": 13
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     5,
+     5,
+     5,
+     5,
+     3,
+     2,
+     3,
+     2,
+     5,
+     6,
+     7,
+     1,
+     8,
+     4,
+     8,
+     7,
+     3,
+     7,
+     9,
+     4,
+     7,
+     3,
+     3,
+     6,
+     5,
+     6,
+     6,
+     22,
+     15,
+     10,
+     6,
+     4,
+     11,
+     6,
+     37,
+     46,
+     20,
+     17,
+     17,
+     9,
+     13,
+     14,
+     13,
+     8,
+     6,
+     12,
+     11,
+     14,
+     10,
+     8,
+     11,
+     10
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:5231087ae47c032c",
+   "lead": "5231087ae47c032ce840f7bb377843f22c6dcea0eeb1ba40082a6dcee03379d7",
+   "label": "OpenRouter inline assistant fails for multiple models",
+   "label_source": "lead_title",
+   "kind": "problem",
+   "features": [
+    {
+     "name": "AI model providers, keys, plans and quotas",
+     "confident": false
+    }
+   ],
+   "members": [
+    {
+     "item": "5231087ae47c032ce840f7bb377843f22c6dcea0eeb1ba40082a6dcee03379d7",
+     "url": "https://github.com/zed-industries/zed/issues/52714",
+     "said_at": "2026-03-30",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "6218c896c0d9ed0f5eb4a197e3928902637da839107a7746ec8dfe958075185a",
+     "url": "https://github.com/zed-industries/zed/issues/52567",
+     "said_at": "2026-03-27",
+     "lead": false,
+     "same": 0.72
+    }
+   ],
+   "first_seen": "2026-03-27",
+   "last_seen": "2026-08-24",
+   "people": {
+    "wanting": {
+     "count": 18,
+     "in_window": 18,
+     "first_seen": "2026-03-27",
+     "last_seen": "2026-08-24",
+     "by_month": {
+      "2026-03": 3,
+      "2026-04": 7,
+      "2026-05": 5,
+      "2026-07": 5,
+      "2026-08": 2
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 5,
+     "in_window": 5,
+     "first_seen": "2026-03-27",
+     "last_seen": "2026-04-27",
+     "by_month": {
+      "2026-03": 1,
+      "2026-04": 4
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "answered",
+    "at": "2026-08-20",
+    "how": "the lead thread was closed as completed"
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1,
+     3,
+     1,
+     1,
+     2,
+     2,
+     4,
+     0,
+     2,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1,
+     2,
+     1,
+     1,
+     0,
+     0,
+     0,
+     3,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:5449b6ba0524f144",
+   "lead": "5449b6ba0524f1445e27646c7470fc60ebae9efb8f379c34f1ee7298d5eb3869",
+   "label": "Git Panel: optional grouping by staging state (Staged / Unstaged) like VSCode",
+   "label_source": "lead_title",
+   "kind": "remove",
+   "features": [
+    {
+     "name": "Staging and committing changes",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "5449b6ba0524f1445e27646c7470fc60ebae9efb8f379c34f1ee7298d5eb3869",
+     "url": "https://github.com/zed-industries/zed/discussions/55020",
+     "said_at": "2026-04-27",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "b706c2ab6e6ac271f94282cf995fde68a44b1b0ff5ed6150e685697152d9b04d",
+     "url": "https://github.com/zed-industries/zed/discussions/65209",
+     "said_at": "2026-10-05",
+     "lead": false,
+     "same": 0.98
+    },
+    {
+     "item": "abad1ab15a7ddcbd38a2d647b73014d3d1da0f1931c862bb898c11c7346d69e3",
+     "url": "https://github.com/zed-industries/zed/issues/64700",
+     "said_at": "2026-09-24",
+     "lead": false,
+     "same": 0.71
+    }
+   ],
+   "first_seen": "2026-04-27",
+   "last_seen": "2026-10-22",
+   "people": {
+    "wanting": {
+     "count": 22,
+     "in_window": 22,
+     "first_seen": "2026-04-27",
+     "last_seen": "2026-10-22",
+     "by_month": {
+      "2026-04": 1,
+      "2026-05": 12,
+      "2026-06": 3,
+      "2026-07": 1,
+      "2026-09": 1,
+      "2026-10": 4
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 1,
+     "in_window": 1,
+     "first_seen": "2026-04-27",
+     "last_seen": "2026-04-27",
+     "by_month": {
+      "2026-04": 1
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "closed",
+    "at": "2026-05-28",
+    "how": "the lead thread was closed as closed"
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     4,
+     11,
+     1,
+     1,
+     0,
+     0,
+     2,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     3,
+     0,
+     1
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:5d67fb6ec3ae1faa",
+   "lead": "5d67fb6ec3ae1faadbdc34b2b86a994a88daaefe4c2cafeab099c1f07ade1b98",
+   "label": "Use system notifications instead of custom notifications",
+   "label_source": "lead_title",
+   "kind": "remove",
+   "features": [
+    {
+     "name": "The status bar and messages",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "5d67fb6ec3ae1faadbdc34b2b86a994a88daaefe4c2cafeab099c1f07ade1b98",
+     "url": "https://github.com/zed-industries/zed/discussions/40922",
+     "said_at": "2025-10-22",
+     "lead": true,
+     "same": null
+    }
+   ],
+   "first_seen": "2025-10-22",
+   "last_seen": "2026-10-25",
+   "people": {
+    "wanting": {
+     "count": 51,
+     "in_window": 50,
+     "first_seen": "2025-10-22",
+     "last_seen": "2026-10-25",
+     "by_month": {
+      "2025-10": 1,
+      "2026-01": 2,
+      "2026-02": 4,
+      "2026-03": 1,
+      "2026-04": 3,
+      "2026-05": 11,
+      "2026-06": 12,
+      "2026-07": 5,
+      "2026-08": 6,
+      "2026-09": 6,
+      "2026-10": 2
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 9,
+     "in_window": 8,
+     "first_seen": "2025-10-22",
+     "last_seen": "2026-04-10",
+     "by_month": {
+      "2025-10": 1,
+      "2026-01": 2,
+      "2026-02": 4,
+      "2026-04": 2
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     1,
+     1,
+     0,
+     2,
+     2,
+     0,
+     0,
+     2,
+     0,
+     0,
+     2,
+     0,
+     2,
+     1,
+     5,
+     3,
+     1,
+     2,
+     7,
+     1,
+     1,
+     3,
+     1,
+     1,
+     2,
+     2,
+     2,
+     1,
+     2,
+     1,
+     1,
+     2,
+     4,
+     0,
+     0,
+     0,
+     0,
+     1,
+     1
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:5d8f43199b16fe37",
+   "lead": "5d8f43199b16fe379383ab3b506a7680ba41a01570a80938e03ca1834447d367",
+   "label": "Support disabling auto update for extensions",
+   "label_source": "lead_title",
+   "kind": "remove",
+   "features": [
+    {
+     "name": "Extensions and plugins",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "5d8f43199b16fe379383ab3b506a7680ba41a01570a80938e03ca1834447d367",
+     "url": "https://github.com/zed-industries/zed/discussions/38661",
+     "said_at": "2025-09-22",
+     "lead": true,
+     "same": null
+    }
+   ],
+   "first_seen": "2025-09-22",
+   "last_seen": "2026-09-13",
+   "people": {
+    "wanting": {
+     "count": 17,
+     "in_window": 15,
+     "first_seen": "2025-09-22",
+     "last_seen": "2026-09-13",
+     "by_month": {
+      "2025-09": 1,
+      "2025-10": 2,
+      "2025-12": 1,
+      "2026-01": 1,
+      "2026-02": 1,
+      "2026-03": 2,
+      "2026-04": 1,
+      "2026-05": 5,
+      "2026-06": 2,
+      "2026-07": 2,
+      "2026-09": 2
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 7,
+     "in_window": 5,
+     "first_seen": "2025-10-15",
+     "last_seen": "2026-04-15",
+     "by_month": {
+      "2025-10": 2,
+      "2026-01": 1,
+      "2026-02": 1,
+      "2026-03": 2,
+      "2026-04": 1
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     2,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     1,
+     0,
+     0,
+     2,
+     13,
+     1,
+     1,
+     0,
+     0,
+     1,
+     2,
+     5,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     2,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:61ac5d5b0e372f20",
+   "lead": "61ac5d5b0e372f2000af6a432d91d226e556292f0694c2a04ecd2c975e5978fb",
+   "label": "Git Merge Editor",
+   "label_source": "lead_title",
+   "kind": "ask",
+   "features": [
+    {
+     "name": "Merge conflicts",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "61ac5d5b0e372f2000af6a432d91d226e556292f0694c2a04ecd2c975e5978fb",
+     "url": "https://github.com/zed-industries/zed/discussions/23794",
+     "said_at": "2024-01-15",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "fa3e330aeb6d5cf0d891b477b088d2389dac576821f8967b7996a5bf13b8b6db",
+     "url": "https://github.com/zed-industries/zed/discussions/49245",
+     "said_at": "2026-02-16",
+     "lead": false,
+     "same": 0.94
+    },
+    {
+     "item": "60e08dcfe89030ce01fe61790e344a0ba3f920ab9b87dcb624995644ffeb7fd9",
+     "url": "https://github.com/zed-industries/zed/issues/58974",
+     "said_at": "2026-06-09",
+     "lead": false,
+     "same": 0.84
+    },
+    {
+     "item": "90623658dd3bd5c6265ab51e8a1e858b0644ca6e616b0ba446e5520f1d74aa61",
+     "url": "https://github.com/zed-industries/zed/issues/57982",
+     "said_at": "2026-05-28",
+     "lead": false,
+     "same": 0.74
+    }
+   ],
+   "first_seen": "2024-01-15",
+   "last_seen": "2026-10-26",
+   "people": {
+    "wanting": {
+     "count": 297,
+     "in_window": 229,
+     "first_seen": "2024-01-15",
+     "last_seen": "2026-10-26",
+     "by_month": {
+      "2024-01": 10,
+      "2024-02": 7,
+      "2024-03": 3,
+      "2024-04": 1,
+      "2024-05": 5,
+      "2024-06": 5,
+      "2024-07": 3,
+      "2024-08": 2,
+      "2024-09": 2,
+      "2024-10": 2,
+      "2024-12": 2,
+      "2025-01": 7,
+      "2025-02": 4,
+      "2025-03": 2,
+      "2025-04": 1,
+      "2025-05": 4,
+      "2025-06": 2,
+      "2025-07": 5,
+      "2025-08": 3,
+      "2025-09": 1,
+      "2025-10": 1,
+      "2025-11": 1,
+      "2025-12": 3,
+      "2026-02": 1,
+      "2026-03": 4,
+      "2026-05": 11,
+      "2026-06": 67,
+      "2026-07": 57,
+      "2026-08": 44,
+      "2026-09": 35,
+      "2026-10": 20
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 76,
+     "in_window": 8,
+     "first_seen": "2024-01-25",
+     "last_seen": "2026-03-22",
+     "by_month": {
+      "2024-01": 9,
+      "2024-02": 7,
+      "2024-03": 3,
+      "2024-04": 1,
+      "2024-05": 5,
+      "2024-06": 5,
+      "2024-07": 3,
+      "2024-08": 2,
+      "2024-09": 1,
+      "2024-10": 2,
+      "2024-12": 2,
+      "2025-01": 6,
+      "2025-02": 4,
+      "2025-03": 2,
+      "2025-04": 1,
+      "2025-05": 3,
+      "2025-06": 2,
+      "2025-07": 5,
+      "2025-08": 3,
+      "2025-09": 1,
+      "2025-10": 1,
+      "2025-12": 3,
+      "2026-02": 1,
+      "2026-03": 4
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     1,
+     1,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     3,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     2,
+     9,
+     13,
+     24,
+     25,
+     15,
+     19,
+     20,
+     14,
+     11,
+     15,
+     9,
+     16,
+     12,
+     9,
+     9,
+     18,
+     7,
+     7,
+     12,
+     10,
+     4,
+     6
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:62159e37ab8d03b3",
+   "lead": "62159e37ab8d03b3f30875a953fbaff639723f2f93aee29c375340709f9210f9",
+   "label": "Interactive Git Graph: context menu for rebase, merge, and checkout",
+   "label_source": "lead_title",
+   "kind": "ask",
+   "features": [
+    {
+     "name": "Branches, worktrees, stashes and remotes",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "62159e37ab8d03b3f30875a953fbaff639723f2f93aee29c375340709f9210f9",
+     "url": "https://github.com/zed-industries/zed/discussions/56631",
+     "said_at": "2026-05-13",
+     "lead": true,
+     "same": null
+    }
+   ],
+   "first_seen": "2026-05-13",
+   "last_seen": "2026-05-25",
+   "people": {
+    "wanting": {
+     "count": 3,
+     "in_window": 3,
+     "first_seen": "2026-05-13",
+     "last_seen": "2026-05-25",
+     "by_month": {
+      "2026-05": 3
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 0,
+     "in_window": 0,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:67db48b1e80df2a3",
+   "lead": "67db48b1e80df2a333f1d6f372218592ea2ca5efa0c6808d34f66382073472c0",
+   "label": "Zed editor freezes and is not clickable",
+   "label_source": "lead_title",
+   "kind": "problem",
+   "features": [
+    {
+     "name": "Crashes, freezes and speed",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "67db48b1e80df2a333f1d6f372218592ea2ca5efa0c6808d34f66382073472c0",
+     "url": "https://github.com/zed-industries/zed/issues/50269",
+     "said_at": "2026-02-27",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "eb47477b0c729d5740a003b793591547ffd1ab4462cb7a650e99cf22513aaab2",
+     "url": "https://github.com/zed-industries/zed/issues/57637",
+     "said_at": "2026-05-25",
+     "lead": false,
+     "same": 0.81
+    },
+    {
+     "item": "43cb7acc7b6447cdd199c9c3026a430daa6b6bcbee2c0d49ebe0bbdac3898549",
+     "url": "https://github.com/zed-industries/zed/issues/64380",
+     "said_at": "2026-09-17",
+     "lead": false,
+     "same": 0.71
+    }
+   ],
+   "first_seen": "2026-02-27",
+   "last_seen": "2026-10-15",
+   "people": {
+    "wanting": {
+     "count": 38,
+     "in_window": 38,
+     "first_seen": "2026-02-27",
+     "last_seen": "2026-10-15",
+     "by_month": {
+      "2026-02": 3,
+      "2026-03": 19,
+      "2026-04": 1,
+      "2026-05": 8,
+      "2026-06": 6,
+      "2026-08": 1,
+      "2026-09": 5,
+      "2026-10": 2
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 19,
+     "in_window": 19,
+     "first_seen": "2026-02-27",
+     "last_seen": "2026-03-31",
+     "by_month": {
+      "2026-02": 1,
+      "2026-03": 18
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "closed",
+    "at": "2026-10-02",
+    "how": "the lead thread was closed as not planned"
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     8,
+     17,
+     22,
+     0,
+     4,
+     3,
+     0,
+     0,
+     0,
+     0,
+     1,
+     2,
+     0,
+     10,
+     6,
+     0,
+     3,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     1,
+     0,
+     2,
+     2,
+     1,
+     0,
+     2,
+     0
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:6844f36b27d99f91",
+   "lead": "6844f36b27d99f91ef5ca638187c6ee4db1f1a71f1c7d5476d3701bd04453495",
+   "label": "[Agent] System prompt customizations",
+   "label_source": "lead_title",
+   "kind": "remove",
+   "features": [
+    {
+     "name": "Instructions, rules and skills for the AI",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "6844f36b27d99f91ef5ca638187c6ee4db1f1a71f1c7d5476d3701bd04453495",
+     "url": "https://github.com/zed-industries/zed/discussions/47609",
+     "said_at": "2026-01-25",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "abca32be053556b7a4982b67136ce1c4651d3a3a047c3f48ee571a92863fd5d1",
+     "url": "https://github.com/zed-industries/zed/discussions/58770",
+     "said_at": "2026-06-07",
+     "lead": false,
+     "same": 0.78
+    }
+   ],
+   "first_seen": "2026-01-25",
+   "last_seen": "2026-10-19",
+   "people": {
+    "wanting": {
+     "count": 37,
+     "in_window": 37,
+     "first_seen": "2026-01-25",
+     "last_seen": "2026-10-19",
+     "by_month": {
+      "2026-01": 1,
+      "2026-04": 1,
+      "2026-05": 6,
+      "2026-06": 6,
+      "2026-07": 8,
+      "2026-08": 7,
+      "2026-09": 6,
+      "2026-10": 5
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 2,
+     "in_window": 2,
+     "first_seen": "2026-01-25",
+     "last_seen": "2026-04-06",
+     "by_month": {
+      "2026-01": 1,
+      "2026-04": 1
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     1,
+     3,
+     1,
+     0,
+     2,
+     2,
+     0,
+     6,
+     1,
+     1,
+     2,
+     3,
+     2,
+     0,
+     1,
+     3,
+     3,
+     0,
+     1,
+     1,
+     4,
+     0,
+     2,
+     1
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:698c086b7ffa2db5",
+   "lead": "698c086b7ffa2db54e7dbebde6f3df9eb111bc75530ca6dbd6edf7d8d3fbb7d9",
+   "label": "Ability to make the Threads Sidebar close and stay closed",
+   "label_source": "lead_title",
+   "kind": "remove",
+   "features": [
+    {
+     "name": "Side bars and panels",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "698c086b7ffa2db54e7dbebde6f3df9eb111bc75530ca6dbd6edf7d8d3fbb7d9",
+     "url": "https://github.com/zed-industries/zed/discussions/53652",
+     "said_at": "2026-04-10",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "58db1723367c3bce12200a7974fe1d6f44e466f0084bf014df45a28c093838fb",
+     "url": "https://github.com/zed-industries/zed/discussions/55121",
+     "said_at": "2026-04-25",
+     "lead": false,
+     "same": 0.81
+    }
+   ],
+   "first_seen": "2026-04-10",
+   "last_seen": "2026-06-13",
+   "people": {
+    "wanting": {
+     "count": 20,
+     "in_window": 20,
+     "first_seen": "2026-04-10",
+     "last_seen": "2026-06-13",
+     "by_month": {
+      "2026-04": 17,
+      "2026-05": 5,
+      "2026-06": 1
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 12,
+     "in_window": 12,
+     "first_seen": "2026-04-11",
+     "last_seen": "2026-04-28",
+     "by_month": {
+      "2026-04": 12
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "closed",
+    "at": "2026-04-13",
+    "how": "the lead thread was closed as closed"
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1,
+     5,
+     3,
+     15,
+     3,
+     2,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:6d7bde12f9a19683",
+   "lead": "6d7bde12f9a1968315796781cc9bda693deb59a9a9f3ea5a4aff501fae3ac2b5",
+   "label": "External agents (Gemini CLI & Claude Code) unable to initialize after 30 seconds",
+   "label_source": "lead_title",
+   "kind": "problem",
+   "features": [
+    {
+     "name": "Other vendors' coding agents, and agents in the background",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "6d7bde12f9a1968315796781cc9bda693deb59a9a9f3ea5a4aff501fae3ac2b5",
+     "url": "https://github.com/zed-industries/zed/issues/43819",
+     "said_at": "2025-11-30",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "21b8479cd895983622d68e9db2f45a6acba0dc5803a3993fa7aaa1c04bd8d46c",
+     "url": "https://github.com/zed-industries/zed/issues/38750",
+     "said_at": "2025-09-23",
+     "lead": false,
+     "same": 0.9
+    },
+    {
+     "item": "dd17f25ff538f76789790d8523f240b0728202ec3164c3c053fe9b02c944ea7c",
+     "url": "https://github.com/zed-industries/zed/issues/50751",
+     "said_at": "2026-03-04",
+     "lead": false,
+     "same": 0.81
+    },
+    {
+     "item": "229e3460be8a858f72d37ab4e31ad628df452abff1077adef6667bc716909efb",
+     "url": "https://github.com/zed-industries/zed/issues/42838",
+     "said_at": "2025-11-16",
+     "lead": false,
+     "same": 0.75
+    }
+   ],
+   "first_seen": "2025-09-23",
+   "last_seen": "2026-05-08",
+   "people": {
+    "wanting": {
+     "count": 97,
+     "in_window": 70,
+     "first_seen": "2025-09-23",
+     "last_seen": "2026-05-08",
+     "by_month": {
+      "2025-09": 13,
+      "2025-10": 15,
+      "2025-11": 28,
+      "2025-12": 46,
+      "2026-01": 1,
+      "2026-02": 1,
+      "2026-03": 2,
+      "2026-05": 1
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 96,
+     "in_window": 69,
+     "first_seen": "2025-09-23",
+     "last_seen": "2026-03-06",
+     "by_month": {
+      "2025-09": 12,
+      "2025-10": 15,
+      "2025-11": 19,
+      "2025-12": 46,
+      "2026-01": 1,
+      "2026-02": 1,
+      "2026-03": 2
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "answered",
+    "at": "2025-12-03",
+    "how": "the lead thread was closed as completed"
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     5,
+     33,
+     45,
+     12,
+     1,
+     1,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     2,
+     6,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:71c98e9fc65d5c22",
+   "lead": "71c98e9fc65d5c22b198a145fba96d84ee4d7161069bb726b9a7d08f9a8d1f59",
+   "label": "No way to revert multi-agent layout",
+   "label_source": "lead_title",
+   "kind": "remove",
+   "features": [
+    {
+     "name": "Asking an AI in a chat panel",
+     "confident": false
+    }
+   ],
+   "members": [
+    {
+     "item": "71c98e9fc65d5c22b198a145fba96d84ee4d7161069bb726b9a7d08f9a8d1f59",
+     "url": "https://github.com/zed-industries/zed/issues/54545",
+     "said_at": "2026-04-22",
+     "lead": true,
+     "same": null
+    }
+   ],
+   "first_seen": "2026-04-22",
+   "last_seen": "2026-05-17",
+   "people": {
+    "wanting": {
+     "count": 43,
+     "in_window": 43,
+     "first_seen": "2026-04-22",
+     "last_seen": "2026-05-17",
+     "by_month": {
+      "2026-04": 35,
+      "2026-05": 8
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 31,
+     "in_window": 31,
+     "first_seen": "2026-04-22",
+     "last_seen": "2026-04-28",
+     "by_month": {
+      "2026-04": 31
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "answered",
+    "at": "2026-04-24",
+    "how": "the lead thread was closed as completed"
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     41,
+     8,
+     4,
+     2,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:83f68f7590932f37",
+   "lead": "83f68f7590932f3769306ef0be1927f941802ff0ab007c5544642f92f3a1ba27",
+   "label": "Git Worktrees support",
+   "label_source": "lead_title",
+   "kind": "ask",
+   "features": [
+    {
+     "name": "Branches, worktrees, stashes and remotes",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "83f68f7590932f3769306ef0be1927f941802ff0ab007c5544642f92f3a1ba27",
+     "url": "https://github.com/zed-industries/zed/discussions/26084",
+     "said_at": "2024-08-01",
+     "lead": true,
+     "same": null
+    }
+   ],
+   "first_seen": "2024-08-01",
+   "last_seen": "2026-09-07",
+   "people": {
+    "wanting": {
+     "count": 118,
+     "in_window": 87,
+     "first_seen": "2024-08-01",
+     "last_seen": "2026-09-07",
+     "by_month": {
+      "2024-08": 6,
+      "2024-10": 3,
+      "2024-11": 1,
+      "2024-12": 1,
+      "2025-01": 1,
+      "2025-03": 3,
+      "2025-05": 1,
+      "2025-06": 1,
+      "2025-07": 4,
+      "2025-08": 5,
+      "2025-09": 4,
+      "2025-10": 7,
+      "2025-11": 14,
+      "2025-12": 6,
+      "2026-01": 7,
+      "2026-02": 10,
+      "2026-03": 21,
+      "2026-04": 5,
+      "2026-05": 7,
+      "2026-06": 2,
+      "2026-07": 4,
+      "2026-08": 6,
+      "2026-09": 1
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 98,
+     "in_window": 67,
+     "first_seen": "2024-08-02",
+     "last_seen": "2026-04-22",
+     "by_month": {
+      "2024-08": 5,
+      "2024-10": 3,
+      "2024-11": 1,
+      "2024-12": 1,
+      "2025-01": 1,
+      "2025-03": 2,
+      "2025-05": 1,
+      "2025-06": 1,
+      "2025-07": 4,
+      "2025-08": 5,
+      "2025-09": 4,
+      "2025-10": 7,
+      "2025-11": 14,
+      "2025-12": 6,
+      "2026-01": 7,
+      "2026-02": 10,
+      "2026-03": 21,
+      "2026-04": 5
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     6,
+     3,
+     8,
+     1,
+     3,
+     4,
+     2,
+     0,
+     0,
+     0,
+     2,
+     0,
+     3,
+     2,
+     4,
+     4,
+     1,
+     3,
+     6,
+     9,
+     5,
+     6,
+     1,
+     1,
+     3,
+     1,
+     0,
+     1,
+     2,
+     1,
+     3,
+     0,
+     1,
+     0,
+     1,
+     0,
+     1,
+     1,
+     1,
+     1,
+     2,
+     2,
+     1,
+     0,
+     1,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:86c7c29625f6624f",
+   "lead": "86c7c29625f6624fe1e4f4e8cd1c88e81fa854684a9529f886699e7351af669e",
+   "label": "File tree and editor buffers do not auto-refresh after Claude Code changes files on disk",
+   "label_source": "lead_title",
+   "kind": "problem",
+   "features": [
+    {
+     "name": "Saving and files on disk",
+     "confident": false
+    }
+   ],
+   "members": [
+    {
+     "item": "86c7c29625f6624fe1e4f4e8cd1c88e81fa854684a9529f886699e7351af669e",
+     "url": "https://github.com/zed-industries/zed/issues/58389",
+     "said_at": "2026-06-03",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "5f5525e80fcde3c6fad6bc4842f123f85619ceee8756dab4153525329ac04dab",
+     "url": "https://github.com/zed-industries/zed/issues/53182",
+     "said_at": "2026-04-05",
+     "lead": false,
+     "same": 0.83
+    },
+    {
+     "item": "ede29f901fe0ba651510ff95eebce9bfb02476e711a023ffd976c5c491664769",
+     "url": "https://github.com/zed-industries/zed/discussions/54150",
+     "said_at": "2026-04-17",
+     "lead": false,
+     "same": 0.81
+    },
+    {
+     "item": "9e955f2574072993f99c34434a14f27c4d15512c906ce43139bdf209b1364bd0",
+     "url": "https://github.com/zed-industries/zed/discussions/64581",
+     "said_at": "2026-09-22",
+     "lead": false,
+     "same": 0.75
+    }
+   ],
+   "first_seen": "2026-04-05",
+   "last_seen": "2026-10-26",
+   "people": {
+    "wanting": {
+     "count": 144,
+     "in_window": 143,
+     "first_seen": "2026-04-05",
+     "last_seen": "2026-10-26",
+     "by_month": {
+      "2026-04": 23,
+      "2026-05": 17,
+      "2026-06": 26,
+      "2026-07": 24,
+      "2026-08": 33,
+      "2026-09": 21,
+      "2026-10": 14
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 16,
+     "in_window": 16,
+     "first_seen": "2026-04-08",
+     "last_seen": "2026-04-27",
+     "by_month": {
+      "2026-04": 16
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     4,
+     6,
+     13,
+     12,
+     6,
+     12,
+     4,
+     5,
+     0,
+     6,
+     1,
+     9,
+     16,
+     7,
+     4,
+     9,
+     12,
+     5,
+     24,
+     6,
+     5,
+     3,
+     14,
+     5,
+     4,
+     10,
+     5,
+     1,
+     5,
+     7
+    ]
+   },
+   "signals": [
+    {
+     "kind": "intent_to_leave",
+     "basis": "judged",
+     "rule": "3 or more people, above the base rate with p under 0.01",
+     "values": {
+      "people": 6,
+      "commenters": 49,
+      "share": 0.122,
+      "p": 0.0025
+     },
+     "bar": {
+      "graded": 17,
+      "agreed": 15,
+      "source": "docs/research/validation-feel-2026-10-26.md"
+     },
+     "evidence": [
+      "140e7a5eafe8f50962580ac0957e86484b73e90f278963b9a11361344d67c36b",
+      "3c972ec685fe73d0aa88e522feb2d3180283d0974c1791cc66c39fb013277e15",
+      "476c2e13288a6d6ae88faaba927242fda4d43d46cc38522ce67bf65043110604",
+      "7fc7064943ca7aeff2bd52b874d43f21ea26c10facc3d306d320e34c1ce00ab5",
+      "8b381c0b649faf3d28a61667cf1d6e34bccc5ab2881f7461cd46924f7679f606",
+      "c9ce4bff01662befdb869222567330e7714f47f300ff4919e8717a9728f3ceb2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "need:93e72538822c6a90",
+   "lead": "93e72538822c6a907fe829816cadcbfdb9a1901b7731c5bc7408c1686a18d764",
+   "label": "Zed Consuming Excessive amount of RAM.",
+   "label_source": "lead_title",
+   "kind": "problem",
+   "features": [
+    {
+     "name": "Crashes, freezes and speed",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "93e72538822c6a907fe829816cadcbfdb9a1901b7731c5bc7408c1686a18d764",
+     "url": "https://github.com/zed-industries/zed/issues/59711",
+     "said_at": "2026-06-22",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "667574072a004af8514480a82b4f28f1be39ffac37a4b5c5509b44ec0d390346",
+     "url": "https://github.com/zed-industries/zed/issues/59915",
+     "said_at": "2026-06-25",
+     "lead": false,
+     "same": 0.82
+    },
+    {
+     "item": "05dac4280c2b9e452a68453678e7f051a949548a665a2d48bd4efb2954eebd35",
+     "url": "https://github.com/zed-industries/zed/issues/31149",
+     "said_at": "2025-05-22",
+     "lead": false,
+     "same": 0.76
+    },
+    {
+     "item": "9420217b6094cd2c8d6281623d4ea7360f01a5c546874be40f38fbbcfa12b745",
+     "url": "https://github.com/zed-industries/zed/issues/40585",
+     "said_at": "2025-10-18",
+     "lead": false,
+     "same": 0.73
+    }
+   ],
+   "first_seen": "2025-05-22",
+   "last_seen": "2026-10-23",
+   "people": {
+    "wanting": {
+     "count": 73,
+     "in_window": 43,
+     "first_seen": "2025-05-22",
+     "last_seen": "2026-10-23",
+     "by_month": {
+      "2025-05": 13,
+      "2025-06": 11,
+      "2025-07": 1,
+      "2025-08": 4,
+      "2025-09": 1,
+      "2025-10": 7,
+      "2025-11": 4,
+      "2025-12": 1,
+      "2026-01": 3,
+      "2026-02": 1,
+      "2026-05": 2,
+      "2026-06": 11,
+      "2026-07": 6,
+      "2026-08": 9,
+      "2026-09": 5,
+      "2026-10": 5
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 37,
+     "in_window": 7,
+     "first_seen": "2025-05-22",
+     "last_seen": "2026-02-06",
+     "by_month": {
+      "2025-05": 8,
+      "2025-06": 9,
+      "2025-07": 1,
+      "2025-08": 4,
+      "2025-09": 1,
+      "2025-10": 7,
+      "2025-11": 4,
+      "2026-01": 2,
+      "2026-02": 1
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     1,
+     2,
+     1,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     2,
+     2,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     13,
+     4,
+     0,
+     2,
+     2,
+     2,
+     3,
+     3,
+     6,
+     0,
+     0,
+     1,
+     2,
+     1,
+     2,
+     1,
+     0,
+     4
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:9df13dfbaf17cce4",
+   "lead": "9df13dfbaf17cce4c214dff07be00aefc60443856bc9c6316823955f153a67a3",
+   "label": "Test runner integration",
+   "label_source": "lead_title",
+   "kind": "ask",
+   "features": [
+    {
+     "name": "Running tests",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "9df13dfbaf17cce4c214dff07be00aefc60443856bc9c6316823955f153a67a3",
+     "url": "https://github.com/zed-industries/zed/issues/5242",
+     "said_at": "2022-08-18",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "f4357e1735e5c8df2908d8aa1486481930604efbb70d9f3ef0088ab3f5c6f7eb",
+     "url": "https://github.com/zed-industries/zed/issues/64929",
+     "said_at": "2026-09-29",
+     "lead": false,
+     "same": 0.87
+    },
+    {
+     "item": "a683330a698fe27c4e18170fefb480ad0c4c070c43ba55d4873d45e94b4ddab5",
+     "url": "https://github.com/zed-industries/zed/issues/6928",
+     "said_at": "2024-01-28",
+     "lead": false,
+     "same": 0.71
+    }
+   ],
+   "first_seen": "2022-08-18",
+   "last_seen": "2026-10-23",
+   "people": {
+    "wanting": {
+     "count": 930,
+     "in_window": 359,
+     "first_seen": "2022-08-18",
+     "last_seen": "2026-10-23",
+     "by_month": {
+      "2022-08": 1,
+      "2022-09": 2,
+      "2022-10": 3,
+      "2022-11": 3,
+      "2023-02": 3,
+      "2023-03": 9,
+      "2023-04": 3,
+      "2023-05": 9,
+      "2023-06": 3,
+      "2023-07": 9,
+      "2023-08": 12,
+      "2023-09": 4,
+      "2023-10": 5,
+      "2023-11": 5,
+      "2023-12": 3,
+      "2024-01": 27,
+      "2024-02": 29,
+      "2024-03": 29,
+      "2024-04": 12,
+      "2024-05": 28,
+      "2024-06": 16,
+      "2024-07": 32,
+      "2024-08": 34,
+      "2024-09": 21,
+      "2024-10": 14,
+      "2024-11": 16,
+      "2024-12": 15,
+      "2025-01": 7,
+      "2025-02": 17,
+      "2025-03": 29,
+      "2025-04": 26,
+      "2025-05": 26,
+      "2025-06": 37,
+      "2025-07": 27,
+      "2025-08": 16,
+      "2025-09": 23,
+      "2025-10": 32,
+      "2025-11": 25,
+      "2025-12": 34,
+      "2026-01": 29,
+      "2026-02": 28,
+      "2026-03": 31,
+      "2026-04": 34,
+      "2026-05": 31,
+      "2026-06": 44,
+      "2026-07": 44,
+      "2026-08": 27,
+      "2026-09": 26,
+      "2026-10": 12
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 743,
+     "in_window": 172,
+     "first_seen": "2022-09-02",
+     "last_seen": "2026-04-28",
+     "by_month": {
+      "2022-09": 2,
+      "2022-10": 2,
+      "2022-11": 3,
+      "2023-02": 3,
+      "2023-03": 8,
+      "2023-04": 3,
+      "2023-05": 8,
+      "2023-06": 3,
+      "2023-07": 8,
+      "2023-08": 11,
+      "2023-09": 4,
+      "2023-10": 4,
+      "2023-11": 5,
+      "2023-12": 3,
+      "2024-01": 26,
+      "2024-02": 29,
+      "2024-03": 29,
+      "2024-04": 11,
+      "2024-05": 27,
+      "2024-06": 16,
+      "2024-07": 31,
+      "2024-08": 33,
+      "2024-09": 21,
+      "2024-10": 14,
+      "2024-11": 16,
+      "2024-12": 15,
+      "2025-01": 7,
+      "2025-02": 17,
+      "2025-03": 29,
+      "2025-04": 26,
+      "2025-05": 26,
+      "2025-06": 37,
+      "2025-07": 26,
+      "2025-08": 16,
+      "2025-09": 23,
+      "2025-10": 32,
+      "2025-11": 24,
+      "2025-12": 32,
+      "2026-01": 28,
+      "2026-02": 27,
+      "2026-03": 30,
+      "2026-04": 28
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     5,
+     5,
+     2,
+     11,
+     5,
+     9,
+     11,
+     9,
+     6,
+     4,
+     5,
+     8,
+     6,
+     10,
+     4,
+     10,
+     7,
+     10,
+     11,
+     7,
+     9,
+     5,
+     11,
+     4,
+     7,
+     8,
+     17,
+     11,
+     5,
+     9,
+     3,
+     12,
+     13,
+     10,
+     14,
+     12,
+     10,
+     6,
+     7,
+     14,
+     10,
+     5,
+     6,
+     5,
+     7,
+     5,
+     7,
+     6,
+     7,
+     3,
+     4,
+     2
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:c3c421a8e50914d4",
+   "lead": "c3c421a8e50914d4bc36d3f0beb279b02af82de9b568e98a2e6e3715752ef63e",
+   "label": "Smooth scrolling",
+   "label_source": "lead_title",
+   "kind": "ask",
+   "features": [
+    {
+     "name": "Scrolling, the scrollbar and the minimap",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "c3c421a8e50914d4bc36d3f0beb279b02af82de9b568e98a2e6e3715752ef63e",
+     "url": "https://github.com/zed-industries/zed/issues/4355",
+     "said_at": "2023-11-13",
+     "lead": true,
+     "same": null
+    }
+   ],
+   "first_seen": "2023-11-13",
+   "last_seen": "2026-10-25",
+   "people": {
+    "wanting": {
+     "count": 912,
+     "in_window": 483,
+     "first_seen": "2023-11-13",
+     "last_seen": "2026-10-25",
+     "by_month": {
+      "2023-11": 4,
+      "2024-01": 1,
+      "2024-02": 5,
+      "2024-03": 1,
+      "2024-04": 5,
+      "2024-05": 3,
+      "2024-06": 8,
+      "2024-07": 12,
+      "2024-08": 11,
+      "2024-09": 7,
+      "2024-10": 11,
+      "2024-11": 8,
+      "2024-12": 7,
+      "2025-01": 7,
+      "2025-02": 10,
+      "2025-03": 35,
+      "2025-04": 19,
+      "2025-05": 42,
+      "2025-06": 52,
+      "2025-07": 49,
+      "2025-08": 36,
+      "2025-09": 37,
+      "2025-10": 85,
+      "2025-11": 88,
+      "2025-12": 67,
+      "2026-01": 25,
+      "2026-02": 29,
+      "2026-03": 21,
+      "2026-04": 24,
+      "2026-05": 42,
+      "2026-06": 43,
+      "2026-07": 43,
+      "2026-08": 31,
+      "2026-09": 41,
+      "2026-10": 21
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 685,
+     "in_window": 256,
+     "first_seen": "2023-11-13",
+     "last_seen": "2026-04-26",
+     "by_month": {
+      "2023-11": 4,
+      "2024-02": 5,
+      "2024-03": 1,
+      "2024-04": 4,
+      "2024-05": 3,
+      "2024-06": 7,
+      "2024-07": 12,
+      "2024-08": 10,
+      "2024-09": 7,
+      "2024-10": 10,
+      "2024-11": 8,
+      "2024-12": 7,
+      "2025-01": 7,
+      "2025-02": 10,
+      "2025-03": 34,
+      "2025-04": 19,
+      "2025-05": 40,
+      "2025-06": 51,
+      "2025-07": 49,
+      "2025-08": 35,
+      "2025-09": 36,
+      "2025-10": 84,
+      "2025-11": 88,
+      "2025-12": 64,
+      "2026-01": 24,
+      "2026-02": 29,
+      "2026-03": 20,
+      "2026-04": 17
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     20,
+     21,
+     20,
+     26,
+     22,
+     23,
+     28,
+     16,
+     2,
+     4,
+     11,
+     8,
+     4,
+     6,
+     11,
+     6,
+     10,
+     4,
+     10,
+     4,
+     4,
+     9,
+     3,
+     6,
+     4,
+     11,
+     17,
+     11,
+     7,
+     13,
+     7,
+     12,
+     8,
+     11,
+     11,
+     12,
+     24,
+     7,
+     11,
+     9,
+     8,
+     5,
+     11,
+     3,
+     12,
+     8,
+     6,
+     18,
+     7,
+     9,
+     6,
+     11
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:d00c3489dc19b862",
+   "lead": "d00c3489dc19b862c5fae7c30a197a5034b1cc4604bf2b19fbd4e01b84848112",
+   "label": "Problem open AI chat",
+   "label_source": "lead_title",
+   "kind": "problem",
+   "features": [
+    {
+     "name": "Other vendors' coding agents, and agents in the background",
+     "confident": false
+    }
+   ],
+   "members": [
+    {
+     "item": "d00c3489dc19b862c5fae7c30a197a5034b1cc4604bf2b19fbd4e01b84848112",
+     "url": "https://github.com/zed-industries/zed/issues/54278",
+     "said_at": "2026-04-20",
+     "lead": true,
+     "same": null
+    }
+   ],
+   "first_seen": "2026-04-20",
+   "last_seen": "2026-09-07",
+   "people": {
+    "wanting": {
+     "count": 10,
+     "in_window": 10,
+     "first_seen": "2026-04-20",
+     "last_seen": "2026-09-07",
+     "by_month": {
+      "2026-04": 3,
+      "2026-07": 4,
+      "2026-08": 3,
+      "2026-09": 1
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 3,
+     "in_window": 3,
+     "first_seen": "2026-04-21",
+     "last_seen": "2026-04-24",
+     "by_month": {
+      "2026-04": 3
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     7,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     3,
+     1,
+     1,
+     4,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:d2998041a99e8b99",
+   "lead": "d2998041a99e8b99c8eb7755750189d6f91ddae1effa530092e7be7f7eb1a633",
+   "label": "AI: GitHub Copilot Chat LLM provider not working on Windows",
+   "label_source": "lead_title",
+   "kind": "problem",
+   "features": [
+    {
+     "name": "AI model providers, keys, plans and quotas",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "d2998041a99e8b99c8eb7755750189d6f91ddae1effa530092e7be7f7eb1a633",
+     "url": "https://github.com/zed-industries/zed/issues/40430",
+     "said_at": "2025-10-16",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "8d989368db43cce53ea11bae961166d7958d64ce502f0ca02c4b93f37e747e4e",
+     "url": "https://github.com/zed-industries/zed/issues/57219",
+     "said_at": "2026-05-20",
+     "lead": false,
+     "same": 0.81
+    },
+    {
+     "item": "a7c724abdd762225e4d35fd473c3690ce8044c2ec6a7bd3f5ef381aab852742e",
+     "url": "https://github.com/zed-industries/zed/issues/33339",
+     "said_at": "2025-06-24",
+     "lead": false,
+     "same": 0.71
+    },
+    {
+     "item": "0d0e885b7985049966f2a21705648678a52fca2ec3462b6f858a4942941f6389",
+     "url": "https://github.com/zed-industries/zed/issues/60731",
+     "said_at": "2026-07-10",
+     "lead": false,
+     "same": 0.7
+    }
+   ],
+   "first_seen": "2025-06-24",
+   "last_seen": "2026-08-24",
+   "people": {
+    "wanting": {
+     "count": 60,
+     "in_window": 54,
+     "first_seen": "2025-06-24",
+     "last_seen": "2026-08-24",
+     "by_month": {
+      "2025-06": 3,
+      "2025-07": 1,
+      "2025-10": 7,
+      "2025-11": 5,
+      "2025-12": 7,
+      "2026-01": 3,
+      "2026-02": 2,
+      "2026-03": 1,
+      "2026-04": 4,
+      "2026-05": 30,
+      "2026-06": 3,
+      "2026-07": 5,
+      "2026-08": 5
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 20,
+     "in_window": 14,
+     "first_seen": "2025-06-24",
+     "last_seen": "2026-04-17",
+     "by_month": {
+      "2025-06": 2,
+      "2025-07": 1,
+      "2025-10": 3,
+      "2025-12": 4,
+      "2026-01": 3,
+      "2026-02": 2,
+      "2026-03": 1,
+      "2026-04": 4
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "answered",
+    "at": "2026-08-13",
+    "how": "the lead thread was closed as completed"
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     1,
+     7,
+     1,
+     4,
+     10,
+     0,
+     2,
+     0,
+     0,
+     0,
+     3,
+     0,
+     1,
+     0,
+     0,
+     1,
+     1,
+     0,
+     0,
+     0,
+     0,
+     1,
+     4,
+     0,
+     2,
+     0,
+     0,
+     23,
+     20,
+     0,
+     2,
+     0,
+     2,
+     1,
+     1,
+     1,
+     0,
+     1,
+     0,
+     3,
+     2,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:d5e7b453ebb678f9",
+   "lead": "d5e7b453ebb678f9931a11444b4b08b20fd088c577ad7c6f41e67a062742c77d",
+   "label": "Ability to detach tool windows",
+   "label_source": "lead_title",
+   "kind": "ask",
+   "features": [
+    {
+     "name": "Side bars and panels",
+     "confident": false
+    }
+   ],
+   "members": [
+    {
+     "item": "d5e7b453ebb678f9931a11444b4b08b20fd088c577ad7c6f41e67a062742c77d",
+     "url": "https://github.com/zed-industries/zed/discussions/55820",
+     "said_at": "2026-05-05",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "49c0ddbee495f04c453f120431045c969e3189082a35e19cd1e81a0af16950d8",
+     "url": "https://github.com/zed-industries/zed/discussions/47116",
+     "said_at": "2026-01-19",
+     "lead": false,
+     "same": 0.95
+    },
+    {
+     "item": "128e64e1fa90308e815acb22c8427c08ae1db0872eeae78b1c12bd2efc1ec7da",
+     "url": "https://github.com/zed-industries/zed/discussions/53164",
+     "said_at": "2026-04-04",
+     "lead": false,
+     "same": 0.93
+    },
+    {
+     "item": "4547fa6bb3a2cd21033a940f4fad53f4f8e4cebcd51491b268a6477d21084fcf",
+     "url": "https://github.com/zed-industries/zed/issues/6722",
+     "said_at": "2024-01-25",
+     "lead": false,
+     "same": 0.88
+    },
+    {
+     "item": "3698cf26130156669b13b47ad222cd0d7af91ef4974e71339e5a3cbbb18ddf37",
+     "url": "https://github.com/zed-industries/zed/issues/6078",
+     "said_at": "2023-04-01",
+     "lead": false,
+     "same": 0.79
+    }
+   ],
+   "first_seen": "2023-04-01",
+   "last_seen": "2026-10-26",
+   "people": {
+    "wanting": {
+     "count": 333,
+     "in_window": 202,
+     "first_seen": "2023-04-01",
+     "last_seen": "2026-10-26",
+     "by_month": {
+      "2023-04": 2,
+      "2024-01": 6,
+      "2024-03": 2,
+      "2024-04": 2,
+      "2024-05": 3,
+      "2024-06": 3,
+      "2024-07": 5,
+      "2024-08": 7,
+      "2024-09": 3,
+      "2024-10": 6,
+      "2024-11": 3,
+      "2024-12": 3,
+      "2025-01": 5,
+      "2025-02": 7,
+      "2025-03": 9,
+      "2025-04": 8,
+      "2025-05": 10,
+      "2025-06": 10,
+      "2025-07": 14,
+      "2025-08": 7,
+      "2025-09": 11,
+      "2025-10": 11,
+      "2025-11": 10,
+      "2025-12": 21,
+      "2026-01": 23,
+      "2026-02": 13,
+      "2026-03": 9,
+      "2026-04": 12,
+      "2026-05": 22,
+      "2026-06": 14,
+      "2026-07": 31,
+      "2026-08": 23,
+      "2026-09": 16,
+      "2026-10": 12
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 215,
+     "in_window": 85,
+     "first_seen": "2023-04-01",
+     "last_seen": "2026-04-27",
+     "by_month": {
+      "2023-04": 2,
+      "2024-01": 6,
+      "2024-03": 2,
+      "2024-04": 2,
+      "2024-05": 3,
+      "2024-06": 3,
+      "2024-07": 5,
+      "2024-08": 7,
+      "2024-09": 2,
+      "2024-10": 6,
+      "2024-11": 3,
+      "2024-12": 3,
+      "2025-01": 5,
+      "2025-02": 7,
+      "2025-03": 9,
+      "2025-04": 8,
+      "2025-05": 10,
+      "2025-06": 10,
+      "2025-07": 14,
+      "2025-08": 7,
+      "2025-09": 11,
+      "2025-10": 8,
+      "2025-11": 10,
+      "2025-12": 21,
+      "2026-01": 21,
+      "2026-02": 12,
+      "2026-03": 9,
+      "2026-04": 9
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     3,
+     4,
+     0,
+     2,
+     4,
+     12,
+     9,
+     1,
+     0,
+     3,
+     5,
+     2,
+     5,
+     12,
+     3,
+     3,
+     3,
+     6,
+     9,
+     5,
+     1,
+     1,
+     3,
+     1,
+     3,
+     0,
+     10,
+     5,
+     3,
+     5,
+     3,
+     7,
+     3,
+     7,
+     2,
+     3,
+     18,
+     9,
+     7,
+     9,
+     7,
+     1,
+     13,
+     6,
+     5,
+     8,
+     4,
+     5,
+     3,
+     3,
+     5,
+     4
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:dac7f9721cf0c39d",
+   "lead": "dac7f9721cf0c39d0f18f810aa984f79836e7a9193374e3e1fab807b53179a65",
+   "label": "Integrate devenv support",
+   "label_source": "lead_title",
+   "kind": "ask",
+   "features": [
+    {
+     "name": "Another specific language",
+     "confident": false
+    }
+   ],
+   "members": [
+    {
+     "item": "dac7f9721cf0c39d0f18f810aa984f79836e7a9193374e3e1fab807b53179a65",
+     "url": "https://github.com/zed-industries/zed/discussions/35996",
+     "said_at": "2025-08-11",
+     "lead": true,
+     "same": null
+    }
+   ],
+   "first_seen": "2025-08-11",
+   "last_seen": "2026-10-26",
+   "people": {
+    "wanting": {
+     "count": 150,
+     "in_window": 123,
+     "first_seen": "2025-08-11",
+     "last_seen": "2026-10-26",
+     "by_month": {
+      "2025-08": 11,
+      "2025-09": 15,
+      "2025-10": 8,
+      "2025-11": 10,
+      "2025-12": 5,
+      "2026-01": 12,
+      "2026-02": 10,
+      "2026-03": 11,
+      "2026-04": 6,
+      "2026-05": 11,
+      "2026-06": 10,
+      "2026-07": 12,
+      "2026-08": 14,
+      "2026-09": 12,
+      "2026-10": 11
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 80,
+     "in_window": 54,
+     "first_seen": "2025-08-12",
+     "last_seen": "2026-04-25",
+     "by_month": {
+      "2025-08": 7,
+      "2025-09": 15,
+      "2025-10": 8,
+      "2025-11": 10,
+      "2025-12": 4,
+      "2026-01": 11,
+      "2026-02": 9,
+      "2026-03": 10,
+      "2026-04": 6
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     8,
+     6,
+     3,
+     4,
+     0,
+     3,
+     2,
+     1,
+     1,
+     4,
+     6,
+     4,
+     2,
+     12,
+     3,
+     5,
+     2,
+     0,
+     6,
+     1,
+     6,
+     4,
+     8,
+     0,
+     2,
+     8,
+     0,
+     5,
+     4,
+     7,
+     6,
+     3,
+     3,
+     1,
+     8,
+     3,
+     11,
+     6,
+     2,
+     5,
+     6,
+     3,
+     3,
+     13,
+     13,
+     2,
+     4,
+     0,
+     3,
+     0,
+     7,
+     10
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:dfa000887bca98f2",
+   "lead": "dfa000887bca98f278fb088e5ae2da39b98a733dfad84b58aee49f370653a3c4",
+   "label": "Allow per-project (worktree) theme overrides for Peacock-style window tinting",
+   "label_source": "lead_title",
+   "kind": "ask",
+   "features": [
+    {
+     "name": "Colour themes and icons",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "dfa000887bca98f278fb088e5ae2da39b98a733dfad84b58aee49f370653a3c4",
+     "url": "https://github.com/zed-industries/zed/discussions/57320",
+     "said_at": "2026-05-20",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "386122238775d8fa64ae53d07358fe9b636da8c6410cfdf54aa8b24d994b9d6b",
+     "url": "https://github.com/zed-industries/zed/issues/57311",
+     "said_at": "2026-05-20",
+     "lead": false,
+     "same": 0.95
+    },
+    {
+     "item": "709b698cc24137392ec5edfcff07e6fc4dd0e2a18c2d1d1e4c3ba1a976191ab0",
+     "url": "https://github.com/zed-industries/zed/issues/13300",
+     "said_at": "2024-06-20",
+     "lead": false,
+     "same": 0.92
+    },
+    {
+     "item": "d21308800fd21303ab535eff9150c4d68ef1d20ca102f17724114108c79ab2a3",
+     "url": "https://github.com/zed-industries/zed/discussions/32293",
+     "said_at": "2025-06-07",
+     "lead": false,
+     "same": 0.88
+    }
+   ],
+   "first_seen": "2024-06-20",
+   "last_seen": "2026-10-24",
+   "people": {
+    "wanting": {
+     "count": 236,
+     "in_window": 188,
+     "first_seen": "2024-06-20",
+     "last_seen": "2026-10-24",
+     "by_month": {
+      "2024-06": 2,
+      "2024-08": 1,
+      "2024-09": 5,
+      "2024-10": 4,
+      "2024-11": 3,
+      "2024-12": 2,
+      "2025-02": 5,
+      "2025-03": 2,
+      "2025-05": 2,
+      "2025-06": 11,
+      "2025-07": 5,
+      "2025-08": 3,
+      "2025-09": 6,
+      "2025-10": 12,
+      "2025-11": 6,
+      "2025-12": 11,
+      "2026-01": 16,
+      "2026-02": 22,
+      "2026-03": 19,
+      "2026-04": 13,
+      "2026-05": 13,
+      "2026-06": 26,
+      "2026-07": 29,
+      "2026-08": 19,
+      "2026-09": 12,
+      "2026-10": 10
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 128,
+     "in_window": 80,
+     "first_seen": "2024-06-20",
+     "last_seen": "2026-04-22",
+     "by_month": {
+      "2024-06": 1,
+      "2024-09": 4,
+      "2024-10": 4,
+      "2024-11": 2,
+      "2024-12": 2,
+      "2025-02": 5,
+      "2025-03": 2,
+      "2025-05": 1,
+      "2025-06": 10,
+      "2025-07": 4,
+      "2025-08": 2,
+      "2025-09": 5,
+      "2025-10": 9,
+      "2025-11": 5,
+      "2025-12": 10,
+      "2026-01": 12,
+      "2026-02": 22,
+      "2026-03": 18,
+      "2026-04": 10
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     5,
+     1,
+     6,
+     1,
+     0,
+     9,
+     2,
+     1,
+     2,
+     0,
+     10,
+     2,
+     4,
+     6,
+     5,
+     8,
+     8,
+     13,
+     7,
+     2,
+     6,
+     2,
+     8,
+     5,
+     5,
+     2,
+     4,
+     2,
+     4,
+     5,
+     2,
+     7,
+     7,
+     7,
+     4,
+     13,
+     9,
+     5,
+     3,
+     6,
+     9,
+     2,
+     3,
+     6,
+     5,
+     2,
+     7,
+     2,
+     3,
+     4,
+     1,
+     4
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:e6a535d6b7552ff2",
+   "lead": "e6a535d6b7552ff276300a4bf1920a69473669b9bfbe94cd50f150ee93093a1f",
+   "label": "Webview via Extensions",
+   "label_source": "lead_title",
+   "kind": "ask",
+   "features": [
+    {
+     "name": "Extensions and plugins",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "e6a535d6b7552ff276300a4bf1920a69473669b9bfbe94cd50f150ee93093a1f",
+     "url": "https://github.com/zed-industries/zed/issues/21208",
+     "said_at": "2024-11-26",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "386c8f02d03003974aaa469fd45450a2e82229026bc4b1b942e4c8058ffa30ed",
+     "url": "https://github.com/zed-industries/zed/issues/10533",
+     "said_at": "2024-04-14",
+     "lead": false,
+     "same": 0.82
+    },
+    {
+     "item": "179ed3f68d63bf472768bcee52dd211ed18814b9945052b1a41738111a3e90c7",
+     "url": "https://github.com/zed-industries/zed/discussions/51251",
+     "said_at": "2026-03-11",
+     "lead": false,
+     "same": 0.8
+    },
+    {
+     "item": "dfb39a139989b67bf1ea04f390bbaf26122ab75a555574676ef2c9571215fc77",
+     "url": "https://github.com/zed-industries/zed/discussions/53403",
+     "said_at": "2026-04-08",
+     "lead": false,
+     "same": 0.74
+    }
+   ],
+   "first_seen": "2024-04-14",
+   "last_seen": "2026-10-26",
+   "people": {
+    "wanting": {
+     "count": 589,
+     "in_window": 442,
+     "first_seen": "2024-04-14",
+     "last_seen": "2026-10-26",
+     "by_month": {
+      "2024-04": 5,
+      "2024-05": 1,
+      "2024-09": 4,
+      "2024-11": 14,
+      "2024-12": 13,
+      "2025-01": 11,
+      "2025-02": 13,
+      "2025-03": 9,
+      "2025-04": 9,
+      "2025-05": 14,
+      "2025-06": 15,
+      "2025-07": 10,
+      "2025-08": 8,
+      "2025-09": 11,
+      "2025-10": 20,
+      "2025-11": 20,
+      "2025-12": 21,
+      "2026-01": 25,
+      "2026-02": 19,
+      "2026-03": 23,
+      "2026-04": 46,
+      "2026-05": 51,
+      "2026-06": 55,
+      "2026-07": 66,
+      "2026-08": 51,
+      "2026-09": 41,
+      "2026-10": 38
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 290,
+     "in_window": 144,
+     "first_seen": "2024-04-15",
+     "last_seen": "2026-04-28",
+     "by_month": {
+      "2024-04": 4,
+      "2024-05": 1,
+      "2024-09": 3,
+      "2024-11": 13,
+      "2024-12": 12,
+      "2025-01": 11,
+      "2025-02": 13,
+      "2025-03": 9,
+      "2025-04": 9,
+      "2025-05": 13,
+      "2025-06": 14,
+      "2025-07": 10,
+      "2025-08": 7,
+      "2025-09": 11,
+      "2025-10": 20,
+      "2025-11": 20,
+      "2025-12": 21,
+      "2026-01": 25,
+      "2026-02": 19,
+      "2026-03": 22,
+      "2026-04": 33
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     4,
+     2,
+     4,
+     8,
+     6,
+     4,
+     5,
+     10,
+     4,
+     4,
+     1,
+     10,
+     6,
+     5,
+     4,
+     4,
+     7,
+     4,
+     6,
+     9,
+     5,
+     3,
+     7,
+     12,
+     7,
+     9,
+     23,
+     17,
+     7,
+     20,
+     7,
+     10,
+     10,
+     23,
+     15,
+     18,
+     14,
+     15,
+     19,
+     13,
+     12,
+     9,
+     9,
+     19,
+     15,
+     21,
+     4,
+     10,
+     6,
+     11,
+     18,
+     13
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:e9286093f4334fa0",
+   "lead": "e9286093f4334fa0f4825067c594d4dd9585242f379d795bf9ec04181f82abef",
+   "label": "Ignore whitespace-only changes in diff view",
+   "label_source": "lead_title",
+   "kind": "remove",
+   "features": [
+    {
+     "name": "Changed-line marks and diffs",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "e9286093f4334fa0f4825067c594d4dd9585242f379d795bf9ec04181f82abef",
+     "url": "https://github.com/zed-industries/zed/discussions/56281",
+     "said_at": "2026-05-09",
+     "lead": true,
+     "same": null
+    },
+    {
+     "item": "5328ed2a0967ad3fdcbc15779715c26fc9c5af442dfd24d8a344a62168bfbe7d",
+     "url": "https://github.com/zed-industries/zed/discussions/46949",
+     "said_at": "2026-01-15",
+     "lead": false,
+     "same": 0.97
+    },
+    {
+     "item": "ec317f831f5815d6d996c5b26b4fded74183238e8868055eaa90282b5d84cb57",
+     "url": "https://github.com/zed-industries/zed/discussions/39785",
+     "said_at": "2025-10-08",
+     "lead": false,
+     "same": 0.75
+    }
+   ],
+   "first_seen": "2025-10-08",
+   "last_seen": "2026-10-26",
+   "people": {
+    "wanting": {
+     "count": 72,
+     "in_window": 70,
+     "first_seen": "2025-10-08",
+     "last_seen": "2026-10-26",
+     "by_month": {
+      "2025-10": 1,
+      "2025-12": 2,
+      "2026-01": 3,
+      "2026-02": 6,
+      "2026-03": 6,
+      "2026-04": 2,
+      "2026-05": 9,
+      "2026-06": 10,
+      "2026-07": 11,
+      "2026-08": 10,
+      "2026-09": 10,
+      "2026-10": 6
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 19,
+     "in_window": 18,
+     "first_seen": "2025-10-08",
+     "last_seen": "2026-04-15",
+     "by_month": {
+      "2025-10": 1,
+      "2025-12": 2,
+      "2026-01": 2,
+      "2026-02": 6,
+      "2026-03": 6,
+      "2026-04": 2
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     1,
+     0,
+     0,
+     3,
+     0,
+     1,
+     1,
+     3,
+     2,
+     1,
+     1,
+     2,
+     3,
+     0,
+     1,
+     0,
+     2,
+     0,
+     1,
+     4,
+     0,
+     1,
+     2,
+     1,
+     6,
+     0,
+     6,
+     3,
+     1,
+     5,
+     5,
+     1,
+     2,
+     1,
+     4,
+     5,
+     4,
+     0,
+     8,
+     1,
+     1,
+     0,
+     4,
+     1
+    ]
+   },
+   "signals": []
+  },
+  {
+   "id": "need:fb0a7808c1eba14e",
+   "lead": "fb0a7808c1eba14eec46e7c2e6854131b2144317c54fd9f041dbe522fc128faf",
+   "label": "Redesign the source control pannel",
+   "label_source": "lead_title",
+   "kind": "ask",
+   "features": [
+    {
+     "name": "Staging and committing changes",
+     "confident": true
+    }
+   ],
+   "members": [
+    {
+     "item": "fb0a7808c1eba14eec46e7c2e6854131b2144317c54fd9f041dbe522fc128faf",
+     "url": "https://github.com/zed-industries/zed/discussions/40597",
+     "said_at": "2025-10-18",
+     "lead": true,
+     "same": null
+    }
+   ],
+   "first_seen": "2025-10-18",
+   "last_seen": "2025-10-18",
+   "people": {
+    "wanting": {
+     "count": 1,
+     "in_window": 0,
+     "first_seen": "2025-10-18",
+     "last_seen": "2025-10-18",
+     "by_month": {
+      "2025-10": 1
+     },
+     "basis": "everyone who opened, commented on or reacted to the need's threads, by GitHub handle hash; maintainers' replies are not yet told apart"
+    },
+    "paying": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches paying people for this product"
+    },
+    "building": {
+     "count": null,
+     "in_window": null,
+     "first_seen": null,
+     "last_seen": null,
+     "by_month": {},
+     "basis": "not measured: no source read reaches people building for this need"
+    },
+    "gone_quiet": {
+     "count": 1,
+     "in_window": 0,
+     "first_seen": "2025-10-18",
+     "last_seen": "2025-10-18",
+     "by_month": {
+      "2025-10": 1
+     },
+     "basis": "wanting people whose last engagement with this need was more than 180 days before the run; by_month is the month they were last seen"
+    }
+   },
+   "state": {
+    "status": "open",
+    "at": null,
+    "how": null
+   },
+   "activity": {
+    "week_from": "2025-10-27",
+    "weekly": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "signals": []
+  }
+ ]
+}

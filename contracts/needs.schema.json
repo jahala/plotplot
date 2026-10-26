@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotplot.ai/contracts/needs.schema.json",
+  "title": "needs",
+  "description": "What people need, merged from raw items and counted by role over time, as cultivate writes it per run. See contracts/needs.md.",
+  "type": "object",
+  "required": ["format", "product", "run", "scope", "rules", "judge", "needs"],
+  "additionalProperties": false,
+  "properties": {
+    "format": {"const": "cultivate-needs/1"},
+    "product": {"type": "string", "minLength": 1},
+    "run": {
+      "type": "object",
+      "required": ["at", "previous", "window"],
+      "additionalProperties": false,
+      "properties": {
+        "at": {"$ref": "#/$defs/date"},
+        "previous": {"oneOf": [{"$ref": "#/$defs/date"}, {"type": "null"}]},
+        "window": {
+          "type": "object",
+          "required": ["from", "to"],
+          "additionalProperties": false,
+          "properties": {"from": {"$ref": "#/$defs/date"}, "to": {"$ref": "#/$defs/date"}}
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "required": ["channels"],
+      "additionalProperties": false,
+      "properties": {
+        "channels": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["channel", "sources", "items"],
+            "additionalProperties": false,
+            "properties": {
+              "channel": {"type": "string", "minLength": 1},
+              "sources": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"}},
+              "items": {"type": "integer", "minimum": 0}
+            }
+          }
+        },
+        "note": {"type": "string", "minLength": 1}
+      }
+    },
+    "features": {
+      "type": "object",
+      "required": ["source"],
+      "additionalProperties": false,
+      "properties": {"source": {"type": "string", "minLength": 1}}
+    },
+    "rules": {
+      "type": "object",
+      "required": ["merge_at", "quiet_after_days", "movement", "intent_to_leave"],
+      "additionalProperties": false,
+      "properties": {
+        "merge_at": {"type": "number", "minimum": 0, "maximum": 1},
+        "quiet_after_days": {"type": "integer", "minimum": 1},
+        "movement": {"type": "string", "minLength": 1},
+        "intent_to_leave": {"type": "string", "minLength": 1}
+      }
+    },
+    "judge": {
+      "type": "object",
+      "required": ["model", "questions"],
+      "additionalProperties": false,
+      "properties": {
+        "model": {"type": "string", "minLength": 1},
+        "questions": {"type": "string", "minLength": 1}
+      }
+    },
+    "needs": {"type": "array", "items": {"$ref": "#/$defs/need"}}
+  },
+  "$defs": {
+    "date": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "item": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "need": {
+      "type": "object",
+      "required": ["id", "lead", "label", "label_source", "kind", "features", "members", "first_seen", "last_seen", "people", "state", "signals"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "pattern": "^need:[0-9a-f]{16}$"},
+        "lead": {"$ref": "#/$defs/item"},
+        "label": {"type": "string", "minLength": 1},
+        "label_source": {"enum": ["lead_title", "drafted"]},
+        "kind": {"enum": ["ask", "problem", "remove"]},
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "confident"],
+            "additionalProperties": false,
+            "properties": {"name": {"type": "string", "minLength": 1}, "confident": {"type": "boolean"}}
+          }
+        },
+        "members": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/member"}},
+        "first_seen": {"$ref": "#/$defs/date"},
+        "last_seen": {"$ref": "#/$defs/date"},
+        "people": {
+          "type": "object",
+          "required": ["wanting", "paying", "building", "gone_quiet"],
+          "additionalProperties": false,
+          "properties": {
+            "wanting": {"$ref": "#/$defs/role"},
+            "paying": {"$ref": "#/$defs/role"},
+            "building": {"$ref": "#/$defs/role"},
+            "gone_quiet": {"$ref": "#/$defs/role"}
+          }
+        },
+        "state": {
+          "type": "object",
+          "required": ["status", "at", "how"],
+          "additionalProperties": false,
+          "properties": {
+            "status": {"enum": ["open", "answered", "closed"]},
+            "at": {"oneOf": [{"$ref": "#/$defs/date"}, {"type": "null"}]},
+            "how": {"oneOf": [{"type": "string", "minLength": 1}, {"type": "null"}]}
+          }
+        },
+        "activity": {
+          "type": "object",
+          "required": ["week_from", "weekly"],
+          "additionalProperties": false,
+          "properties": {
+            "week_from": {"$ref": "#/$defs/date"},
+            "weekly": {"type": "array", "items": {"type": "integer", "minimum": 0}}
+          }
+        },
+        "signals": {"type": "array", "items": {"$ref": "#/$defs/signal"}}
+      }
+    },
+    "member": {
+      "type": "object",
+      "required": ["item", "said_at", "lead", "same"],
+      "additionalProperties": false,
+      "properties": {
+        "item": {"$ref": "#/$defs/item"},
+        "url": {"type": "string", "pattern": "^https://"},
+        "said_at": {"oneOf": [{"$ref": "#/$defs/date"}, {"type": "null"}]},
+        "lead": {"type": "boolean"},
+        "same": {"oneOf": [{"type": "number", "minimum": 0, "maximum": 1}, {"type": "null"}]}
+      }
+    },
+    "role": {
+      "type": "object",
+      "required": ["count", "in_window", "first_seen", "last_seen", "by_month", "basis"],
+      "additionalProperties": false,
+      "properties": {
+        "count": {"oneOf": [{"type": "integer", "minimum": 0}, {"type": "null"}]},
+        "in_window": {"oneOf": [{"type": "integer", "minimum": 0}, {"type": "null"}]},
+        "first_seen": {"oneOf": [{"$ref": "#/$defs/date"}, {"type": "null"}]},
+        "last_seen": {"oneOf": [{"$ref": "#/$defs/date"}, {"type": "null"}]},
+        "by_month": {
+          "type": "object",
+          "propertyNames": {"pattern": "^[0-9]{4}-[0-9]{2}$"},
+          "additionalProperties": {"type": "integer", "minimum": 0}
+        },
+        "basis": {"type": "string", "minLength": 1}
+      }
+    },
+    "signal": {
+      "type": "object",
+      "required": ["kind", "basis", "rule", "values", "evidence"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {"enum": ["movement", "intent_to_leave", "answered"]},
+        "basis": {"enum": ["counted", "judged"]},
+        "rule": {"type": "string", "minLength": 1},
+        "values": {"type": "object", "additionalProperties": {"type": ["number", "string", "boolean", "null"]}},
+        "bar": {
+          "type": "object",
+          "required": ["graded", "agreed", "source"],
+          "additionalProperties": false,
+          "properties": {
+            "graded": {"type": "integer", "minimum": 1},
+            "agreed": {"type": "integer", "minimum": 0},
+            "source": {"type": "string", "minLength": 1}
+          }
+        },
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/item"}}
+      }
+    }
+  }
+}
