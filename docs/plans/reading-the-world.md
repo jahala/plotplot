@@ -71,15 +71,20 @@ ends with one `state` record holding its cursor. mull runs it, checks every reco
 contracts, stores what passes and refuses what does not. The pattern is proven in open
 data-integration tools with thousands of community connectors.
 
-### Five record kinds
+### Six record kinds
 
 | Kind | Covers | Contract |
 |---|---|---|
 | post | anything one person said: comments, messages, reviews, emails | `contracts/raw-item.md` (landed) |
+| reaction | one person's reaction or vote on a post, with their author hash and its moment, where the source names who reacted | to draft |
 | document | a dated, verbatim snapshot of a page: an article, release notes, a pricing page | to draft |
 | observation | a number about a subject at a moment: downloads, stars, prices, ranks | to draft |
 | subject | one product or project and its exact identifiers across sources (a domain, a repository, a package, an app id) | to draft |
 | state | where the adapter stopped, so the next run continues | part of the protocol |
+
+A post's `reactions` field stays a count with its moment, for sources that give only counts. A
+reaction record is for sources that name who reacted, so readers can count distinct people
+(cultivate asked this on 2026-10-26: most wanting people on an issue tracker only react).
 
 mull links subjects only on exact identifiers. A fuzzy match is a judgment and belongs to
 cultivate or glean.
@@ -218,7 +223,7 @@ needs only, and says so.
 
 ## What is hard to change
 
-The raw item contract (already landed), the protocol, the adapter manifest, the document,
+The raw item contract (already landed), the protocol, the adapter manifest, the reaction, document,
 observation and subject contracts, and the role counts in cultivate's needs format. A wrong choice in any of these is paid for by every adapter and every reader.
 
 ## Open issues
