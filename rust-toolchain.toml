@@ -1,0 +1,5 @@
+[toolchain]
+# One home for the Rust version. CI and every checkout read this file, so a new Rust release
+# changes nothing until this line changes.
+channel = "1.99.1"
+components = ["rustfmt", "clippy"]
