@@ -22,6 +22,7 @@
   },
   "config": null,
   "channel": "The site, news.ycombinator.com, for every item: one community where any member can reply to any thread.",
+  "identity_space": "news.ycombinator.com",
   "audiences": [
     "software developers",
     "technical founders and builders"
