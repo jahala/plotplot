@@ -69,7 +69,10 @@ A generic adapter that reads many sites (`terms_per_site: true`) states the soft
 | `scopes` | the `least` scopes that do the job, and whether they are `read_only` |
 | `expiry` | when access ends and how it renews; null when it does not expire |
 | `human_step` | a step a program must not take alone: two-factor, a captcha, a login the terms forbid automating; null when there is none |
-| `paid` | true when each call costs money, so every call goes through the source's door |
+| `paid` | true when each call costs money |
+| `cost` | when paid | what each call costs as the source states it, with `read_on` and `url`: a flat `per_request_usd`, or for a source priced by tokens or size an `estimate` saying how the cost is computed; well settles the real charge |
+
+Calls that cost money or need a credential go through well (`jahala/well`), the garden's one door. mull sends each such request under `well run`, which reserves the estimate from `cost` against the capture plan entry's `budget` before sending, holds the owner's cap, reads the credential from the Keychain into the one sending process, settles the real charge, and never resends a call that may already have been charged. mull and the adapter never hold a secret.
 
 One rule is held by the schema whatever any ruling says: a `human_step` makes the method `export-file`, so the owner exports the data and the adapter reads the file. mull never works around a captcha, two-factor or a login it was not given. An account whose terms forbid automation is a restriction like any other, ruled on in the capture plan. well, when it exists, owns each secret's life: storage, reading at call time, refresh, and a warning before expiry (`jahala/plotplot:docs/ideas/well.md`).
 

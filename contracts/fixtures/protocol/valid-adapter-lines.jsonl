@@ -3,4 +3,5 @@
 {"type": "record", "kind": "post", "from": "issue-41", "fields": {"channel": "github.com/example-org/example-tool", "url": "https://github.com/example-org/example-tool/issues/41#issuecomment-1", "text": "Same here, every month-end.", "said_at": "2026-10-03T07:40:00Z", "handle": "devon", "parent_address": "https://github.com/example-org/example-tool/issues/41"}}
 {"type": "record", "kind": "reaction", "from": "issue-41", "fields": {"channel": "github.com/example-org/example-tool", "target_address": "https://github.com/example-org/example-tool/issues/41", "kind": "+1", "said_at": "2026-10-02T09:15:00Z", "handle": "maria-k"}}
 {"type": "gone", "from": "issue-41", "address": "https://github.com/example-org/example-tool/issues/41#issuecomment-2"}
+{"type": "found", "from": "issue-41", "address": "https://forum.example.org/t/exporting-invoices/412", "title": "Exporting invoices breaks after a thousand rows", "signals": {"rerank_score": 0.82}}
 {"type": "state", "cursor": {"since": "2026-10-26T00:00:00Z"}}

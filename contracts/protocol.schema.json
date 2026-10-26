@@ -23,6 +23,9 @@
       "$ref": "#/$defs/gone"
     },
     {
+      "$ref": "#/$defs/found"
+    },
+    {
       "$ref": "#/$defs/state"
     }
   ],
@@ -333,6 +336,42 @@
           "type": "string",
           "minLength": 1,
           "description": "the url or locator of the deleted item, as its record holds it"
+        }
+      }
+    },
+    "found": {
+      "type": "object",
+      "required": [
+        "type",
+        "from",
+        "address"
+      ],
+      "additionalProperties": false,
+      "description": "adapter to runner: a place a discover adapter found, for an expanding adapter to read; never a record and never evidence",
+      "properties": {
+        "type": {
+          "const": "found"
+        },
+        "from": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._:-]{1,128}$",
+          "description": "the fetch whose response named it"
+        },
+        "address": {
+          "type": "string",
+          "format": "uri",
+          "description": "the place found"
+        },
+        "title": {
+          "type": "string",
+          "description": "its title, as the source gave it"
+        },
+        "signals": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "numbers the source gave about the place, under its own field names"
         }
       }
     }

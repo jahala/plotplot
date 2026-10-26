@@ -508,6 +508,46 @@
         "paid": {
           "type": "boolean",
           "description": "true when each call costs money, so every call goes through the source's door"
+        },
+        "cost": {
+          "type": "object",
+          "required": [
+            "read_on",
+            "url"
+          ],
+          "additionalProperties": false,
+          "description": "what each call costs, as the source states it, with where and when it was read; required when paid. A flat price is per_request_usd; a source priced by tokens or size says how the estimate is computed instead, and well settles the real charge",
+          "properties": {
+            "per_request_usd": {
+              "type": "number",
+              "minimum": 0
+            },
+            "estimate": {
+              "type": "string",
+              "minLength": 1,
+              "description": "how to estimate a call's cost when the price is not flat"
+            },
+            "read_on": {
+              "type": "string",
+              "format": "date"
+            },
+            "url": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "oneOf": [
+            {
+              "required": [
+                "per_request_usd"
+              ]
+            },
+            {
+              "required": [
+                "estimate"
+              ]
+            }
+          ]
         }
       },
       "allOf": [
@@ -572,6 +612,23 @@
                 ]
               }
             }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "paid": {
+                "const": true
+              }
+            },
+            "required": [
+              "paid"
+            ]
+          },
+          "then": {
+            "required": [
+              "cost"
+            ]
           }
         }
       ]
