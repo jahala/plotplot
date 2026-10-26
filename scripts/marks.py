@@ -25,6 +25,7 @@ BEDS = {
     "umbel": "umbel",
     "pleach": "pleach",
     "pollen": "pollen",
+    "mycelium": "mycelium",
     "copeca": "copeca",
     "weeder": "weeder",
 }

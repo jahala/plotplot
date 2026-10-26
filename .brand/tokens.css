@@ -39,6 +39,14 @@
   --pp-weeder:      #8E3B5E;
   --pp-weeder-word: #8E3B5E;
 
+  /* color — blooms of the beds planted after the layers decision (2026-10-26) */
+  --pp-glean: #878B4B;
+  --pp-mull: #2D4980;
+  --pp-cultivate: #80652D;
+  --pp-graft: #8A4330;
+  --pp-mycelium: #7462B8;
+  --pp-well: #365D63;
+
   /* color — soil-night terminal */
   --pp-term-bg:      #1C1610;
   --pp-term-surface: #262019;
@@ -107,4 +115,7 @@
   --pp-pollen:     #D9C44A;
   --pp-pollen-ink: #D9C44A;
   --pp-weeder-word: #B85C82;
+  --pp-mull: #3D63AD;
+  --pp-graft: #9D4C37;
+  --pp-well: #3F6C74;
 }

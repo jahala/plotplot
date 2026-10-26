@@ -36,6 +36,9 @@ C = {
     "Poppy": "#D6502F", "Sky": "#4E88A6", "Plum": "#97539B", "Petal": "#E588A0",
     "Juniper": "#1F8A7B", "Pollen": "#C8B330", "Pollen-ink": "#7E6A08",
     "Bramble": "#8E3B5E", "Bramble-night": "#B85C82",
+    "Olive": "#878B4B", "Woad": "#2D4980", "Woad-night": "#3D63AD", "Loam": "#80652D",
+    "Rust": "#8A4330", "Rust-night": "#9D4C37", "Heather": "#7462B8",
+    "Deepwater": "#365D63", "Deepwater-night": "#3F6C74",
     # soil-night (dark / terminal)
     "Night": "#1C1610", "Night-card": "#262019",
     "Night-text": "#F3ECD9", "Night-soft": "#C9BBA0",
@@ -62,6 +65,11 @@ PAIRS = [
     ("Pollen-ink", "Paper", "reading", 4.5),
     ("Bramble", "Paper", "reading", 4.5), ("Bramble", "Night", "decorative", 0.0),
     ("Bramble-night", "Night", "labels", 3.0),
+    # the beds planted after the layers decision: fills and dots; a plate carries ink or paper text
+    ("Olive", "Paper", "labels", 3.0), ("Woad", "Paper", "reading", 4.5), ("Loam", "Paper", "reading", 4.5),
+    ("Rust", "Paper", "reading", 4.5), ("Heather", "Paper", "reading", 4.5), ("Deepwater", "Paper", "reading", 4.5),
+    ("Woad-night", "Night", "labels", 3.0), ("Rust-night", "Night", "labels", 3.0), ("Deepwater-night", "Night", "labels", 3.0),
+    ("Olive", "Night", "labels", 3.0), ("Loam", "Night", "labels", 3.0), ("Heather", "Night", "labels", 3.0),
     # soil-night
     ("Night-text", "Night", "reading", 4.5), ("Night-soft", "Night", "reading", 4.5),
     ("Night-green", "Night", "reading", 4.5), ("Night-sun", "Night", "reading", 4.5),

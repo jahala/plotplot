@@ -53,6 +53,17 @@ Each tool in the garden claims one accent; the primary palette is shared across 
 | copeca | #1F8A7B | cost-per-correct benchmarking — juniper |
 | pollen | #C8B330 | agent-to-agent messaging — anther gold |
 | weeder | #8E3B5E | the judge of the diff — bramble |
+| glean | #878B4B | finding what to grow, olive |
+| mull | #2D4980 | reading the world, woad |
+| cultivate | #80652D | people, jobs and outcomes, loam |
+| graft | #8A4330 | features, screens and flows, rust |
+| mycelium | #7462B8 | messages between agents, heather |
+| well | #365D63 | the one door for paid calls, deepwater |
+
+The six blooms planted after the layers decision (2026-10-26) keep at least 12.3 ΔE00 from every
+other bloom and from growth green, and work as a plate behind ink or paper text. On soil-night,
+woad lifts to **`#3D63AD`**, rust to **`#9D4C37`** and deepwater to **`#3F6C74`**, so each
+reads as a label (3:1); olive, loam and heather keep their values.
 
 pollen's bloom is **display/fill only** on paper (1.9:1) — the same class as sunlight and
 petal. Where the gold must read as a *word* on paper, use **pollen-ink `#7E6A08`** (4.9:1),
