@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="mull">
+  <rect width="24" height="24" rx="5.5" fill="#76D4FF"/>
+  <g transform="translate(3.36 3.36) scale(0.72)" fill="none">
+    <!-- mull mark: a trug, the gardener's shallow basket, with three things just gathered into it -->
+    <path d="M3 11 H21 L18.6 19 H5.4 Z" fill="#1C1610"/>
+    <path d="M6 11 C6 6.5 18 6.5 18 11" stroke="#1C1610" stroke-width="2"/>
+    <circle cx="8.5" cy="4.2" r="1.7" fill="#1C1610"/><circle cx="12" cy="2.8" r="1.7" fill="#1C1610"/><circle cx="15.5" cy="4.2" r="1.7" fill="#1C1610"/>
+  </g>
+</svg>
