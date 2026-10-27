@@ -1,0 +1,27 @@
+{
+  "format": "gate-request/1",
+  "asker": "transplant",
+  "ask": "Deploy plotplot.ai to its domain for the first time",
+  "why": "The first deploy to a domain is public in the owner's name.",
+  "evidence": [
+    "jahala/plotplot-ai pull request 42, merged with every check green",
+    "the preview at https://preview.plotplot.ai"
+  ],
+  "options": [
+    "yes"
+  ],
+  "act": {
+    "kind": "command",
+    "argv": [
+      "npm",
+      "run",
+      "deploy"
+    ],
+    "cwd": "/Users/owner/repos/plotplot-ai"
+  },
+  "asked_at": "2026-10-27T09:00:00Z",
+  "waiting": [
+    "the launch post",
+    "the domain's email"
+  ]
+}

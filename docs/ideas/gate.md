@@ -46,9 +46,10 @@ it is what turns "needs the owner's yes" from a sentence into a check.
 
 ## Data and its lifetime
 
-Open and answered requests are files in the portfolio repository. Answered requests are kept,
-because they are the proof an act was approved. Requests that expired unanswered are kept a year,
-then compacted to one line each.
+Open and answered requests are files in the owner's gate folder, `~/.local/share/plotplot/owner/gate/`
+by default, in the shape `contracts/request.md` gives. Answered requests are kept, because they are
+the proof an act was approved. Requests that expired unanswered are kept a year, then compacted to
+one line each.
 
 ## Metric and kill criterion
 

@@ -1,0 +1,1477 @@
+{
+ "note": "The rule of contracts/request.md: the exact bytes a digest is computed over, the requests whose digests must match or differ, and when a yes holds. Every implementation reproduces each bytes and digest from its text, and each expect from its inputs.",
+ "bound": [
+  "format",
+  "asker",
+  "ask",
+  "why",
+  "evidence",
+  "options",
+  "act"
+ ],
+ "digests": [
+  {
+   "because": "a request for an act, its keys in the order an asker might write them, spaced and indented; the unbound fields stay out of the bytes",
+   "text": "{\n    \"expires_at\": \"2026-11-03T09:00:00Z\",\n    \"waiting\": [\n        \"the launch post\",\n        \"the domain's email\"\n    ],\n    \"act\": {\n        \"kind\": \"command\",\n        \"argv\": [\n            \"npm\",\n            \"run\",\n            \"deploy\"\n        ],\n        \"cwd\": \"/Users/owner/repos/plotplot-ai\"\n    },\n    \"options\": [\n        \"yes\"\n    ],\n    \"asked_at\": \"2026-10-27T09:00:00Z\",\n    \"evidence\": [\n        \"jahala/plotplot-ai pull request 42, merged with every check green\",\n        \"the preview at https://preview.plotplot.ai\"\n    ],\n    \"why\": \"The first deploy to a domain is public in the owner's name.\",\n    \"ask\": \"Deploy plotplot.ai to its domain for the first time\",\n    \"asker\": \"transplant\",\n    \"format\": \"gate-request/1\"\n}",
+   "bytes": "{\"act\":{\"argv\":[\"npm\",\"run\",\"deploy\"],\"cwd\":\"/Users/owner/repos/plotplot-ai\",\"kind\":\"command\"},\"ask\":\"Deploy plotplot.ai to its domain for the first time\",\"asker\":\"transplant\",\"evidence\":[\"jahala/plotplot-ai pull request 42, merged with every check green\",\"the preview at https://preview.plotplot.ai\"],\"format\":\"gate-request/1\",\"options\":[\"yes\"],\"why\":\"The first deploy to a domain is public in the owner's name.\"}",
+   "digest": "8abba80c73b96be18ee0cb306bdaf32c664147359b3e2a2b988b813f18445870",
+   "act_bytes": "{\"argv\":[\"npm\",\"run\",\"deploy\"],\"cwd\":\"/Users/owner/repos/plotplot-ai\",\"kind\":\"command\"}",
+   "act_digest": "35e3f3fb3964b16e5ec6726133b4138650b199fcdda55befa82f70f16095e709"
+  },
+  {
+   "because": "a question with no act and three options, written on one line",
+   "text": "{\"format\": \"gate-request/1\", \"asker\": \"gate\", \"ask\": \"Which phone channel should gate deliver to first?\", \"why\": \"Urgent requests wait until the owner opens a terminal; a phone channel would reach them sooner.\", \"evidence\": [], \"options\": [\"a text message\", \"a chat bot\", \"email\"], \"asked_at\": \"2026-10-27T09:00:00Z\", \"expires_at\": \"2026-11-10T09:00:00Z\"}",
+   "bytes": "{\"ask\":\"Which phone channel should gate deliver to first?\",\"asker\":\"gate\",\"evidence\":[],\"format\":\"gate-request/1\",\"options\":[\"a text message\",\"a chat bot\",\"email\"],\"why\":\"Urgent requests wait until the owner opens a terminal; a phone channel would reach them sooner.\"}",
+   "digest": "df480fc6f9a8fc75ef1128e39d766eeb541169792a82d57a890852e82318fca1"
+  },
+  {
+   "because": "every character the escaping rule names: a quote, a backslash, a slash, the five short escapes, other control characters as lowercase \\u00xx, and DEL, an accent, U+2028 and a seedling written as themselves; the text writes the accent as an escape, and the bytes hold it as itself",
+   "text": "{\"format\": \"gate-request/1\", \"asker\": \"gate\", \"ask\": \"Say \\\"yes\\\" to C:\\\\path/a\\tb\\nc\\rd\\be\\ff\\u0001g\\u001fh\\u007fi \\u00e9 \\u2028 \\ud83c\\udf31?\", \"why\": \"Urgent requests wait until the owner opens a terminal; a phone channel would reach them sooner.\", \"evidence\": [], \"options\": [\"yes\"], \"asked_at\": \"2026-10-27T09:00:00Z\", \"expires_at\": \"2026-11-10T09:00:00Z\"}",
+   "bytes": "{\"ask\":\"Say \\\"yes\\\" to C:\\\\path/a\\tb\\nc\\rd\\be\\ff\\u0001g\\u001fhi é   🌱?\",\"asker\":\"gate\",\"evidence\":[],\"format\":\"gate-request/1\",\"options\":[\"yes\"],\"why\":\"Urgent requests wait until the owner opens a terminal; a phone channel would reach them sooner.\"}",
+   "digest": "5dde1a864e812e5e2b0aa256ccd6e0d5e9c8b380214151ed5d8182b736597a2d"
+  }
+ ],
+ "same": [
+  {
+   "because": "the expiry is not bound: asking again with a later deadline is the same request",
+   "a": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "b": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-12-01T00:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   }
+  },
+  {
+   "because": "the moment of asking is not bound",
+   "a": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "b": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-28T17:30:00.250Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   }
+  },
+  {
+   "because": "what waits is not bound: it ranks the request, it does not change what is asked",
+   "a": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "b": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z"
+   }
+  },
+  {
+   "because": "key order, at every level, is not part of the request",
+   "a": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "b": {
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ],
+    "expires_at": "2026-11-03T09:00:00Z",
+    "asked_at": "2026-10-27T09:00:00Z",
+    "act": {
+     "cwd": "/Users/owner/repos/plotplot-ai",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "kind": "command"
+    },
+    "options": [
+     "yes"
+    ],
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "asker": "transplant",
+    "format": "gate-request/1"
+   }
+  }
+ ],
+ "differ": [
+  {
+   "field": "asker",
+   "because": "another tool asking the same thing is another request",
+   "a": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "b": {
+    "format": "gate-request/1",
+    "asker": "pollen",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   }
+  },
+  {
+   "field": "ask",
+   "because": "one character of what is asked",
+   "a": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "b": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time.",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   }
+  },
+  {
+   "field": "ask",
+   "because": "no Unicode normalization: a composed and a decomposed accent are different text",
+   "a": {
+    "format": "gate-request/1",
+    "asker": "gate",
+    "ask": "Publish the café page?",
+    "why": "Urgent requests wait until the owner opens a terminal; a phone channel would reach them sooner.",
+    "evidence": [],
+    "options": [
+     "a text message",
+     "a chat bot",
+     "email"
+    ],
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-10T09:00:00Z"
+   },
+   "b": {
+    "format": "gate-request/1",
+    "asker": "gate",
+    "ask": "Publish the café page?",
+    "why": "Urgent requests wait until the owner opens a terminal; a phone channel would reach them sooner.",
+    "evidence": [],
+    "options": [
+     "a text message",
+     "a chat bot",
+     "email"
+    ],
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-10T09:00:00Z"
+   }
+  },
+  {
+   "field": "why",
+   "because": "the reason the owner read is part of what they said yes to",
+   "a": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "b": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "A routine deploy.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   }
+  },
+  {
+   "field": "evidence",
+   "because": "evidence added after the answer is a new request",
+   "a": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "b": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai",
+     "a third item"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   }
+  },
+  {
+   "field": "evidence",
+   "because": "the order of the evidence is kept",
+   "a": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "b": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "the preview at https://preview.plotplot.ai",
+     "jahala/plotplot-ai pull request 42, merged with every check green"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   }
+  },
+  {
+   "field": "options",
+   "because": "a question with another option",
+   "a": {
+    "format": "gate-request/1",
+    "asker": "gate",
+    "ask": "Which phone channel should gate deliver to first?",
+    "why": "Urgent requests wait until the owner opens a terminal; a phone channel would reach them sooner.",
+    "evidence": [],
+    "options": [
+     "a text message",
+     "a chat bot",
+     "email"
+    ],
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-10T09:00:00Z"
+   },
+   "b": {
+    "format": "gate-request/1",
+    "asker": "gate",
+    "ask": "Which phone channel should gate deliver to first?",
+    "why": "Urgent requests wait until the owner opens a terminal; a phone channel would reach them sooner.",
+    "evidence": [],
+    "options": [
+     "a text message",
+     "a chat bot",
+     "email",
+     "none yet"
+    ],
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-10T09:00:00Z"
+   }
+  },
+  {
+   "field": "act",
+   "because": "one word of the command",
+   "a": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "b": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy:prod"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   }
+  },
+  {
+   "field": "act",
+   "because": "the same text split into other words is another command",
+   "a": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "b": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   }
+  },
+  {
+   "field": "act",
+   "because": "the same command in another folder",
+   "a": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "b": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-io"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   }
+  },
+  {
+   "field": "act",
+   "because": "a request with an act and the same request without one",
+   "a": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "b": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   }
+  }
+ ],
+ "holds": [
+  {
+   "because": "the owner said yes before the expiry",
+   "request": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "answer": {
+    "format": "gate-answer/1",
+    "request": "8abba80c73b96be18ee0cb306bdaf32c664147359b3e2a2b988b813f18445870",
+    "answer": "yes",
+    "by": "owner",
+    "at": "2026-10-27T10:12:00Z"
+   },
+   "expect": true
+  },
+  {
+   "because": "no answer is not a yes, even before the expiry",
+   "request": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "answer": null,
+   "expect": false
+  },
+  {
+   "because": "the owner said no",
+   "request": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "answer": {
+    "format": "gate-answer/1",
+    "request": "8abba80c73b96be18ee0cb306bdaf32c664147359b3e2a2b988b813f18445870",
+    "answer": "no",
+    "by": "owner",
+    "at": "2026-10-27T10:12:00Z"
+   },
+   "expect": false
+  },
+  {
+   "because": "gate answered no at the expiry",
+   "request": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "answer": {
+    "format": "gate-answer/1",
+    "request": "8abba80c73b96be18ee0cb306bdaf32c664147359b3e2a2b988b813f18445870",
+    "answer": "no",
+    "by": "expiry",
+    "at": "2026-11-03T09:00:00Z"
+   },
+   "expect": false
+  },
+  {
+   "because": "a yes recorded for one request does not hold for a request that differs in its folder",
+   "request": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-io"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "answer": {
+    "format": "gate-answer/1",
+    "request": "8abba80c73b96be18ee0cb306bdaf32c664147359b3e2a2b988b813f18445870",
+    "answer": "yes",
+    "by": "owner",
+    "at": "2026-10-27T10:12:00Z"
+   },
+   "expect": false
+  },
+  {
+   "because": "a yes given at the moment of expiry is too late",
+   "request": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "answer": {
+    "format": "gate-answer/1",
+    "request": "8abba80c73b96be18ee0cb306bdaf32c664147359b3e2a2b988b813f18445870",
+    "answer": "yes",
+    "by": "owner",
+    "at": "2026-11-03T09:00:00Z"
+   },
+   "expect": false
+  },
+  {
+   "because": "moments are compared as instants, not as text: half a second after the expiry is after it",
+   "request": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "answer": {
+    "format": "gate-answer/1",
+    "request": "8abba80c73b96be18ee0cb306bdaf32c664147359b3e2a2b988b813f18445870",
+    "answer": "yes",
+    "by": "owner",
+    "at": "2026-11-03T09:00:00.500Z"
+   },
+   "expect": false
+  },
+  {
+   "because": "moments are compared as instants: a fraction of a second before the expiry is before it",
+   "request": {
+    "format": "gate-request/1",
+    "asker": "transplant",
+    "ask": "Deploy plotplot.ai to its domain for the first time",
+    "why": "The first deploy to a domain is public in the owner's name.",
+    "evidence": [
+     "jahala/plotplot-ai pull request 42, merged with every check green",
+     "the preview at https://preview.plotplot.ai"
+    ],
+    "options": [
+     "yes"
+    ],
+    "act": {
+     "kind": "command",
+     "argv": [
+      "npm",
+      "run",
+      "deploy"
+     ],
+     "cwd": "/Users/owner/repos/plotplot-ai"
+    },
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-03T09:00:00Z",
+    "waiting": [
+     "the launch post",
+     "the domain's email"
+    ]
+   },
+   "answer": {
+    "format": "gate-answer/1",
+    "request": "8abba80c73b96be18ee0cb306bdaf32c664147359b3e2a2b988b813f18445870",
+    "answer": "yes",
+    "by": "owner",
+    "at": "2026-11-03T08:59:59.999Z"
+   },
+   "expect": true
+  },
+  {
+   "because": "an answer that is one of the options but not yes does not hold",
+   "request": {
+    "format": "gate-request/1",
+    "asker": "gate",
+    "ask": "Which phone channel should gate deliver to first?",
+    "why": "Urgent requests wait until the owner opens a terminal; a phone channel would reach them sooner.",
+    "evidence": [],
+    "options": [
+     "a text message",
+     "a chat bot",
+     "email"
+    ],
+    "asked_at": "2026-10-27T09:00:00Z",
+    "expires_at": "2026-11-10T09:00:00Z"
+   },
+   "answer": {
+    "format": "gate-answer/1",
+    "request": "df480fc6f9a8fc75ef1128e39d766eeb541169792a82d57a890852e82318fca1",
+    "answer": "email",
+    "by": "owner",
+    "at": "2026-10-28T08:00:00Z"
+   },
+   "expect": false
+  }
+ ],
+ "holds_for_act": [
+  {
+   "because": "the act seen is the act the owner said yes to, its keys in another order",
+   "act": {
+    "cwd": "/Users/owner/repos/plotplot-ai",
+    "argv": [
+     "npm",
+     "run",
+     "deploy"
+    ],
+    "kind": "command"
+   },
+   "records": [
+    {
+     "request": {
+      "format": "gate-request/1",
+      "asker": "transplant",
+      "ask": "Deploy plotplot.ai to its domain for the first time",
+      "why": "The first deploy to a domain is public in the owner's name.",
+      "evidence": [
+       "jahala/plotplot-ai pull request 42, merged with every check green",
+       "the preview at https://preview.plotplot.ai"
+      ],
+      "options": [
+       "yes"
+      ],
+      "act": {
+       "kind": "command",
+       "argv": [
+        "npm",
+        "run",
+        "deploy"
+       ],
+       "cwd": "/Users/owner/repos/plotplot-ai"
+      },
+      "asked_at": "2026-10-27T09:00:00Z",
+      "expires_at": "2026-11-03T09:00:00Z",
+      "waiting": [
+       "the launch post",
+       "the domain's email"
+      ]
+     },
+     "answer": {
+      "format": "gate-answer/1",
+      "request": "8abba80c73b96be18ee0cb306bdaf32c664147359b3e2a2b988b813f18445870",
+      "answer": "yes",
+      "by": "owner",
+      "at": "2026-10-27T10:12:00Z"
+     }
+    }
+   ],
+   "expect": true
+  },
+  {
+   "because": "one more word in the command seen",
+   "act": {
+    "kind": "command",
+    "argv": [
+     "npm",
+     "run",
+     "deploy",
+     "--force"
+    ],
+    "cwd": "/Users/owner/repos/plotplot-ai"
+   },
+   "records": [
+    {
+     "request": {
+      "format": "gate-request/1",
+      "asker": "transplant",
+      "ask": "Deploy plotplot.ai to its domain for the first time",
+      "why": "The first deploy to a domain is public in the owner's name.",
+      "evidence": [
+       "jahala/plotplot-ai pull request 42, merged with every check green",
+       "the preview at https://preview.plotplot.ai"
+      ],
+      "options": [
+       "yes"
+      ],
+      "act": {
+       "kind": "command",
+       "argv": [
+        "npm",
+        "run",
+        "deploy"
+       ],
+       "cwd": "/Users/owner/repos/plotplot-ai"
+      },
+      "asked_at": "2026-10-27T09:00:00Z",
+      "expires_at": "2026-11-03T09:00:00Z",
+      "waiting": [
+       "the launch post",
+       "the domain's email"
+      ]
+     },
+     "answer": {
+      "format": "gate-answer/1",
+      "request": "8abba80c73b96be18ee0cb306bdaf32c664147359b3e2a2b988b813f18445870",
+      "answer": "yes",
+      "by": "owner",
+      "at": "2026-10-27T10:12:00Z"
+     }
+    }
+   ],
+   "expect": false
+  },
+  {
+   "because": "a yes for one folder does not hold in another, even beside a request for that folder that has no answer",
+   "act": {
+    "kind": "command",
+    "argv": [
+     "npm",
+     "run",
+     "deploy"
+    ],
+    "cwd": "/Users/owner/repos/plotplot-io"
+   },
+   "records": [
+    {
+     "request": {
+      "format": "gate-request/1",
+      "asker": "transplant",
+      "ask": "Deploy plotplot.ai to its domain for the first time",
+      "why": "The first deploy to a domain is public in the owner's name.",
+      "evidence": [
+       "jahala/plotplot-ai pull request 42, merged with every check green",
+       "the preview at https://preview.plotplot.ai"
+      ],
+      "options": [
+       "yes"
+      ],
+      "act": {
+       "kind": "command",
+       "argv": [
+        "npm",
+        "run",
+        "deploy"
+       ],
+       "cwd": "/Users/owner/repos/plotplot-ai"
+      },
+      "asked_at": "2026-10-27T09:00:00Z",
+      "expires_at": "2026-11-03T09:00:00Z",
+      "waiting": [
+       "the launch post",
+       "the domain's email"
+      ]
+     },
+     "answer": {
+      "format": "gate-answer/1",
+      "request": "8abba80c73b96be18ee0cb306bdaf32c664147359b3e2a2b988b813f18445870",
+      "answer": "yes",
+      "by": "owner",
+      "at": "2026-10-27T10:12:00Z"
+     }
+    },
+    {
+     "request": {
+      "format": "gate-request/1",
+      "asker": "transplant",
+      "ask": "Deploy plotplot.io to its domain for the first time",
+      "why": "The first deploy to a domain is public in the owner's name.",
+      "evidence": [
+       "jahala/plotplot-ai pull request 42, merged with every check green",
+       "the preview at https://preview.plotplot.ai"
+      ],
+      "options": [
+       "yes"
+      ],
+      "act": {
+       "kind": "command",
+       "argv": [
+        "npm",
+        "run",
+        "deploy"
+       ],
+       "cwd": "/Users/owner/repos/plotplot-io"
+      },
+      "asked_at": "2026-10-27T09:00:00Z",
+      "expires_at": "2026-11-03T09:00:00Z",
+      "waiting": [
+       "the launch post",
+       "the domain's email"
+      ]
+     },
+     "answer": null
+    }
+   ],
+   "expect": false
+  },
+  {
+   "because": "the act was refused",
+   "act": {
+    "kind": "command",
+    "argv": [
+     "npm",
+     "run",
+     "deploy"
+    ],
+    "cwd": "/Users/owner/repos/plotplot-ai"
+   },
+   "records": [
+    {
+     "request": {
+      "format": "gate-request/1",
+      "asker": "transplant",
+      "ask": "Deploy plotplot.ai to its domain for the first time",
+      "why": "The first deploy to a domain is public in the owner's name.",
+      "evidence": [
+       "jahala/plotplot-ai pull request 42, merged with every check green",
+       "the preview at https://preview.plotplot.ai"
+      ],
+      "options": [
+       "yes"
+      ],
+      "act": {
+       "kind": "command",
+       "argv": [
+        "npm",
+        "run",
+        "deploy"
+       ],
+       "cwd": "/Users/owner/repos/plotplot-ai"
+      },
+      "asked_at": "2026-10-27T09:00:00Z",
+      "expires_at": "2026-11-03T09:00:00Z",
+      "waiting": [
+       "the launch post",
+       "the domain's email"
+      ]
+     },
+     "answer": {
+      "format": "gate-answer/1",
+      "request": "8abba80c73b96be18ee0cb306bdaf32c664147359b3e2a2b988b813f18445870",
+      "answer": "no",
+      "by": "owner",
+      "at": "2026-10-27T10:12:00Z"
+     }
+    }
+   ],
+   "expect": false
+  },
+  {
+   "because": "a question with no act holds for no act",
+   "act": {
+    "kind": "command",
+    "argv": [
+     "npm",
+     "run",
+     "deploy"
+    ],
+    "cwd": "/Users/owner/repos/plotplot-ai"
+   },
+   "records": [
+    {
+     "request": {
+      "format": "gate-request/1",
+      "asker": "gate",
+      "ask": "Which phone channel should gate deliver to first?",
+      "why": "Urgent requests wait until the owner opens a terminal; a phone channel would reach them sooner.",
+      "evidence": [],
+      "options": [
+       "yes"
+      ],
+      "asked_at": "2026-10-27T09:00:00Z",
+      "expires_at": "2026-11-10T09:00:00Z"
+     },
+     "answer": {
+      "format": "gate-answer/1",
+      "request": "d1719119b5e6a26d8f2d699c40bf6f33660f014f6972d2f85e18dab10764e378",
+      "answer": "yes",
+      "by": "owner",
+      "at": "2026-10-28T08:00:00Z"
+     }
+    }
+   ],
+   "expect": false
+  }
+ ]
+}

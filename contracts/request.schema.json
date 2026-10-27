@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotplot.ai/contracts/request.schema.json",
+  "title": "request or answer",
+  "description": "One request for the owner's answer, or the answer to one request, each one file in the owner's gate folder. See contracts/request.md.",
+  "oneOf": [
+    {"$ref": "#/$defs/request"},
+    {"$ref": "#/$defs/answer"}
+  ],
+  "$defs": {
+    "moment": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "act": {
+      "type": "object",
+      "description": "the exact command a yes allows: its words as the program receives them, and the folder it runs in",
+      "required": ["kind", "argv", "cwd"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {"const": "command"},
+        "argv": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string"}
+        },
+        "cwd": {
+          "type": "string",
+          "description": "an absolute folder with no empty, '.' or '..' segment and no trailing slash, or '/' itself",
+          "pattern": "^(/|(/(?!\\.\\.?(/|$))[^/]+)+)$"
+        }
+      }
+    },
+    "request": {
+      "type": "object",
+      "required": ["format", "asker", "ask", "why", "evidence", "options", "asked_at", "expires_at"],
+      "additionalProperties": false,
+      "properties": {
+        "format": {"const": "gate-request/1"},
+        "asker": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+        "ask": {"$ref": "#/$defs/text"},
+        "why": {"$ref": "#/$defs/text"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/text"}},
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"allOf": [{"$ref": "#/$defs/text"}, {"not": {"const": "no"}}]}
+        },
+        "act": {"$ref": "#/$defs/act"},
+        "asked_at": {"$ref": "#/$defs/moment"},
+        "expires_at": {"$ref": "#/$defs/moment"},
+        "waiting": {"type": "array", "items": {"$ref": "#/$defs/text"}}
+      },
+      "if": {"required": ["act"]},
+      "then": {"properties": {"options": {"const": ["yes"]}}}
+    },
+    "answer": {
+      "type": "object",
+      "required": ["format", "request", "answer", "by", "at"],
+      "additionalProperties": false,
+      "properties": {
+        "format": {"const": "gate-answer/1"},
+        "request": {"$ref": "#/$defs/digest"},
+        "answer": {"$ref": "#/$defs/text"},
+        "by": {"enum": ["owner", "expiry"]},
+        "at": {"$ref": "#/$defs/moment"}
+      },
+      "if": {"properties": {"by": {"const": "expiry"}}},
+      "then": {"properties": {"answer": {"const": "no"}}}
+    }
+  }
+}
