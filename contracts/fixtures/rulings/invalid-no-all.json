@@ -1,0 +1,6 @@
+{
+  "rulings": "1",
+  "owner": "Jan Hallvard Larsen",
+  "note": "The owner's standing ruling, copied into each capture plan entry's `ruling` by the tools that write plans. `all` covers every adapter, present and future; `by_adapter` may override one. Written by cape-town from the owner's words of 2026-10-27.",
+  "by_adapter": {}
+}

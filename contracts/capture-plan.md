@@ -1,6 +1,6 @@
 # Capture plan: what one project asks mull to read
 
-Each project keeps one capture plan in its repository: the subjects it listens about, the sources it reads with their configuration, and, for each private stream, the consent behind it and how long its records live. mull runs the plan; it does not write it. cultivate can draft one from "whom are we listening to", and a person can write one by hand.
+Each project keeps one capture plan in its repository: the subjects it listens about, the sources it reads with their configuration, and, for each private stream, how long its records live. mull runs the plan; it does not write it. cultivate can draft one from "whom are we listening to", and a person can write one by hand.
 
 Schema: `contracts/capture-plan.schema.json`. Fixture: `contracts/fixtures/capture-plan/valid.json`. Test: `test/contracts.test.ts`.
 
@@ -22,16 +22,17 @@ Each source entry holds:
 | `from` | yes | the earliest moment of saying to read; later runs continue from the cursor |
 | `why` | no | whom the source lets the project hear |
 | `private` | yes | true for a private stream |
-| `consent` | for a private stream | `given_by`, `given_on`, `scope` and `evidence` (where the consent is kept) |
+| `consent` | no | `given_by`, `given_on`, `scope` and `evidence` (where the consent is kept), for an owner who wants it recorded; nothing requires it |
 | `lifetime_days` | for a private stream | how long its records are kept before the prune command deletes them |
 | `terms` | when the manifest sets `terms_per_site` | the site's own terms, as facts, in the manifest's shape |
-| `ruling` | when the source's terms restrict the use | the owner's ruling: `use` (`allowed` or `refused`), `by`, `on` and `says` |
+| `ruling` | when the source's terms restrict the use | the owner's ruling: `use` (`allowed` or `refused`), `by`, `on` and `says`, copied from the owner's rulings file (`contracts/rulings.md`) |
 | `bots` | no | handles on this source the owner knows to be programs, as the source writes them; their records are marked `author_kind` bot, from the plan |
 | `budget` | when the adapter is paid | the well budget the entry spends; the owner chooses it, and mull refuses to run a paid adapter without one |
 
 ## Rules a reader may rely on
 
 - **Public once, private apart.** A public source is fetched once into the shared public store, and every project reads its slice; a thousand projects never fetch the same forum a thousand times. A private stream's records go to that project's own store and nowhere else.
-- **No private stream without consent and a lifetime.** mull refuses an entry that lacks either.
+- **`private` is a label, and a private stream has a lifetime.** A private entry's records go to the project's own store and carry `private: true`; mull refuses a private entry with no `lifetime_days`. No consent is required to read one (the owner's ruling of 2026-10-27: no privacy or security gates in the research tools).
+- **Rulings are copied, not written per plan.** A tool that writes a capture plan copies each entry's `ruling` from the owner's rulings file: the adapter's entry under `by_adapter` when there is one, otherwise `all` (`contracts/rulings.md`).
 - **Each owner rules for their own use.** An entry whose source's terms carry restrictions, forbid commercial use, or come from an account whose terms forbid automation runs only when its `ruling` allows it; an entry whose ruling refuses never runs. No ruling changes a source's rate limit, its deletion requirements, or mull's refusal to work around a captcha, two-factor or a login it was not given.
 - **No cadence here.** When the plan runs is the operating system's scheduler or a workflow file, never the plan (law §6).

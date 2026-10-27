@@ -1,0 +1,19 @@
+{
+  "rulings": "1",
+  "owner": "Jan Hallvard Larsen",
+  "note": "The owner's standing ruling, copied into each capture plan entry's `ruling` by the tools that write plans. `all` covers every adapter, present and future; `by_adapter` may override one. Written by cape-town from the owner's words of 2026-10-27.",
+  "all": {
+    "use": "allowed",
+    "by": "owner",
+    "on": "2026-10-27",
+    "says": "Every source may be used for research while the garden is non-commercial: \"we are so far non-commercial and we're researching etc.. we can use absolutely all sources for now\". No ruling ever bypasses a captcha, a login or a site's rate limit."
+  },
+  "by_adapter": {
+    "hackernews": {
+      "use": "refused",
+      "by": "owner",
+      "on": "2026-10-28",
+      "says": "An example override: this source is not to be read."
+    }
+  }
+}
