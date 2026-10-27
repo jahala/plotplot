@@ -1,0 +1,70 @@
+{
+ "note": "How every client takes and breaks the lock, so clients in different runtimes never decide at once. Each case makes the budget's ledger folder, creates the lock and its breaker as directories of the given age in seconds (null: absent), lets the client decide one reserve that fits the cap with the given wait for the lock, and checks whether the line was written and which directories remain. A client that passes every case closes the race between clients; a client that removes a stale lock without holding the breaker can remove the fresh lock another writer has just taken.",
+ "stale_after_s": 60,
+ "budget": "judge",
+ "cap_usd": 1.0,
+ "event": {
+  "at": "2026-10-15T12:00:00.000Z",
+  "tool": "a",
+  "event": "reserve",
+  "key": "b495886a1fd8204f886d0809ec59a1a9809179297b6543728909e2c0dbde29db",
+  "usd": 0.1
+ },
+ "cases": [
+  {
+   "because": "no lock: the writer takes it, writes, and releases it",
+   "lock_age_s": null,
+   "breaker_age_s": null,
+   "wait_ms": 200,
+   "expect": "written",
+   "after": {
+    "lock": false,
+    "breaker": false
+   }
+  },
+  {
+   "because": "a live lock is never broken: the writer waits, then gives up",
+   "lock_age_s": 0,
+   "breaker_age_s": null,
+   "wait_ms": 200,
+   "expect": "not written",
+   "after": {
+    "lock": true,
+    "breaker": false
+   }
+  },
+  {
+   "because": "a stale lock is broken only under the breaker, then the writer takes the lock and writes",
+   "lock_age_s": 120,
+   "breaker_age_s": null,
+   "wait_ms": 200,
+   "expect": "written",
+   "after": {
+    "lock": false,
+    "breaker": false
+   }
+  },
+  {
+   "because": "while another waiter holds a fresh breaker, the stale lock is left to it: the writer waits, then gives up",
+   "lock_age_s": 120,
+   "breaker_age_s": 0,
+   "wait_ms": 200,
+   "expect": "not written",
+   "after": {
+    "lock": true,
+    "breaker": true
+   }
+  },
+  {
+   "because": "a breaker older than a minute belongs to a waiter that died: it is removed, then the stale lock is broken",
+   "lock_age_s": 120,
+   "breaker_age_s": 120,
+   "wait_ms": 200,
+   "expect": "written",
+   "after": {
+    "lock": false,
+    "breaker": false
+   }
+  }
+ ]
+}

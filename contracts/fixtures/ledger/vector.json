@@ -339,5 +339,149 @@
     }
    }
   ]
+ },
+ "across_months": {
+  "note": "A reservation stays open until it is settled or released, however old: never resending blind is the point. Each case writes its lines into their months' files, sets the budget's cap to cap_usd, then decides the event at its moment.",
+  "cases": [
+   {
+    "because": "a reservation three months old that was never settled still blocks the same request",
+    "cap_usd": 1.0,
+    "lines": [
+     {
+      "at": "2026-07-10T09:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-07",
+      "tool": "a",
+      "key": "f948b449180f241719264bbfd6cc02a773ad5151938bff05e72962577591b8ee",
+      "event": "reserve",
+      "usd": 0.1,
+      "cap_usd": 1.0
+     }
+    ],
+    "event": {
+     "at": "2026-10-15T12:00:00.000Z",
+     "tool": "a",
+     "event": "reserve",
+     "key": "f948b449180f241719264bbfd6cc02a773ad5151938bff05e72962577591b8ee",
+     "usd": 0.1
+    },
+    "expect": "refuse:unsettled"
+   },
+   {
+    "because": "an open reservation of any age is held against the cap until it is settled or released",
+    "cap_usd": 1.0,
+    "lines": [
+     {
+      "at": "2026-07-10T09:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-07",
+      "tool": "a",
+      "key": "184404cee5b3b5f456c0c70bc9eb7d541940445fda7965494279f9881d8cf551",
+      "event": "reserve",
+      "usd": 0.9,
+      "cap_usd": 1.0
+     }
+    ],
+    "event": {
+     "at": "2026-10-15T12:00:00.000Z",
+     "tool": "b",
+     "event": "reserve",
+     "key": "300c0bbd7fe1d27885a3fc48aa79287b3bcd9fce90684e275da2d4a93a9c1532",
+     "usd": 0.2
+    },
+    "expect": "refuse:cap"
+   },
+   {
+    "because": "a person reconciled the old reservation with a release, so the request may be reserved again",
+    "cap_usd": 1.0,
+    "lines": [
+     {
+      "at": "2026-07-10T09:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-07",
+      "tool": "a",
+      "key": "98f3322af6bb9150c9a33b590b618195cdb70daee10b16be1b13e6ee419e5bc9",
+      "event": "reserve",
+      "usd": 0.1,
+      "cap_usd": 1.0
+     },
+     {
+      "at": "2026-09-02T09:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-09",
+      "tool": "a",
+      "key": "98f3322af6bb9150c9a33b590b618195cdb70daee10b16be1b13e6ee419e5bc9",
+      "event": "release",
+      "usd": 0,
+      "why": "reconciled"
+     }
+    ],
+    "event": {
+     "at": "2026-10-15T12:00:00.000Z",
+     "tool": "a",
+     "event": "reserve",
+     "key": "98f3322af6bb9150c9a33b590b618195cdb70daee10b16be1b13e6ee419e5bc9",
+     "usd": 0.1
+    },
+    "expect": "allow"
+   },
+   {
+    "because": "an old reservation may still be settled when its charge is found",
+    "cap_usd": 1.0,
+    "lines": [
+     {
+      "at": "2026-07-10T09:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-07",
+      "tool": "a",
+      "key": "99ec8e17b14092dcfe074eeaa9db282fdf05c3874def16a6bf3f3335839029ce",
+      "event": "reserve",
+      "usd": 0.3,
+      "cap_usd": 1.0
+     }
+    ],
+    "event": {
+     "at": "2026-10-15T12:00:00.000Z",
+     "tool": "a",
+     "event": "settle",
+     "key": "99ec8e17b14092dcfe074eeaa9db282fdf05c3874def16a6bf3f3335839029ce",
+     "usd": 0.3
+    },
+    "expect": "allow"
+   },
+   {
+    "because": "a reservation settled long ago does not block the same request",
+    "cap_usd": 1.0,
+    "lines": [
+     {
+      "at": "2026-06-10T09:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-06",
+      "tool": "a",
+      "key": "1ba0d1f8daa4c8b94d93a82647e1251347f57dc98af83ed90c6892a0368e162a",
+      "event": "reserve",
+      "usd": 0.3,
+      "cap_usd": 1.0
+     },
+     {
+      "at": "2026-06-10T09:01:00.000Z",
+      "budget": "judge",
+      "period": "2026-06",
+      "tool": "a",
+      "key": "1ba0d1f8daa4c8b94d93a82647e1251347f57dc98af83ed90c6892a0368e162a",
+      "event": "settle",
+      "usd": 0.3
+     }
+    ],
+    "event": {
+     "at": "2026-10-15T12:00:00.000Z",
+     "tool": "a",
+     "event": "reserve",
+     "key": "1ba0d1f8daa4c8b94d93a82647e1251347f57dc98af83ed90c6892a0368e162a",
+     "usd": 0.3
+    },
+    "expect": "allow"
+   }
+  ]
  }
 }
