@@ -26,6 +26,10 @@ jq -e '[.steps[].tool] | unique | length >= 2' "$vector" >/dev/null 2>&1
 assert $? "the vector has two spenders sharing one budget"
 jq -e '[.across_months.cases[] | select(.expect == "refuse:unsettled")] | length > 0' "$vector" >/dev/null 2>&1
 assert $? "the vector holds an old reservation that still blocks its request"
+for reason in cap-day cap-week; do
+  jq -e --arg r "refuse:$reason" '[.pacing.cases[] | select(.expect == $r)] | length > 0' "$vector" >/dev/null 2>&1
+  assert $? "the vector's pacing refuses a reserve with $reason"
+done
 lock="contracts/fixtures/ledger/lock.json"
 jq -e '.cases | length > 0 and all(.[]; has("lock_age_s") and has("breaker_age_s") and has("expect") and has("after"))' "$lock" >/dev/null 2>&1
 assert $? "the lock cases parse and each names its setup, outcome and what remains"

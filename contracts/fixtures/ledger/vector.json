@@ -2,6 +2,8 @@
  "budget": "judge",
  "period": "2026-10",
  "cap_usd": 1.0,
+ "day_usd": 1.0,
+ "week_usd": 1.0,
  "request_key": {
   "note": "computed by jev-run.mjs's own requestHash; every client must reproduce it",
   "body": {
@@ -481,6 +483,338 @@
      "usd": 0.3
     },
     "expect": "allow"
+   }
+  ]
+ },
+ "pacing": {
+  "note": "Each budget paces its spending inside the month. The day limit holds over the 24 hours before the event's moment and the week limit over the 7 days before it, so no boundary lets two days' spending through at once. Spent in a window is every settle written in it; every open reservation, of any age, is held against every limit. A budget without day_usd or week_usd gets them from its cap: a day is cap_usd times 3/30 and a week is cap_usd times 1.5/4, rounded down to the millionth. A reserve is allowed when it fits the month, the week and the day; refused, it names the first it does not fit, in that order: cap, cap-week, cap-day.",
+  "cases": [
+   {
+    "because": "with no day or week limit set, a day is the cap times 3/30: 0.10 of a 1.00 cap fits exactly",
+    "budget": {
+     "cap_usd": 1.0
+    },
+    "lines": [],
+    "event": {
+     "at": "2026-10-15T12:00:00.000Z",
+     "tool": "a",
+     "event": "reserve",
+     "key": "7e2f835ac61ce3c142da181e9c865f368fbe77f3d04ed0905ba321889476f7ce",
+     "usd": 0.1
+    },
+    "expect": "allow"
+   },
+   {
+    "because": "a millionth over the derived day limit is refused",
+    "budget": {
+     "cap_usd": 1.0
+    },
+    "lines": [],
+    "event": {
+     "at": "2026-10-15T12:00:00.000Z",
+     "tool": "a",
+     "event": "reserve",
+     "key": "b1bae256cf75a12a25a063c4394ddc88a51b7a98b57bdf57844265e1aa743987",
+     "usd": 0.100001
+    },
+    "expect": "refuse:cap-day"
+   },
+   {
+    "because": "a settle 23 hours ago is inside the day: 0.08 spent + 0.03 passes 0.10",
+    "budget": {
+     "cap_usd": 1.0
+    },
+    "lines": [
+     {
+      "at": "2026-10-14T13:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-10",
+      "tool": "a",
+      "key": "5021a99ea06a032179787248554325fd0cafb60e918683ebb34f7fbe00b794dc",
+      "event": "reserve",
+      "usd": 0.08,
+      "cap_usd": 1.0
+     },
+     {
+      "at": "2026-10-14T13:00:30.000Z",
+      "budget": "judge",
+      "period": "2026-10",
+      "tool": "a",
+      "key": "5021a99ea06a032179787248554325fd0cafb60e918683ebb34f7fbe00b794dc",
+      "event": "settle",
+      "usd": 0.08
+     }
+    ],
+    "event": {
+     "at": "2026-10-15T12:00:00.000Z",
+     "tool": "a",
+     "event": "reserve",
+     "key": "d8c6cc534f3557b638264a1cfa20d8e2829629afd776f23f0f39cc54ab8ab2ec",
+     "usd": 0.03
+    },
+    "expect": "refuse:cap-day"
+   },
+   {
+    "because": "a settle 25 hours ago has left the day, so the same reserve fits",
+    "budget": {
+     "cap_usd": 1.0
+    },
+    "lines": [
+     {
+      "at": "2026-10-14T11:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-10",
+      "tool": "a",
+      "key": "8fe6202edbe208b7ec978773a6806f8cf6ff31d5ca897e2cf91ad1873cc46c73",
+      "event": "reserve",
+      "usd": 0.08,
+      "cap_usd": 1.0
+     },
+     {
+      "at": "2026-10-14T11:00:30.000Z",
+      "budget": "judge",
+      "period": "2026-10",
+      "tool": "a",
+      "key": "8fe6202edbe208b7ec978773a6806f8cf6ff31d5ca897e2cf91ad1873cc46c73",
+      "event": "settle",
+      "usd": 0.08
+     }
+    ],
+    "event": {
+     "at": "2026-10-15T12:00:00.000Z",
+     "tool": "a",
+     "event": "reserve",
+     "key": "6f48b3d2cc63b67df43c86092f5c04f7292fe4a259a93abfb74e04e94fa419d2",
+     "usd": 0.03
+    },
+    "expect": "allow"
+   },
+   {
+    "because": "an open reservation of any age is held against the day too",
+    "budget": {
+     "cap_usd": 1.0
+    },
+    "lines": [
+     {
+      "at": "2026-10-12T12:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-10",
+      "tool": "a",
+      "key": "1807f81c9595b77187e3c013a32a1d0e852a9a1be2f80d35a4c77b5b57062a02",
+      "event": "reserve",
+      "usd": 0.08,
+      "cap_usd": 1.0
+     }
+    ],
+    "event": {
+     "at": "2026-10-15T12:00:00.000Z",
+     "tool": "a",
+     "event": "reserve",
+     "key": "e2a4b8001a167b53ae57fac56f117104778eab79d7f75af904afa787fb29cdd4",
+     "usd": 0.03
+    },
+    "expect": "refuse:cap-day"
+   },
+   {
+    "because": "with no week limit set, a week is the cap times 1.5/4: 0.375 of a 1.00 cap; 0.30 spent over six days + 0.10 passes it",
+    "budget": {
+     "cap_usd": 1.0,
+     "day_usd": 1.0
+    },
+    "lines": [
+     {
+      "at": "2026-10-09T13:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-10",
+      "tool": "a",
+      "key": "71a7506f8cf35f50539963e067750679190ef013f3449f578366f6e8d8fbd42d",
+      "event": "reserve",
+      "usd": 0.15,
+      "cap_usd": 1.0
+     },
+     {
+      "at": "2026-10-09T13:00:30.000Z",
+      "budget": "judge",
+      "period": "2026-10",
+      "tool": "a",
+      "key": "71a7506f8cf35f50539963e067750679190ef013f3449f578366f6e8d8fbd42d",
+      "event": "settle",
+      "usd": 0.15
+     },
+     {
+      "at": "2026-10-12T13:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-10",
+      "tool": "a",
+      "key": "1c3653f4fbf8edf7eea510350cdcffd4f86f16e03ed8929924ecac3d355242d8",
+      "event": "reserve",
+      "usd": 0.15,
+      "cap_usd": 1.0
+     },
+     {
+      "at": "2026-10-12T13:00:30.000Z",
+      "budget": "judge",
+      "period": "2026-10",
+      "tool": "a",
+      "key": "1c3653f4fbf8edf7eea510350cdcffd4f86f16e03ed8929924ecac3d355242d8",
+      "event": "settle",
+      "usd": 0.15
+     }
+    ],
+    "event": {
+     "at": "2026-10-15T12:00:00.000Z",
+     "tool": "a",
+     "event": "reserve",
+     "key": "d5ec1e2775b99b28b0b35b32e52f1e48bd0d570c007c37dd8bcc9db4403fa82c",
+     "usd": 0.1
+    },
+    "expect": "refuse:cap-week"
+   },
+   {
+    "because": "a settle eight days ago has left the week",
+    "budget": {
+     "cap_usd": 1.0,
+     "day_usd": 1.0
+    },
+    "lines": [
+     {
+      "at": "2026-10-07T11:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-10",
+      "tool": "a",
+      "key": "9302df3ea7994d00374787a31b21a070a2a8c695eed3b80383f8187862081399",
+      "event": "reserve",
+      "usd": 0.3,
+      "cap_usd": 1.0
+     },
+     {
+      "at": "2026-10-07T11:00:30.000Z",
+      "budget": "judge",
+      "period": "2026-10",
+      "tool": "a",
+      "key": "9302df3ea7994d00374787a31b21a070a2a8c695eed3b80383f8187862081399",
+      "event": "settle",
+      "usd": 0.3
+     }
+    ],
+    "event": {
+     "at": "2026-10-15T12:00:00.000Z",
+     "tool": "a",
+     "event": "reserve",
+     "key": "74e130970adced62e0765f9d70bf5f88d813b733028cb912f897388f436792c9",
+     "usd": 0.1
+    },
+    "expect": "allow"
+   },
+   {
+    "because": "the week reaches into the month before: 0.30 spent on 29 October counts on 2 November",
+    "budget": {
+     "cap_usd": 1.0,
+     "day_usd": 1.0
+    },
+    "lines": [
+     {
+      "at": "2026-10-29T13:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-10",
+      "tool": "a",
+      "key": "d86f1ac9ccdfcc6643777c0caa9db7f71f272472633e8e4d3a65984588fb2c70",
+      "event": "reserve",
+      "usd": 0.3,
+      "cap_usd": 1.0
+     },
+     {
+      "at": "2026-10-29T13:00:30.000Z",
+      "budget": "judge",
+      "period": "2026-10",
+      "tool": "a",
+      "key": "d86f1ac9ccdfcc6643777c0caa9db7f71f272472633e8e4d3a65984588fb2c70",
+      "event": "settle",
+      "usd": 0.3
+     }
+    ],
+    "event": {
+     "at": "2026-11-02T12:00:00.000Z",
+     "tool": "a",
+     "event": "reserve",
+     "key": "6876b570db47f1152c08edb987e88e4f73939dfb49fea7197a5949b1aefd5d7b",
+     "usd": 0.1
+    },
+    "expect": "refuse:cap-week"
+   },
+   {
+    "because": "limits the owner sets are used as written",
+    "budget": {
+     "cap_usd": 1.0,
+     "day_usd": 0.5,
+     "week_usd": 0.8
+    },
+    "lines": [
+     {
+      "at": "2026-10-15T09:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-10",
+      "tool": "a",
+      "key": "0381eb939e03177976b4f1ba82cf8c196ddd362948d8d8eca16e2432a3c467cf",
+      "event": "reserve",
+      "usd": 0.4,
+      "cap_usd": 1.0
+     },
+     {
+      "at": "2026-10-15T09:00:30.000Z",
+      "budget": "judge",
+      "period": "2026-10",
+      "tool": "a",
+      "key": "0381eb939e03177976b4f1ba82cf8c196ddd362948d8d8eca16e2432a3c467cf",
+      "event": "settle",
+      "usd": 0.4
+     }
+    ],
+    "event": {
+     "at": "2026-10-15T12:00:00.000Z",
+     "tool": "a",
+     "event": "reserve",
+     "key": "a9cc4d7fedd4fe559d6d88af9610066f067bd14f2781f4948cfdde83f98588c6",
+     "usd": 0.1
+    },
+    "expect": "allow"
+   },
+   {
+    "because": "refused by the month and the day at once, the month is named first",
+    "budget": {
+     "cap_usd": 0.2,
+     "day_usd": 0.15,
+     "week_usd": 1.0
+    },
+    "lines": [
+     {
+      "at": "2026-10-15T09:00:00.000Z",
+      "budget": "judge",
+      "period": "2026-10",
+      "tool": "a",
+      "key": "050c0c897e472d0a69e7070ee2912faefd07ffb56c07967460ca3e56c1030226",
+      "event": "reserve",
+      "usd": 0.15,
+      "cap_usd": 1.0
+     },
+     {
+      "at": "2026-10-15T09:00:30.000Z",
+      "budget": "judge",
+      "period": "2026-10",
+      "tool": "a",
+      "key": "050c0c897e472d0a69e7070ee2912faefd07ffb56c07967460ca3e56c1030226",
+      "event": "settle",
+      "usd": 0.15
+     }
+    ],
+    "event": {
+     "at": "2026-10-15T12:00:00.000Z",
+     "tool": "a",
+     "event": "reserve",
+     "key": "b502daeda91326ba286bed7aaba5c2b862c7cd7785087585a3a61e9d92f4e5f8",
+     "usd": 0.1
+    },
+    "expect": "refuse:cap"
    }
   ]
  }
