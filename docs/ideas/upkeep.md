@@ -57,6 +57,10 @@ and almanac entries.
 
 ## Open questions
 
+- Whether upkeep is its own bed or the gardener's maintenance rules. Detection, fetching, planning
+  and running all belong to other beds, so what upkeep keeps is routing and batching. Asked on
+  2026-10-27; the owner kept it a bed for now. It earns its own bed by holding logic of its own,
+  such as judging which upgrades are safe to batch; if it never does, it folds into the gardener.
 - Its name.
 - How far upkeep goes on its own: whether a patch-level upgrade that passes every check may land
   without a yes.
