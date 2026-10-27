@@ -1,0 +1,19 @@
+{
+  "source": "stack-exchange",
+  "channel": "cooking",
+  "url": "https://cooking.stackexchange.com/q/131302",
+  "title": "How do I stop my sourdough starter from smelling like acetone?",
+  "text": "I feed it twice a day and it still smells like nail polish remover by evening. Is it starving, or is something else wrong?",
+  "said_at": "2026-09-14T08:12:40Z",
+  "fetched_at": "2026-10-27T09:00:00Z",
+  "author": "5f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0",
+  "signals": {
+    "score": 4,
+    "view_count": 312,
+    "answer_count": 2
+  },
+  "licence": 4.0,
+  "private": false,
+  "raw_ref": "responses/9a/9a1f.json.gz",
+  "id": "0c39c99367fa1806d03acca9dc4744fde55d70c6e8673a286e104a0317d9c229"
+}

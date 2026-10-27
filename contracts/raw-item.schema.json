@@ -185,6 +185,11 @@
         "type": "number"
       }
     },
+    "licence": {
+      "type": "string",
+      "minLength": 1,
+      "description": "the source's own licence statement for this item, verbatim, such as Stack Exchange's content_license (CC BY-SA 4.0); absent when the source states none per item, never inferred. With url, which links to the item and names its author there, and the source the adapter manifest names, it is what attribution needs"
+    },
     "private": {
       "type": "boolean",
       "description": "true for an item from a private stream the owner consented to, such as a support inbox; it follows the owner's lifetime for private items"
