@@ -64,6 +64,7 @@ A record's `fields` may not carry any of `id`, `source`, `fetched_at`, `raw_ref`
 
 ## Rules a reader may rely on
 
+- **A line ends at `\n`.** A `\r` before it is ignored. U+2028 and U+2029 inside a line are part of it; mull writes them escaped, so a reader that splits on them still reads whole lines. mull's own tests hold this (jahala/mull PR 29); no schema can.
 - **Same input, same bytes.** A run replayed from kept responses with the same `start` line writes byte-identical records.
 - **Every record names its response.** `raw_ref` leads to the bytes it was read from.
 - **The protocol version is in the manifest.** A change that breaks an adapter is version 2, and mull runs each adapter by the version its manifest names.
