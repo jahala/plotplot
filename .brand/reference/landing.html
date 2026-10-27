@@ -16,7 +16,7 @@
 <link rel="icon" href="/plotplot-mark.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..900,0..100,0..1;1,9..144,300..900,0..100,0..1&family=Hanken+Grotesk:wght@400..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Protest+Riot&family=Hanken+Grotesk:wght@400..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script>(function(){var r=document.documentElement;r.classList.add('js');var s=localStorage.getItem('pp-theme');if(s)r.setAttribute('data-theme',s);else if(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)r.setAttribute('data-theme','dark');})();</script>
 <style>
   /* ── tokens and theme ── */
@@ -34,7 +34,7 @@
     --pp-term-bg:#1C1610; --pp-term-surface:#262019; --pp-term-border:#403628;
     --pp-term-green:#84C56A; --pp-term-sun:#F2A93B; --pp-term-text:#F3ECD9;
     /* type */
-    --pp-font-heading:'Fraunces',Georgia,serif;
+    --pp-font-heading:'Protest Riot',Georgia,serif;
     --pp-font-body:'Hanken Grotesk',system-ui,sans-serif;
     --pp-font-code:'JetBrains Mono',monospace;
     /* space */
@@ -326,6 +326,24 @@
     .bed .desc,.bed .status{grid-column:2}
     .principle .num{font-size:4.2rem}
   }
+  /* Protest Riot has one weight and no italic: every heading-face element uses it as drawn, never faked (typography.md) */
+  html{font-synthesis:none}
+  .bed-name,
+  .hero h1,
+  .hero h1 em,
+  .mr-words,
+  .p-name,
+  .p-uname,
+  .p-word,
+  .principle .num,
+  .principle h3,
+  .why h2,
+  .wordmark,
+  h1,
+  h2,
+  h3,
+  h4{font-weight:400!important;font-style:normal!important;font-variation-settings:normal!important;letter-spacing:0!important}
+  .hero h1{line-height:1.04!important}
 </style>
 </head>
 <body id="top">

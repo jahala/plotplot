@@ -18,10 +18,10 @@ plotplot is built around one belief: good work is grown, not rushed. The brand s
 | Principle | Description |
 |-----------|-------------|
 | Alive, not sterile | The garden is in colour — vital greens, warm sunlight, a smattering of blooms. Vibrant, but always legible. |
-| Playful, not childish | Character through Fraunces, botanical marks, and a little wit. Never cartoon, never hype, never meme. |
+| Playful, not childish | Character through Protest Riot, botanical marks, and a little wit. Never cartoon, never hype, never meme. |
 | A garden of beds | Show the family as a cultivated plot — each tool a bed with its own bloom. Composition and relationship over flat lists. |
 | Honest about craft | The tools are files, skills, and terminals. Show real commands and real output; never a fake dashboard. |
-| A site plan you can read | The garden is drawn as an allotment site plan, read like good public signage. One stem runs through four lettered rows (A plan, B read, C run, D judge); every bed is a numbered plot with a sign in its bloom; empty plots are drawn fallow, which says there is room to grow. A Swiss grid and wayfinding carry the structure; Fraunces, the sprout and the blooms keep it a garden, not a transit map. |
+| A site plan you can read | The garden is drawn as an allotment site plan, read like good public signage. One stem runs through four lettered rows (A plan, B read, C run, D judge); every bed is a numbered plot with a sign in its bloom; empty plots are drawn fallow, which says there is room to grow. A Swiss grid and wayfinding carry the structure; Protest Riot, the sprout and the blooms keep it a garden, not a transit map. |
 | Calm motion | Things unfold and settle like leaves. Alive, not restless. |
 | Make AI accountable | AI-generated output exposes its sources, confidence, and reasoning, with clear points for human review. |
 
@@ -31,7 +31,7 @@ The palette is a living garden on warm, sunlit paper: deep-brown ink (#3A2718) o
 
 ## 4. Typography System
 
-plotplot uses Google Fonts only. Headings and display use Fraunces — a warm, characterful serif with optical sizing and soft/wonk axes and lively italics; playful and elegant at once, the reason the brand reads as a garden rather than a dashboard. Body and interface use Hanken Grotesk for warm, friendly, legible precision. Code, kickers, and labels use JetBrains Mono — the builder/terminal voice.
+plotplot uses Google Fonts only. Headings and display use Protest Riot, a bold display face with a hand-cut edge, in its one weight; sturdy and friendly at once, the reason the brand reads as a garden rather than a dashboard. Body and interface use Hanken Grotesk for warm, friendly, legible precision. Code, kickers, and labels use JetBrains Mono — the builder/terminal voice.
 
 The scale is editorial and confident: html base 18px; h1 is a fluid clamp(3.4rem, 6vw, 4.6rem); h2 2.4rem; h3 1.6rem; h4 1.25rem; body 1.0625rem at 1.65 line-height; display numerals 3.75rem. Full weights, line heights, and import URLs live in `typography.md`.
 
@@ -81,7 +81,7 @@ Two illustrations are the family's own and are shared, never redrawn:
 When generating UI or design output, follow these constraints:
 
 1. **Colors:** use only the palette in `colors.md`, referenced by semantic role, not raw hex. Sunlight, leaf, petal, and muted are display/decorative — never body text.
-2. **Typography:** apply the hierarchy in `typography.md`. Never introduce fonts outside Fraunces / Hanken Grotesk / JetBrains Mono.
+2. **Typography:** apply the hierarchy in `typography.md`. Never introduce fonts outside Protest Riot / Hanken Grotesk / JetBrains Mono.
 3. **Components:** follow `components.md`. Start from the reference pages in `reference/` (the umbrella page and a bed page): copy one, then change only the marked spots. Reuse patterns before inventing new ones.
 4. **Spacing:** adhere to the 4px scale in `layout.md`. Never use arbitrary pixel values.
 5. **Elevation:** use the ink-tinted shadow recipes by level. Never pure-black shadows.
