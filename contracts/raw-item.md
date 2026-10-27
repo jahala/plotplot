@@ -32,6 +32,7 @@ A file of JSON Lines, one item per line. Each item holds:
 | `labels` | no | the source's own labels on the item as fetched, verbatim: issue labels, flair, tags |
 | `status` | no | the source's own statement of the thread's state as fetched, verbatim: `state` (such as open or closed), `reason` (such as completed or not_planned) and `changed_at`, when it last changed |
 | `signals` | no | numbers the source gave, under the source's own field names |
+| `licence` | no | the source's own licence statement for the item, verbatim, such as Stack Exchange's `content_license` (`CC BY-SA 4.0`); absent when the source states none per item, never inferred. With `url`, which links to the item and names its author there, and the source the adapter manifest names, it is what attribution needs |
 | `private` | yes | whether it came from a private stream |
 | `raw_ref` | yes | where the raw response it came from is kept |
 
