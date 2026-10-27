@@ -14,6 +14,9 @@
     "key": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "event": {"enum": ["reserve", "settle", "release"]},
     "usd": {"type": "number", "minimum": 0},
-    "why": {"enum": ["not-sent", "refused", "reconciled"]}
-  }
+    "why": {"enum": ["not-sent", "refused", "reconciled"]},
+    "cap_usd": {"type": "number", "minimum": 0, "description": "on reserve only: the cap the decision compared against; lines written before reserves carried it lack it"}
+  },
+  "if": {"properties": {"event": {"const": "reserve"}}},
+  "else": {"not": {"required": ["cap_usd"]}}
 }
