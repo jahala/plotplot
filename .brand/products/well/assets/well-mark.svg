@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="well">
+  <rect width="24" height="24" rx="5.5" fill="#4D5972"/>
+  <g transform="translate(3.36 3.36) scale(0.72)" fill="none">
+    <!-- well mark: a well: its stone wall, the crossbeam and one bucket on one rope; every paid call goes down the same rope -->
+    <path d="M3.5 15 H20.5 V20 C20.5 21 19.9 21.5 19 21.5 H5 C4.1 21.5 3.5 21 3.5 20 Z" fill="#F3ECD9"/>
+    <path d="M6 15 V3.5 M18 15 V3.5 M4.5 3.5 H19.5" stroke="#F3ECD9" stroke-width="2"/>
+    <path d="M12 3.5 V8" stroke="#F3ECD9" stroke-width="2"/>
+    <path d="M9.4 8.2 H14.6 L13.8 12 H10.2 Z" fill="#F3ECD9"/>
+  </g>
+</svg>

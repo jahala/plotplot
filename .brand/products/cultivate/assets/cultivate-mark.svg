@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="cultivate">
+  <rect width="24" height="24" rx="5.5" fill="#09636B"/>
+  <g transform="translate(3.36 3.36) scale(0.72)" fill="none">
+    <!-- cultivate mark: a watering can: what a grower gives each plant, so it becomes what it can -->
+    <path d="M6 8.5 H15 V19 C15 20 14.4 20.5 13.5 20.5 H7 C6.4 20.5 6 20 6 19 Z" fill="#F3ECD9"/>
+    <path d="M15 12.5 L20.5 6.5" stroke="#F3ECD9" stroke-width="2"/>
+    <path d="M19 4.6 L22.4 7.6" stroke="#F3ECD9" stroke-width="2"/>
+    <path d="M6 10.6 C2.6 10.6 2.6 17.4 6 17.4" stroke="#F3ECD9" stroke-width="2"/>
+  </g>
+</svg>

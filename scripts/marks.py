@@ -29,11 +29,16 @@ BEDS = {
     "mycelium": "mycelium",
     "copeca": "copeca",
     "weeder": "weeder",
+    "mull": "mull",
+    "glean": "glean",
+    "cultivate": "cultivate",
+    "graft": "graft",
+    "well": "well",
 }
 # marks drawn in two inks with no tile; every other bed's mark is a tile
 LINE = {"plotplot", "copeca"}
 # a tiled mark's ink: the plate text its bloom carries (palette_contrast.py holds it at 4.5:1)
-SIGN = {"tend": "term-bg", "tilth": "term-bg", "petals": "term-bg", "umbel": "term-text", "pleach": "term-bg", "mycelium": "term-bg", "weeder": "term-bg"}
+SIGN = {"tend": "term-bg", "tilth": "term-bg", "petals": "term-bg", "umbel": "term-text", "pleach": "term-bg", "mycelium": "term-bg", "weeder": "term-bg", "mull": "term-bg", "glean": "term-bg", "cultivate": "term-text", "graft": "term-bg", "well": "term-text"}
 TILE = '<rect width="24" height="24" rx="5.5" fill="{bloom}"/>'
 GREEN = "primary"
 STROKE = "2"
