@@ -222,12 +222,25 @@ One paragraph each; the loop carries the checks.
 - **pollen** is walkie-clawkie renamed and folded to three tools. The brief is
   `docs/prompts/pollen-conversion-2026-09.md`.
 - **petals** cuts its skill description to one sentence and emits SARIF from its check.
-- **copeca** adds `garden.json`, then `copeca init` to scaffold any repo's own eval corpus from
-  its history.
+- **copeca** has left the garden (`docs/decisions/2026-10-26-layers.md`). It stays a public
+  benchmark; the number it is named for becomes a report pleach reads from its receipts and
+  well's ledger.
 - **the stem** is three generated bundles, `doctor`, `check`, `init`, and the lockfile
   wrapper. Nothing else. No `run`, no `walk`, no gateway, no briefing assembler.
-- **mull** is not a bed. If its review (`docs/prompts/mull-relook-2026-09.md`) finds it lives,
-  it lives as a skill that writes a loop's Tried from a session transcript.
+- **mull** reads the world, with no model in it (`docs/plans/reading-the-world.md`). Every adapter
+  speaks the protocol and carries a manifest (`contracts/protocol.md`, `contracts/adapter.md`);
+  it asks mull to fetch, so hosts, keys, the author salt, rate limits and replay are held once.
+  The same window gives the same bytes. Paid and keyed fetches go through well. Its records
+  are the contracts' post, document, observation, subject and reaction.
+- **cultivate** owns the people layer: needs merged and counted by role (`contracts/needs.md`),
+  personas, jobs and outcomes. It reads raw items, never fetches, and marks nothing it was not
+  told: bots come from the source or the owner's capture plan.
+- **glean** finds what is worth growing: it scores needs against the owner's compass as a
+  profile of separate scores, each tested against its own outcome, with no weight the owner did
+  not write. It never fetches, never merges, and never contacts anyone.
+- **well** is the one door for every call that costs money or needs a key (`contracts/ledger.md`).
+  Every paid call reserves before it is sent; a program that finds no budget spends nothing; a
+  call that may have been charged is never resent without a person's word.
 
 ## 6. Anti-goals
 
@@ -256,6 +269,18 @@ cut in the review or settled on the channel; reopening one needs new evidence in
 - **tend2 and pleach.** The Tried-handback requirement is FORMAT's grammar, travels in the
   work order tend2 emits, is refused at close by tend2's verifier, and is validated in shape
   by pleach's run loop through an additive plan-contract v1.3 field pleach owns.
+
+Settled 2026-10-26 and 2026-10-27, with the layers decision (`docs/decisions/2026-10-26-layers.md`):
+
+- **mull, cultivate and glean.** mull fetches and keeps; cultivate merges and counts; glean
+  scores and plants. No one of them does another's step, and each reads the one before it
+  through the contracts, never its store. A search result is a place to read, never evidence.
+- **The owner's rulings and the facts.** An adapter's manifest records what a source's terms
+  say. Whether a use is allowed is the owner's ruling, kept in that owner's capture plan. No
+  ruling changes a rate limit, a deletion the source requires, a captcha, two-factor or a login
+  not given.
+- **well and every spender.** A rule two runtimes share lives in its vector in `contracts/`,
+  and each client passes it; a program may instead spend through `well run`.
 
 ## 7. Handback
 
