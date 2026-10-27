@@ -65,6 +65,16 @@ declare_negative "$fixdir/invalid-role-without-basis.json" "a role that does not
 declare_negative "$fixdir/invalid-negative-count.json" "a negative count of people"
 declare_negative "$fixdir/invalid-member-not-raw-item.json" "a member that is not a raw item id"
 
+# every negative fixture in the folder is declared above, so none sits there untested
+for file in "$fixdir"/invalid-*.json; do
+  name=$(basename "$file")
+  if grep -q "declare_negative \"\$fixdir/$name\"" "$0"; then
+    assert 0 "$name is declared as a negative fixture"
+  else
+    assert 1 "$name is declared as a negative fixture"
+  fi
+done
+
 if [ "$fail" -eq 0 ]; then
   echo "needs.test.sh: all assertions passed"
   exit 0

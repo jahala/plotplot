@@ -91,6 +91,16 @@ declare_negative "$fixdir/invalid-repository-as-bed.garden.json" "a bed manifest
 declare_negative "$fixdir/invalid-undeclared-context.garden.json" "an undeclared context cost"
 declare_negative "$fixdir/invalid-no-metric.garden.json" "no metric command"
 
+# every negative fixture in the folder is declared above, so none sits there untested
+for file in "$fixdir"/invalid-*.json; do
+  name=$(basename "$file")
+  if grep -q "declare_negative \"\$fixdir/$name\"" "$0"; then
+    assert 0 "$name is declared as a negative fixture"
+  else
+    assert 1 "$name is declared as a negative fixture"
+  fi
+done
+
 if [ "$fail" -eq 0 ]; then
   echo "manifest.test.sh: all assertions passed"
   exit 0
