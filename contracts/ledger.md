@@ -37,7 +37,10 @@ what it is about to spend refuses to spend.
 
 Amounts are compared in millionths of a dollar, so a sum of cents never fails on rounding.
 Spent is the sum of `settle` amounts in the period. Open reservations are `reserve` events with no
-later `settle` or `release` for the same key, in this period or the one before.
+later `settle` or `release` for the same key, in any period up to this one. A reservation stays open
+until it is settled or released, however old, because never resending blind is the point; a person
+clears an old one with a `release` whose `why` is `reconciled`. Until then it is held against the cap.
+The vector's `across_months` cases hold this.
 
 | Event | Allowed when | Refused with |
 |---|---|---|
@@ -57,7 +60,15 @@ before the request left the machine may be retried under the same reservation.
 A writer takes the lock by creating `<ledger>.lock` as a directory, which is atomic on every
 filesystem and the same call in every runtime. Holding it, the writer reads the ledger, decides,
 appends at most one line, and removes the directory. A lock older than 60 seconds belongs to a
-writer that died and may be removed by the next one. The lock holds no data.
+writer that died. Only one waiter may remove it: the waiter first creates `<ledger>.lock.break` as
+a directory, checks the lock's age again, removes the lock only if it is still older than 60 seconds,
+then removes the breaker. Without the breaker, a waiter that saw the old lock could remove the fresh
+lock another writer had just taken, and two writers would decide at once (well measured the cap
+passed in 5 of 20 trials). A breaker older than 60 seconds belongs to a waiter that died and may be
+removed. A writer that finds its lock gone when it releases it reports that, because another writer
+may have decided at the same time. The lock and the breaker hold no data. Every client passes the
+lock cases in `contracts/fixtures/ledger/lock.json`, so clients in different runtimes share the lock
+safely.
 
 ## What a reader may rely on
 
@@ -78,4 +89,4 @@ records. The vector's `breaches` block holds the cases.
 ## Lifetime
 
 One file per budget per month, kept. Months older than a year may be compacted to one summary line
-per budget, kept for the books.
+per budget, kept for the books, except that every reservation still open is kept as it was written.

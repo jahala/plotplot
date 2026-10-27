@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The spending ledger, well's contract until well exists. The rule lives in two runtimes
+# The spending ledger, well's contract. The rule lives in two runtimes
 # (cultivate's ledger.py and the owner's judge runner), so its home is the test vector each
 # implementation must pass; those runs happen in each implementation. Here: the schema compiles,
 # the vector parses, and the vector exercises every event and the cap. Run from the repository
@@ -24,6 +24,13 @@ jq -e '[.steps[] | select(.expect | tostring | test("refus|ceiling|cap|block"; "
 assert $? "the vector holds at least one refusal"
 jq -e '[.steps[].tool] | unique | length >= 2' "$vector" >/dev/null 2>&1
 assert $? "the vector has two spenders sharing one budget"
+jq -e '[.across_months.cases[] | select(.expect == "refuse:unsettled")] | length > 0' "$vector" >/dev/null 2>&1
+assert $? "the vector holds an old reservation that still blocks its request"
+lock="contracts/fixtures/ledger/lock.json"
+jq -e '.cases | length > 0 and all(.[]; has("lock_age_s") and has("breaker_age_s") and has("expect") and has("after"))' "$lock" >/dev/null 2>&1
+assert $? "the lock cases parse and each names its setup, outcome and what remains"
+jq -e '[.cases[] | select(.breaker_age_s == 0 and .expect == "not written")] | length > 0' "$lock" >/dev/null 2>&1
+assert $? "the lock cases hold a stale lock left alone while another waiter holds the breaker"
 
 if [ "$fail" -eq 0 ]; then echo "ledger.test.sh: all assertions passed"; exit 0; fi
 echo "ledger.test.sh: failures present"; exit 1
