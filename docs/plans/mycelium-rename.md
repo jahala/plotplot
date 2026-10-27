@@ -36,7 +36,7 @@ record what happened under it.
 | variables `POLLEN_*` | `MYCELIUM_*` |
 | mailboxes `/tmp/pollen/` | `/tmp/mycelium/` |
 | launcher `pollen-mcp` | `mycelium-mcp` |
-| brand `products/pollen/`, accent anther gold | `products/mycelium/`, a new mark and accent; anther gold is kept for the marketing bed |
+| brand `products/pollen/`, accent anther gold | `products/mycelium/`, a new mark and accent (brand v1.7.0); `products/pollen/` is removed, and the marketing bed gets its own folder and its row's bloom when it is planted |
 
 ## Where the name lives today
 

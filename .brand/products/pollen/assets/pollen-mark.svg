@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="pollen">
-  <!-- pollen mark: two heads leaning apart, a grain carried from one to the other -->
-  <path d="M10.4 22 C10.2 18 8.8 14.6 6 12.2 M13.6 22 C13.8 18.2 15.2 15.4 17.9 13.4" stroke="#357E2C" stroke-width="2"/>
-  <circle cx="4.8" cy="9.9" r="2.6" fill="#C8B330"/>
-  <circle cx="19.2" cy="11.1" r="2.6" fill="#C8B330"/>
-  <circle cx="9.2" cy="5.2" r="1.5" fill="#C8B330"/>
-  <circle cx="14.4" cy="4.2" r="2" fill="#C8B330"/>
-</svg>
