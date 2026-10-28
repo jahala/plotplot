@@ -27,7 +27,7 @@ Each source entry holds:
 | `terms` | when the manifest sets `terms_per_site` | the site's own terms, as facts, in the manifest's shape |
 | `ruling` | when the source's terms restrict the use | the owner's ruling: `use` (`allowed` or `refused`), `by`, `on` and `says`, copied from the owner's rulings file (`contracts/rulings.md`) |
 | `bots` | no | handles on this source the owner knows to be programs, as the source writes them; their records are marked `author_kind` bot, from the plan |
-| `budget` | when the adapter is paid | the well budget the entry spends; the owner chooses it, and mull refuses to run a paid adapter without one |
+| `budget` | when the adapter is paid or needs a credential | the well budget the entry spends; the owner chooses it, and mull refuses to run such an adapter without one, since its requests go through well |
 
 ## Rules a reader may rely on
 
