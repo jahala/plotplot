@@ -29,7 +29,7 @@ Each need holds:
 
 | Field | Required | Meaning |
 |---|---|---|
-| `id` | yes | `need:` and 16 hex characters, from the lead item's id when first made; kept across runs while the need keeps half its members |
+| `id` | yes | `need:` and 16 hex characters, from the lead item's id; the same across runs while the need keeps its lead (a need whose lead changes gets a new id) |
 | `lead` | yes | the raw item id of the post the need was first made from |
 | `label` | yes | a short name; `label_source` says whether it is the lead's own title or a drafted label checked against the members |
 | `kind` | yes | `ask` (wants something new), `problem` (something fails) or `remove` (wants something off or optional) |
