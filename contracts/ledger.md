@@ -12,7 +12,7 @@ cultivate; changed since by well.
 
 | File | Holds |
 |---|---|
-| `budgets.json` | one cap per budget per period, set by the owner: `{"judge": {"period": "month", "cap_usd": 5}}` |
+| `budgets.json` | one budget each, set by the owner: `{"judge": {"period": "month", "cap_usd": 5, "day_usd": 0.5, "week_usd": 1.875}}`; `day_usd` and `week_usd` are optional |
 | `<budget>/<yyyy-mm>.jsonl` | the ledger: one event per line, append-only, never edited |
 | `<budget>/<yyyy-mm>.jsonl.lock` | an empty directory that exists only while one writer appends |
 
@@ -42,9 +42,19 @@ until it is settled or released, however old, because never resending blind is t
 clears an old one with a `release` whose `why` is `reconciled`. Until then it is held against the cap.
 The vector's `across_months` cases hold this.
 
+Each budget also paces its spending inside the month, so a month's budget is never spent on its
+first day. The day limit, `day_usd`, holds over the 24 hours before the event's moment, and the
+week limit, `week_usd`, over the 7 days before it; a rolling window has no boundary that would let
+two days' spending through at once, and needs no time zone. Spent in a window is every `settle`
+written in it, so the week reaches into the month before. Every open reservation is held against
+every limit. A budget without `day_usd` gets the cap times 3/30, and without `week_usd` the cap
+times 1.5/4, each rounded down to the millionth: three times an even day's share, and one and a
+half times an even week's. A refused reserve names the first limit it does not fit, in the order
+month (`cap`), week (`cap-week`), day (`cap-day`). The vector's `pacing` cases hold this.
+
 | Event | Allowed when | Refused with |
 |---|---|---|
-| `reserve` | the key has no open reservation, and spent plus every open reservation plus this estimate is at most the cap | `unsettled` or `cap` |
+| `reserve` | the key has no open reservation, and for the month, the week and the day, spent in it plus every open reservation plus this estimate is at most its limit | `unsettled`, `cap`, `cap-week` or `cap-day` |
 | `settle` | the key has an open reservation; the charge may exceed the estimate | `no-reservation` |
 | `release` | the key has an open reservation | `no-reservation` |
 
