@@ -161,14 +161,18 @@ Copy this verbatim and change only the three marked spots: the **identity** colu
       <div class="gf-col">
         <h4>the plotplot garden</h4>
         <nav class="gf-garden" aria-label="the garden">
-          <a href="https://github.com/jahala/tilth"  style="--bloom:var(--pp-tilth)"><span class="gf-dot"></span>tilth</a>
-          <a href="https://github.com/jahala/tend"   style="--bloom:var(--pp-tend)"><span class="gf-dot"></span>tend</a>
-          <a href="https://github.com/jahala/petals" style="--bloom:var(--pp-petals)"><span class="gf-dot"></span>petals</a>
-          <a href="https://github.com/jahala/pleach" style="--bloom:var(--pp-pleach)"><span class="gf-dot"></span>pleach</a>
-          <a href="https://github.com/jahala/umbel"  style="--bloom:var(--pp-umbel)" class="is-current"><span class="gf-dot"></span>umbel</a>
-          <a href="https://github.com/jahala/copeca" style="--bloom:var(--pp-copeca)"><span class="gf-dot"></span>copeca</a>
-          <a href="https://github.com/jahala/pollen" style="--bloom:var(--pp-pollen)"><span class="gf-dot"></span>pollen</a>
-          <a href="https://github.com/jahala/weeder" style="--bloom:var(--pp-weeder)"><span class="gf-dot"></span>weeder</a>
+          <span style="--bloom:var(--pp-mull)"><span class="gf-dot"></span>mull</span>
+          <span style="--bloom:var(--pp-glean)"><span class="gf-dot"></span>glean</span>
+          <span style="--bloom:var(--pp-cultivate)"><span class="gf-dot"></span>cultivate</span>
+          <span style="--bloom:var(--pp-graft)"><span class="gf-dot"></span>graft</span>
+          <span style="--bloom:var(--pp-petals)"><span class="gf-dot"></span>petals</span>
+          <span style="--bloom:var(--pp-tend)"><span class="gf-dot"></span>tend</span>
+          <a href="https://jahala.github.io/pleach/" style="--bloom:var(--pp-pleach)"><span class="gf-dot"></span>pleach</a>
+          <a href="https://jahala.github.io/umbel/" style="--bloom:var(--pp-umbel)" class="is-current"><span class="gf-dot"></span>umbel</a>
+          <a href="https://jahala.github.io/tilth/" style="--bloom:var(--pp-tilth)"><span class="gf-dot"></span>tilth</a>
+          <a href="https://jahala.github.io/mycelium/" style="--bloom:var(--pp-mycelium)"><span class="gf-dot"></span>mycelium</a>
+          <a href="https://jahala.github.io/weeder/" style="--bloom:var(--pp-weeder)"><span class="gf-dot"></span>weeder</a>
+          <span style="--bloom:var(--pp-well)"><span class="gf-dot"></span>well</span>
         </nav>
         <p class="gf-soft">small, sharp tools for building with agents.</p>
       </div>
