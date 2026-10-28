@@ -768,48 +768,40 @@ fn a_bed_past_the_timeout_is_killed_and_reported_as_unable_to_judge() {
 fn two_beds_run_at_the_same_time() {
     let temp = tempfile::tempdir().expect("a temporary root");
     let root = temp.path();
-    // Each bed records when it started and when it ended, in seconds since the epoch with
-    // microsecond precision from perl's high-resolution clock, which every platform the
-    // gate runs on carries. Overlap is the proof: each bed started before the other ended.
-    // A wall-clock bound would measure the machine, and a shared runner is slower than any
-    // bound every so often.
-    for name in ["first", "second"] {
+    // Each bed marks that it started, then waits for the other bed's mark, and marks that it
+    // met the other only if it saw that mark. Beds the dispatcher runs at once always meet;
+    // beds it runs one after the other never both meet, because the first gives up before the
+    // second starts. The proof is the meeting, an event, never a duration: a loaded machine
+    // that starts processes slowly still meets, where a timed overlap failed twice on CI
+    // (issue 173). The wait is bounded under the dispatcher's tool timeout.
+    let waits = 120; // times 50 ms: 6 s, under TOOL_TIMEOUT's 8 s
+    for (name, other) in [("first", "second"), ("second", "first")] {
+        let mark = |who: &str, what: &str| root.join("markers").join(format!("{who}.{what}"));
         let body = format!(
-            "perl -MTime::HiRes=time -e 'print time' > '{start}'; sleep 0.3; \
-             perl -MTime::HiRes=time -e 'print time' > '{end}'",
-            start = root.join("markers").join(format!("{name}.start")).display(),
-            end = root.join("markers").join(format!("{name}.end")).display(),
+            "touch '{me_start}'; i=0; \
+             while [ ! -e '{other_start}' ] && [ \"$i\" -lt {waits} ]; do sleep 0.05; i=$((i+1)); done; \
+             if [ -e '{other_start}' ]; then touch '{me_met}'; fi",
+            me_start = mark(name, "start").display(),
+            other_start = mark(other, "start").display(),
+            me_met = mark(name, "met").display(),
         );
         plant(root, name, &[("claude", &["PreToolUse"])], &body);
     }
 
-    // macOS scans an executable the first time it is run, which costs a few hundred
-    // milliseconds per freshly written file and serialises the two beds' first starts.
-    // That is the operating system's, not the dispatcher's: one dispatch pays it, and the
-    // one whose stamps are read measures the fan-out.
-    for _ in 0..2 {
-        plotplot(root)
-            .args(["hook", "claude", "PreToolUse"])
-            .write_stdin(payload("claude", "PreToolUse"))
-            .assert()
-            .code(0);
-    }
-
-    let stamp = |name: &str, which: &str| -> f64 {
-        let path = root.join("markers").join(format!("{name}.{which}"));
-        let text = fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
-        text.trim()
-            .parse::<f64>()
-            .unwrap_or_else(|e| panic!("{}: {e}: {text:?}", path.display()))
-    };
-    let (first_start, first_end) = (stamp("first", "start"), stamp("first", "end"));
-    let (second_start, second_end) = (stamp("second", "start"), stamp("second", "end"));
+    plotplot(root)
+        .args(["hook", "claude", "PreToolUse"])
+        .write_stdin(payload("claude", "PreToolUse"))
+        .assert()
+        .code(0);
 
     assert!(marker(root, "first").exists());
     assert!(marker(root, "second").exists());
+    let met = |who: &str| root.join("markers").join(format!("{who}.met")).exists();
     assert!(
-        second_start < first_end && first_start < second_end,
-        "the beds did not overlap: first {first_start}..{first_end}, second {second_start}..{second_end}"
+        met("first") && met("second"),
+        "the beds did not run at the same time: first met second {}, second met first {}",
+        met("first"),
+        met("second")
     );
 }
 
