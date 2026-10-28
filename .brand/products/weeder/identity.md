@@ -1,4 +1,4 @@
-# weeder — product identity
+# weeder: product identity
 
 A product layer over the plotplot umbrella. Deltas only; everything absent inherits the umbrella.
 
@@ -7,7 +7,7 @@ A product layer over the plotplot umbrella. Deltas only; everything absent inher
 | Product | weeder |
 | Tagline | tests still mean what they meant. |
 | Accent | `#A37A6E`, the shed's deep grey, wood and iron (from the umbrella Product Accents table) |
-| Faces | `weeder check` · `weeder scan` · `weeder guard` · `weeder hook` · `weeder rules` — `bite` joins when it lands |
+| Faces | `weeder check` · `weeder scan` · `weeder guard` · `weeder hook` · `weeder rules` (`bite` joins when it lands) |
 | Commands | `weeder check --format sarif` · `weeder guard install --protect main` |
 
 ## Positioning

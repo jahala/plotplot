@@ -1,4 +1,4 @@
-# weeder — voice delta
+# weeder: voice delta
 
 Inherits the plotplot umbrella voice (calm · precise · literate · a little wit). One signature
 line and a terminology table, merged with the umbrella at read time.

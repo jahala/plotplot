@@ -1,8 +1,8 @@
-# Voice & Tone — plotplot
+# Voice & Tone: plotplot
 
 ## Brand Voice
 
-plotplot speaks **calm**, **precise**, **literate** — with a little **wit**.
+plotplot speaks **calm**, **precise**, **literate**, with a little **wit**.
 
 ## Personality Traits
 
@@ -79,7 +79,7 @@ Family-wide canonical terms live here; each product may add its own table in `pr
 The shortest clear phrase that explains state, relationship, or action. Calm, exact, source-aware.
 
 ### Marketing / landing pages
-More rhythm and imagery, a little wit. The language may reach for gardens, soil, growth, and blooms — but every claim stays concrete and grounded in product value.
+More rhythm and imagery, a little wit. The language may reach for gardens, soil, growth, and blooms, but every claim stays concrete and grounded in product value.
 
 ### Error messages
 State what happened, why it matters, and what to do next. Never joke about failure, and never hide uncertainty behind charm.
