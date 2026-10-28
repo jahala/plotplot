@@ -1,8 +1,8 @@
 # mycelium, product identity
 
 A product layer over the plotplot umbrella. Deltas only; everything absent inherits the umbrella.
-Draft of 2026-10-27, for the owner's review: the messaging tool takes this name when pollen's name
-passes to the marketing bed (`docs/plans/mycelium-rename.md`).
+The messaging tool took this name on 2026-10-28, when pollen's name passed to the marketing bed
+(`docs/plans/mycelium-rename.md`).
 
 | Field | Value |
 |---|---|

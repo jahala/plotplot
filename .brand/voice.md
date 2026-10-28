@@ -1,8 +1,8 @@
-# Voice & Tone — plotplot
+# Voice & Tone: plotplot
 
 ## Brand Voice
 
-plotplot speaks **calm**, **precise**, **literate** — with a little **wit**.
+plotplot speaks **calm**, **precise**, **literate**, with a little **wit**.
 
 ## Personality Traits
 
@@ -57,7 +57,7 @@ Family-wide canonical terms live here; each product may add its own table in `pr
 ## Capitalization & Microcopy
 
 - **Sentence case everywhere:** headings, buttons, nav items, labels, table headers. Title Case Is Off-Brand. (Uppercase kicker labels are a CSS `text-transform`, not authored case.)
-- **Product names are lowercase, always:** plotplot, tilth, tend, petals, pleach, umbel, copeca, pollen, weeder.
+- **Product names are lowercase, always:** plotplot and every bed, such as mull, glean, cultivate, graft, petals, tend, pleach, umbel, tilth, mycelium, weeder, hedge, gate and well.
 - **Buttons are verb-first** and three words or fewer: "Install tilth", "Browse the garden", "View source".
 - **Errors** state what happened, why it matters, and the next action, in that order. No jokes, no "Oops".
 - **No exclamation marks** in interface copy. Numerals for numbers. Playfulness comes from wit and imagery, not punctuation.
@@ -79,7 +79,7 @@ Family-wide canonical terms live here; each product may add its own table in `pr
 The shortest clear phrase that explains state, relationship, or action. Calm, exact, source-aware.
 
 ### Marketing / landing pages
-More rhythm and imagery, a little wit. The language may reach for gardens, soil, growth, and blooms — but every claim stays concrete and grounded in product value.
+More rhythm and imagery, a little wit. The language may reach for gardens, soil, growth, and blooms, but every claim stays concrete and grounded in product value.
 
 ### Error messages
 State what happened, why it matters, and what to do next. Never joke about failure, and never hide uncertainty behind charm.

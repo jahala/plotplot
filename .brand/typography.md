@@ -1,4 +1,4 @@
-# Typography — plotplot
+# Typography: plotplot
 
 ## Font Families
 
@@ -51,8 +51,8 @@ The spacing scale lives in `layout.md`, with the containers, breakpoints, and de
 ## Font Sources
 
 - Protest Riot: Google Fonts, a bold display face with a hand-cut edge, in one weight. Sturdy and friendly from the hero down to a plot name: the reason plotplot reads as a garden, not a dashboard. Chosen by the owner on 2026-10-27, replacing Fraunces.
-- Hanken Grotesk: Google Fonts — a warm, friendly, rounded-humanist sans. Legible and precise at body sizes, with a little more personality than a neutral grotesk.
-- JetBrains Mono: Google Fonts — compact, legible, familiar in developer workflows. The builder/terminal voice — used for kickers, labels, commands, and code.
+- Hanken Grotesk: Google Fonts. A warm, friendly, rounded-humanist sans. Legible and precise at body sizes, with a little more personality than a neutral grotesk.
+- JetBrains Mono: Google Fonts. Compact, legible, familiar in developer workflows. The builder/terminal voice, used for kickers, labels, commands, and code.
 
 ## Google Fonts Import
 

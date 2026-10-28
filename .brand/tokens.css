@@ -1,8 +1,8 @@
-/* plotplot design tokens — generated from .brand/*.md (canonical). Regenerate via /petals update.
+/* plotplot design tokens, generated from .brand/*.md (canonical). Regenerate via /petals update.
    Import this file and reference the variables; never hard-code brand values. */
 
 :root {
-  /* color — shared family palette */
+  /* color: shared family palette */
   --pp-primary:      #357E2C;
   --pp-primary-deep: #2C6B2A;
   --pp-leaf:         #4A9E3F;
@@ -18,14 +18,14 @@
   --pp-surface:      #F5EEDD;
   --pp-border:       #E2D8C0;
 
-  /* color — semantic */
+  /* color: semantic */
   --pp-healthy: #46913C;
   --pp-caution: #B0741C;
   --pp-error:   #BC4126;
   --pp-info:    #3F7186;
   --pp-muted:   #9A8C72;
 
-  /* color — blooms, one family per row of the garden, light to dark in order of use */
+  /* color: blooms, one family per row of the garden, light to dark in order of use */
   /* find: sky */
   --pp-mull: #76D4FF;
   --pp-glean: #0096B3;
@@ -58,11 +58,11 @@
   /* copeca left the garden on 2026-10-26; its public page keeps juniper */
   --pp-copeca: #1F8A7B;
 
-  /* color — the bloom as a word on paper (4.5:1) */
+  /* color: the bloom as a word on paper (4.5:1) */
   --pp-pollen-ink: #A844BC;
   --pp-weeder-word: #8F675B;
 
-  /* color — soil-night terminal */
+  /* color: soil-night terminal */
   --pp-term-bg:      #1C1610;
   --pp-term-surface: #262019;
   --pp-term-border:  #403628;
@@ -75,7 +75,7 @@
   --pp-font-body:    'Hanken Grotesk', system-ui, sans-serif;
   --pp-font-code:    'JetBrains Mono', monospace;
 
-  /* space — 4px grid */
+  /* space: 4px grid */
   --pp-space-4xs: 4px;
   --pp-space-3xs: 8px;
   --pp-space-2xs: 12px;
@@ -105,7 +105,7 @@
   --pp-stroke-emphasis: 1.5px;
   --pp-stroke-rule:     2px;
 
-  /* shadow — ink-tinted */
+  /* shadow: ink-tinted */
   --pp-shadow-rest:  0 1px 0 #E2D8C0, 0 12px 40px -16px rgba(58, 39, 24, 0.35);
   --pp-shadow-lift:  0 2px 4px rgba(58, 39, 24, 0.05), 0 14px 32px rgba(58, 39, 24, 0.08);
   --pp-shadow-float: 0 2px 6px rgba(58, 39, 24, 0.07), 0 18px 44px rgba(58, 39, 24, 0.12);

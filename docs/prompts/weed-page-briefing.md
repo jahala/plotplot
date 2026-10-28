@@ -21,7 +21,7 @@ from the Google Fonts CDN, tokens inlined. Read these before writing a line:
 2. **pleach's product page**, `/Users/jahala/conductor/repos/pleach/index.html`, about 50 KB:
    the structure a bed page follows, sections hero · why · loop · gates · proof · fit ·
    start, and how a product accent is used with conviction as the single product voice.
-3. **The garden footer spec**, `.brand/components.md` in the umbrella, section "Footer — the
+3. **The garden footer spec**, `.brand/components.md` in the umbrella, section "Footer: the
    garden footer", with a reference implementation you copy verbatim, changing only the
    identity column, the `.is-current` pill and the repo links. A product page adds the
    **plotplot band** above the columns; the garden row must list every bed with its bloom dot.

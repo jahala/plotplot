@@ -1,32 +1,32 @@
-# Brand Colors — plotplot
+# Brand Colors: plotplot
 
 The palette is a living garden on warm, sunlit paper: deep-brown ink, vibrant
-growth green, deep forest, and sunlight gold — with a smattering of blooms.
+growth green, deep forest, and sunlight gold, with a smattering of blooms.
 Vibrant, but always legible. Every text pair below is measured; sunlight, leaf,
-petal, and muted are display/decorative colors — never body text on paper.
+petal, and muted are display/decorative colors, never body text on paper.
 
 ## Primary Palette
 
 | Role | Hex | RGB | Usage |
 |------|-----|-----|-------|
-| Primary — growth green | #357E2C | rgb(53,126,44) | Primary actions, links, buttons, selected states. Vibrant growth green, legible as text on paper (4.6:1). |
-| Primary (deep) | #2C6B2A | rgb(44,107,42) | Hover / pressed — one step deeper into the leaf. |
+| Primary, growth green | #357E2C | rgb(53,126,44) | Primary actions, links, buttons, selected states. Vibrant growth green, legible as text on paper (4.6:1). |
+| Primary (deep) | #2C6B2A | rgb(44,107,42) | Hover / pressed: one step deeper into the leaf. |
 | Forest green | #214A2C | rgb(33,74,44) | Depth: dark sections, secondary buttons, footer. Cream reads on it (9.3:1). |
-| Sunlight | #E89227 | rgb(232,146,39) | The warm accent — CTA fills (ink text), highlights, underlines. Display/fill only; never body text on paper (2.3:1). |
+| Sunlight | #E89227 | rgb(232,146,39) | The warm accent: CTA fills (ink text), highlights, underlines. Display/fill only; never body text on paper (2.3:1). |
 | Marigold | #F4B63A | rgb(244,182,58) | The plotplot mark's bloom, and nothing else, so the mark stays apart from umbel's sunlight. Decorative; never text. |
-| Leaf (vibrant) | #4A9E3F | rgb(74,158,63) | Decorative only — marks and illustration fills. Never text (3.1:1). |
+| Leaf (vibrant) | #4A9E3F | rgb(74,158,63) | Decorative only: marks and illustration fills. Never text (3.1:1). |
 
 ## Paper & Ink
 
 | Role | Hex | RGB | Usage |
 |------|-----|-----|-------|
-| Ink — deep brown | #3A2718 | rgb(58,39,24) | Headings and body — warm deep brown (13:1 on paper). |
+| Ink, deep brown | #3A2718 | rgb(58,39,24) | Headings and body: warm deep brown (13:1 on paper). |
 | Text (soft) | #786148 | rgb(120,97,72) | Secondary prose, captions, annotations (5.4:1). |
-| Amber-ink | #A86518 | rgb(168,101,24) | Sunlight as a word — amber kickers and labels where text must read (4.3:1, labels). |
-| Paper | #FAF5E9 | rgb(250,245,233) | Page background — warm sunlit cream. |
+| Amber-ink | #A86518 | rgb(168,101,24) | Sunlight as a word: amber kickers and labels where text must read (4.3:1, labels). |
+| Paper | #FAF5E9 | rgb(250,245,233) | Page background: warm sunlit cream. |
 | Band | #F2EAD6 | rgb(242,234,214) | Alternating section band for vertical rhythm. |
 | Surface | #F5EEDD | rgb(245,238,221) | Cards, panels, grouped content. |
-| Artifact paper | #FCFAF2 | rgb(252,250,242) | Lighter long-read paper for document / polyglot surfaces (e.g. tend) — higher luminance for extended reading. |
+| Artifact paper | #FCFAF2 | rgb(252,250,242) | Lighter long-read paper for document / polyglot surfaces (e.g. tend): higher luminance for extended reading. |
 | Border | #E2D8C0 | rgb(226,216,192) | Dividers, card and input borders, hairline rules. |
 
 ## Semantic Roles
@@ -37,7 +37,7 @@ petal, and muted are display/decorative colors — never body text on paper.
 | Caution / in progress | #B0741C | Caution, incomplete setup, review-needed signals. |
 | Error / failed | #BC4126 | Destructive actions, validation errors, failed checks. |
 | Info / neutral | #3F7186 | Informational notices, source notes, system guidance. |
-| Muted / disabled | #9A8C72 | Placeholder, disabled, not-yet-defined. Decorative on paper (3.0:1) — readable secondary copy uses Text (soft). |
+| Muted / disabled | #9A8C72 | Placeholder, disabled, not-yet-defined. Decorative on paper (3.0:1). Readable secondary copy uses Text (soft). |
 
 ## Product Accents
 
@@ -83,7 +83,7 @@ must read as a word, use its ink: pollen-ink `#A844BC` and weeder-word `#8F675B`
 
 ## Contrast Pairings
 
-Color is only on-brand when it is legible. Classes: **reading** ≥ 4.5:1 (body, captions) · **labels & display** ≥ 3.0:1 (kickers, tags, type ≥ 24px) · **decorative** exempt (marks, washes, fills — never words). Measured WCAG 2.x; regenerate with `scripts/palette_contrast.py`.
+Color is only on-brand when it is legible. Classes: **reading** ≥ 4.5:1 (body, captions) · **labels & display** ≥ 3.0:1 (kickers, tags, type ≥ 24px) · **decorative** exempt (marks, washes, fills; never words). Measured WCAG 2.x; regenerate with `scripts/palette_contrast.py`.
 
 | Foreground on background | Ratio | Class |
 |---|---|---|
@@ -207,7 +207,7 @@ Color is only on-brand when it is legible. Classes: **reading** ≥ 4.5:1 (body,
 
 ## Data Visualization
 
-Charts draw from the family — never library defaults.
+Charts draw from the family, never library defaults.
 
 - Categorical, in order: Growth #357E2C · Sunlight #E89227 · Sky #4E88A6 · Poppy #D6502F · Plum #97539B · Forest #214A2C
 - Sequential ramp (leaf family): #214A2C → #357E2C → #84C56A
@@ -254,13 +254,13 @@ Dark mode is "soil at night," not a harsh developer theme. Embedded terminal pan
   /* shared family palette */
   --pp-primary:      #357E2C;  /* vibrant growth green */
   --pp-primary-deep: #2C6B2A;  /* hover / pressed */
-  --pp-leaf:         #4A9E3F;  /* decorative vibrant leaf — marks only */
-  --pp-forest:       #214A2C;  /* deep green — depth, sections */
-  --pp-accent:       #E89227;  /* sunlight — fills, highlights (ink text) */
+  --pp-leaf:         #4A9E3F;  /* decorative vibrant leaf: marks only */
+  --pp-forest:       #214A2C;  /* deep green: depth, sections */
+  --pp-accent:       #E89227;  /* sunlight: fills, highlights (ink text) */
   --pp-marigold:     #F4B63A;  /* the plotplot mark's bloom only */
-  --pp-amber-ink:    #A86518;  /* amber as a word — labels */
+  --pp-amber-ink:    #A86518;  /* amber as a word: labels */
 
-  --pp-text:      #3A2718;     /* deep-brown ink — headings + body */
+  --pp-text:      #3A2718;     /* deep-brown ink: headings + body */
   --pp-text-soft: #786148;
   --pp-bg:        #FAF5E9;     /* warm sunlit paper */
   --pp-bg-band:   #F2EAD6;
