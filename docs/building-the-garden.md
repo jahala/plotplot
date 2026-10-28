@@ -233,7 +233,7 @@ One paragraph each; the loop carries the checks.
   The same window gives the same bytes. Paid and keyed fetches go through well. Its records
   are the contracts' post, document, observation, subject and reaction.
 - **cultivate** owns the people layer: needs merged and counted by role (`contracts/needs.md`),
-  personas, jobs and outcomes. It reads raw items, never fetches, and marks nothing it was not
+  personas, and jobs and desired outcomes with the people behind each (`contracts/outcomes.md`). It reads raw items, never fetches, and marks nothing it was not
   told: bots come from the source or the owner's capture plan.
 - **glean** finds what is worth growing: it scores needs against the owner's compass as a
   profile of separate scores, each tested against its own outcome, with no weight the owner did

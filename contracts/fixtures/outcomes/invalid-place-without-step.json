@@ -1,0 +1,1002 @@
+{
+ "format": "cultivate-outcomes/1",
+ "product": "Agent Relay",
+ "run": "2026-10-27",
+ "model": "jev-1.13.0",
+ "list": "3deccf37f4a1",
+ "rule": "a need is on an outcome when the judge picks that outcome from the product's whole list, or none, at 0.5 or more; its step is its outcome's step",
+ "core_job": "Get software changes built, reviewed and shipped by a team whose coding agents and people work on the same codebase at the same time, without duplicated work, lost context or ignored rules.",
+ "steps": [
+  {
+   "step": "define",
+   "text": "Decide which work to hand to which agents and people, what rules the work must follow, and what done looks like.",
+   "outcomes": 0,
+   "needs": 0,
+   "people": 0,
+   "open_people": 0
+  },
+  {
+   "step": "locate",
+   "text": "Find the earlier sessions, decisions, tickets, messages and files that the agents and the team need to do the work.",
+   "outcomes": 0,
+   "needs": 0,
+   "people": 0,
+   "open_people": 0
+  },
+  {
+   "step": "prepare",
+   "text": "Set up the agents, the machines, the credentials, the access to other tools and the order of steps before the work starts.",
+   "outcomes": 2,
+   "needs": 2,
+   "people": 5,
+   "open_people": 0
+  },
+  {
+   "step": "confirm",
+   "text": "Check that the plan, the permissions and the starting state are right before letting agents run, and before anything is merged or changed for real.",
+   "outcomes": 1,
+   "needs": 1,
+   "people": 1,
+   "open_people": 1
+  },
+  {
+   "step": "execute",
+   "text": "Run the agents on their tasks, in parallel or in sequence, on one machine or several, until the changes are made.",
+   "outcomes": 2,
+   "needs": 2,
+   "people": 2,
+   "open_people": 1
+  },
+  {
+   "step": "monitor",
+   "text": "See what each agent is doing, whether it is stuck or idle, what failed and why, and whether tests and CI are passing.",
+   "outcomes": 6,
+   "needs": 12,
+   "people": 5,
+   "open_people": 1
+  },
+  {
+   "step": "modify",
+   "text": "Correct an agent that went the wrong way, retry a failed step with what went wrong, and change the plan or the rules mid-run.",
+   "outcomes": 1,
+   "needs": 1,
+   "people": 1,
+   "open_people": 0
+  },
+  {
+   "step": "conclude",
+   "text": "Finish the work, get the result reviewed and merged, and keep a record of what was done and why for the next person.",
+   "outcomes": 2,
+   "needs": 2,
+   "people": 2,
+   "open_people": 1
+  },
+  {
+   "step": "acquire",
+   "text": "Install and start the tooling on my own machine or in the cloud, on my operating system, without it breaking on the way in.",
+   "outcomes": 4,
+   "needs": 5,
+   "people": 5,
+   "open_people": 0
+  },
+  {
+   "step": "personalize",
+   "text": "Choose the models, the agent roles, the settings and the workflows that fit how my team works.",
+   "outcomes": 3,
+   "needs": 3,
+   "people": 3,
+   "open_people": 1
+  },
+  {
+   "step": "sustain",
+   "text": "Keep it fast, stable and safe to leave running: no hangs, no crashes, no stale data, no secrets exposed, no slowdown as history grows.",
+   "outcomes": 11,
+   "needs": 39,
+   "people": 6,
+   "open_people": 3
+  },
+  {
+   "step": "integrate",
+   "text": "Connect it to the tools my team already uses, such as GitHub, Linear, Notion and Slack, and to the agents we already run.",
+   "outcomes": 6,
+   "needs": 8,
+   "people": 5,
+   "open_people": 4
+  },
+  {
+   "step": "collaborate",
+   "text": "Let teammates and their agents talk to each other, share context and hand work over, instead of copying and pasting between chats.",
+   "outcomes": 0,
+   "needs": 0,
+   "people": 0,
+   "open_people": 0
+  },
+  {
+   "step": "learn",
+   "text": "Find out what it can do and how to use it, from the docs, examples and error messages, and how to get unstuck.",
+   "outcomes": 1,
+   "needs": 2,
+   "people": 2,
+   "open_people": 1
+  }
+ ],
+ "outcomes": [
+  {
+   "id": "sustain-4",
+   "step": "sustain",
+   "outcome": "Minimize the likelihood that access credentials are exposed to other users of the machine or rejected incorrectly when issued and used",
+   "needs": [
+    "need:0623f6cbedc42838",
+    "need:06d272cf9242b6ba",
+    "need:8d4df3e74bcb7932",
+    "need:940c40baa0251064",
+    "need:c2f13d40413de597"
+   ],
+   "people": 4,
+   "open_needs": 2,
+   "open_people": 2,
+   "cites": 2,
+   "cites_placed": 2
+  },
+  {
+   "id": "prepare-2",
+   "step": "prepare",
+   "outcome": "Minimize the effort needed to use one set of credentials across several machines in the same workspace",
+   "needs": [
+    "need:56753bd09d723624"
+   ],
+   "people": 3,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "acquire-1",
+   "step": "acquire",
+   "outcome": "Minimize the effort needed to get a working installation on a given operating system, processor architecture or shell setup",
+   "needs": [
+    "need:259fe27904c378d1",
+    "need:e5f9f4c3c84a0bec"
+   ],
+   "people": 2,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 4,
+   "cites_placed": 2
+  },
+  {
+   "id": "integrate-2",
+   "step": "integrate",
+   "outcome": "Minimize the effort needed to reorganize existing work items in a team's tracker from where the work is done",
+   "needs": [
+    "need:6086a054da8fb399",
+    "need:e9dabeb87c5b3e23"
+   ],
+   "people": 2,
+   "open_needs": 2,
+   "open_people": 2,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "integrate-5",
+   "step": "integrate",
+   "outcome": "Minimize the effort needed to use the fleet and attach features from the published SDK",
+   "needs": [
+    "need:3cda53ffb3d04fb2",
+    "need:cfc15c687d7c6f41"
+   ],
+   "people": 2,
+   "open_needs": 2,
+   "open_people": 2,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "learn-1",
+   "step": "learn",
+   "outcome": "Increase the likelihood that the published documentation matches how the supported versions actually behave",
+   "needs": [
+    "need:46e03e12b967f05c",
+    "need:aa11f10dfd2fda6d"
+   ],
+   "people": 2,
+   "open_needs": 1,
+   "open_people": 1,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "monitor-1",
+   "step": "monitor",
+   "outcome": "Minimize the time it takes to understand how long a step or background pass ran and why it ended, including its exit status and what blocked it",
+   "needs": [
+    "need:2c481b7fbb15249b",
+    "need:466f14f7ca5f32ee",
+    "need:5223d4782f71b025",
+    "need:96042917a3929c3e"
+   ],
+   "people": 2,
+   "open_needs": 1,
+   "open_people": 1,
+   "cites": 3,
+   "cites_placed": 2
+  },
+  {
+   "id": "monitor-3",
+   "step": "monitor",
+   "outcome": "Minimize the time it takes to see how much of my plan's monthly and rolling-window quota is used across providers",
+   "needs": [
+    "need:97a7312168f845b3",
+    "need:b808c85853caee88"
+   ],
+   "people": 2,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 2,
+   "cites_placed": 2
+  },
+  {
+   "id": "personalize-3",
+   "step": "personalize",
+   "outcome": "Minimize the effort needed to use the model provider my team already pays for",
+   "needs": [
+    "need:7f242cbadfbca92d",
+    "need:f4be9d65dd4deb4c"
+   ],
+   "people": 2,
+   "open_needs": 1,
+   "open_people": 1,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "prepare-1",
+   "step": "prepare",
+   "outcome": "Minimize the likelihood that agents cannot be started because a program they need is missing or cannot be found",
+   "needs": [
+    "need:6abee1df10d03aa5"
+   ],
+   "people": 2,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "sustain-3",
+   "step": "sustain",
+   "outcome": "Minimize the likelihood that routine operations damage stored data or disturb processes that are still running",
+   "needs": [
+    "need:31fa14ce69a6e726",
+    "need:5ed51d3bb2e52024",
+    "need:7be5e63eb4333e3d",
+    "need:ae4bd61ed1f2bf05",
+    "need:f3c8ad12dac2f008"
+   ],
+   "people": 2,
+   "open_needs": 1,
+   "open_people": 1,
+   "cites": 4,
+   "cites_placed": 4
+  },
+  {
+   "id": "acquire-2",
+   "step": "acquire",
+   "outcome": "Minimize the effort needed to install using the package manager I already use",
+   "needs": [
+    "need:bc14c8fe22a4ec41"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "acquire-3",
+   "step": "acquire",
+   "outcome": "Minimize the likelihood that an update reports success while the installed version stays the same, whichever way it was installed",
+   "needs": [
+    "need:914c139a7c76453f"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "acquire-4",
+   "step": "acquire",
+   "outcome": "Minimize the likelihood that an install fetches a version other than the newest one published",
+   "needs": [
+    "need:47b9694135ca1f0f"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "conclude-1",
+   "step": "conclude",
+   "outcome": "Minimize the likelihood that a release fails to publish or leaves versions out of step when the main branch changes during the build",
+   "needs": [
+    "need:5e483ef4af476017"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "conclude-2",
+   "step": "conclude",
+   "outcome": "Minimize the likelihood that a pull request being watched is lost, handled twice or marked complete early across restarts",
+   "needs": [
+    "need:2a359f4321365e9f"
+   ],
+   "people": 1,
+   "open_needs": 1,
+   "open_people": 1,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "confirm-1",
+   "step": "confirm",
+   "outcome": "Increase the likelihood that behaviour is checked against real recorded examples before a change is accepted as correct",
+   "needs": [
+    "need:37a3af897f125e50"
+   ],
+   "people": 1,
+   "open_needs": 1,
+   "open_people": 1,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "execute-1",
+   "step": "execute",
+   "outcome": "Minimize the effort needed to run agents on whichever machine in a shared workspace is best suited to the task",
+   "needs": [
+    "need:beb7fc71d195e1ab"
+   ],
+   "people": 1,
+   "open_needs": 1,
+   "open_people": 1,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "execute-2",
+   "step": "execute",
+   "outcome": "Minimize the number of extra steps needed to run an action right after a workflow step completes",
+   "needs": [
+    "need:bccbe2595dc7de17"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "integrate-1",
+   "step": "integrate",
+   "outcome": "Increase the likelihood that the record of a workflow run keeps the questions asked of people and the answers they gave",
+   "needs": [
+    "need:5936894cc8d406a0"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "integrate-3",
+   "step": "integrate",
+   "outcome": "Minimize the amount of unwanted output that embedded tooling writes to the program that calls it",
+   "needs": [
+    "need:b39dfc214a10c882"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "integrate-4",
+   "step": "integrate",
+   "outcome": "Minimize the likelihood that a client's built-in limits differ from the limits the server publishes",
+   "needs": [
+    "need:8e1b9c6adab1ee7a"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "integrate-6",
+   "step": "integrate",
+   "outcome": "Increase the likelihood that agents started on fleet machines can list and invoke the same actions as agents started elsewhere",
+   "needs": [
+    "need:e8af98a733df22f0"
+   ],
+   "people": 1,
+   "open_needs": 1,
+   "open_people": 1,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "modify-1",
+   "step": "modify",
+   "outcome": "Minimize the number of retry attempts that repeat a failure because the new attempt does not know what went wrong before",
+   "needs": [
+    "need:98a3c8806d7c1187"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "monitor-2",
+   "step": "monitor",
+   "outcome": "Increase the likelihood that newly failing tests are noticed with enough detail to find their cause",
+   "needs": [
+    "need:3d6220da1c7f093f",
+    "need:77de571a642f306c",
+    "need:998901dd3bde72a2"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 2,
+   "cites_placed": 2
+  },
+  {
+   "id": "monitor-4",
+   "step": "monitor",
+   "outcome": "Minimize the effort needed to get a session's total usage without knowing how each provider counts it",
+   "needs": [
+    "need:8a19cc85f0dde54f"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "monitor-5",
+   "step": "monitor",
+   "outcome": "Minimize the likelihood that a step is recorded as successful when its agent was force-released before finishing",
+   "needs": [
+    "need:56e7b7b47bf95473"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "monitor-6",
+   "step": "monitor",
+   "outcome": "Increase the likelihood that the number of agents shown as active on a machine matches the agents actually running",
+   "needs": [
+    "need:d7954a2476e90ba6"
+   ],
+   "people": 1,
+   "open_needs": 1,
+   "open_people": 1,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "personalize-2",
+   "step": "personalize",
+   "outcome": "Increase the likelihood that each agent starts with the role and behaviour my team has defined for it",
+   "needs": [
+    "need:4fc8e71bb906b4dd"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "sustain-1",
+   "step": "sustain",
+   "outcome": "Minimize the time and resources each recurring background pass uses as the amount of history grows",
+   "needs": [
+    "need:0f49ad37135afada",
+    "need:1cae1151fcf79a35",
+    "need:20a88a7f244ba6a6",
+    "need:3ba011f47cb81ea2",
+    "need:5a935dc534798c0e",
+    "need:640338297a1e7590",
+    "need:7e257530375dee84",
+    "need:a869f1532634c556",
+    "need:a8d31ae8be8bd16e",
+    "need:b3575616bb11d880",
+    "need:b4cf362d0c7bbfa3",
+    "need:bc164a0a1ad9599c",
+    "need:e65e2938e24097a5"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 6,
+   "cites_placed": 6
+  },
+  {
+   "id": "sustain-10",
+   "step": "sustain",
+   "outcome": "Minimize the likelihood that a stopped agent's leftover registration stops the same agent from being restarted and receiving messages",
+   "needs": [
+    "need:21df02f1fef5e03f"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "sustain-11",
+   "step": "sustain",
+   "outcome": "Minimize the likelihood that a self-hosted workspace is limited by a plan or quota meant for the hosted service",
+   "needs": [
+    "need:c570e51c4efab258"
+   ],
+   "people": 1,
+   "open_needs": 1,
+   "open_people": 1,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "sustain-2",
+   "step": "sustain",
+   "outcome": "Minimize the time it takes to read, list or export a large history without repeating work already done",
+   "needs": [
+    "need:5604ed5391d320f9",
+    "need:7b3147f51e90be61",
+    "need:b8e20f3e50db0e9b"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 6,
+   "cites_placed": 3
+  },
+  {
+   "id": "sustain-5",
+   "step": "sustain",
+   "outcome": "Increase the likelihood that health checks and automated tests report the true state of the system rather than false alarms",
+   "needs": [
+    "need:5d8640994222d804",
+    "need:5f47c8fbc7ad8625",
+    "need:893aa3e7ef3f0930"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 3,
+   "cites_placed": 2
+  },
+  {
+   "id": "sustain-6",
+   "step": "sustain",
+   "outcome": "Minimize the delay between a session being written and its capture when several background tasks contend for the same history",
+   "needs": [
+    "need:1c2c1bd406c36906",
+    "need:32d6c4e9be4cfec1"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "sustain-7",
+   "step": "sustain",
+   "outcome": "Minimize the time it takes to stop a running background watch cleanly when I ask it to",
+   "needs": [
+    "need:501eff3481527dbb"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "sustain-8",
+   "step": "sustain",
+   "outcome": "Minimize the amount of unrelated history that background capture reads for a given job",
+   "needs": [
+    "need:14a9325ea862a73e"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "sustain-9",
+   "step": "sustain",
+   "outcome": "Minimize the likelihood that a repeated read of unchanged history is reported as new events",
+   "needs": [
+    "need:06ddda371c5a91e3",
+    "need:37228eca7c5abf3e",
+    "need:54e6f2a2655e36d4",
+    "need:607776b47059efd6"
+   ],
+   "people": 1,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 1
+  },
+  {
+   "id": "personalize-1",
+   "step": "personalize",
+   "outcome": "Minimize the time it takes to move an existing history to a newer version without losing the ability to keep working",
+   "needs": [],
+   "people": 0,
+   "open_needs": 0,
+   "open_people": 0,
+   "cites": 1,
+   "cites_placed": 0
+  }
+ ],
+ "needs": {
+  "need:008e05d93b22f191": null,
+  "need:0623f6cbedc42838": {
+   "outcome": "sustain-4"
+  },
+  "need:06d272cf9242b6ba": {
+   "outcome": "sustain-4",
+   "step": "sustain"
+  },
+  "need:06ddda371c5a91e3": {
+   "outcome": "sustain-9",
+   "step": "sustain"
+  },
+  "need:0f49ad37135afada": {
+   "outcome": "sustain-1",
+   "step": "sustain"
+  },
+  "need:14a9325ea862a73e": {
+   "outcome": "sustain-8",
+   "step": "sustain"
+  },
+  "need:1873ca919f20a18d": null,
+  "need:1c2c1bd406c36906": {
+   "outcome": "sustain-6",
+   "step": "sustain"
+  },
+  "need:1cae1151fcf79a35": {
+   "outcome": "sustain-1",
+   "step": "sustain"
+  },
+  "need:20a88a7f244ba6a6": {
+   "outcome": "sustain-1",
+   "step": "sustain"
+  },
+  "need:21df02f1fef5e03f": {
+   "outcome": "sustain-10",
+   "step": "sustain"
+  },
+  "need:259fe27904c378d1": {
+   "outcome": "acquire-1",
+   "step": "acquire"
+  },
+  "need:2a359f4321365e9f": {
+   "outcome": "conclude-2",
+   "step": "conclude"
+  },
+  "need:2c481b7fbb15249b": {
+   "outcome": "monitor-1",
+   "step": "monitor"
+  },
+  "need:2cbb5d8ea3079b80": null,
+  "need:31fa14ce69a6e726": {
+   "outcome": "sustain-3",
+   "step": "sustain"
+  },
+  "need:32d6c4e9be4cfec1": {
+   "outcome": "sustain-6",
+   "step": "sustain"
+  },
+  "need:37228eca7c5abf3e": {
+   "outcome": "sustain-9",
+   "step": "sustain"
+  },
+  "need:37a3af897f125e50": {
+   "outcome": "confirm-1",
+   "step": "confirm"
+  },
+  "need:3ba011f47cb81ea2": {
+   "outcome": "sustain-1",
+   "step": "sustain"
+  },
+  "need:3cda53ffb3d04fb2": {
+   "outcome": "integrate-5",
+   "step": "integrate"
+  },
+  "need:3d6220da1c7f093f": {
+   "outcome": "monitor-2",
+   "step": "monitor"
+  },
+  "need:466f14f7ca5f32ee": {
+   "outcome": "monitor-1",
+   "step": "monitor"
+  },
+  "need:46e03e12b967f05c": {
+   "outcome": "learn-1",
+   "step": "learn"
+  },
+  "need:47b9694135ca1f0f": {
+   "outcome": "acquire-4",
+   "step": "acquire"
+  },
+  "need:4fc8e71bb906b4dd": {
+   "outcome": "personalize-2",
+   "step": "personalize"
+  },
+  "need:501eff3481527dbb": {
+   "outcome": "sustain-7",
+   "step": "sustain"
+  },
+  "need:5218a7e54859fea7": null,
+  "need:5223d4782f71b025": {
+   "outcome": "monitor-1",
+   "step": "monitor"
+  },
+  "need:54e6f2a2655e36d4": {
+   "outcome": "sustain-9",
+   "step": "sustain"
+  },
+  "need:5604ed5391d320f9": {
+   "outcome": "sustain-2",
+   "step": "sustain"
+  },
+  "need:56753bd09d723624": {
+   "outcome": "prepare-2",
+   "step": "prepare"
+  },
+  "need:56e7b7b47bf95473": {
+   "outcome": "monitor-5",
+   "step": "monitor"
+  },
+  "need:5936894cc8d406a0": {
+   "outcome": "integrate-1",
+   "step": "integrate"
+  },
+  "need:5a935dc534798c0e": {
+   "outcome": "sustain-1",
+   "step": "sustain"
+  },
+  "need:5d8640994222d804": {
+   "outcome": "sustain-5",
+   "step": "sustain"
+  },
+  "need:5e483ef4af476017": {
+   "outcome": "conclude-1",
+   "step": "conclude"
+  },
+  "need:5ed51d3bb2e52024": {
+   "outcome": "sustain-3",
+   "step": "sustain"
+  },
+  "need:5f47c8fbc7ad8625": {
+   "outcome": "sustain-5",
+   "step": "sustain"
+  },
+  "need:607776b47059efd6": {
+   "outcome": "sustain-9",
+   "step": "sustain"
+  },
+  "need:6086a054da8fb399": {
+   "outcome": "integrate-2",
+   "step": "integrate"
+  },
+  "need:640338297a1e7590": {
+   "outcome": "sustain-1",
+   "step": "sustain"
+  },
+  "need:6abee1df10d03aa5": {
+   "outcome": "prepare-1",
+   "step": "prepare"
+  },
+  "need:77de571a642f306c": {
+   "outcome": "monitor-2",
+   "step": "monitor"
+  },
+  "need:7b3147f51e90be61": {
+   "outcome": "sustain-2",
+   "step": "sustain"
+  },
+  "need:7be5e63eb4333e3d": {
+   "outcome": "sustain-3",
+   "step": "sustain"
+  },
+  "need:7e257530375dee84": {
+   "outcome": "sustain-1",
+   "step": "sustain"
+  },
+  "need:7f242cbadfbca92d": {
+   "outcome": "personalize-3",
+   "step": "personalize"
+  },
+  "need:893aa3e7ef3f0930": {
+   "outcome": "sustain-5",
+   "step": "sustain"
+  },
+  "need:8a19cc85f0dde54f": {
+   "outcome": "monitor-4",
+   "step": "monitor"
+  },
+  "need:8d4df3e74bcb7932": {
+   "outcome": "sustain-4",
+   "step": "sustain"
+  },
+  "need:8e1b9c6adab1ee7a": {
+   "outcome": "integrate-4",
+   "step": "integrate"
+  },
+  "need:914c139a7c76453f": {
+   "outcome": "acquire-3",
+   "step": "acquire"
+  },
+  "need:940c40baa0251064": {
+   "outcome": "sustain-4",
+   "step": "sustain"
+  },
+  "need:96042917a3929c3e": {
+   "outcome": "monitor-1",
+   "step": "monitor"
+  },
+  "need:97a7312168f845b3": {
+   "outcome": "monitor-3",
+   "step": "monitor"
+  },
+  "need:98a3c8806d7c1187": {
+   "outcome": "modify-1",
+   "step": "modify"
+  },
+  "need:998901dd3bde72a2": {
+   "outcome": "monitor-2",
+   "step": "monitor"
+  },
+  "need:a869f1532634c556": {
+   "outcome": "sustain-1",
+   "step": "sustain"
+  },
+  "need:a8d31ae8be8bd16e": {
+   "outcome": "sustain-1",
+   "step": "sustain"
+  },
+  "need:aa11f10dfd2fda6d": {
+   "outcome": "learn-1",
+   "step": "learn"
+  },
+  "need:ae4bd61ed1f2bf05": {
+   "outcome": "sustain-3",
+   "step": "sustain"
+  },
+  "need:b0ff5da140c0e10e": null,
+  "need:b3575616bb11d880": {
+   "outcome": "sustain-1",
+   "step": "sustain"
+  },
+  "need:b39dfc214a10c882": {
+   "outcome": "integrate-3",
+   "step": "integrate"
+  },
+  "need:b4cf362d0c7bbfa3": {
+   "outcome": "sustain-1",
+   "step": "sustain"
+  },
+  "need:b808c85853caee88": {
+   "outcome": "monitor-3",
+   "step": "monitor"
+  },
+  "need:b8e20f3e50db0e9b": {
+   "outcome": "sustain-2",
+   "step": "sustain"
+  },
+  "need:bc14c8fe22a4ec41": {
+   "outcome": "acquire-2",
+   "step": "acquire"
+  },
+  "need:bc164a0a1ad9599c": {
+   "outcome": "sustain-1",
+   "step": "sustain"
+  },
+  "need:bc2178df82937368": null,
+  "need:bccbe2595dc7de17": {
+   "outcome": "execute-2",
+   "step": "execute"
+  },
+  "need:be09cc2258940889": null,
+  "need:beb7fc71d195e1ab": {
+   "outcome": "execute-1",
+   "step": "execute"
+  },
+  "need:c2f13d40413de597": {
+   "outcome": "sustain-4",
+   "step": "sustain"
+  },
+  "need:c570e51c4efab258": {
+   "outcome": "sustain-11",
+   "step": "sustain"
+  },
+  "need:ce9096d236418efc": null,
+  "need:cfc15c687d7c6f41": {
+   "outcome": "integrate-5",
+   "step": "integrate"
+  },
+  "need:d69b50a20774834b": null,
+  "need:d7954a2476e90ba6": {
+   "outcome": "monitor-6",
+   "step": "monitor"
+  },
+  "need:dba56969b09512a8": null,
+  "need:e5f9f4c3c84a0bec": {
+   "outcome": "acquire-1",
+   "step": "acquire"
+  },
+  "need:e65e2938e24097a5": {
+   "outcome": "sustain-1",
+   "step": "sustain"
+  },
+  "need:e8af98a733df22f0": {
+   "outcome": "integrate-6",
+   "step": "integrate"
+  },
+  "need:e9dabeb87c5b3e23": {
+   "outcome": "integrate-2",
+   "step": "integrate"
+  },
+  "need:f3c8ad12dac2f008": {
+   "outcome": "sustain-3",
+   "step": "sustain"
+  },
+  "need:f4be9d65dd4deb4c": {
+   "outcome": "personalize-3",
+   "step": "personalize"
+  }
+ },
+ "coverage": {
+  "needs": 77,
+  "of_needs": 87,
+  "people": 24,
+  "of_people": 29
+ },
+ "round": {
+  "rule": "a saturation round opens when at least 20 of the 300 needs with the most people fit no outcome and no earlier round was given them, or when at least 20 needs new since the outcome list last grew fit no outcome and they are more than 40% of those new needs (the coverage bar is 60%); it hands the owner's agent up to 150 of them, the needs with the most people first, and none opens while one waits",
+  "since": null,
+  "new": 0,
+  "unserved": 0,
+  "top_unserved": 10,
+  "opened": false
+ }
+}
