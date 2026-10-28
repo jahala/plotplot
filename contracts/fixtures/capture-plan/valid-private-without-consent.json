@@ -1,0 +1,98 @@
+{
+  "plan": "1",
+  "project": "example-tool",
+  "portfolio": "owner",
+  "subjects": [
+    {
+      "name": "example-tool",
+      "identifiers": [
+        {
+          "scheme": "npm",
+          "value": "example-tool"
+        },
+        {
+          "scheme": "github",
+          "value": "example-org/example-tool"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "adapter": "github-issues",
+      "version": "1",
+      "config": {
+        "repository": "example-org/example-tool"
+      },
+      "from": "2025-01-01",
+      "why": "Users of the tool asking for what it lacks.",
+      "private": false,
+      "bots": [
+        "release-helper",
+        "ci-reporter"
+      ]
+    },
+    {
+      "adapter": "local-files",
+      "version": "1",
+      "config": {
+        "paths": [
+          "notes/calls"
+        ]
+      },
+      "from": "2026-01-01",
+      "why": "The owner's call notes with customers.",
+      "private": true,
+      "lifetime_days": 365
+    },
+    {
+      "adapter": "discourse-forum",
+      "version": "1",
+      "config": {
+        "site": "forum.example.org"
+      },
+      "from": "2025-01-01",
+      "why": "Members of a hobby community describing what their tools lack.",
+      "private": false,
+      "terms": {
+        "url": "https://forum.example.org/tos",
+        "read_on": "2026-10-26",
+        "licence": "Posts are licensed CC BY-NC-SA 3.0.",
+        "attribution": {
+          "required": true,
+          "how": "Name the forum and link the post."
+        },
+        "commercial_use": "forbidden",
+        "rate_limit": {
+          "requests": 1,
+          "per_seconds": 2,
+          "stated_by": "adapter"
+        },
+        "restrictions": [],
+        "deletion": {
+          "required": false
+        }
+      },
+      "ruling": {
+        "use": "allowed",
+        "by": "the owner",
+        "on": "2026-10-26",
+        "says": "The garden reads this forum for research into which needs are real, not for commercial use."
+      }
+    },
+    {
+      "adapter": "web-search",
+      "version": "0",
+      "config": {
+        "queries": [
+          "invoice export breaks after a thousand rows"
+        ],
+        "count": 20
+      },
+      "from": "2026-01-01",
+      "why": "Finds the forums and trackers where people describe the need, for expanding adapters to read.",
+      "private": false,
+      "budget": "search"
+    }
+  ]
+}

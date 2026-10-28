@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotplot.ai/contracts/rulings.schema.json",
+  "title": "The owner's rulings",
+  "description": "The owner's standing rulings on the use of sources, one file per owner, from which every tool that writes a capture plan copies each entry's ruling (contracts/rulings.md).",
+  "type": "object",
+  "required": [
+    "rulings",
+    "owner",
+    "all",
+    "by_adapter"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "rulings": {
+      "const": "1",
+      "description": "the format version"
+    },
+    "owner": {
+      "type": "string",
+      "minLength": 1,
+      "description": "whose rulings these are"
+    },
+    "note": {
+      "type": "string",
+      "description": "what the file is for, in a sentence or two"
+    },
+    "all": {
+      "$ref": "capture-plan.schema.json#/$defs/ruling",
+      "description": "the ruling for every adapter, present and future, unless by_adapter names it"
+    },
+    "by_adapter": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "additionalProperties": {
+        "$ref": "capture-plan.schema.json#/$defs/ruling"
+      },
+      "description": "rulings for single adapters by id, each overriding all for that adapter; empty when all covers every one"
+    }
+  }
+}

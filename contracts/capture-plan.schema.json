@@ -128,7 +128,7 @@
               "evidence"
             ],
             "additionalProperties": false,
-            "description": "who agreed that this private stream may be read, when, for what, and where that agreement is kept",
+            "description": "optional: who agreed that this private stream may be read, when, for what, and where that agreement is kept, for an owner who wants it recorded; mull requires none (the owner's ruling of 2026-10-27)",
             "properties": {
               "given_by": {
                 "type": "string",
@@ -311,36 +311,8 @@
             "description": "the site's own terms, as facts, in the shape of an adapter manifest's terms; required when the adapter's manifest sets terms_per_site"
           },
           "ruling": {
-            "type": "object",
-            "required": [
-              "use",
-              "by",
-              "on",
-              "says"
-            ],
-            "additionalProperties": false,
-            "description": "the owner's ruling on this use of this source. An entry whose source's terms carry restrictions, forbid commercial use, or come from an account whose terms forbid automation runs only when its ruling allows it; an entry whose ruling refuses never runs",
-            "properties": {
-              "use": {
-                "enum": [
-                  "allowed",
-                  "refused"
-                ]
-              },
-              "by": {
-                "type": "string",
-                "minLength": 1
-              },
-              "on": {
-                "type": "string",
-                "format": "date"
-              },
-              "says": {
-                "type": "string",
-                "minLength": 1,
-                "description": "the ruling, in the owner's words or a faithful sentence"
-              }
-            }
+            "$ref": "#/$defs/ruling",
+            "description": "the owner's ruling on this use of this source. An entry whose source's terms carry restrictions, forbid commercial use, or come from an account whose terms forbid automation runs only when its ruling allows it; an entry whose ruling refuses never runs"
           },
           "bots": {
             "type": "array",
@@ -368,7 +340,6 @@
             },
             "then": {
               "required": [
-                "consent",
                 "lifetime_days"
               ]
             }
@@ -412,6 +383,39 @@
             }
           }
         ]
+      }
+    }
+  },
+  "$defs": {
+    "ruling": {
+      "type": "object",
+      "required": [
+        "use",
+        "by",
+        "on",
+        "says"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "use": {
+          "enum": [
+            "allowed",
+            "refused"
+          ]
+        },
+        "by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "on": {
+          "type": "string",
+          "format": "date"
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the ruling, in the owner's words or a faithful sentence"
+        }
       }
     }
   }
