@@ -1,0 +1,202 @@
+{
+  "format": "cultivate-outcomes/1",
+  "product": "Example product",
+  "run": "2026-10-27",
+  "model": "jev-1.13.0",
+  "list": "3deccf37f4a1",
+  "rule": "a need is on an outcome when the judge picks that outcome from the product's whole list, or none, at 0.5 or more; its step is its outcome's step",
+  "core_job": "Get software changes built, reviewed and shipped by a team whose coding agents and people work on the same codebase at the same time, without duplicated work, lost context or ignored rules.",
+  "steps": [
+    {
+      "step": "define",
+      "text": "Decide which work to hand to which agents and people, what rules the work must follow, and what done looks like.",
+      "outcomes": 0,
+      "needs": 0,
+      "people": 0,
+      "open_people": 0
+    },
+    {
+      "step": "locate",
+      "text": "Find the earlier sessions, decisions, tickets, messages and files that the agents and the team need to do the work.",
+      "outcomes": 0,
+      "needs": 0,
+      "people": 0,
+      "open_people": 0
+    },
+    {
+      "step": "prepare",
+      "text": "Set up the agents, the machines, the credentials, the access to other tools and the order of steps before the work starts.",
+      "outcomes": 2,
+      "needs": 2,
+      "people": 5,
+      "open_people": 0
+    },
+    {
+      "step": "confirm",
+      "text": "Check that the plan, the permissions and the starting state are right before letting agents run, and before anything is merged or changed for real.",
+      "outcomes": 1,
+      "needs": 1,
+      "people": 1,
+      "open_people": 1
+    },
+    {
+      "step": "execute",
+      "text": "Run the agents on their tasks, in parallel or in sequence, on one machine or several, until the changes are made.",
+      "outcomes": 2,
+      "needs": 2,
+      "people": 2,
+      "open_people": 1
+    },
+    {
+      "step": "monitor",
+      "text": "See what each agent is doing, whether it is stuck or idle, what failed and why, and whether tests and CI are passing.",
+      "outcomes": 6,
+      "needs": 12,
+      "people": 5,
+      "open_people": 1
+    },
+    {
+      "step": "modify",
+      "text": "Correct an agent that went the wrong way, retry a failed step with what went wrong, and change the plan or the rules mid-run.",
+      "outcomes": 1,
+      "needs": 1,
+      "people": 1,
+      "open_people": 0
+    },
+    {
+      "step": "conclude",
+      "text": "Finish the work, get the result reviewed and merged, and keep a record of what was done and why for the next person.",
+      "outcomes": 2,
+      "needs": 2,
+      "people": 2,
+      "open_people": 1
+    },
+    {
+      "step": "acquire",
+      "text": "Install and start the tooling on my own machine or in the cloud, on my operating system, without it breaking on the way in.",
+      "outcomes": 4,
+      "needs": 5,
+      "people": 5,
+      "open_people": 0
+    },
+    {
+      "step": "personalize",
+      "text": "Choose the models, the agent roles, the settings and the workflows that fit how my team works.",
+      "outcomes": 3,
+      "needs": 3,
+      "people": 3,
+      "open_people": 1
+    },
+    {
+      "step": "sustain",
+      "text": "Keep it fast, stable and safe to leave running: no hangs, no crashes, no stale data, no secrets exposed, no slowdown as history grows.",
+      "outcomes": 11,
+      "needs": 39,
+      "people": 6,
+      "open_people": 3
+    },
+    {
+      "step": "integrate",
+      "text": "Connect it to the tools my team already uses, such as GitHub, Linear, Notion and Slack, and to the agents we already run.",
+      "outcomes": 6,
+      "needs": 8,
+      "people": 5,
+      "open_people": 4
+    },
+    {
+      "step": "collaborate",
+      "text": "Let teammates and their agents talk to each other, share context and hand work over, instead of copying and pasting between chats.",
+      "outcomes": 0,
+      "needs": 0,
+      "people": 0,
+      "open_people": 0
+    },
+    {
+      "step": "learn",
+      "text": "Find out what it can do and how to use it, from the docs, examples and error messages, and how to get unstuck.",
+      "outcomes": 1,
+      "needs": 2,
+      "people": 2,
+      "open_people": 1
+    }
+  ],
+  "outcomes": [
+    {
+      "id": "sustain-4",
+      "step": "sustain",
+      "outcome": "Minimize the likelihood that access credentials are exposed to other users of the machine or rejected incorrectly when issued and used",
+      "needs": [
+        "need:0623f6cbedc42838",
+        "need:06d272cf9242b6ba"
+      ],
+      "people": 4,
+      "open_needs": 2,
+      "open_people": 2,
+      "cites": 2,
+      "cites_placed": 2
+    },
+    {
+      "id": "prepare-2",
+      "step": "prepare",
+      "outcome": "Minimize the effort needed to use one set of credentials across several machines in the same workspace",
+      "needs": [
+        "need:56753bd09d723624"
+      ],
+      "people": 3,
+      "open_needs": 0,
+      "open_people": 0,
+      "cites": 1,
+      "cites_placed": 1
+    },
+    {
+      "id": "acquire-1",
+      "step": "acquire",
+      "outcome": "Minimize the effort needed to get a working installation on a given operating system, processor architecture or shell setup",
+      "needs": [
+        "need:259fe27904c378d1",
+        "need:e5f9f4c3c84a0bec"
+      ],
+      "people": 2,
+      "open_needs": 0,
+      "open_people": 0,
+      "cites": 4,
+      "cites_placed": 2
+    }
+  ],
+  "needs": {
+    "need:0623f6cbedc42838": {
+      "outcome": "sustain-4"
+    },
+    "need:06d272cf9242b6ba": {
+      "outcome": "sustain-4",
+      "step": "sustain"
+    },
+    "need:56753bd09d723624": {
+      "outcome": "prepare-2",
+      "step": "prepare"
+    },
+    "need:259fe27904c378d1": {
+      "outcome": "acquire-1",
+      "step": "acquire"
+    },
+    "need:e5f9f4c3c84a0bec": {
+      "outcome": "acquire-1",
+      "step": "acquire"
+    },
+    "need:008e05d93b22f191": null
+  },
+  "coverage": {
+    "needs": 77,
+    "of_needs": 87,
+    "people": 24,
+    "of_people": 29
+  },
+  "round": {
+    "rule": "a saturation round opens when at least 20 of the 300 needs with the most people fit no outcome and no earlier round was given them, or when at least 20 needs new since the outcome list last grew fit no outcome and they are more than 40% of those new needs (the coverage bar is 60%); it hands the owner's agent up to 150 of them, the needs with the most people first, and none opens while one waits",
+    "since": null,
+    "new": 0,
+    "unserved": 0,
+    "top_unserved": 10,
+    "opened": false
+  }
+}

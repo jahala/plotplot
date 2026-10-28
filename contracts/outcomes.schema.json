@@ -1,0 +1,294 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://plotplot.ai/contracts/outcomes.schema.json",
+ "title": "outcomes",
+ "description": "A product's job map, its desired outcomes, each need's place on them and the distinct people behind each outcome and step, as cultivate writes it per run beside the needs document. See contracts/outcomes.md.",
+ "type": "object",
+ "required": [
+  "format",
+  "product",
+  "run",
+  "model",
+  "rule",
+  "list",
+  "core_job",
+  "steps",
+  "outcomes",
+  "needs",
+  "coverage",
+  "round"
+ ],
+ "additionalProperties": false,
+ "properties": {
+  "format": {
+   "const": "cultivate-outcomes/1"
+  },
+  "product": {
+   "type": "string",
+   "minLength": 1
+  },
+  "run": {
+   "type": "string",
+   "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+  },
+  "model": {
+   "type": "string",
+   "minLength": 1
+  },
+  "rule": {
+   "type": "string",
+   "minLength": 1
+  },
+  "list": {
+   "type": "string",
+   "pattern": "^[0-9a-f]{12}$"
+  },
+  "core_job": {
+   "type": "string",
+   "minLength": 1
+  },
+  "steps": {
+   "type": "array",
+   "minItems": 14,
+   "items": {
+    "type": "object",
+    "required": [
+     "step",
+     "text",
+     "outcomes",
+     "needs",
+     "people",
+     "open_people"
+    ],
+    "additionalProperties": false,
+    "properties": {
+     "step": {
+      "enum": [
+       "define",
+       "locate",
+       "prepare",
+       "confirm",
+       "execute",
+       "monitor",
+       "modify",
+       "conclude",
+       "acquire",
+       "personalize",
+       "sustain",
+       "integrate",
+       "collaborate",
+       "learn"
+      ]
+     },
+     "text": {
+      "type": "string",
+      "minLength": 1
+     },
+     "outcomes": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "needs": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "people": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "open_people": {
+      "type": "integer",
+      "minimum": 0
+     }
+    }
+   }
+  },
+  "outcomes": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "required": [
+     "id",
+     "step",
+     "outcome",
+     "needs",
+     "people",
+     "open_needs",
+     "open_people",
+     "cites",
+     "cites_placed"
+    ],
+    "additionalProperties": false,
+    "properties": {
+     "id": {
+      "type": "string",
+      "pattern": "^(define|locate|prepare|confirm|execute|monitor|modify|conclude|acquire|personalize|sustain|integrate|collaborate|learn)-[0-9]+$"
+     },
+     "step": {
+      "enum": [
+       "define",
+       "locate",
+       "prepare",
+       "confirm",
+       "execute",
+       "monitor",
+       "modify",
+       "conclude",
+       "acquire",
+       "personalize",
+       "sustain",
+       "integrate",
+       "collaborate",
+       "learn"
+      ]
+     },
+     "outcome": {
+      "type": "string",
+      "minLength": 1
+     },
+     "needs": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "pattern": "^need:[0-9a-f]{16}$"
+      },
+      "uniqueItems": true
+     },
+     "people": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "open_needs": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "open_people": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "cites": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "cites_placed": {
+      "type": "integer",
+      "minimum": 0
+     }
+    }
+   }
+  },
+  "needs": {
+   "type": "object",
+   "propertyNames": {
+    "type": "string",
+    "pattern": "^need:[0-9a-f]{16}$"
+   },
+   "additionalProperties": {
+    "oneOf": [
+     {
+      "type": "null"
+     },
+     {
+      "type": "object",
+      "required": [
+       "outcome",
+       "step"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "outcome": {
+        "type": "string",
+        "pattern": "^(define|locate|prepare|confirm|execute|monitor|modify|conclude|acquire|personalize|sustain|integrate|collaborate|learn)-[0-9]+$"
+       },
+       "step": {
+        "enum": [
+         "define",
+         "locate",
+         "prepare",
+         "confirm",
+         "execute",
+         "monitor",
+         "modify",
+         "conclude",
+         "acquire",
+         "personalize",
+         "sustain",
+         "integrate",
+         "collaborate",
+         "learn"
+        ]
+       }
+      }
+     }
+    ]
+   }
+  },
+  "coverage": {
+   "type": "object",
+   "required": [
+    "needs",
+    "of_needs",
+    "people",
+    "of_people"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "needs": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "of_needs": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "people": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "of_people": {
+     "type": "integer",
+     "minimum": 0
+    }
+   }
+  },
+  "round": {
+   "type": "object",
+   "required": [
+    "rule",
+    "since",
+    "new",
+    "unserved",
+    "top_unserved",
+    "opened"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "rule": {
+     "type": "string",
+     "minLength": 1
+    },
+    "since": {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    "new": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "unserved": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "top_unserved": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "opened": {
+     "type": "boolean"
+    }
+   }
+  }
+ }
+}
