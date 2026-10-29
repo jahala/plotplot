@@ -145,10 +145,6 @@
         "intent_to_leave": {
           "type": "string",
           "minLength": 1
-        },
-        "about": {
-          "type": "string",
-          "minLength": 1
         }
       }
     },
@@ -227,13 +223,6 @@
             "problem",
             "remove"
           ]
-        },
-        "about": {
-          "enum": [
-            "product",
-            "project"
-          ],
-          "description": "Whether the need is about the product itself or about the project around it (its website, blog or feeds, documentation site, repository files, release notes page, community channels). Judged; absent when not asked."
         },
         "features": {
           "type": "array",
