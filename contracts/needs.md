@@ -16,12 +16,12 @@ needs.
 
 | Field | Required | Meaning |
 |---|---|---|
-| `format` | yes | `cultivate-needs/1`; a change of meaning is a new version, never an edit. Version 1 gained the state `unknown` on 2026-10-26, agreed with the umbrella before any reader depended on the three states alone |
+| `format` | yes | `cultivate-needs/1`; a change of meaning is a new version, never an edit. Version 1 gained the state `unknown` on 2026-10-26 and the optional `about` on 2026-10-29, agreed with the umbrella before any reader depended on the three states alone |
 | `product` | yes | the product the needs are about, by name |
 | `run` | yes | `at` (the run's date), `previous` (the run it is compared with, or null), and `window` (`from`, `to`), the period the window counts cover |
 | `scope` | yes | the channels read, each with how many raw items it gave, so a reader knows what was searched |
 | `features` | no | where the feature tags came from (graft's pages, or a product's areas file) |
-| `rules` | yes | every threshold the numbers used: the merge cut, the quiet period, the movement rule, the warning rule |
+| `rules` | yes | every threshold the numbers used: the merge cut, the quiet period, the movement rule, the warning rule, and `about` (the cut that marks a need as about the project) when the run asked |
 | `judge` | yes | the judge model and question set behind every judged field |
 | `needs` | yes | the needs, each as below |
 
@@ -33,6 +33,7 @@ Each need holds:
 | `lead` | yes | the raw item id of the post the need was first made from |
 | `label` | yes | a short name; `label_source` says whether it is the lead's own title or a drafted label checked against the members |
 | `kind` | yes | `ask` (wants something new), `problem` (something fails) or `remove` (wants something off or optional) |
+| `about` | no | `product` when the need is about the product itself, `project` when it is about the project around it: its website, blog or feeds, documentation site, repository files (README, contribution rules, issue templates), release notes page or community channels. Judged per need, `project` at 0.5 or more; absent when the run did not ask. A reader judging the product can leave `project` needs out |
 | `features` | yes | the features it is about, from the feature list; `confident` is true only at a judge confidence of 0.9 or more |
 | `members` | yes | the raw items merged into it: `item` (raw item id), `url` when public, `said_at`, `lead`, and `same`, the judge's probability that it asks the same as the lead (null for the lead) |
 | `first_seen`, `last_seen` | yes | the earliest and latest moment any person engaged with the need, in what was read |
