@@ -218,12 +218,14 @@ Copy this verbatim and change only the three marked spots: the **identity** colu
 .gf-soft     { margin: var(--pp-space-2xs) 0 0; color: var(--pp-term-text); opacity: .78;
                font-size: .95rem; max-width: 42ch; }
 .gf-garden   { display: flex; flex-wrap: wrap; gap: var(--pp-space-3xs); }
-.gf-garden a { display: inline-flex; align-items: center; gap: var(--pp-space-4xs);
+.gf-garden a,
+.gf-garden > span { display: inline-flex; align-items: center; gap: var(--pp-space-4xs);
                font-family: var(--pp-font-code); font-size: .82rem; color: var(--pp-term-text);
                padding: var(--pp-space-4xs) var(--pp-space-2xs);
                border-radius: var(--pp-radius-full); background: rgba(243,236,217,.07); }
 .gf-garden a:hover      { background: rgba(243,236,217,.14); }
-.gf-garden a.is-current { background: color-mix(in srgb, var(--bloom) 18%, transparent); } /* its own bloom; or rgba(<accent>,.18) */
+.gf-garden a.is-current,
+.gf-garden > span.is-current { background: color-mix(in srgb, var(--bloom) 18%, transparent); } /* its own bloom; or rgba(<accent>,.18) */
 .gf-dot      { width: 8px; height: 8px; border-radius: var(--pp-radius-full);
                background: var(--bloom); flex: none; }
 .gf-bottom   { margin-top: var(--pp-space-xl); padding-top: var(--pp-space-sm);
