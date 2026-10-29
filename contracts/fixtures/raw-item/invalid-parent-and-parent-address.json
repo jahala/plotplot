@@ -1,0 +1,18 @@
+{
+  "source": "web-search",
+  "channel": "forum.example.org",
+  "url": "https://forum.example.org/t/1234#post-7",
+  "text": "Same here. I gave up on the spreadsheet after a month.",
+  "said_at": "2026-09-30",
+  "fetched_at": "2026-10-26T15:02:11Z",
+  "author": "39f9fdfec4affa9d596a7f95a3b37717e28c6e1dc55a4d244c2c286a72316586",
+  "private": false,
+  "signals": {
+    "rerank_score": 1.8,
+    "authority": 3
+  },
+  "raw_ref": "raw/web-search/2026-10-26/c75de8c1b7c3ae5252091267a736a9bf57001d80e82668b3cb3cd09e2f6a43cb.json",
+  "id": "481197a24213b64170050a6dfa31f26f02401a924b7e7944fdcfb2a0063e3555",
+  "parent_address": "https://forum.example.org/t/1234#post-5",
+  "parent": "e47125968b3b71049fbc4802d1e40a71ea1359decfabacf70b34588037d4ff0c"
+}

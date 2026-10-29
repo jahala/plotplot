@@ -76,6 +76,7 @@ declare_negative "$fixdir/invalid-empty-status-state.json" "a status whose state
 declare_negative "$fixdir/invalid-empty-author-role.json" "an author role that is an empty string"
 declare_negative "$fixdir/invalid-author-kind-not-person-or-bot.json" "an author kind that is neither person nor bot"
 declare_negative "$fixdir/invalid-licence-not-a-string.json" "a licence that is not a string"
+declare_negative "$fixdir/invalid-parent-and-parent-address.json" "a parent id beside a parent address"
 
 # every negative fixture in the folder is declared above, so none sits there untested
 for file in "$fixdir"/invalid-*.json; do
