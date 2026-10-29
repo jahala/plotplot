@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Validates every contracts/fixtures/needs/valid-*.json against contracts/needs.schema.json, and
 # confirms each negative fixture (a new format version, a malformed need id, a need with no
-# people, a role with no basis, a negative count, a member that is not a raw item id) is
+# people, a role with no basis, a negative count, a member that is not a raw item id, an about that is neither product nor project) is
 # rejected. Run from the repository root, no arguments. Prints one line per assertion. Exits 0
 # if every assertion passed, 1 otherwise.
 set -u
@@ -64,6 +64,7 @@ declare_negative "$fixdir/invalid-no-people.json" "a need with no people by role
 declare_negative "$fixdir/invalid-role-without-basis.json" "a role that does not say how it was counted"
 declare_negative "$fixdir/invalid-negative-count.json" "a negative count of people"
 declare_negative "$fixdir/invalid-member-not-raw-item.json" "a member that is not a raw item id"
+declare_negative "$fixdir/invalid-about-value.json" "an about that is neither product nor project"
 
 # every negative fixture in the folder is declared above, so none sits there untested
 for file in "$fixdir"/invalid-*.json; do
