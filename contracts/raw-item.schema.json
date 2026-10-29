@@ -117,6 +117,11 @@
       "pattern": "^[0-9a-f]{64}$",
       "description": "the id of the item this one replies to"
     },
+    "parent_address": {
+      "type": "string",
+      "minLength": 1,
+      "description": "the address of the item this one replies to, when no item is held there; never beside parent"
+    },
     "reactions": {
       "type": "array",
       "description": "votes and reactions as counted at a moment, so counts can be compared over time",
@@ -235,6 +240,14 @@
               "locator"
             ]
           }
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "parent",
+          "parent_address"
         ]
       }
     }

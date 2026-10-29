@@ -28,6 +28,7 @@ A file of JSON Lines, one item per line. Each item holds:
 | `author_role` | no | the source's own statement of the author's relation to the channel as fetched, verbatim: GitHub's author association (MEMBER, OWNER, COLLABORATOR, CONTRIBUTOR, NONE) |
 | `author_kind` | no | `kind` (`person` or `bot`) and `from` (`source` when the source says so, such as GitHub's Bot accounts; `plan` when the owner's capture plan lists the handle under `bots`) |
 | `parent` | no | the id of the item it replies to |
+| `parent_address` | no | the address of the item it replies to, when no item is held at that address, such as a comment its author deleted whose replies stay; never beside `parent` |
 | `reactions` | no | counts of votes and reactions, each with the moment it was counted |
 | `labels` | no | the source's own labels on the item as fetched, verbatim: issue labels, flair, tags |
 | `status` | no | the source's own statement of the thread's state as fetched, verbatim: `state` (such as open or closed), `reason` (such as completed or not_planned) and `changed_at`, when it last changed |
