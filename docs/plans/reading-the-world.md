@@ -226,6 +226,22 @@ needs only, and says so.
 The raw item contract (already landed), the protocol, the adapter manifest, the reaction, document,
 observation and subject contracts, and the role counts in cultivate's needs format. A wrong choice in any of these is paid for by every adapter and every reader.
 
+## Clean signal: how sources and filters are chosen
+
+Learned on uckJob, 2026-10-30. A feeling about a source or a filter is not evidence. Noise in needs breaks every tool downstream, so it is cut in two places, in order, and measured, never patched per test.
+
+1. **A codebook per job.** One page: what counts as a need a person has in this job, what is left out (hiring, selling, a listing with nothing asked, talk without a need, advice to someone else, off-topic), and ten real examples of each.
+2. **A gold set per job.** About 150 posts, sampled across every candidate source and kind. Two readers label them blind with the codebook, a third settles the splits, and the kappa is reported. It is used only at 0.6 or more. It is kept beside the build, and every later change to a query or a filter is re-measured on it.
+3. **Sources by measured yield.** A source and kind is used only when at least 60 percent of a 20-post sample are needs, under the codebook. Comments and answers are never needs by default: on uckJob, Hacker News comments were 2 percent and Workplace answers 0 percent, against 86 percent for Workplace questions.
+4. **mull cuts what a rule can tell without reading.**
+   - Fetch where people ask: stories, questions, issues, reviews.
+   - Comment threads are opt-in.
+   - Select by the site's own tags, never a title prefix.
+   - Exclude threads by title, recorded with the reason so no count is silently smaller.
+   - The rules are scored by precision and recall against the gold set.
+5. **cultivate cuts what takes reading,** with its filter scored by precision and recall against the same gold set. A filter question ships only when it improves both.
+6. **Every build carries a noise check** (`contracts/needs.md`, `noise`): a fresh blind reader grades 30 sampled needs against the codebook. A build under its bar is unfit, and no tool uses it.
+
 ## Open issues
 
 - **The data folder's home**, when tools run on more than one machine. Next step: one folder per

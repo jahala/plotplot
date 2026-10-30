@@ -16,13 +16,14 @@ needs.
 
 | Field | Required | Meaning |
 |---|---|---|
-| `format` | yes | `cultivate-needs/1`; a change of meaning is a new version, never an edit. Version 1 gained the state `unknown` on 2026-10-26, agreed with the umbrella before any reader depended on the three states alone |
+| `format` | yes | `cultivate-needs/1`; a change of meaning is a new version, never an edit. Version 1 gained the state `unknown` on 2026-10-26, agreed with the umbrella before any reader depended on the three states alone, and the optional `noise` on 2026-10-30 |
 | `product` | yes | the product the needs are about, by name |
 | `run` | yes | `at` (the run's date), `previous` (the run it is compared with, or null), and `window` (`from`, `to`), the period the window counts cover |
 | `scope` | yes | the channels read, each with how many raw items it gave, so a reader knows what was searched |
 | `features` | no | where the feature tags came from (graft's pages, or a product's areas file) |
 | `rules` | yes | every threshold the numbers used: the merge cut, the quiet period, the movement rule, the warning rule |
 | `judge` | yes | the judge model and question set behind every judged field |
+| `noise` | no | the build's noise check: `codebook` (where the rules for a need live), `sample` and `seed` (the needs drawn at random and graded), `clean` (how many the grader called a need), `share`, `bar` (fixed before the check), `fit` (share at least bar), `grader` (a person, or a fresh agent reading blind) and `at` |
 | `needs` | yes | the needs, each as below |
 
 Each need holds:
@@ -84,6 +85,8 @@ status is `unknown`. Words are compared without regard to case, because sources 
 - **Positive claims only.** No field says a feature, a person or a need is missing.
 - **Every number is reproducible.** The rules, the judge model and the scope that produced a number
   are in the same document, and a need's members are listed, so a reader can recount.
+- **Use only a fit build.** A tool reads `noise` before it uses the needs, and uses them only when `fit` is
+  true. A document without `noise` has not been checked, and says nothing about how clean it is.
 - **Signals show their rule.** A judged signal appears only after its judgement passed a
   blind-graded bar, and names it.
 
