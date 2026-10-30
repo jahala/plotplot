@@ -166,6 +166,69 @@
         }
       }
     },
+    "noise": {
+      "type": "object",
+      "description": "The build's noise check: a blind grader read a random sample of the needs against a codebook. A reader uses the document only when fit is true; a document without noise has not been checked.",
+      "required": [
+        "codebook",
+        "sample",
+        "seed",
+        "clean",
+        "share",
+        "bar",
+        "fit",
+        "grader",
+        "at"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "codebook": {
+          "type": "string",
+          "minLength": 1,
+          "description": "where the codebook the grader applied lives: what counts as a need, and what is left out"
+        },
+        "sample": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "how many needs were graded, drawn at random"
+        },
+        "seed": {
+          "type": "integer",
+          "description": "the seed of the draw, so the sample can be drawn again"
+        },
+        "clean": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "how many of the sample the grader called a need by the codebook"
+        },
+        "share": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "clean divided by sample"
+        },
+        "bar": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "the share a build must reach to be fit, fixed before the check"
+        },
+        "fit": {
+          "type": "boolean",
+          "description": "share is at least bar"
+        },
+        "grader": {
+          "type": "string",
+          "minLength": 1,
+          "description": "who graded: a person, or a fresh agent reading blind"
+        },
+        "at": {
+          "type": "string",
+          "format": "date",
+          "description": "the day of the check"
+        }
+      }
+    },
     "needs": {
       "type": "array",
       "items": {

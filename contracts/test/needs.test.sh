@@ -64,6 +64,7 @@ declare_negative "$fixdir/invalid-no-people.json" "a need with no people by role
 declare_negative "$fixdir/invalid-role-without-basis.json" "a role that does not say how it was counted"
 declare_negative "$fixdir/invalid-negative-count.json" "a negative count of people"
 declare_negative "$fixdir/invalid-member-not-raw-item.json" "a member that is not a raw item id"
+declare_negative "$fixdir/invalid-noise-unknown-field.json" "a noise check with a field the contract does not name"
 
 # every negative fixture in the folder is declared above, so none sits there untested
 for file in "$fixdir"/invalid-*.json; do
