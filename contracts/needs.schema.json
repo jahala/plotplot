@@ -168,7 +168,7 @@
     },
     "noise": {
       "type": "object",
-      "description": "The build's noise check: a blind grader read a random sample of the needs against a codebook. A reader uses the document only when fit is true; a document without noise has not been checked.",
+      "description": "The build's noise check: a blind grader read needs drawn at random and the needs with the most people against a codebook. A reader uses the document only when fit is true; a document without noise has not been checked.",
       "required": [
         "codebook",
         "sample",
@@ -213,9 +213,36 @@
           "maximum": 1,
           "description": "the share a build must reach to be fit, fixed before the check"
         },
+        "top": {
+          "type": "object",
+          "description": "the needs with the most people, graded too, since tools read the top first",
+          "required": [
+            "sample",
+            "clean",
+            "bar"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "sample": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "how many of the top needs were graded"
+            },
+            "clean": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "how many of them the grader called a need"
+            },
+            "bar": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "how many must be clean for the build to be fit, fixed before the check"
+            }
+          }
+        },
         "fit": {
           "type": "boolean",
-          "description": "share is at least bar"
+          "description": "share is at least bar and, when top is given, top.clean is at least top.bar"
         },
         "grader": {
           "type": "string",
@@ -279,6 +306,26 @@
             "lead_title",
             "drafted"
           ]
+        },
+        "statement": {
+          "type": "object",
+          "description": "one plain sentence of what the person wants or struggles with, written by the owner's agent from the lead post's own text, and the judge's fit: its yes that the lead post says it. The label stays the lead's title, as provenance.",
+          "required": [
+            "text",
+            "fits"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1
+            },
+            "fits": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
         },
         "kind": {
           "enum": [

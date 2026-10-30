@@ -192,7 +192,11 @@
           1
         ]
       },
-      "signals": []
+      "signals": [],
+      "statement": {
+        "text": "I want to know whether to reapply to a job I was already rejected from.",
+        "fits": 0.91
+      }
     },
     {
       "id": "need:0ad2e12756c3f60a",
@@ -402,6 +406,11 @@
     "bar": 0.8,
     "fit": false,
     "grader": "a fresh agent reading blind",
-    "at": "2026-10-30"
+    "at": "2026-10-30",
+    "top": {
+      "sample": 10,
+      "clean": 9,
+      "bar": 9
+    }
   }
 }
