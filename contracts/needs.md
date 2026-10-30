@@ -16,14 +16,14 @@ needs.
 
 | Field | Required | Meaning |
 |---|---|---|
-| `format` | yes | `cultivate-needs/1`; a change of meaning is a new version, never an edit. Version 1 gained the state `unknown` on 2026-10-26, agreed with the umbrella before any reader depended on the three states alone, and the optional `noise` on 2026-10-30 |
+| `format` | yes | `cultivate-needs/1`; a change of meaning is a new version, never an edit. Version 1 gained the state `unknown` on 2026-10-26, agreed with the umbrella before any reader depended on the three states alone, and the optional `noise`, a need's optional `statement` and the noise check's `top` on 2026-10-30 |
 | `product` | yes | the product the needs are about, by name |
 | `run` | yes | `at` (the run's date), `previous` (the run it is compared with, or null), and `window` (`from`, `to`), the period the window counts cover |
 | `scope` | yes | the channels read, each with how many raw items it gave, so a reader knows what was searched |
 | `features` | no | where the feature tags came from (graft's pages, or a product's areas file) |
 | `rules` | yes | every threshold the numbers used: the merge cut, the quiet period, the movement rule, the warning rule |
 | `judge` | yes | the judge model and question set behind every judged field |
-| `noise` | no | the build's noise check: `codebook` (where the rules for a need live), `sample` and `seed` (the needs drawn at random and graded), `clean` (how many the grader called a need), `share`, `bar` (fixed before the check), `fit` (share at least bar), `grader` (a person, or a fresh agent reading blind) and `at` |
+| `noise` | no | the build's noise check: `codebook` (where the rules for a need live), `sample` and `seed` (the needs drawn at random and graded), `clean` (how many the grader called a need), `share`, `bar` (fixed before the check), `top` (`sample`, `clean` and `bar` for the needs with the most people, graded too because tools read the top first), `fit` (share at least bar, and the top's clean count at least its bar), `grader` (a person, or a fresh agent reading blind) and `at` |
 | `needs` | yes | the needs, each as below |
 
 Each need holds:
@@ -33,6 +33,7 @@ Each need holds:
 | `id` | yes | `need:` and 16 hex characters, from the lead item's id; the same across runs while the need keeps its lead (a need whose lead changes gets a new id) |
 | `lead` | yes | the raw item id of the post the need was first made from |
 | `label` | yes | a short name; `label_source` says whether it is the lead's own title or a drafted label checked against the members |
+| `statement` | no | `text`, one plain sentence of what the person wants or struggles with, written by the owner's agent from the lead post's own text in the job's or the product's terms, and `fits`, the judge's yes that the lead post says it; the label stays the title, as provenance |
 | `kind` | yes | `ask` (wants something new), `problem` (something fails) or `remove` (wants something off or optional) |
 | `features` | yes | the features it is about, from the feature list; `confident` is true only at a judge confidence of 0.9 or more |
 | `members` | yes | the raw items merged into it: `item` (raw item id), `url` when public, `said_at`, `lead`, and `same`, the judge's probability that it asks the same as the lead (null for the lead) |
