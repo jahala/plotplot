@@ -16,7 +16,7 @@ any repository and proves it is planted. This repository is itself planted with 
 | [weeder](https://github.com/jahala/weeder) | the judge of the diff: refuses deleted tests, stubs and secrets before they land, as SARIF | released |
 | [umbel](https://github.com/jahala/umbel) | fans out agent CLIs (Claude Code, Codex, Gemini, OpenCode) in tmux | released |
 | [copeca](https://github.com/jahala/copeca) | cost per correct answer: a neutral benchmark for CLI coding agents | released |
-| [pollen](https://github.com/jahala/pollen) | agent-to-agent messaging: mailboxes between agents, with a human at the gate | released |
+| [mycelium](https://github.com/jahala/mycelium) | agent-to-agent messaging: mailboxes between agents, with a human at the gate | released |
 | tend | loops and the verifier: intent with proof, checks only a verifier can close | not yet public |
 | petals | brand intelligence for agents: extract a brand, check a page against it | not yet public |
 | pleach | the conductor: gates agent work in isolated worktrees, ships only what passed | not yet public |

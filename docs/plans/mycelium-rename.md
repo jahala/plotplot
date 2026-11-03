@@ -97,4 +97,5 @@ Each step names how to undo it before it is taken.
 - **The old address.** When the marketing bed's repository is created as `jahala/pollen`,
   GitHub stops redirecting the old address to mycelium. Links in dated records then lead to the
   marketing bed. Accepted: the dated records name a date, and mycelium's README names its old
-  name.
+  name. The marketing bed's repository was created on 2026-11-03, as a private repository, so
+  those links now ask for a sign-in.

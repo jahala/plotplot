@@ -1,8 +1,12 @@
 # pollen, reaching the people a product is for
 
-2026-10-26. A draft, not a loop. Layer: marketing (`docs/decisions/2026-10-26-layers.md`). The
-name passes to this bed when the messaging tool becomes mycelium (`docs/plans/mycelium-rename.md`).
-Pollen leaves one flower and starts new growth in many others.
+2026-10-26. Layer: marketing (`docs/decisions/2026-10-26-layers.md`). Pollen leaves one flower and
+starts new growth in many others.
+
+Planted 2026-11-03 as the private repository `jahala/pollen`. Its `docs/plan.md` is the plan, and it
+wins over this page. The main changes since this draft: one standing policy per product replaces
+one yes per campaign, a verdict is read once at a locked count, a money cap rises only after a keep,
+and every claim is tested per kind of product.
 
 ## Who it is for, and their pain
 
@@ -26,8 +30,8 @@ features (graft does) or set its voice (petals does).
 3. **Check.** Every claim points at a shipped feature in graft's map, so nothing promises what
    does not exist. Copy passes petals' brand check. Spend is reserved in well. hedge refuses every
    post and send that lacks a yes the compass requires.
-4. **Run.** On the owner's own surfaces and within a reserved budget, a move runs alone after one
-   yes per campaign. Where a platform forbids automated posting, and for any outreach to people
+4. **Run.** On the owner's own surfaces and within a reserved budget, a move runs alone under the
+   product's standing policy. Where a platform forbids automated posting, and for any outreach to people
    who did not ask, pollen drafts and queues the move for a person.
 5. **Measure.** Each move's tracked link and analytics say whether it brought people in. A move
    below its kill line stops.
