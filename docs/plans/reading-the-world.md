@@ -252,6 +252,18 @@ Learned on uckJob, 2026-11-04. The owner marked graft's 20-line sheet. graft's t
 
 The owner's marks and notes on the sheet are the first worked examples for rule 3. Each rule gets its stability check and blind truth before it ships.
 
+**The layers, in the owner's words (2026-11-04).**
+
+- **Capability:** a large outcome many people share, such as "job seekers see openings they are likely to be interviewed and hired for, given their experience". graft ranks capabilities.
+- **Feature:** a concrete thing the product has or would have, such as a Browse view of a person's matches. One capability is served by one or more features.
+- **Need:** one person's situation in their own words, the record cultivate builds. Many needs, across sources, make the evidence for a capability.
+
+Each need carries two labels, added one at a time, each with its stability check and blind truth:
+1. **How much it matters:** a headache (something hurts or blocks them now), a convenience (it works, but slowly or tediously) or a wish (something not possible yet). graft weighs headaches above conveniences above wishes, beside the people and independent sources behind them.
+2. **How it would be met (rule 3):** new ability, option, guidance or outside. Guidance can be met by an answer page from pollen or by a product feature such as coaching. graft decides which, and the owner chooses.
+
+Pages the owner reads use these words. The needs format keeps `need` as its record, so no field is renamed.
+
 ## Open issues
 
 - **The data folder's home**, when tools run on more than one machine. Next step: one folder per
