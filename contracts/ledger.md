@@ -15,6 +15,7 @@ cultivate; changed since by well.
 | `budgets.json` | one budget each, set by the owner: `{"judge": {"period": "month", "cap_usd": 5, "day_usd": 0.5, "week_usd": 1.875}}`; `day_usd` and `week_usd` are optional |
 | `<budget>/<yyyy-mm>.jsonl` | the ledger: one event per line, append-only, never edited |
 | `<budget>/<yyyy-mm>.jsonl.lock` | an empty directory that exists only while one writer appends |
+| `<budget>/state.json` | running totals well keeps so a decision reads only what is new: the bytes folded of each month file, the spend per month and per minute, the open reservations; derived from the ledger alone, rebuilt when missing, and safe for any other client to ignore or delete |
 
 All three live in one folder, by default `~/.local/share/well/`. A program that finds no budget for
 what it is about to spend refuses to spend.
