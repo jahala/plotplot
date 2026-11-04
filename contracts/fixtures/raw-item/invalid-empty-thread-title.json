@@ -1,0 +1,21 @@
+{
+  "source": "github-issues",
+  "channel": "github.com/example/app/issues",
+  "url": "https://github.com/example/app/issues/77#issuecomment-1",
+  "thread_title": "",
+  "text": "Same here. I lose about an hour a week to this.",
+  "said_at": "2026-10-02T08:14:00Z",
+  "fetched_at": "2026-10-26T15:06:40Z",
+  "author": "40b8efdcb7857dcea212eacffd24db21ba6116da14f0a96832c76ac643a156c1",
+  "parent": "ed64eb7b9ff7e2628e1db41e8db8708e94c930942c1ef490d4a83971974fc23b",
+  "reactions": [
+    {
+      "kind": "thumbs-up",
+      "count": 12,
+      "at": "2026-10-26T15:06:40Z"
+    }
+  ],
+  "private": false,
+  "raw_ref": "raw/github-issues/2026-10-26/64537eb8352ec264b1b29855d5fca2f11dc43e1ac0a9fc7321627e7d4d698a13.json",
+  "id": "1dd34584dacf2446a61a26e16db93ccf95ce5b24a29f29298e569440da0812f4"
+}
