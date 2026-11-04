@@ -32,7 +32,7 @@ The run is kept whole or not at all. Only a run whose last line is a valid `stat
 | `fetch` | adapter to mull | `id` (the adapter's name for the fetch, unique in the run) and `request`: `method` (`GET` or `POST`), `url` (`https://` or `file:`), `headers` (never credentials), `body` (base64) |
 | `response` | mull to adapter | `id`, `status`, `headers` (names in lowercase), `body` (base64), `received_at`. A `file:` request is answered with the file's bytes; for a folder, with a JSON array of `{"name", "folder"}` entries sorted by name, under the header `content-type: application/vnd.mull.folder+json`; for a path with nothing there, status 404 |
 | `refused` | mull to adapter | `id` and `reason`: `host-not-declared`, `access-not-ready`, `ceiling`, `unsettled-claim`, `not-recorded` (a replay with no kept response), `rate-limit-exhausted`, `unanswered` (the request failed before the source answered; a paid request stays claimed and is never resent) |
-| `record` | adapter to mull | `kind` (`post`, `document`, `observation`, `subject` or `reaction`), `from` (the fetch id), `fields` |
+| `record` | adapter to mull | `kind` (`post`, `document`, `observation`, `subject`, `reaction` or `change`), `from` (the fetch id), `fields` |
 | `gone` | adapter to mull | `from` (the fetch whose response said so) and `address` (the url or locator of an item the source says was deleted) |
 | `found` | adapter to mull | `from`, `address` (a place a discover adapter found), and optionally `title` and `signals` as the source gave them |
 | `state` | adapter to mull | `cursor`: any JSON value, read back on the next `start` |
@@ -49,7 +49,7 @@ An adapter writes what it read. mull writes what only mull can know, so no adapt
 - `private`: from the capture plan entry.
 - `author`: the adapter writes `handle`, the author's handle on the channel, or null; mull writes the salted hash.
 - `author_kind`: the adapter writes `author_kind` as `person` or `bot` when the source says what the account is; mull writes it with `from: source`, or as `bot` with `from: plan` when the capture plan entry lists the handle under `bots`, which wins.
-- `parent` and a reaction's `target`: the adapter writes `parent_address` or `target_address`, the post's address; mull writes the id of the post at that address, from the same run or the store. When no post is held at a post's `parent_address`, as when its parent's author deleted it and the source keeps the replies, mull keeps the address as `parent_address` and writes no `parent`; nothing is written in the missing post's place. A reaction whose target is not held is refused.
+- `parent` and a reaction's or change's `target`: the adapter writes `parent_address` or `target_address`, the post's address; mull writes the id of the post at that address, from the same run or the store. When no post is held at a post's `parent_address`, as when its parent's author deleted it and the source keeps the replies, mull keeps the address as `parent_address` and writes no `parent`; nothing is written in the missing post's place. A reaction or change whose target is not held is refused.
 - a document's `subjects` and an observation's `subject`: the adapter writes exact identifiers (`subject_identifiers`, `subject_identifier`); mull writes the subject ids.
 - `id`: computed by each kind's rule after the rest is complete.
 

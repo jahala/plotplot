@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotplot.ai/contracts/change.schema.json",
+  "title": "change",
+  "description": "One event that changed a post's state or labels, as the source reports it. See contracts/change.md.",
+  "type": "object",
+  "required": [
+    "id",
+    "source",
+    "channel",
+    "target",
+    "field",
+    "op",
+    "value",
+    "author",
+    "said_at",
+    "fetched_at",
+    "private",
+    "raw_ref"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "lowercase hex sha256 of the word change, source, target, field, op, value (the empty string when null) and said_at, each followed by a newline except the last"
+    },
+    "source": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "the adapter that fetched it"
+    },
+    "channel": {
+      "type": "string",
+      "minLength": 1,
+      "description": "the target post's channel"
+    },
+    "target": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "the id of the post that changed"
+    },
+    "field": {
+      "enum": [
+        "state",
+        "label"
+      ],
+      "description": "what changed"
+    },
+    "op": {
+      "type": "string",
+      "minLength": 1,
+      "description": "the event as the source names it, verbatim, such as closed, reopened, labeled or unlabeled"
+    },
+    "value": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "the label's name, or the reason the post was closed as the source gives it; null when the event carries none"
+    },
+    "author": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "the salted hash of who made the change, made as a post's author is; null when the source names no one"
+    },
+    "said_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "when the change was made"
+    },
+    "fetched_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "when the response it came from was received, read from the kept response"
+    },
+    "private": {
+      "type": "boolean",
+      "description": "true when it came from a private stream the owner consented to"
+    },
+    "raw_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "where the raw response it came from is kept, relative to the store"
+    }
+  }
+}

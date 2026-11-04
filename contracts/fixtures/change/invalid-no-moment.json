@@ -1,0 +1,14 @@
+{
+  "id": "4001cb542dbe2b3cee40d52c4d4d5564ad7fa003e71bb9c6fb73a2b4f86bc6db",
+  "source": "github-issue-changes",
+  "channel": "github.com/example-org/example-tool",
+  "target": "b73d69f359e59b80f10c9b3cab7e88c15d053805d2b19261b0c79546e4878ccf",
+  "field": "state",
+  "op": "closed",
+  "value": "COMPLETED",
+  "author": "b861384ad9b8257f0cc5132a98750eca060ce0c09204be4c7f003525b1bd1d1f",
+  "said_at": null,
+  "fetched_at": "2026-10-26T14:00:00Z",
+  "private": false,
+  "raw_ref": "responses/7a/7a2e91c0.json.gz"
+}

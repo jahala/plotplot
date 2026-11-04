@@ -281,7 +281,8 @@
           "document",
           "observation",
           "subject",
-          "reaction"
+          "reaction",
+          "change"
         ]
       },
       "description": "the record kinds the adapter writes; the runner refuses a record of any other kind"
@@ -672,6 +673,14 @@
           }
         },
         "reaction": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "change": {
           "type": "object",
           "minProperties": 1,
           "additionalProperties": {
