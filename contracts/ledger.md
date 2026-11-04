@@ -45,8 +45,11 @@ The vector's `across_months` cases hold this.
 Each budget also paces its spending inside the month, so a month's budget is never spent on its
 first day. The day limit, `day_usd`, holds over the 24 hours before the event's moment, and the
 week limit, `week_usd`, over the 7 days before it; a rolling window has no boundary that would let
-two days' spending through at once, and needs no time zone. Spent in a window is every `settle`
-written in it, so the week reaches into the month before. Every open reservation is held against
+two days' spending through at once, and needs no time zone. Windows count whole minutes: the day
+holds the settles written in the 1,440 minutes up to and including the event's minute, and the week
+those of the 10,080 minutes up to and including it, so a client keeps one sum per minute instead of
+every settle. Spent in a window is every `settle` written in it, so the week reaches into the month
+before. Every open reservation is held against
 every limit. A budget without `day_usd` gets the cap times 3/30, and without `week_usd` the cap
 times 1.5/4, each rounded down to the millionth: three times an even day's share, and one and a
 half times an even week's. A refused reserve names the first limit it does not fit, in the order
