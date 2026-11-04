@@ -66,6 +66,11 @@
       "minLength": 1,
       "description": "how the adapter fills a raw item's channel, in a sentence; absent for a discover adapter, which writes no items"
     },
+    "targets": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "the adapter whose posts this adapter's reactions and changes point at, when they are another adapter's; mull resolves each target_address among that adapter's posts, and among the adapter's own when this is left out"
+    },
     "identity_space": {
       "type": "string",
       "pattern": "^(channel|[a-z0-9-]+(\\.[a-z0-9-]+)+)$",
@@ -696,6 +701,25 @@
     }
   },
   "allOf": [
+    {
+      "if": {
+        "required": [
+          "targets"
+        ]
+      },
+      "then": {
+        "properties": {
+          "emits": {
+            "contains": {
+              "enum": [
+                "reaction",
+                "change"
+              ]
+            }
+          }
+        }
+      }
+    },
     {
       "if": {
         "properties": {
