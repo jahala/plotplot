@@ -16,12 +16,12 @@ needs.
 
 | Field | Required | Meaning |
 |---|---|---|
-| `format` | yes | `cultivate-needs/1`; a change of meaning is a new version, never an edit. Version 1 gained the state `unknown` on 2026-10-26, agreed with the umbrella before any reader depended on the three states alone, and the optional `noise`, a need's optional `statement` and the noise check's `top` on 2026-10-30, and a need's optional `sources` on 2026-11-04 |
+| `format` | yes | `cultivate-needs/1`; a change of meaning is a new version, never an edit. Version 1 gained the state `unknown` on 2026-10-26, agreed with the umbrella before any reader depended on the three states alone, and the optional `noise`, a need's optional `statement` and the noise check's `top` on 2026-10-30, and a need's optional `sources` and `resolution` on 2026-11-04 |
 | `product` | yes | the product the needs are about, by name |
 | `run` | yes | `at` (the run's date), `previous` (the run it is compared with, or null), and `window` (`from`, `to`), the period the window counts cover |
 | `scope` | yes | the channels read, each with how many raw items it gave, so a reader knows what was searched |
 | `features` | no | where the feature tags came from (graft's pages, or a product's areas file) |
-| `rules` | yes | every threshold the numbers used: the merge cut, the quiet period, the movement rule, the warning rule |
+| `rules` | yes | every threshold the numbers used: the merge cut, the quiet period, the movement rule, the warning rule, and `resolution`, the question and floor behind each need's `resolution`, when needs carry one |
 | `judge` | yes | the judge model and question set behind every judged field |
 | `noise` | no | the build's noise check: `codebook` (where the rules for a need live), `sample` and `seed` (the needs drawn at random and graded), `clean` (how many the grader called a need), `share`, `bar` (fixed before the check), `top` (`sample`, `clean` and `bar` for the needs with the most people, graded too because tools read the top first), `fit` (share at least bar, and the top's clean count at least its bar), `grader` (a person, or a fresh agent reading blind) and `at` |
 | `needs` | yes | the needs, each as below |
@@ -37,6 +37,7 @@ Each need holds:
 | `kind` | yes | `ask` (wants something new), `problem` (something fails) or `remove` (wants something off or optional) |
 | `features` | yes | the features it is about, from the feature list; `confident` is true only at a judge confidence of 0.9 or more |
 | `sources` | no | `count` and `names`: the independent sources the need's member posts come from, counted by code, so a reader can tell a need several sources back from one a single source shows; a person on two sources counts as two, since authors are hashed per site |
+| `resolution` | no | what kind of answer the person asks for, judged from the statement and the lead post, never from what the product can do: `label` is `change` (the product should do something new or different), `guidance` (how to do something, or what to do), `repair` (something should work and does not) or `outside` (no product in the job would do it), with the judge's `confidence`, at least 0.8. Under that floor, or when no label fits, `label` is null and `why` says which (`below confidence`, `no label fits`), never a guess. Whether a change is a new ability or an option on a feature is graft's to tell, against the features. The floor holds back most repairs, so a null label says nothing about the need's kind |
 | `members` | yes | the raw items merged into it: `item` (raw item id), `url` when public, `said_at`, `lead`, and `same`, the judge's probability that it asks the same as the lead (null for the lead) |
 | `first_seen`, `last_seen` | yes | the earliest and latest moment any person engaged with the need, in what was read |
 | `people` | yes | distinct people by role, below |
