@@ -78,6 +78,9 @@ declare_negative "$fixdir/invalid-author-kind-not-person-or-bot.json" "an author
 declare_negative "$fixdir/invalid-empty-thread-title.json" "a thread title that is an empty string"
 declare_negative "$fixdir/invalid-licence-not-a-string.json" "a licence that is not a string"
 declare_negative "$fixdir/invalid-parent-and-parent-address.json" "a parent id beside a parent address"
+declare_negative "$fixdir/invalid-title-beside-parent.json" "a title beside a parent id"
+declare_negative "$fixdir/invalid-title-beside-parent-address.json" "a title beside a parent address"
+declare_negative "$fixdir/invalid-title-beside-thread-title.json" "a title beside a thread title"
 
 # every negative fixture in the folder is declared above, so none sits there untested
 for file in "$fixdir"/invalid-*.json; do

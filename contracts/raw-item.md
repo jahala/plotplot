@@ -20,7 +20,7 @@ A file of JSON Lines, one item per line. Each item holds:
 | `channel` | yes | where the person said it |
 | `url` | when public | the public address |
 | `locator` | when private and no url | a file and line, or a message id |
-| `title` | no | the thread or page title. Only on an item that opens its thread are these its author's own words; on a reply it is the thread's title, written there until every reader reads `thread_title` |
+| `title` | no | the title its author gave the thread or page the item opens; never beside `parent`, `parent_address` or `thread_title`, since a reply's author did not write its thread's title |
 | `thread_title` | no | the title of the thread a reply sits in, such as the story above a comment; written only on an item that does not open its thread, so its author did not write it |
 | `text` | yes | what the person said, verbatim |
 | `said_at` | yes, may be null | when they said it |
