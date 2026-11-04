@@ -354,6 +354,29 @@
             }
           }
         },
+        "sources": {
+          "type": "object",
+          "description": "The independent sources the need's member posts come from, counted by code: how many back it (corroboration), and which.",
+          "required": [
+            "count",
+            "names"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "names": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
         "members": {
           "type": "array",
           "minItems": 1,
