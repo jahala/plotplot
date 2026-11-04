@@ -242,6 +242,16 @@ Learned on uckJob, 2026-10-30. A feeling about a source or a filter is not evide
 5. **cultivate cuts what takes reading,** with its filter scored by precision and recall against the same gold set. A filter question ships only when it improves both.
 6. **Every build carries a noise check** (`contracts/needs.md`, `noise`): a fresh blind reader grades 30 sampled needs against the codebook. A build under its bar is unfit, and no tool uses it.
 
+### From needs to capabilities
+
+Learned on uckJob, 2026-11-04. The owner marked graft's 20-line sheet. graft's ten scored no better than the random ten (2 marks each), and most lines were one person's story, answerable by written guidance or a setting. A clean need is not yet a capability. Three rules hold for every product:
+
+1. **Several sources per product.** A product's needs are read from at least three independent sources and kinds, each chosen by measured yield (rule 3 above). A single source shows only what its kind of people ask in its format: an advice site gives advice questions.
+2. **Corroboration before ranking.** Each need carries how many independent sources and separate people back it. graft puts a capability forward only when its needs come from at least two independent sources, or from a clearly high count of people in one. Anything below that is listed as weak evidence, never ranked.
+3. **How each need would be resolved.** cultivate labels each need with how it would be met: a new capability, a setting in something that exists, written guidance, or not the product's job. graft ranks capabilities, meaning groups of needs one capability would serve, counted by the people they serve. Guidance needs go to pollen as briefs for pages that answer them in the askers' own words, measured like any other move.
+
+The owner's marks and notes on the sheet are the first worked examples for rule 3. Each rule gets its stability check and blind truth before it ships.
+
 ## Open issues
 
 - **The data folder's home**, when tools run on more than one machine. Next step: one folder per
