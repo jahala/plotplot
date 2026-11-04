@@ -29,6 +29,7 @@ A value is written in its scheme's form before it is stored, so the same thing a
 | `no-orgnr` | a Norwegian organisation number from the Brønnøysund registers: nine digits, no spaces |
 | `gb-company` | a UK Companies House company number: eight characters, digits and capital letters, leading zeros kept |
 | `url` | an absolute `https://` address, as written by the source |
+| `mcp` | a server's name in the official MCP registry, as the registry writes it, such as `io.github.example/weather` |
 
 A new scheme is a change to this contract.
 
