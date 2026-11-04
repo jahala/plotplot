@@ -75,6 +75,7 @@ declare_negative "$fixdir/invalid-empty-label.json" "a label that is an empty st
 declare_negative "$fixdir/invalid-empty-status-state.json" "a status whose state is empty"
 declare_negative "$fixdir/invalid-empty-author-role.json" "an author role that is an empty string"
 declare_negative "$fixdir/invalid-author-kind-not-person-or-bot.json" "an author kind that is neither person nor bot"
+declare_negative "$fixdir/invalid-empty-thread-title.json" "a thread title that is an empty string"
 declare_negative "$fixdir/invalid-licence-not-a-string.json" "a licence that is not a string"
 declare_negative "$fixdir/invalid-parent-and-parent-address.json" "a parent id beside a parent address"
 

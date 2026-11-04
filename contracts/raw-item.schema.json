@@ -46,6 +46,11 @@
       "type": "string",
       "description": "the title of the thread or page the item belongs to, when it has one"
     },
+    "thread_title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "the title of the thread a reply sits in, written only on an item that does not open its thread; the reply's author did not write it"
+    },
     "text": {
       "type": "string",
       "minLength": 1,
