@@ -16,7 +16,7 @@ needs.
 
 | Field | Required | Meaning |
 |---|---|---|
-| `format` | yes | `cultivate-needs/1`; a change of meaning is a new version, never an edit. Version 1 gained the state `unknown` on 2026-10-26, agreed with the umbrella before any reader depended on the three states alone, and the optional `noise`, a need's optional `statement` and the noise check's `top` on 2026-10-30 |
+| `format` | yes | `cultivate-needs/1`; a change of meaning is a new version, never an edit. Version 1 gained the state `unknown` on 2026-10-26, agreed with the umbrella before any reader depended on the three states alone, and the optional `noise`, a need's optional `statement` and the noise check's `top` on 2026-10-30, and a need's optional `sources` on 2026-11-04 |
 | `product` | yes | the product the needs are about, by name |
 | `run` | yes | `at` (the run's date), `previous` (the run it is compared with, or null), and `window` (`from`, `to`), the period the window counts cover |
 | `scope` | yes | the channels read, each with how many raw items it gave, so a reader knows what was searched |
@@ -36,6 +36,7 @@ Each need holds:
 | `statement` | no | `text`, one plain sentence of what the person wants or struggles with, written by the owner's agent from the lead post's own text in the job's or the product's terms, and `fits`, the judge's yes that the lead post says it; the label stays the title, as provenance |
 | `kind` | yes | `ask` (wants something new), `problem` (something fails) or `remove` (wants something off or optional) |
 | `features` | yes | the features it is about, from the feature list; `confident` is true only at a judge confidence of 0.9 or more |
+| `sources` | no | `count` and `names`: the independent sources the need's member posts come from, counted by code, so a reader can tell a need several sources back from one a single source shows; a person on two sources counts as two, since authors are hashed per site |
 | `members` | yes | the raw items merged into it: `item` (raw item id), `url` when public, `said_at`, `lead`, and `same`, the judge's probability that it asks the same as the lead (null for the lead) |
 | `first_seen`, `last_seen` | yes | the earliest and latest moment any person engaged with the need, in what was read |
 | `people` | yes | distinct people by role, below |
