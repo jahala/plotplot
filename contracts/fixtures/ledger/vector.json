@@ -2,8 +2,8 @@
  "budget": "judge",
  "period": "2026-10",
  "cap_usd": 1.0,
- "day_usd": 1.0,
- "week_usd": 1.0,
+ "day_usd": 10.0,
+ "week_usd": 10.0,
  "request_key": {
   "note": "computed by jev-run.mjs's own requestHash; every client must reproduce it",
   "body": {
@@ -343,11 +343,13 @@
   ]
  },
  "across_months": {
-  "note": "A reservation stays open until it is settled or released, however old: never resending blind is the point. Each case writes its lines into their months' files, sets the budget's cap to cap_usd, then decides the event at its moment.",
+  "note": "A reservation stays open until it is settled or released, however old: never resending blind is the point. Each case writes its lines into their months' files, sets the budget's cap, day and week limits to cap_usd, day_usd and week_usd, then decides the event at its moment.",
   "cases": [
    {
     "because": "a reservation three months old that was never settled still blocks the same request",
     "cap_usd": 1.0,
+    "day_usd": 10.0,
+    "week_usd": 10.0,
     "lines": [
      {
       "at": "2026-07-10T09:00:00.000Z",
@@ -372,6 +374,8 @@
    {
     "because": "an open reservation of any age is held against the cap until it is settled or released",
     "cap_usd": 1.0,
+    "day_usd": 10.0,
+    "week_usd": 10.0,
     "lines": [
      {
       "at": "2026-07-10T09:00:00.000Z",
@@ -396,6 +400,8 @@
    {
     "because": "a person reconciled the old reservation with a release, so the request may be reserved again",
     "cap_usd": 1.0,
+    "day_usd": 10.0,
+    "week_usd": 10.0,
     "lines": [
      {
       "at": "2026-07-10T09:00:00.000Z",
@@ -430,6 +436,8 @@
    {
     "because": "an old reservation may still be settled when its charge is found",
     "cap_usd": 1.0,
+    "day_usd": 10.0,
+    "week_usd": 10.0,
     "lines": [
      {
       "at": "2026-07-10T09:00:00.000Z",
@@ -454,6 +462,8 @@
    {
     "because": "a reservation settled long ago does not block the same request",
     "cap_usd": 1.0,
+    "day_usd": 10.0,
+    "week_usd": 10.0,
     "lines": [
      {
       "at": "2026-06-10T09:00:00.000Z",
