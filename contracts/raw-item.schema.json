@@ -44,7 +44,7 @@
     },
     "title": {
       "type": "string",
-      "description": "the title of the thread or page the item belongs to, when it has one"
+      "description": "the title its author gave the thread or page the item opens; never on a reply, whose thread's title is thread_title"
     },
     "thread_title": {
       "type": "string",
@@ -254,6 +254,34 @@
           "parent",
           "parent_address"
         ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "title"
+        ]
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "parent"
+              ]
+            },
+            {
+              "required": [
+                "parent_address"
+              ]
+            },
+            {
+              "required": [
+                "thread_title"
+              ]
+            }
+          ]
+        }
       }
     }
   ]
