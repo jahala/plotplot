@@ -66,6 +66,8 @@ declare_negative "$fixdir/invalid-negative-count.json" "a negative count of peop
 declare_negative "$fixdir/invalid-member-not-raw-item.json" "a member that is not a raw item id"
 declare_negative "$fixdir/invalid-noise-unknown-field.json" "a noise check with a field the contract does not name"
 declare_negative "$fixdir/invalid-statement-unknown-field.json" "a need statement with a field the contract does not name"
+declare_negative "$fixdir/invalid-resolution-guess.json" "a need with no resolution label that still carries the judge's guess"
+declare_negative "$fixdir/invalid-resolution-below-floor.json" "a resolution label under the 0.8 confidence floor"
 
 # every negative fixture in the folder is declared above, so none sits there untested
 for file in "$fixdir"/invalid-*.json; do

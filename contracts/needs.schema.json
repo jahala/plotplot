@@ -145,6 +145,10 @@
         "intent_to_leave": {
           "type": "string",
           "minLength": 1
+        },
+        "resolution": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
@@ -376,6 +380,53 @@
               }
             }
           }
+        },
+        "resolution": {
+          "description": "What kind of answer the person asks for, judged from the statement and the lead post: a label at the judge's confidence of 0.8 or more, or null with why; never a guess.",
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "label",
+                "confidence"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "label": {
+                  "enum": [
+                    "change",
+                    "guidance",
+                    "repair",
+                    "outside"
+                  ]
+                },
+                "confidence": {
+                  "type": "number",
+                  "minimum": 0.8,
+                  "maximum": 1
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "label",
+                "why"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "label": {
+                  "const": null
+                },
+                "why": {
+                  "enum": [
+                    "below confidence",
+                    "no label fits"
+                  ]
+                }
+              }
+            }
+          ]
         },
         "members": {
           "type": "array",
