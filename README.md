@@ -53,7 +53,15 @@ plotplot version
 - `redact` replaces every secret on stdin with `[REDACTED]` before a bed writes it
   (`contracts/redaction.md`); `--tally` counts the spans by layer on stderr.
 
-Build it from this repository:
+Once a release is tagged, npm installs it with no Rust toolchain. The package fetches the
+build for your machine from the GitHub release and refuses it unless its sha256 is the one
+the package carries:
+
+```bash
+npm install -g plotplot
+```
+
+Or build it from this repository:
 
 ```bash
 cargo install --locked --path .

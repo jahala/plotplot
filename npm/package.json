@@ -1,0 +1,27 @@
+{
+  "name": "plotplot",
+  "version": "0.1.0",
+  "description": "The stem of the plotplot garden: plants every bed into any harness and proves it is planted.",
+  "bin": {
+    "plotplot": "run.js"
+  },
+  "scripts": {
+    "postinstall": "node install.js",
+    "test": "node --test \"test/*.test.js\""
+  },
+  "files": [
+    "install.js",
+    "run.js",
+    "checksums.json",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jahala/plotplot.git"
+  },
+  "homepage": "https://plotplot.ai",
+  "license": "MIT"
+}
