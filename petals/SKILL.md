@@ -64,7 +64,7 @@ Use a symlink — it stays current with the repo:
 ln -s /path/to/petals ~/.claude/skills/petals
 ```
 
-The agent discovers `SKILL.md` on session start. No project-level setup needed. No copy-paste into every project.
+The agent discovers `SKILL.md` on session start. No project-level setup needed. No copy-paste into every project. `bash scripts/lint-skills.sh [project-dir]` reports any skill a harness would drop without a word: no description, a name that differs from its directory, or no always-on instruction (AGENTS.md, CLAUDE.md) that names it.
 
 ### How scripts are found
 
@@ -325,7 +325,7 @@ When `/petals check` is invoked without a file argument, it checks for brand dri
 
 When `/petals check <file>` is invoked with a file argument, the agent audits the file against `.brand/` rules across up to five dimensions: color, typography, layout, surface, and voice. The audit follows progressive disclosure: each dimension only loads the `.brand/` file it needs.
 
-**Deterministic core first.** Run `bash scripts/check.sh <file>` before any agent pass — it covers the pure-math checks (palette hexes, contrast pairs, spacing scale, breakpoints, radius scale, easings, shadows, font families loaded and declared, forbidden terms, terminology, product casing) in milliseconds with zero tokens, in the documented report format. The agent then adds what the script cannot do: typography roles (whether a heading or body element got the right face needs context), tone, and dismissing any quoted-context voice hits the script's heuristic missed. The dimension sections below are the SPEC the script implements — consult them when interpreting findings or when the script is unavailable.
+**Deterministic core first.** Run `bash scripts/check.sh <file>` before any agent pass (add `--format sarif` for a SARIF 2.1.0 log: one result per finding, rule ids named `<dimension>/<rule>`, the nearest-value suggestion in `properties.suggestion`) — it covers the pure-math checks (palette hexes, contrast pairs, spacing scale, breakpoints, radius scale, easings, shadows, font families loaded and declared, forbidden terms, terminology, product casing) in milliseconds with zero tokens, in the documented report format. The agent then adds what the script cannot do: typography roles (whether a heading or body element got the right face needs context), tone, and dismissing any quoted-context voice hits the script's heuristic missed. The dimension sections below are the SPEC the script implements — consult them when interpreting findings or when the script is unavailable.
 
 ### Book Pre-Pass (only for .brand/book.html)
 
@@ -366,7 +366,7 @@ Before any audit, verify the project is configured:
 - **Palette**: extract hexes from `.brand/colors.md`
 - **Exclusions**: data URIs, base64 strings, URLs
 - **Match**: exact hex comparison; closest Euclidean distance for mismatches
-- **Contrast**: WCAG ratio against pair-class minimums from colors.md Contrast Pairings
+- **Contrast**: WCAG ratio against pair-class minimums from colors.md Contrast Pairings, judged once per theme on a page with a dark theme (the default values, then the dark overrides on top); a finding names its theme
 - **Charts**: hex literals in chart configs are already covered by steps 2–5; additionally, a categorical series that does not follow the documented "Data Visualization" order is a **warning**.
 
 If zero color violations: `PASS [color] All colors match the brand palette and pairing minimums.`
@@ -375,7 +375,7 @@ If zero color violations: `PASS [color] All colors match the brand palette and p
 
 **Load**: `.brand/typography.md` (only this file). If `.brand/typography.md` does not exist, skip and report: `SKIP [typography] typography.md not found. Skipping typography audit.`
 
-**Scripted part (`check.sh`)**: every family a file loads (a Google Fonts `family=`, an `@font-face`) and the first family of every `font-family`, `fontFamily` or font custom-property stack must be one of the "Font Families" table's families; anything else is an **error** naming the family and the line. Fallbacks after the first family are allowed. When a file loads fonts at all, a table family it never loads is a **warning**.
+**Scripted part (`check.sh`)**: every family a file loads (a Google Fonts `family=`, an `@font-face`) and the first family of every `font-family`, `fontFamily` or font custom-property stack must be one of the "Font Families" table's families; anything else is an **error** naming the family and the line. Fallbacks after the first family are allowed. When a file loads fonts at all, a table family it never loads is a **warning**. A stylesheet rule that names its face (a family, or a `var()` whose name says its role, such as `--font-heading`) and asks it for a weight or an italic the table does not list is an **error**, since the browser fakes it; a heading's default bold counts. `font-synthesis: none` anywhere on the page clears these, and `bash scripts/fix-typography.sh <page>` writes it.
 
 **Agent part, roles**:
 
@@ -445,9 +445,11 @@ PASS [layout] Spacing, containers, and breakpoints match the layout rules.
 3. Check each declaration against the tokens:
    - **Radius**: a value not on the radius scale (allowing `999px`/`50%` as radius-full) is a **warning** — suggest the nearest scale value.
    - **Shadow**: a shadow violating the stated color policy (e.g. pure `#000` / un-tinted `rgba(0, 0, 0, …)` where the brand specifies tinted shadows) is a **warning** — name the policy.
-   - **Border width**: a width not in the stroke table is a **warning** — suggest the nearest stroke.
+   - **Border width**: a width not in the stroke table is a **warning** — suggest the nearest stroke. Outlines count, and so does an inset ring drawn with `box-shadow: inset 0 0 0 <width>` (a stroke that does not move layout).
+   - **Shadow recipe**: a `box-shadow` that is not a token, `none`, or one of the documented recipes (or its soil-night tint) is a **warning**.
    - **Easing**: a bounce/elastic easing (e.g. `cubic-bezier` with an overshoot, `ease-in-out-back`) or any easing/duration far outside the motion tokens is a **warning** — name the brand ease. Anything in the brand's forbidden-motion list is an **error**.
    - Skip values inside data URIs and third-party vendored code, mirroring the color audit's false-positive rules.
+   - **Garden row** (family brands whose `components.md` carries a reference `.gf-garden` row): a page's `.gf-garden` must list exactly those beds in that order, each pill with its own `--pp-<bed>` bloom; a product page (one with the plotplot band, `.gf-plot`) marks exactly one pill `.is-current`. Each departure is an **error**.
 4. Report as:
    ```
    WARNING [surface] line <N>: <found-value> is off the <radius|stroke|shadow|motion> tokens. Did you mean <closest-token>?
