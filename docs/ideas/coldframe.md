@@ -42,9 +42,9 @@ It is not a server and not a daemon (law section 6). It is one command, run by t
 |---|---|---|
 | **A. The bench (machine)** | A1 runners | `runner add`, `remove`, `adopt`: set up, remove, or bring existing runners under coldframe. They replace the ci-runner skill's scripts. A runner is restarted only while it is idle. |
 | | A2 job hooks | `hook started` and `hook completed`. Completed clears the checkout, as `after-job.sh` does today. Started takes a weighted slot and keeps the Mac awake for the job. |
-| | A3 weighted slots | A machine-wide cap counted in weight, not jobs: a heavy tier uses more of the machine than a light one. This answers the port-exhaustion failure that one project now avoids only by running heavy jobs one at a time. A wait has a ceiling, after which the job runs and an overflow is counted, so a slot bug slows CI but never stalls it. |
+| | A3 weighted slots | A machine-wide cap counted in weight, not jobs: a heavy tier uses more of the machine than a light one. This answers the port-exhaustion failure that one project now avoids only by running heavy jobs one at a time. A wait has a ceiling, after which the job runs and an overflow is counted, so a slot bug slows CI but never stalls it. The same slots cover local test runs through `coldframe run`, so one cap bounds the machine's whole test load, from CI and from agents alike. A job's weight reaches the started hook in one of two ways: a runner label in `runs-on` (for example `coldframe-heavy`, beside the repository label), or a tier name equal to the job id, which `garden.json` maps to a weight. Step 0's spike decides which: the label, if the hook can read the job's labels; otherwise the job id. |
 | | A4 lifetimes | `prune`: runner logs older than 7 days, superseded runner versions, update leftovers, and coldframe's own logs. |
-| | A5 health | `status`: every runner online, busy or idle; slots and who holds them; disk per runner; awake and logged in; the last prune and audit with their outcomes. It exits non-zero when unhealthy, and a notification goes out only then. |
+| | A5 health | `status`: every runner online, busy or idle; slots and who holds them; disk per runner; awake and logged in; the last prune and audit with their outcomes. It exits non-zero when unhealthy, and only then does a notification go out: a macOS notification posted by the LaunchAgent in the owner's session, and a line in `status` output that the gardener can read. gate is not an alert channel: it holds yes for acts. |
 | | A6 measure | `measure --since 14d`: the job timeline per repository and machine-wide, queued against running time. It is the instrument for every before-and-after claim. |
 | **B. The test plan (project)** | B1 declare | A project declares its test tiers once: name, command, when it runs (each change, heavy, main line, release), weight, and whether it needs a clean machine. The home is a `tests` block in the project's `garden.json`, added as a contract in the umbrella beside `smoke`. It is not a second file. |
 | | B2 measure times | `time`: runs each tier and records its measured time and the machine it ran on, under `.coldframe/` in the project. |
@@ -54,7 +54,7 @@ It is not a server and not a daemon (law section 6). It is one command, run by t
 | | C2 under load | `run --load`: the same tier with the machine deliberately loaded, so timing assumptions break here first, not on CI. |
 | | C3 test for the rule | Every project's suite gets the check that "a run leaves nothing behind" from C1, without writing its own. |
 | **D. Audit (reports, never changes)** | D1 cost | The month's paid minutes from the billing API, and which repositories and jobs spent them. |
-| | D2 workflow traps | The ci-runner skill's five traps, read from every repository's workflow files: push without a branch filter beside pull requests, schedules re-testing unchanged commits, hosted jobs in private repositories, fixed shared names and ports, and missing way-back variables. |
+| | D2 workflow traps | The ci-runner skill's five traps, read from every repository's workflow files: push without a branch filter beside pull requests, schedules re-testing unchanged commits, hosted jobs in private repositories, fixed shared names and ports, and a missing way back to hosted runners. Two conventions count as a way back: a `CI_RUNS_ON` variable, or a hosted probe job that picks hosted runners or the Mac in every run (tend's, since jahala/tend PR 289). |
 | | D3 runner safety | Self-hosted runners on public repositories, and private repositories with outside collaborators, where a pull request runs code as the owner. Plus runners on repositories idle for 30 days. |
 | **E. Faces for agents and git** | E1 skill | How an agent runs a project's tests: `coldframe run` for the tiers a change touches, and what a red result means. It replaces the test-setup and ci-runner skills' mechanics, while their judgement stays as text in the skill. |
 | | E2 pre-push guard (optional) | Through the stem's git dispatch, `coldframe guard pre-push` runs the tiers the change touches before a push leaves the machine, so CI rarely runs a change that fails locally. |
@@ -103,7 +103,7 @@ There is no model and no judge.
 - **Alone:** a machine tool and a project test bench.
 - **With weeder:** weeder blocks the diff that weakens a test, and coldframe runs the tests that remain.
 - **With tend2:** a verify script can call `coldframe run` and read its exit code and leak report as evidence.
-- **With the stem:** the stem plants it and dispatches its pre-push guard. The stem's `garden` workflow job should take its runner label from coldframe's convention (`CI_RUNS_ON`), not hard-code a hosted runner. Today it hard-codes one, and hosted runs fail for private repositories.
+- **With the stem:** the stem plants it and dispatches its pre-push guard. The stem's `garden` workflow job should follow one of D2's two runner conventions, not hard-code a hosted runner. Today it hard-codes one, and hosted runs fail for private repositories.
 - **With the gardener and almanac, later:** `status` and `measure` are what they would read.
 
 ## Data and its lifetime
@@ -135,7 +135,7 @@ The garden's pre-flight rule holds for every step: list the step's assumptions, 
 
 0. **Measure and spike, before the tool exists.**
    - Run `measure` as a script over the last 14 days of jobs in the self-hosted repositories, excluding load the owner's agents put on the machine by hand.
-   - On one runner of a quiet repository, show that a started hook can block a job, that its wait counts toward the job's timeout, and which job variables the hook can see.
+   - On one runner of a quiet repository, show that a started hook can block a job, that its wait counts toward the job's timeout, and which job variables the hook can see: whether the job's labels are among them decides how A3 reads a job's weight.
 1. **Lifetimes and health (A4, A5, A1's `adopt`).** This is the disk fix, and it does not wait on step 0.
    - Bar: tested on a copy of a real runner folder, then run on all runners, with the measured sizes dropping by the expected amount.
    - Control: a deliberately broken prune turns `status` red.
@@ -155,5 +155,5 @@ The garden's pre-flight rule holds for every step: list the step's assumptions, 
 
 1. **Deleting runner files for good** (the owner's call). Either a stated exception, limited by code to runner-made files inside the runner folders (recommended), or turning on Finder's 30-day Trash setting. Until then, prune uses `trash`.
 2. **Whether `.coldframe/times.json` is committed** (so CLAUDE.md's times can be checked in CI) or git-ignored (so every machine measures its own).
-3. **The stem's `garden` workflow job** should take its runner from `CI_RUNS_ON`. That is a change in the stem, proposed to its owner, not made by coldframe.
+3. **The stem's `garden` workflow job** should follow one of D2's runner conventions. That is a change in the stem, proposed to its owner, not made by coldframe.
 4. **Who owns landing a batch of pull requests.** It is out of scope here, and still needs a home.
