@@ -2,7 +2,7 @@
 
 2026-10-30. A draft, not a loop. Infrastructure (`docs/decisions/2026-10-26-layers.md`). A cold frame is the low glass box beside a garden where seedlings harden off before they go outside. coldframe is where a change's tests run, on the owner's own machine, before the change goes out.
 
-This draft follows the CI review and plan written in the accelerando workspace (`docs/ci-review-2026-10-29.md`, `docs/ci-machine-tooling-plan.md`) and two groundwork reports in the plotplot-ai workspace (`docs/research/coldframe-groundwork-ci-2026-10-30.md`, `coldframe-groundwork-garden-2026-10-30.md`). Those carry the evidence. This page carries the shape.
+This draft follows a CI review, a first plan and two groundwork reports, kept with coldframe's private notes. Those carry the evidence. This page carries the shape.
 
 ## Who it is for, and their pain
 
@@ -139,7 +139,7 @@ The garden's pre-flight rule holds for every step: list the step's assumptions, 
 1. **Lifetimes and health (A4, A5, A1's `adopt`).** This is the disk fix, and it does not wait on step 0.
    - Bar: tested on a copy of a real runner folder, then run on all runners, with the measured sizes dropping by the expected amount.
    - Control: a deliberately broken prune turns `status` red.
-2. **Run scope (C1), proven on a known case.** Pre-flight: a run scope can offer a temp folder and a port range, but only tests that read them honour them. Check first how many of the two projects' tests take their temp folder and ports from the environment. Plant a leak in a copy of each of two projects whose own leftover checks already catch it: mull for files, and for processes and containers whichever of vavire, jobmatcher or cfanalytics already checks them (graft has no end-of-run check). If none checks processes or containers, those kinds are proven against planted leaks with a clean-run control, and the result is recorded as weaker evidence.
+2. **Run scope (C1), proven on a known case.** Pre-flight: a run scope can offer a temp folder and a port range, but only tests that read them honour them. Check first how many of the two projects' tests take their temp folder and ports from the environment. Plant a leak in a copy of each of two projects whose own leftover checks already catch it: mull for files, and for processes and containers a product repository whose own check already catches them (graft has no end-of-run check). If none checks processes or containers, those kinds are proven against planted leaks with a clean-run control, and the result is recorded as weaker evidence.
    - Bar: coldframe catches every planted leak and passes the clean runs, the same verdicts as the projects' own checks.
 3. **Under load (C2), proven on a known case.** Run the umbrella's `two_beds_run_at_the_same_time` test both ways: at the commit before PR 189 (the timed version, which failed on loaded CI) and after it (the rendezvous version).
    - Bar: under `--load`, the old test fails and the new one passes in 10 of 10 runs.
