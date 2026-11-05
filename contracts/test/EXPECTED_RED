@@ -3,6 +3,4 @@
 # runs these like every other test and reports them, but their red does not fail npm test.
 # Remove a line the day its test goes green; a line for a green test is a lie the runner
 # reports.
-sarif.test.sh      c3   petals 6 (petals emits no SARIF)
 delivery.test.sh   c8   tend 159 178 162 170, pleach (no test cites contracts/delivery.md)
-verdict.test.sh    c11  pleach 106 (a failed verdict carries no reason)
