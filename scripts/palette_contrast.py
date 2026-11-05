@@ -54,6 +54,7 @@ C = {
     "Well": "#4D5972", "Well-night": "#58647E",
     "Gardener": "#C7C784",
     "Almanac": "#A19251",
+    "Coldframe": "#4E5A48", "Coldframe-night": "#5A6853",
     "Upkeep": "#6E520D", "Upkeep-night": "#7D6021",
     "Juniper": "#1F8A7B", "Pollen-ink": "#A844BC", "Pollen-ink-night": "#BD59D2", "Weeder-word": "#8F675B", "Weeder-word-night": "#A37A6E",
     # soil-night (dark / terminal)
@@ -98,6 +99,7 @@ PAIRS = [
     ("Well", "Paper", "labels", 3.0), ("Well-night", "Night", "labels", 3.0), ("Night-text", "Well", "reading", 4.5), ("Night-text", "Well-night", "reading", 4.5),
     ("Gardener", "Paper", "decorative", 0.0), ("Gardener", "Night", "labels", 3.0), ("Night", "Gardener", "reading", 4.5), ("Night", "Gardener", "reading", 4.5),
     ("Almanac", "Paper", "decorative", 0.0), ("Almanac", "Night", "labels", 3.0), ("Night", "Almanac", "reading", 4.5), ("Night", "Almanac", "reading", 4.5),
+    ("Coldframe", "Paper", "labels", 3.0), ("Coldframe-night", "Night", "labels", 3.0), ("Night-text", "Coldframe", "reading", 4.5), ("Night-text", "Coldframe-night", "reading", 4.5),
     ("Upkeep", "Paper", "labels", 3.0), ("Upkeep-night", "Night", "labels", 3.0), ("Night-text", "Upkeep", "reading", 4.5), ("Night-text", "Upkeep-night", "reading", 4.5),
     ("Juniper", "Paper", "labels", 3.0), ("Pollen-ink", "Paper", "reading", 4.5), ("Pollen-ink-night", "Night", "reading", 4.5),
     ("Weeder-word", "Paper", "reading", 4.5), ("Weeder-word-night", "Night", "reading", 4.5),

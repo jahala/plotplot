@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="coldframe">
+  <rect width="24" height="24" rx="5.5" fill="#4E5A48"/>
+  <g transform="translate(3.36 3.36) scale(0.72)" fill="none">
+    <!-- coldframe mark: a cold frame from the side, its glass lid open over a seedling -->
+    <path d="M2.5 21.5 H21.5 V17.5 L2.5 14.5 Z" fill="#F3ECD9"/>
+    <path d="M0.07 11.98 L11.22 1.22 L13.65 3.73 L2.50 14.50 Z" stroke="#F3ECD9" stroke-width="2"/>
+    <path d="M13 16.2 V11.6" stroke="#F3ECD9" stroke-width="2"/>
+    <path d="M13 14.2 C11 14.2 9.6 13 9.5 11.1 C11.5 11.2 13 12.4 13 14.2 Z" fill="#F3ECD9"/>
+    <path d="M13 13.2 C15 13.2 16.4 12 16.5 10.1 C14.5 10.2 13 11.4 13 13.2 Z" fill="#F3ECD9"/>
+  </g>
+</svg>
