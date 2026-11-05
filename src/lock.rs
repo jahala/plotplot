@@ -917,7 +917,7 @@ mod tests {
         assert_eq!(lock.season, "2026.09");
         assert_eq!(
             lock.judges.keys().map(String::as_str).collect::<Vec<_>>(),
-            ["tend2", "tilth", "weeder"]
+            ["tend", "tilth", "weeder"]
         );
 
         let tilth = lock.judges.get("tilth").expect("the tilth judge");
@@ -962,10 +962,10 @@ mod tests {
             "3df16574ed9fc33e4d9c63107994c78d48f93ab0099a37232b4410223e2ad2ea"
         );
 
-        let tend2 = lock.judges.get("tend2").expect("the tend2 judge");
-        assert_eq!(tend2.version, "1.0.0");
-        assert_eq!(tend2.npm.as_deref(), Some("@plotplot/tend2"));
-        assert!(tend2.platforms.is_empty());
+        let tend = lock.judges.get("tend").expect("the tend judge");
+        assert_eq!(tend.version, "1.0.0");
+        assert_eq!(tend.npm.as_deref(), Some("@plotplot/tend"));
+        assert!(tend.platforms.is_empty());
     }
 
     #[test]
@@ -1082,8 +1082,8 @@ mod tests {
         );
         assert!(artifact_for(tilth, "x86_64-pc-windows-msvc").is_none());
         assert!(artifact_for(tilth, "riscv64gc-unknown-linux-gnu").is_none());
-        let tend2 = lock.judges.get("tend2").expect("the tend2 judge");
-        assert!(artifact_for(tend2, "aarch64-apple-darwin").is_none());
+        let tend = lock.judges.get("tend").expect("the tend judge");
+        assert!(artifact_for(tend, "aarch64-apple-darwin").is_none());
     }
 
     #[test]
@@ -1821,23 +1821,23 @@ mod verify_tests {
     #[test]
     fn an_npm_judge_is_pinned_as_placed_only_at_its_version() {
         let root = tempfile::tempdir().expect("a temp root");
-        let package_json = layout::npm_prefix(root.path(), "tend2")
-            .join("node_modules/@plotplot/tend2/package.json");
+        let package_json = layout::npm_prefix(root.path(), "tend")
+            .join("node_modules/@plotplot/tend/package.json");
         std::fs::create_dir_all(package_json.parent().expect("a parent")).expect("the package");
         std::fs::write(&package_json, "{\"version\": \"1.0.0\"}\n").expect("package.json");
         let judge = |version: &str| Judge {
             version: version.to_owned(),
-            npm: Some("@plotplot/tend2".to_owned()),
+            npm: Some("@plotplot/tend".to_owned()),
             platforms: BTreeMap::new(),
             git: None,
             extra: BTreeMap::new(),
         };
 
         assert_eq!(
-            pinned_as(root.path(), "tend2", &judge("1.0.0"), PLATFORM).expect("an answer"),
+            pinned_as(root.path(), "tend", &judge("1.0.0"), PLATFORM).expect("an answer"),
             None
         );
-        let differs = pinned_as(root.path(), "tend2", &judge("1.1.0"), PLATFORM)
+        let differs = pinned_as(root.path(), "tend", &judge("1.1.0"), PLATFORM)
             .expect("an answer")
             .expect("another version is not the package installed");
         assert!(

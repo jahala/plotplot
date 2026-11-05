@@ -933,7 +933,7 @@ mod tests {
                 matcher: None,
             }],
         );
-        let mut second = bed("tend2");
+        let mut second = bed("tend");
         second.hooks.insert(
             Harness::Claude,
             vec![crate::bed::HookEntry {
@@ -1002,7 +1002,7 @@ mod tests {
             mcp_argument(Harness::Gemini, "pollen", "pollen.mjs"),
             "${extensionPath}/bin/pollen/pollen.mjs"
         );
-        assert_eq!(mcp_argument(Harness::Gemini, "tend2", "mcp"), "mcp");
+        assert_eq!(mcp_argument(Harness::Gemini, "tend", "mcp"), "mcp");
     }
 
     #[test]
@@ -1032,11 +1032,11 @@ mod tests {
 
     #[test]
     fn the_description_names_the_season_and_every_bed() {
-        let beds = [bed("weeder"), bed("tend2")];
+        let beds = [bed("weeder"), bed("tend")];
         let planted = description(&input(&beds, &[]));
         assert_eq!(
             planted,
-            "the plotplot garden, season 2026.09, planting weeder, tend2"
+            "the plotplot garden, season 2026.09, planting weeder, tend"
         );
         assert_eq!(
             description(&input(&[], &[])),

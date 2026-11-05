@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# The seam between tend2's emit-plan and pleach: a plan tend2 writes from a map is a plan
+# The seam between tend's emit-plan and pleach: a plan tend writes from a map is a plan
 # pleach runs. Copies the fixture map contracts/fixtures/seam/ into a scratch directory
-# beside the renderer `tend2 init` writes, closes with `tend2 verify` every loop whose
+# beside the renderer `tend init` writes, closes with `tend verify` every loop whose
 # evidence the fixture carries (so a fully verified loop is stamped by the verifier, never
 # by hand), emits a plan with a cast file naming every loop and a setup of one argv, then
 # validates the plan against the schema the pleach under test prints and with
@@ -12,8 +12,8 @@
 # worker node, a setup of one argv on every node, and node ids that resolve to loop ids
 # and check ordinals per contracts/identifiers.md.
 #
-# The tools under test: PLOTPLOT_PLEACH_BIN, else `pleach` on PATH; PLOTPLOT_TEND2_BIN,
-# else `tend2` on PATH. Either may be a command of several words (for example
+# The tools under test: PLOTPLOT_PLEACH_BIN, else `pleach` on PATH; PLOTPLOT_TEND_BIN,
+# else `tend` on PATH. Either may be a command of several words (for example
 # PLOTPLOT_PLEACH_BIN="bun /tmp/pleach-pinned/src/main.ts"). Which of each ran is printed
 # on stdout first, so a verdict is attributable.
 #
@@ -27,7 +27,7 @@ cd "$repo_root" || exit 1
 fixture="contracts/fixtures/seam"
 helper="contracts/test/lib/seam-plan.mjs"
 runner='bash {evidence}'
-setup="bash -lc 'test -d docs/tend2 && test -f docs/tend2/loop.js'"
+setup="bash -lc 'test -d docs/tend && test -f docs/tend/loop.js'"
 
 fail=0
 
@@ -63,71 +63,71 @@ provenance() {
 }
 
 if [ -n "${PLOTPLOT_PLEACH_BIN:-}" ]; then read -r -a pleach <<< "$PLOTPLOT_PLEACH_BIN"; else pleach=(pleach); fi
-if [ -n "${PLOTPLOT_TEND2_BIN:-}" ]; then read -r -a tend2 <<< "$PLOTPLOT_TEND2_BIN"; else tend2=(tend2); fi
+if [ -n "${PLOTPLOT_TEND_BIN:-}" ]; then read -r -a tend <<< "$PLOTPLOT_TEND_BIN"; else tend=(tend); fi
 
 if ! pleach_version="$("${pleach[@]}" --version 2>/dev/null)"; then
   echo "seam.test.sh: pleach does not run as '${pleach[*]}'; set PLOTPLOT_PLEACH_BIN or put pleach on PATH" >&2
   exit 3
 fi
-if ! "${tend2[@]}" --help 2>&1 | grep -q 'emit-plan'; then
-  echo "seam.test.sh: tend2 with emit-plan does not run as '${tend2[*]}'; set PLOTPLOT_TEND2_BIN or put tend2 on PATH" >&2
+if ! "${tend[@]}" --help 2>&1 | grep -q 'emit-plan'; then
+  echo "seam.test.sh: tend with emit-plan does not run as '${tend[*]}'; set PLOTPLOT_TEND_BIN or put tend on PATH" >&2
   exit 3
 fi
 if ! npx --no-install ajv help >/dev/null 2>&1; then
   echo "seam.test.sh: ajv-cli is not installed; run npm install" >&2
   exit 3
 fi
-tend2_version="$("${tend2[@]}" --version 2>/dev/null | head -1)"
+tend_version="$("${tend[@]}" --version 2>/dev/null | head -1)"
 
 echo "# pleach: ${pleach[*]} --version: $pleach_version ($(provenance "${pleach[@]}"))"
-echo "# tend2: ${tend2[*]} --version: ${tend2_version:-none printed} ($(provenance "${tend2[@]}"))"
+echo "# tend: ${tend[*]} --version: ${tend_version:-none printed} ($(provenance "${tend[@]}"))"
 
-# The verifier a plan's gates invoke must resolve outside the worktree, so it is the tend2
+# The verifier a plan's gates invoke must resolve outside the worktree, so it is the tend
 # under test by absolute path.
-if [ "${#tend2[@]}" -eq 1 ]; then verify_bin="$(command -v "${tend2[0]}")"; else verify_bin="${tend2[*]}"; fi
+if [ "${#tend[@]}" -eq 1 ]; then verify_bin="$(command -v "${tend[0]}")"; else verify_bin="${tend[*]}"; fi
 
-[ -d "$fixture/docs/tend2" ] && [ -f "$fixture/cast.json" ]
+[ -d "$fixture/docs/tend" ] && [ -f "$fixture/cast.json" ]
 assert $? "the seam fixture map and its cast file exist at $fixture"
 [ "$fail" -eq 0 ] || { echo "seam.test.sh: cannot continue without the fixture"; exit 1; }
 
 scratch="$(mktemp -d)"
 trap 'put_away "$scratch"' EXIT
-map="$scratch/docs/tend2"
+map="$scratch/docs/tend"
 
-# tend2 init writes the renderer and its own project loop; the fixture supplies the loops.
-(cd "$scratch" && "${tend2[@]}" init >"$scratch/init.log" 2>&1)
+# tend init writes the renderer and its own project loop; the fixture supplies the loops.
+(cd "$scratch" && "${tend[@]}" init >"$scratch/init.log" 2>&1)
 init_status=$?
 [ "$init_status" -eq 0 ] && [ -f "$map/loop.js" ] && [ -f "$map/loop.css" ]
-assert $? "tend2 init scaffolds a map with its renderer in the scratch directory" "exit $init_status"
-for page in "$map"/*.tend2.html; do [ -e "$page" ] && put_away "$page"; done
+assert $? "tend init scaffolds a map with its renderer in the scratch directory" "exit $init_status"
+for page in "$map"/*.tend.html; do [ -e "$page" ] && put_away "$page"; done
 cp -R "$fixture/." "$scratch/"
 
 stamped_ok=0
 for loop in $(node "$helper" evidence-complete "$map" "$scratch"); do
-  if "${tend2[@]}" verify "$map/$loop.tend2.html" --repo-root "$scratch" --runner "$runner" >"$scratch/verify.log" 2>&1 \
-    && ! grep -q '^- \[[ !~]\]' "$map/$loop.tend2.html"; then
-    assert 0 "tend2 verify closes $loop, whose evidence the fixture carries"
+  if "${tend[@]}" verify "$map/$loop.tend.html" --repo-root "$scratch" --runner "$runner" >"$scratch/verify.log" 2>&1 \
+    && ! grep -q '^- \[[ !~]\]' "$map/$loop.tend.html"; then
+    assert 0 "tend verify closes $loop, whose evidence the fixture carries"
   else
-    assert 1 "tend2 verify closes $loop, whose evidence the fixture carries"
+    assert 1 "tend verify closes $loop, whose evidence the fixture carries"
     indent "$scratch/verify.log"
   fi
   stamped_ok=1
 done
 [ "$stamped_ok" -eq 1 ]; assert $? "the fixture map holds a loop the verifier can close"
 
-if "${tend2[@]}" lint "$map"/*.tend2.html >"$scratch/lint.log" 2>&1; then
-  assert 0 "every fixture loop lints clean under tend2 lint"
+if "${tend[@]}" lint "$map"/*.tend.html >"$scratch/lint.log" 2>&1; then
+  assert 0 "every fixture loop lints clean under tend lint"
 else
-  assert 1 "every fixture loop lints clean under tend2 lint"
+  assert 1 "every fixture loop lints clean under tend lint"
   indent "$scratch/lint.log"
 fi
 
 plan="$scratch/plan.json"
-"${tend2[@]}" emit-plan "$map" --repo-root "$scratch" --out "$plan" --cast-file "$scratch/cast.json" \
+"${tend[@]}" emit-plan "$map" --repo-root "$scratch" --out "$plan" --cast-file "$scratch/cast.json" \
   --verify-bin "$verify_bin" --runner "$runner" --setup "$setup" >"$scratch/emit.log" 2>&1
 emit_status=$?
 [ "$emit_status" -eq 0 ] && [ -f "$plan" ]
-assert $? "tend2 emit-plan writes a plan from the fixture map" "exit $emit_status: $(tr '\n' ' ' < "$scratch/emit.log")"
+assert $? "tend emit-plan writes a plan from the fixture map" "exit $emit_status: $(tr '\n' ' ' < "$scratch/emit.log")"
 [ -f "$plan" ] || { echo "seam.test.sh: failures present"; exit 1; }
 
 schema="$scratch/plan.schema.json"

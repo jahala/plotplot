@@ -21,9 +21,9 @@ Written 2026-09-24 from the project notes this page replaces. Recipes name real 
 
 ## Pinned tools, never the machine's links
 
-`pleach` and `tend2` on PATH point into other agents' live checkouts. Conduct with a pinned
-clone (`bun <clone>/src/main.ts`), verify and lint with a pinned tend2 build
-(`node <clone>/dist/cli.js`; `tend2 verify` misreports under bun, tend 228). Re-pin after
+`pleach` and `tend` on PATH point into other agents' live checkouts. Conduct with a pinned
+clone (`bun <clone>/src/main.ts`), verify and lint with a pinned tend build
+(`node <clone>/dist/cli.js`; `tend verify` misreports under bun, tend 228). Re-pin after
 each tool landing. Move `contracts/pins.json` in a pull request when a pinned revision moves.
 
 ## Recipes
@@ -31,9 +31,9 @@ each tool landing. Move `contracts/pins.json` in a pull request when a pinned re
 - **Add a contract check.** Copy `contracts/test/runner.test.sh` (a table read from a bed's
   source) or `contracts/test/proof.test.sh` (a schema with positive and negative fixtures):
   one line per assertion, exit 0, 1 or 3, `unevaluable` with the claim's name when it cannot
-  run. Add the check to `docs/tend2/contracts.tend2.html`, red first, and its line to
+  run. Add the check to `docs/tend/contracts.tend.html`, red first, and its line to
   `EXPECTED_RED` naming the bed's issue. Stamp with
-  `node <tend2>/dist/cli.js verify docs/tend2/contracts.tend2.html --check N --force --runner 'bash {evidence}'`.
+  `node <tend>/dist/cli.js verify docs/tend/contracts.tend.html --check N --force --runner 'bash {evidence}'`.
 - **Add a fit claim for a bed.** Copy a `check_f4`-shaped function in `scripts/fit/weeder.sh`;
   compose `scripts/fit/lib.sh` (`fit_lock_lookup`, `fit_fetch`, `fit_verify_sha256`,
   `fit_clone`); print `ok F<n> ...` per assertion.
@@ -50,7 +50,7 @@ each tool landing. Move `contracts/pins.json` in a pull request when a pinned re
   five builds and `node --test "npm/test/*.test.js"` and publishes nothing.
 - **Conduct a node here.** A hand-written `docs/dogfood/<loop>/plan.json`, one phased node
   closing one check; setup builds the stem and runs `plotplot lock verify`; smoke
-  `weeder check --strict`; audit `tend2 verify ... --audit-egress` on a second provider. A test
+  `weeder check --strict`; audit `tend verify ... --audit-egress` on a second provider. A test
   that is red by design cannot pass the green gate: land its script from the quarantine branch
   and say so on the loop.
 - **Record a fault in a bed.** File it on the bed's repository with evidence; the umbrella

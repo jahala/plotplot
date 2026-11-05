@@ -260,7 +260,7 @@
     },
     "coverage": {
       "type": "object",
-      "description": "plotplot-ai issue 31: which languages and file kinds this bed's judgement actually covers, so silence on an unsupported language is declared rather than read as clean. Either array may be empty for a bed whose rules are language-agnostic (tend2, pollen) or that covers no file kinds at all (a pure conductor).",
+      "description": "plotplot-ai issue 31: which languages and file kinds this bed's judgement actually covers, so silence on an unsupported language is declared rather than read as clean. Either array may be empty for a bed whose rules are language-agnostic (tend, pollen) or that covers no file kinds at all (a pure conductor).",
       "required": [
         "languages",
         "kinds"

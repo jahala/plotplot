@@ -40,6 +40,6 @@ sha256 = "3858cfc804a9667a2bceec27b61cf625c7835cd1c77d69a1aba15ecfcb2dad6f"
 url = "https://github.com/jahala/tilth/releases/download/v0.10.1/tilth-x86_64-unknown-linux-musl.tar.gz"
 sha256 = "3df16574ed9fc33e4d9c63107994c78d48f93ab0099a37232b4410223e2ad2ea"
 
-[judges.tend2]
+[judges.tend]
 version = "1.0.0"
-npm = "@plotplot/tend2"
+npm = "@plotplot/tend"

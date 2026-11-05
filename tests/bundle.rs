@@ -18,7 +18,7 @@ use plotplot::manifest::{parse_manifest, to_bed};
 
 const SEASON: &str = "2026.09";
 const WEEDER_SKILL: &str = "---\nname: weeder\n---\n\nweeder judges the diff.\n";
-const TEND2_SKILL: &str = "---\nname: tend2\n---\n\ntend2 keeps the loops.\n";
+const TEND_SKILL: &str = "---\nname: tend\n---\n\ntend keeps the loops.\n";
 
 /// One bed, read from the contracts' fixture corpus exactly as the stem reads a planted
 /// bed's `garden.json`.
@@ -33,12 +33,12 @@ fn fixture_bed(name: &str) -> Bed {
     to_bed(&manifest).unwrap_or_else(|error| panic!("{}: {error}", path.display()))
 }
 
-/// weeder brings hooks and git hooks, tend2 brings a launchable MCP server, pollen brings an
+/// weeder brings hooks and git hooks, tend brings a launchable MCP server, pollen brings an
 /// MCP server and no binary at all.
 fn beds() -> Vec<Bed> {
     vec![
         fixture_bed("weeder"),
-        fixture_bed("tend2"),
+        fixture_bed("tend"),
         fixture_bed("pollen"),
     ]
 }
@@ -50,8 +50,8 @@ fn skills() -> Vec<SkillFile> {
             content: WEEDER_SKILL.to_owned(),
         },
         SkillFile {
-            bed: "tend2".to_owned(),
-            content: TEND2_SKILL.to_owned(),
+            bed: "tend".to_owned(),
+            content: TEND_SKILL.to_owned(),
         },
     ]
 }
@@ -208,7 +208,7 @@ fn each_harness_yields_exactly_its_vendor_file_set() {
                 ".claude-plugin/plugin.json",
                 ".mcp.json",
                 "hooks/hooks.json",
-                "skills/tend2/SKILL.md",
+                "skills/tend/SKILL.md",
                 "skills/weeder/SKILL.md",
             ],
         ),
@@ -217,7 +217,7 @@ fn each_harness_yields_exactly_its_vendor_file_set() {
             vec![
                 "gemini-extension.json",
                 "hooks/hooks.json",
-                "skills/tend2/SKILL.md",
+                "skills/tend/SKILL.md",
                 "skills/weeder/SKILL.md",
             ],
         ),
@@ -227,7 +227,7 @@ fn each_harness_yields_exactly_its_vendor_file_set() {
                 ".codex-plugin/plugin.json",
                 ".mcp.json",
                 "hooks.json",
-                "skills/tend2/SKILL.md",
+                "skills/tend/SKILL.md",
                 "skills/weeder/SKILL.md",
             ],
         ),
@@ -533,8 +533,8 @@ fn the_three_bundles_carry_the_same_skills() {
         Some(WEEDER_SKILL)
     );
     assert_eq!(
-        claude.get("skills/tend2/SKILL.md").map(String::as_str),
-        Some(TEND2_SKILL)
+        claude.get("skills/tend/SKILL.md").map(String::as_str),
+        Some(TEND_SKILL)
     );
     assert_eq!(claude, skills(Harness::Gemini));
     assert_eq!(claude, skills(Harness::Codex));
@@ -554,17 +554,17 @@ fn the_three_bundles_carry_the_same_mcp_servers() {
         .collect::<BTreeSet<String>>();
     assert_eq!(
         servers,
-        BTreeSet::from(["pollen".to_owned(), "tend2".to_owned()])
+        BTreeSet::from(["pollen".to_owned(), "tend".to_owned()])
     );
 
     // Declared as the bed declared them: a bare subcommand stays, a relative path is
     // resolved inside the bundle, and every environment variable is named, never valued.
     assert_eq!(
-        claude.pointer("/tend2/command").and_then(Value::as_str),
-        Some("tend2")
+        claude.pointer("/tend/command").and_then(Value::as_str),
+        Some("tend")
     );
     assert_eq!(
-        claude.pointer("/tend2/args"),
+        claude.pointer("/tend/args"),
         Some(&Value::Array(vec![Value::String("mcp".to_owned())]))
     );
     assert_eq!(

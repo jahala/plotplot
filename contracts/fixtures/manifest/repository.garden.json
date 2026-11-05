@@ -7,9 +7,9 @@
     "commands": [
       {
         "argv": [
-          "tend2",
+          "tend",
           "lint",
-          "docs/tend2/plotplot.tend2.html"
+          "docs/tend/plotplot.tend.html"
         ],
         "timeout_ms": 5000
       }

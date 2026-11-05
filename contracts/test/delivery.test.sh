@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# contracts/delivery.md is cited by a test in tend2 and a test in pleach at their pinned
+# contracts/delivery.md is cited by a test in tend and a test in pleach at their pinned
 # versions, and each test holds its side. For each bed this test finds the test files that
 # cite the contract by path, asserts there is at least one, asserts the citing tests cover
-# the bed's rules (tend2: the payload pin covers the checks section only; pleach: scratch is
+# the bed's rules (tend: the payload pin covers the checks section only; pleach: scratch is
 # never collected and whole-map artefacts are re-earned at land), and runs those files with
-# the bed's own runner (vitest for tend2, bun test for pleach), which must exit 0.
+# the bed's own runner (vitest for tend, bun test for pleach), which must exit 0.
 #
-# The checkouts under test: PLOTPLOT_TEND2_SRC and PLOTPLOT_PLEACH_SRC, each a checkout of
+# The checkouts under test: PLOTPLOT_TEND_SRC and PLOTPLOT_PLEACH_SRC, each a checkout of
 # the bed at the version the umbrella pins. Which revision ran is printed first, so a
 # verdict is attributable. Run from the repository root, no arguments. Prints one line per
 # assertion. Exits 0 if every assertion passed, 1 otherwise, 3 when a checkout is not
@@ -24,7 +24,7 @@ assert() {
 [ -f "$contract" ]; assert $? "the contract exists at $contract"
 [ "$fail" -eq 0 ] || exit 1
 
-for var in PLOTPLOT_TEND2_SRC PLOTPLOT_PLEACH_SRC; do
+for var in PLOTPLOT_TEND_SRC PLOTPLOT_PLEACH_SRC; do
   if [ -z "${!var:-}" ] || [ ! -d "${!var}" ]; then
     echo "delivery.test.sh: $var is unset or not a directory; the bed's tests cannot be read" >&2
     exit 3
@@ -71,7 +71,7 @@ check_bed() {
   put_away "$log"
 }
 
-check_bed tend2 "$PLOTPLOT_TEND2_SRC" "npx --no-install vitest run -c vitest.config.ts" \
+check_bed tend "$PLOTPLOT_TEND_SRC" "npx --no-install vitest run -c vitest.config.ts" \
   "expect-payload|checks section|checksSection|payload pin|the pin covers the checks section only"
 check_bed pleach "$PLOTPLOT_PLEACH_SRC" "bun test" \
   "loop-scratch|scratch is never collected" \

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Compares the loop format version tend2 ships and the plan schema version pleach ships
+# Compares the loop format version tend ships and the plan schema version pleach ships
 # against the versions contracts/pins.json declares. Each pin names the repository, the
 # file and the commit it was read from; this test fetches that file at that commit from
 # the platform (gh, authenticated, since two of the beds are private today). A local
@@ -44,7 +44,7 @@ check_pin() {
   fi
 }
 
-check_pin loop_format "tend2's FORMAT.md"
+check_pin loop_format "tend's FORMAT.md"
 check_pin plan_schema "pleach's plan-schema.md"
 
 if [ "$fail" -ne 0 ]; then echo "pins.test.sh: failures present"; exit 1; fi

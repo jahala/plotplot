@@ -83,9 +83,9 @@ sha256 = "…"
 [judges.tilth]
 version = "0.10.1"
 # …
-[judges.tend2]
+[judges.tend]
 version = "1.0.0"
-npm = "@plotplot/tend2"
+npm = "@plotplot/tend"
 ```
 
 `plotplot lock verify` resolves each judge for the current platform, fetches into
@@ -98,7 +98,7 @@ range, the judges are the base's (section 7).
 ## 5. What `init` does, exactly, and idempotently
 
 1. Detect harness CLIs on PATH and any project configs present.
-2. Read the manifests of the beds requested (defaults: tend2, tilth, weeder, petals).
+2. Read the manifests of the beds requested (defaults: tend, tilth, weeder, petals).
 3. Write `garden.lock` for the current season, or verify an existing one.
 4. Generate the three bundles under `.plotplot/bundles/<harness>/` from the manifests: every
    bed's hook entries become one dispatcher call each (`plotplot hook claude PreToolUse`), the
@@ -112,7 +112,9 @@ range, the judges are the base's (section 7).
    A hook whose judge is not placed, as in a fresh worktree, refuses in one line naming the
    judge and `plotplot lock verify`. Write the stem's region of `.gitignore`, one line,
    `/.plotplot/`, between `# plotplot:begin` and `# plotplot:end`; every other line of the
-   file is left alone.
+   file is left alone. `.plotplot/` is wholly machine-written and never committed, because a
+   pull request that could commit under `.plotplot/bin/` could choose its own judge. State a
+   bed must commit gets a home of its own outside it, named for what it holds (issue 18).
 7. Write or update the garden block in `AGENTS.md` (ten lines: what is planted, the season,
    orient, gates, help, that a fresh clone or worktree runs `plotplot init` before its first
    commit, that hard limits are enforced at the boundary). Nothing else in the file is
@@ -142,7 +144,7 @@ this class). The scheduled real-binary smoke in the proof repository runs `docto
 
 ## 7. What `check` does
 
-Runs every gate the manifests declare (`weeder check`, `petals check`, `tend2 lint`, `tend2
+Runs every gate the manifests declare (`weeder check`, `petals check`, `tend lint`, `tend
 gate` where a map exists, `weeder scan` when asked), each producing SARIF, and merges them into
 one SARIF 2.1.0 log with one `run` per tool. Exit 2 if any run has a block-level result, 3 if
 any gate could not run (fail closed), 0 otherwise. `--strict` passes through to the gates
@@ -178,8 +180,8 @@ reversed, into the range.
 The stem adds one description line for its own skill (under 160 characters) and the garden
 block (under 400 tokens with the skill lines of the default beds), measured by the same probe
 that measured 8,300 tokens on 2026-09-05 with everything planted and nothing deferred. No MCP
-server of its own. No briefing at session start beyond what tend2's own hook does; push
-orientation stays an experiment under tend2, gated on a copeca win.
+server of its own. No briefing at session start beyond what tend's own hook does; push
+orientation stays an experiment under tend, gated on a copeca win.
 
 ## 9. The proof run (the umbrella's integration check)
 
@@ -214,7 +216,7 @@ confirms the npm names and the receipts default.
 ## 12. Order of work
 
 1. Lock schema in contracts (with the manifest schema, already there); `plotplot lock`.
-2. `plotplot hook` dispatcher and `check` (merging SARIF from weeder, petals, tend2).
+2. `plotplot hook` dispatcher and `check` (merging SARIF from weeder, petals, tend).
 3. Bundle generation for Claude Code, then Gemini, then Codex; `init`.
 4. `doctor` static, then live via umbel.
 5. Friction emitter face (friction plan, step 2) and receipt draft/seal faces (receipts plan,

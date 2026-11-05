@@ -491,7 +491,7 @@ mod tests {
             concat!(
                 "plotplot 0.1.0\n",
                 "season 2026.09\n",
-                "tend2 1.0.0 (npm @plotplot/tend2)\n",
+                "tend 1.0.0 (npm @plotplot/tend)\n",
                 "tilth 0.10.1\n",
                 "weeder 0.1.0\n",
             )
@@ -511,7 +511,7 @@ mod tests {
         let text = version_text(Some(&lock));
         assert!(text.contains("\ntilth 0.10.1\n"), "{text}");
         assert!(
-            text.contains("\ntend2 1.0.0 (npm @plotplot/tend2)\n"),
+            text.contains("\ntend 1.0.0 (npm @plotplot/tend)\n"),
             "{text}"
         );
     }

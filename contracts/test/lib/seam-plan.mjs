@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // contracts/test/lib/seam-plan.mjs: the plan side of contracts/test/seam.test.sh. Reads a
-// map of tend2 loops with its own small reader of the loop format (FORMAT v1: the payload
+// map of tend loops with its own small reader of the loop format (FORMAT v1: the payload
 // in <script type="text/markdown" id="loop">, one check per line under ## Tests), so what
-// the plan must carry is derived from the map and never from tend2's own parser.
+// the plan must carry is derived from the map and never from tend's own parser.
 //
 // Usage:
 //   node seam-plan.mjs evidence-complete <map-dir> <repo-root>
 //     prints the id of each loop whose every check is (code) and names an evidence file
-//     that exists under <repo-root>: the loops the seam test closes with tend2 verify.
+//     that exists under <repo-root>: the loops the seam test closes with tend verify.
 //   node seam-plan.mjs schema-errors <ajv-log>
 //     reads what `ajv validate --errors=json` wrote for a refused plan and prints one line
 //     naming each place the plan breaks the schema.
@@ -26,7 +26,7 @@
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 
-const LOOP_SUFFIX = ".tend2.html";
+const LOOP_SUFFIX = ".tend.html";
 const LOOP_ID = /^[a-z][a-z0-9-]*$/;
 const LOOP_CHECK = /^[a-z][a-z0-9-]*:c[1-9][0-9]*$/;
 const PER_CHECK_NODE = /^(.+)\.c([1-9][0-9]*)$/;
@@ -132,7 +132,7 @@ function loopOfNode(id) {
 }
 
 // The check's verify command: the runner with the check's evidence substituted (what
-// `tend2 verify` runs for that check), or a `verify <loop file> --check <N>` invocation.
+// `tend verify` runs for that check), or a `verify <loop file> --check <N>` invocation.
 function isVerifyCommandOf(test, loop, check, runner, repoRoot) {
   const argv = toArgv(test);
   if (argv === null) return false;
@@ -275,15 +275,15 @@ function main(argv) {
       if (node === undefined) {
         const whole = byId.get(loop.id);
         const split = whole !== undefined && workKind(whole) !== "command"
-          ? `; ${loop.id} is one ${workKind(whole)} node for the whole loop, so the tend2 under test lacks the node per open code check that jahala/tend 158 added`
+          ? `; ${loop.id} is one ${workKind(whole)} node for the whole loop, so the tend under test lacks the node per open code check that jahala/tend 158 added`
           : "";
-        const phased = anyPhased ? "" : "; no node in the plan is phased, since tend2 emit-plan emits no {test, phases} work, jahala/tend 163";
+        const phased = anyPhased ? "" : "; no node in the plan is phased, since tend emit-plan emits no {test, phases} work, jahala/tend 163";
         assert(false, message, `no node ${perCheckId}${split}${phased}`);
         continue;
       }
       if (workKind(node) !== "phased") {
         assert(false, message,
-          `${node.id} is a ${workKind(node)} node, since tend2 emit-plan emits no {test, phases} work, jahala/tend 163`);
+          `${node.id} is a ${workKind(node)} node, since tend emit-plan emits no {test, phases} work, jahala/tend 163`);
         continue;
       }
       const phases = node.work.phases.map((p) => p.phase);
@@ -312,7 +312,7 @@ function main(argv) {
       assert(closing !== undefined && workKind(closing) === "command" && verifiesLoop && behind.length === 0,
         `${loop.id} closes with a command node carrying its own id that verifies ${loop.fileRel} after every per-check node`,
         closing === undefined ? `no node ${loop.id}`
-          : workKind(closing) !== "command" ? `${loop.id} is a ${workKind(closing)} node, so the tend2 under test lacks the closing command node that jahala/tend 158 added`
+          : workKind(closing) !== "command" ? `${loop.id} is a ${workKind(closing)} node, so the tend under test lacks the closing command node that jahala/tend 158 added`
           : [verifiesLoop ? "" : `its command does not verify ${loop.fileRel}`,
             behind.length === 0 ? "" : `it does not need ${behind.join(", ")}`].filter(Boolean).join("; "));
     }

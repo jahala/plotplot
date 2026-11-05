@@ -6,7 +6,7 @@
   "smoke": {
     "commands": [
       {
-        "argv": "tend2 lint docs/tend2/plotplot.tend2.html"
+        "argv": "tend lint docs/tend/plotplot.tend.html"
       }
     ]
   }

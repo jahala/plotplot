@@ -748,10 +748,10 @@ mod tests {
     #[test]
     fn the_commands_first_word_is_replaced_even_when_it_is_not_the_beds_name() {
         let root = Path::new("/work/repo");
-        let beds = [bed("tend2", Some("tend2"), Some("node lint docs/tend2"))];
+        let beds = [bed("tend", Some("tend"), Some("node lint docs/tend"))];
         let gates = gates(root, &beds, &[]).expect("a plain command");
-        assert_eq!(gates[0].program, root.join(".plotplot/bin/tend2"));
-        assert_eq!(gates[0].args, ["lint", "docs/tend2"]);
+        assert_eq!(gates[0].program, root.join(".plotplot/bin/tend"));
+        assert_eq!(gates[0].args, ["lint", "docs/tend"]);
     }
 
     #[test]

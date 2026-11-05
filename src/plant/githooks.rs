@@ -122,7 +122,7 @@ mod tests {
                 Some("weeder"),
                 &[GitHook::PreCommit, GitHook::PrePush, GitHook::PreRebase],
             ),
-            bed("tend2", Some("tend2"), &[GitHook::PostCommit]),
+            bed("tend", Some("tend"), &[GitHook::PostCommit]),
             bed("tilth", Some("tilth"), &[]),
         ]
     }
@@ -165,7 +165,7 @@ mod tests {
             script.contains("\"$root/.plotplot/bin/weeder\" guard pre-commit \"$@\" || exit $?\n"),
             "{script}"
         );
-        assert!(!script.contains("tend2"), "{script}");
+        assert!(!script.contains("tend"), "{script}");
         assert!(!script.contains("tilth"), "{script}");
     }
 
@@ -185,7 +185,7 @@ mod tests {
     fn pre_push_buffers_the_refs_so_every_guard_reads_them() {
         let beds = vec![
             bed("weeder", Some("weeder"), &[GitHook::PrePush]),
-            bed("tend2", Some("tend2"), &[GitHook::PrePush]),
+            bed("tend", Some("tend"), &[GitHook::PrePush]),
         ];
         let script = render(GitHook::PrePush, &beds);
         assert!(script.contains("refs=$(cat; printf x)\n"), "{script}");
@@ -216,8 +216,8 @@ mod tests {
             .find("\"$root/.plotplot/bin/plotplot\" receipt seal || exit $?")
             .expect("the seal");
         let guard = script
-            .find("\"$root/.plotplot/bin/tend2\" guard post-commit")
-            .expect("the tend2 guard");
+            .find("\"$root/.plotplot/bin/tend\" guard post-commit")
+            .expect("the tend guard");
         assert!(seal < guard, "{script}");
     }
 

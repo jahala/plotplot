@@ -1,7 +1,7 @@
 # identifiers
 
 The five identities every join in the garden rests on, and the marker grammar that
-carries them between files, per plotplot-ai issue 34. Pinned once, here, so `tend2 ledger`
+carries them between files, per plotplot-ai issue 34. Pinned once, here, so `tend ledger`
 (tend#154), the grade step (plotplot-ai#33), the prune fold (tend#151) and the ratchet
 (plotplot-ai#30) join records by the same keys instead of each inventing a convention.
 
@@ -38,10 +38,10 @@ against the other.
 
 ## loop id and check ordinal
 
-`<loop-id>:c<ordinal>`. `<loop-id>` is the loop file's name with its `.tend2.html`
-extension removed (`contracts.tend2.html` becomes `contracts`). `<ordinal>` is the check's
-1-based position in the loop's `## Tests` list, matching the `c<n>` tend2 already uses in
-its own Tried lines (`docs/tend2/FORMAT.md`, tend2's `## Tried` grammar: "attacked c6",
+`<loop-id>:c<ordinal>`. `<loop-id>` is the loop file's name with its `.tend.html`
+extension removed (`contracts.tend.html` becomes `contracts`). `<ordinal>` is the check's
+1-based position in the loop's `## Tests` list, matching the `c<n>` tend already uses in
+its own Tried lines (`docs/tend/FORMAT.md`, tend's `## Tried` grammar: "attacked c6",
 "judged c3").
 
 Carried by: stamps, Tried lines, plan nodes (`node.id` equals the loop id), proposals, the
@@ -49,7 +49,7 @@ PR projection.
 
 Grammar: `^[a-z][a-z0-9-]*:c[1-9][0-9]*$`. The loop id is lowercase, starts with a letter,
 and may contain digits and hyphens; the ordinal has no leading zero and is never `c0`,
-because tend2's checks are numbered from one.
+because tend's checks are numbered from one.
 
 ## proposal id
 

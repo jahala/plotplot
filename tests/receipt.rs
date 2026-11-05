@@ -101,7 +101,7 @@ fn fixture() -> (tempfile::TempDir, PathBuf) {
 
     write(&root.join("src/lib.rs"), "pub fn one() -> u8 {\n    1\n}\n");
     write(
-        &root.join("docs/tend2/rules-block.tend2.html"),
+        &root.join("docs/tend/rules-block.tend.html"),
         &loop_file(false),
     );
     git(&root, &["add", "-A"]);
@@ -401,7 +401,7 @@ fn changed_is_what_the_commit_touched_and_nothing_else() {
 
     assert_eq!(
         statement(&root, "HEAD")["predicate"]["changed"],
-        serde_json::json!(["docs/tend2/rules-block.tend2.html", "src/lib.rs"])
+        serde_json::json!(["docs/tend/rules-block.tend.html", "src/lib.rs"])
     );
 }
 
@@ -409,7 +409,7 @@ fn changed_is_what_the_commit_touched_and_nothing_else() {
 fn a_stamp_the_diff_adds_to_a_loop_is_carried_with_its_check_and_its_sha() {
     let (_tmp, root) = fixture();
     write(
-        &root.join("docs/tend2/rules-block.tend2.html"),
+        &root.join("docs/tend/rules-block.tend.html"),
         &loop_file(true),
     );
     git(&root, &["add", "-A"]);

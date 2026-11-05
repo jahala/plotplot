@@ -2053,7 +2053,7 @@ mod tests {
             ("src/lock.test.ts", PathKind::Test),
             ("src/lock.spec.ts", PathKind::Test),
             ("docs/plans/stem.md", PathKind::Doc),
-            ("docs/tend2/stem.tend2.html", PathKind::Doc),
+            ("docs/tend/stem.tend.html", PathKind::Doc),
             ("README.md", PathKind::Doc),
             ("notes.txt", PathKind::Doc),
             ("Cargo.toml", PathKind::Config),

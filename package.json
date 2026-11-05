@@ -5,7 +5,7 @@
   "description": "plotplot, the umbrella: brand, law, contracts and the map of the garden",
   "scripts": {
     "test": "bash scripts/contracts-test.sh",
-    "verify": "tend2 verify docs/tend2/contracts.tend2.html"
+    "verify": "tend verify docs/tend/contracts.tend.html"
   },
   "devDependencies": {
     "ajv": "^8.20.0",

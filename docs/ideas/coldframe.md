@@ -29,7 +29,7 @@ coldframe owns how tests run: where, when, at what weight, at what cost, and tha
 It does not own:
 - **judging a change to tests or workflows.** Deleted, skipped or weakened tests and workflow edits are weeder's rules T1 to T8 and C3, read from the diff.
 - **writing a project's workflows, git hooks or lock.** Those are the stem's. coldframe reads them and reports.
-- **stamping a claim as passed.** Only tend2's verifier writes pass.
+- **stamping a claim as passed.** Only tend's verifier writes pass.
 - **pacing agents or the subscription seat.** That is the gardener's and well's.
 - **deploys.** Those are transplant's.
 - **choosing what a project tests.** That is a person's call, with the test-setup skill's method. coldframe holds the declaration, measures it and keeps it true.
@@ -79,7 +79,7 @@ These are what coldframe never does. Each one gets a test that breaks it once.
 6. **It refuses to add a self-hosted runner to a public repository.** A pull request from anyone would run code as the owner. Its survey flags any that exist.
 7. **It spends nothing.** It reads billing, it never buys minutes, and it changes no spending limit.
 8. **Its own data has a lifetime.** Slots are bounded by their count, its logs are kept 30 days, survey reports are capped at the last 12, and measured times are kept per tier as only the latest.
-9. **It never writes "pass".** It reports an exit code and what leaked. tend2's verifier decides a claim.
+9. **It never writes "pass".** It reports an exit code and what leaked. tend's verifier decides a claim.
 
 ## How it is added
 
@@ -102,7 +102,7 @@ There is no model and no judge.
 
 - **Alone:** a machine tool and a project test bench.
 - **With weeder:** weeder blocks the diff that weakens a test, and coldframe runs the tests that remain.
-- **With tend2:** a verify script can call `coldframe run` and read its exit code and leak report as evidence.
+- **With tend:** a verify script can call `coldframe run` and read its exit code and leak report as evidence.
 - **With the stem:** the stem plants it and dispatches its pre-push guard. The stem's `garden` workflow job should follow one of D2's two runner conventions, not hard-code a hosted runner. Today it hard-codes one, and hosted runs fail for private repositories.
 - **With the gardener and almanac, later:** `status` and `measure` are what they would read.
 

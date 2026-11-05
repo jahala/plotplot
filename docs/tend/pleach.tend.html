@@ -8,7 +8,7 @@
 <noscript>This page renders its markdown payload with JavaScript — enable JS, or read the raw payload in the page source.</noscript>
 <script type="text/markdown" id="loop">
 # pleach — the conductor, gating at the node
-**Goal.** pleach conducts a DAG of verified agent work in isolated worktrees and publishes only what passed its gates. To belong to the tended repository it adopts three things: the test phase commits separately from the implementation, so `weeder bite` is a checkout and a run; `weeder check --strict` is its default smoke gate, so honesty is judged at the node before the pull request; and every node's handback must carry a Tried entry, so the theory of the program is written by whoever changed it. Its plan schema stays the plan contract. Module work lives in `~/conductor/repos/pleach/docs/tend2/`.
+**Goal.** pleach conducts a DAG of verified agent work in isolated worktrees and publishes only what passed its gates. To belong to the tended repository it adopts three things: the test phase commits separately from the implementation, so `weeder bite` is a checkout and a run; `weeder check --strict` is its default smoke gate, so honesty is judged at the node before the pull request; and every node's handback must carry a Tried entry, so the theory of the program is written by whoever changed it. Its plan schema stays the plan contract. Module work lives in `~/conductor/repos/pleach/docs/tend/`.
 
 ## Tests
 - [ ] (code) fit contract F1, F3, F4, F5, F6 pass for pleach at the pinned version: manifest, standalone install, zero declared context cost, verified-close-rate metric committed, brand layer and footer · scripts/fit/pleach.sh
@@ -24,7 +24,7 @@
 - [ ] (code) a planted secret in a worker's output never reaches disk: the journal, the run log, the receipt's handback and quarantine notes pass through the stem's `plotplot redact` before every write, per `contracts/redaction.md`, proven with the contract's fixture rows planted in a worker handback · scripts/fit/pleach.sh journal-redaction
 - [ ] (human) the owner confirms the landing page qualifies the slogan once: code decides what code can decide; the audit is a second model's judgment in a shape code can refuse
 
-## Needs #weeder #tend2 #umbel #contracts
+## Needs #weeder #tend #umbel #contracts
 
 ## For
 - #the-worker-agent

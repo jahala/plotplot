@@ -28,9 +28,9 @@ fn bed(name: &str, version: &str, binary: Option<&str>, git_hooks: &[GitHook]) -
 fn planted_beds() -> Vec<Bed> {
     vec![
         bed(
-            "tend2",
+            "tend",
             "1.0.0",
-            Some("tend2"),
+            Some("tend"),
             &[GitHook::PreCommit, GitHook::PostCommit],
         ),
         bed("tilth", "0.10.1", Some("tilth"), &[]),
@@ -88,25 +88,25 @@ fn repository() -> tempfile::TempDir {
     dir
 }
 
-/// tend2's block, copied byte for byte from this repository's AGENTS.md, which is also that
-/// file as it was before the stem planted it. The stem never renders it: it is what tend2's
+/// tend's block, copied byte for byte from this repository's AGENTS.md, which is also that
+/// file as it was before the stem planted it. The stem never renders it: it is what tend's
 /// init writes, and the input these tests plant beside.
-fn tend2_block_fixture() -> String {
-    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/AGENTS.tend2.md");
-    std::fs::read_to_string(&path).expect("the tend2 block fixture")
+fn tend_block_fixture() -> String {
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/AGENTS.tend.md");
+    std::fs::read_to_string(&path).expect("the tend block fixture")
 }
 
-/// What `sed -n '/tend2:begin/,/tend2:end/p'` prints: the whole lines from the first that
-/// carries tend2's begin marker through the next that carries its end marker.
-fn tend2_region(agents_md: &str) -> String {
+/// What `sed -n '/tend:begin/,/tend:end/p'` prints: the whole lines from the first that
+/// carries tend's begin marker through the next that carries its end marker.
+fn tend_region(agents_md: &str) -> String {
     agents_md
         .split_inclusive('\n')
-        .skip_while(|line| !line.contains("<!-- tend2:begin -->"))
+        .skip_while(|line| !line.contains("<!-- tend:begin -->"))
         .scan(false, |ended, line| {
             if *ended {
                 return None;
             }
-            *ended = line.contains("<!-- tend2:end -->");
+            *ended = line.contains("<!-- tend:end -->");
             Some(line)
         })
         .collect()
@@ -148,7 +148,7 @@ fn the_block_is_marked_short_and_says_what_a_planted_repository_needs() {
         );
     }
     assert!(block.contains("2026.09"), "{block}");
-    assert!(block.contains("tend2 next docs/tend2"), "{block}");
+    assert!(block.contains("tend next docs/tend"), "{block}");
     assert!(block.contains("plotplot check"), "{block}");
     assert!(block.contains("plotplot doctor"), "{block}");
     assert!(block.contains("--no-verify"), "{block}");
@@ -164,11 +164,11 @@ fn the_block_is_marked_short_and_says_what_a_planted_repository_needs() {
 
 #[test]
 fn the_block_lands_after_an_unplanted_agents_md_and_leaves_it_alone() {
-    let agents = tend2_block_fixture();
+    let agents = tend_block_fixture();
     let block = garden_block::render("2026.09", &planted_beds());
 
     let planted = garden_block::replace_in(&agents, &block).expect("a file with no markers");
-    assert!(planted.starts_with(&agents), "the tend2 block moved");
+    assert!(planted.starts_with(&agents), "the tend block moved");
     assert!(planted.contains(&block));
     assert!(
         planted[agents.len()..].starts_with('\n'),
@@ -178,7 +178,7 @@ fn the_block_lands_after_an_unplanted_agents_md_and_leaves_it_alone() {
 
 #[test]
 fn planting_the_same_block_twice_changes_nothing_the_second_time() {
-    let agents = tend2_block_fixture();
+    let agents = tend_block_fixture();
     let block = garden_block::render("2026.09", &planted_beds());
 
     let once = garden_block::replace_in(&agents, &block).expect("the first planting");
@@ -188,14 +188,14 @@ fn planting_the_same_block_twice_changes_nothing_the_second_time() {
 
 #[test]
 fn a_new_block_replaces_only_the_marked_region() {
-    let agents = tend2_block_fixture();
+    let agents = tend_block_fixture();
     let old = garden_block::render("2026.09", &planted_beds());
     let new = garden_block::render("2026.10", &planted_beds()[..1]);
 
     let planted = garden_block::replace_in(&agents, &old).expect("the first planting");
     let replanted = garden_block::replace_in(&planted, &new).expect("the second planting");
 
-    assert!(replanted.starts_with(&agents), "the tend2 block moved");
+    assert!(replanted.starts_with(&agents), "the tend block moved");
     assert!(replanted.contains(&new));
     assert!(!replanted.contains("2026.09"), "{replanted}");
     assert_eq!(
@@ -209,7 +209,7 @@ fn a_new_block_replaces_only_the_marked_region() {
 fn a_begin_marker_without_an_end_is_refused() {
     let agents = format!(
         "{}\n{}\nplanted\n",
-        tend2_block_fixture(),
+        tend_block_fixture(),
         garden_block::BEGIN
     );
     let block = garden_block::render("2026.09", &planted_beds());
@@ -222,9 +222,9 @@ fn a_begin_marker_without_an_end_is_refused() {
     }
 }
 
-// ------------------------------------------- garden_block beside tend2's block
+// ------------------------------------------- garden_block beside tend's block
 
-// tend2's init writes its own block between `<!-- tend2:begin -->` and `<!-- tend2:end -->`,
+// tend's init writes its own block between `<!-- tend:begin -->` and `<!-- tend:end -->`,
 // beside the garden block, and each init leaves the other's bytes alone (jahala/plotplot
 // issue 28, ruled 2026-09-10 on the contracts loop). Every comparison here is of bytes.
 
@@ -232,29 +232,28 @@ const PROSE: &str = "This repository keeps notes of its own here.\n";
 const MORE_PROSE: &str = "## Written by hand\n\nNobody else's to move.\n";
 
 #[test]
-fn planting_beside_tend2s_block_alone_keeps_it_first_and_the_garden_block_one_blank_line_below() {
-    let tend2 = tend2_block_fixture();
+fn planting_beside_tends_block_alone_keeps_it_first_and_the_garden_block_one_blank_line_below() {
+    let tend = tend_block_fixture();
     let block = garden_block::render("2026.09", &planted_beds());
 
-    let planted =
-        garden_block::replace_in(&tend2, &block).expect("a file with no plotplot markers");
+    let planted = garden_block::replace_in(&tend, &block).expect("a file with no plotplot markers");
 
     let (before, after) = outside_the_garden_block(&planted);
     assert_eq!(
         before,
-        format!("{tend2}\n").as_bytes(),
-        "the bytes before the garden block are not tend2's block and one blank line:\n{planted}"
+        format!("{tend}\n").as_bytes(),
+        "the bytes before the garden block are not tend's block and one blank line:\n{planted}"
     );
     assert_eq!(after, b"\n", "{planted}");
-    assert_eq!(tend2_region(&planted), tend2);
+    assert_eq!(tend_region(&planted), tend);
 }
 
 #[test]
-fn replanting_between_tend2s_block_and_prose_moves_no_byte_outside_the_markers() {
-    let tend2 = tend2_block_fixture();
+fn replanting_between_tends_block_and_prose_moves_no_byte_outside_the_markers() {
+    let tend = tend_block_fixture();
     let older = garden_block::render("2026.09", &[bed("weeder", "0.1.0", Some("weeder"), &[])]);
     let newer = garden_block::render("2026.09", &[bed("weeder", "0.2.2", Some("weeder"), &[])]);
-    let agents = format!("{tend2}\n{PROSE}\n{older}\n\n{MORE_PROSE}");
+    let agents = format!("{tend}\n{PROSE}\n{older}\n\n{MORE_PROSE}");
 
     let planted = garden_block::replace_in(&agents, &newer).expect("one marked region");
 
@@ -266,16 +265,16 @@ fn replanting_between_tend2s_block_and_prose_moves_no_byte_outside_the_markers()
         &planted.as_bytes()[before.len()..planted.len() - after.len()],
         newer.as_bytes()
     );
-    assert!(planted.as_bytes().starts_with(tend2.as_bytes()));
-    assert_eq!(tend2_region(&planted), tend2);
+    assert!(planted.as_bytes().starts_with(tend.as_bytes()));
+    assert_eq!(tend_region(&planted), tend);
 }
 
 #[test]
-fn planting_above_tend2s_block_leaves_it_byte_for_byte_below_the_garden_block() {
-    let tend2 = tend2_block_fixture();
+fn planting_above_tends_block_leaves_it_byte_for_byte_below_the_garden_block() {
+    let tend = tend_block_fixture();
     let older = garden_block::render("2026.09", &[bed("weeder", "0.1.0", Some("weeder"), &[])]);
     let newer = garden_block::render("2026.09", &planted_beds());
-    let agents = format!("{older}\n\n{tend2}");
+    let agents = format!("{older}\n\n{tend}");
 
     let planted = garden_block::replace_in(&agents, &newer).expect("one marked region");
 
@@ -283,26 +282,26 @@ fn planting_above_tend2s_block_leaves_it_byte_for_byte_below_the_garden_block() 
     assert_eq!(before, b"", "{planted}");
     assert_eq!(
         after,
-        format!("\n\n{tend2}").as_bytes(),
-        "tend2's block is not where it was below the garden block:\n{planted}"
+        format!("\n\n{tend}").as_bytes(),
+        "tend's block is not where it was below the garden block:\n{planted}"
     );
-    assert_eq!(tend2_region(&planted), tend2);
+    assert_eq!(tend_region(&planted), tend);
 }
 
 #[test]
 fn another_seasons_block_changes_only_the_marked_region_in_every_layout() {
-    let tend2 = tend2_block_fixture();
+    let tend = tend_block_fixture();
     let this_season = garden_block::render("2026.09", &planted_beds());
     let next_season = garden_block::render("2026.10", &planted_beds());
     let layouts = [
-        ("tend2's block alone", tend2.clone()),
+        ("tend's block alone", tend.clone()),
         (
-            "tend2's block, prose, the garden block, prose",
-            format!("{tend2}\n{PROSE}\n{this_season}\n\n{MORE_PROSE}"),
+            "tend's block, prose, the garden block, prose",
+            format!("{tend}\n{PROSE}\n{this_season}\n\n{MORE_PROSE}"),
         ),
         (
-            "the garden block above tend2's block",
-            format!("{this_season}\n\n{tend2}"),
+            "the garden block above tend's block",
+            format!("{this_season}\n\n{tend}"),
         ),
     ];
 
@@ -322,21 +321,21 @@ fn another_seasons_block_changes_only_the_marked_region_in_every_layout() {
             next_season.as_bytes(),
             "{layout}: the marked region is not the next season's block"
         );
-        assert_eq!(tend2_region(&replanted), tend2, "{layout}");
+        assert_eq!(tend_region(&replanted), tend, "{layout}");
     }
 }
 
 #[test]
-fn the_tend2_fixture_is_this_repositorys_tend2_block_byte_for_byte() {
+fn the_tend_fixture_is_this_repositorys_tend_block_byte_for_byte() {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("AGENTS.md");
     let live = std::fs::read_to_string(&path).expect("this repository's AGENTS.md");
 
-    let region = tend2_region(&live);
+    let region = tend_region(&live);
     assert!(
-        region.starts_with("<!-- tend2:begin -->\n") && region.ends_with("<!-- tend2:end -->\n"),
-        "AGENTS.md carries no whole tend2 block:\n{region}"
+        region.starts_with("<!-- tend:begin -->\n") && region.ends_with("<!-- tend:end -->\n"),
+        "AGENTS.md carries no whole tend block:\n{region}"
     );
-    assert_eq!(tend2_block_fixture(), region);
+    assert_eq!(tend_block_fixture(), region);
 }
 
 // ------------------------------------------------------------------- githooks
@@ -411,7 +410,7 @@ fn each_hook_calls_exactly_the_beds_that_declared_it() {
 
     let pre_commit = githooks::render(GitHook::PreCommit, &beds);
     assert!(
-        pre_commit.contains(".plotplot/bin/tend2\" guard pre-commit"),
+        pre_commit.contains(".plotplot/bin/tend\" guard pre-commit"),
         "{pre_commit}"
     );
     assert!(
@@ -425,7 +424,7 @@ fn each_hook_calls_exactly_the_beds_that_declared_it() {
         pre_push.contains(".plotplot/bin/weeder\" guard pre-push"),
         "{pre_push}"
     );
-    assert!(!pre_push.contains("tend2"), "{pre_push}");
+    assert!(!pre_push.contains("tend"), "{pre_push}");
 
     let pre_rebase = githooks::render(GitHook::PreRebase, &beds);
     assert!(
@@ -439,16 +438,16 @@ fn each_hook_calls_exactly_the_beds_that_declared_it() {
         "{post_commit}"
     );
     assert!(
-        post_commit.contains(".plotplot/bin/tend2\" guard post-commit"),
+        post_commit.contains(".plotplot/bin/tend\" guard post-commit"),
         "{post_commit}"
     );
     let seal = post_commit
         .find("receipt seal")
         .expect("the receipt seal call");
-    let tend2 = post_commit
+    let tend = post_commit
         .find("guard post-commit")
-        .expect("the tend2 guard");
-    assert!(seal < tend2, "the beds run before the seal:\n{post_commit}");
+        .expect("the tend guard");
+    assert!(seal < tend, "the beds run before the seal:\n{post_commit}");
 }
 
 #[test]
@@ -583,10 +582,10 @@ fn recorded(repo: &Path, name: &str) -> Option<String> {
 
 #[test]
 fn pre_push_hands_every_guard_the_same_refs_and_the_same_arguments() {
-    let repo = repository_with_judges(&[("weeder", 0), ("tend2", 0)]);
+    let repo = repository_with_judges(&[("weeder", 0), ("tend", 0)]);
     let beds = vec![
         bed("weeder", "0.1.0", Some("weeder"), &[GitHook::PrePush]),
-        bed("tend2", "1.0.0", Some("tend2"), &[GitHook::PrePush]),
+        bed("tend", "1.0.0", Some("tend"), &[GitHook::PrePush]),
     ];
     let refs = "refs/heads/master abc123 refs/heads/master def456\n";
 
@@ -599,7 +598,7 @@ fn pre_push_hands_every_guard_the_same_refs_and_the_same_arguments() {
     );
 
     assert_eq!(code, 0);
-    for binary in ["weeder", "tend2"] {
+    for binary in ["weeder", "tend"] {
         assert_eq!(
             recorded(repo.path(), &format!("{binary}.stdin")).as_deref(),
             Some(refs),
@@ -615,10 +614,10 @@ fn pre_push_hands_every_guard_the_same_refs_and_the_same_arguments() {
 
 #[test]
 fn the_first_guard_that_refuses_ends_the_hook_with_its_own_status() {
-    let repo = repository_with_judges(&[("weeder", 7), ("tend2", 0)]);
+    let repo = repository_with_judges(&[("weeder", 7), ("tend", 0)]);
     let beds = vec![
         bed("weeder", "0.1.0", Some("weeder"), &[GitHook::PreCommit]),
-        bed("tend2", "1.0.0", Some("tend2"), &[GitHook::PreCommit]),
+        bed("tend", "1.0.0", Some("tend"), &[GitHook::PreCommit]),
     ];
 
     let code = run_hook(repo.path(), GitHook::PreCommit, &beds, &[], "");
@@ -626,24 +625,24 @@ fn the_first_guard_that_refuses_ends_the_hook_with_its_own_status() {
     assert_eq!(code, 7);
     assert!(recorded(repo.path(), "weeder.args").is_some());
     assert!(
-        recorded(repo.path(), "tend2.args").is_none(),
+        recorded(repo.path(), "tend.args").is_none(),
         "the second guard ran after the first refused"
     );
 }
 
 #[test]
 fn post_commit_seals_when_the_stem_is_fetched_and_passes_by_when_it_is_not() {
-    let beds = vec![bed("tend2", "1.0.0", Some("tend2"), &[GitHook::PostCommit])];
+    let beds = vec![bed("tend", "1.0.0", Some("tend"), &[GitHook::PostCommit])];
 
-    let without = repository_with_judges(&[("tend2", 0)]);
+    let without = repository_with_judges(&[("tend", 0)]);
     assert_eq!(
         run_hook(without.path(), GitHook::PostCommit, &beds, &[], ""),
         0
     );
     assert!(recorded(without.path(), "plotplot.args").is_none());
-    assert!(recorded(without.path(), "tend2.args").is_some());
+    assert!(recorded(without.path(), "tend.args").is_some());
 
-    let with = repository_with_judges(&[("plotplot", 0), ("tend2", 0)]);
+    let with = repository_with_judges(&[("plotplot", 0), ("tend", 0)]);
     assert_eq!(
         run_hook(with.path(), GitHook::PostCommit, &beds, &[], ""),
         0
@@ -652,7 +651,7 @@ fn post_commit_seals_when_the_stem_is_fetched_and_passes_by_when_it_is_not() {
         recorded(with.path(), "plotplot.args").as_deref(),
         Some("receipt seal")
     );
-    assert!(recorded(with.path(), "tend2.args").is_some());
+    assert!(recorded(with.path(), "tend.args").is_some());
 }
 
 #[test]

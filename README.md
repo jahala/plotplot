@@ -77,7 +77,7 @@ The crate's tests are the specification: `cargo test` runs them, and `scripts/fi
 | `src/`, `tests/` | the stem, a Rust crate at the root |
 | `.brand/` | the canonical brand in petals' structure; `tokens.css` and `tokens.json` are derived |
 | `docs/building-the-garden.md` | the law every bed agent follows: invariants, the fit contract, mandates, anti-goals |
-| `docs/tend2/` | the umbrella map: one fit loop per bed, plus contracts, stem, friction, receipts |
+| `docs/tend/` | the umbrella map: one fit loop per bed, plus contracts, stem, friction, receipts |
 | `docs/plans/` | plans for the tools that were unbuilt when they were written |
 | `docs/prompts/` | the briefs bed agents were started from, and transcripts of channel messages |
 | `docs/dogfood/` | the pleach plans the stem was built with |

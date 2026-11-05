@@ -2,7 +2,7 @@
 # Validates fixture SARIF logs against the official SARIF 2.1.0 JSON schema, vendored at
 # contracts/vendor/sarif-schema-2.1.0.json with its sha256 checked against contracts/pins.json
 # on every run. One fixture exists today: weeder's `check --format sarif`. petals and
-# tend2 do not emit SARIF yet (docs/tend2/contracts.tend2.html Tried, 2026-09-08), so their
+# tend do not emit SARIF yet (docs/tend/contracts.tend.html Tried, 2026-09-08), so their
 # fixtures are recorded as absent rather than invented. Run from the repository root, no
 # arguments. Prints one line per assertion. Exits 0 if every assertion passed, 1 otherwise.
 set -u
@@ -61,7 +61,7 @@ trash "$tmp_broken" >/dev/null 2>&1 || true
 
 # The check names three beds with a check face. A bed with no SARIF fixture is a failure of
 # the claim, never a skip: a green run over two of three beds would stamp an empty room.
-for bed in petals tend2; do
+for bed in petals tend; do
   fixture="contracts/fixtures/sarif/${bed}-check.sarif.json"
   if [ ! -f "$fixture" ]; then
     assert 1 "$bed emits no SARIF yet, so $fixture does not exist and the claim is not proven for $bed"

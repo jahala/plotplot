@@ -107,7 +107,7 @@ So the outcomes are kept apart and each is reported on its own:
   changes the garden's own records mark as corrective, the calibration ledger's
   judged blocks and the loops' Tried lines that name where a repair landed;
 - where the records allow it, effort and regressions on matched maintenance
-  tasks, which the garden has in pleach receipts and the tend2 ledger.
+  tasks, which the garden has in pleach receipts and the tend ledger.
 
 The experiment ranks on several chronological cutoffs, with repositories held
 out from any tuning, against three baselines: churn alone, size alone, churn

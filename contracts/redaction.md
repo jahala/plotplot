@@ -7,7 +7,7 @@ implements once and every bed calls before it writes agent-produced text anywher
 
 A worker that reads a `.env` file puts its contents verbatim into its output, and a shell
 command that prints a token puts it in the tool result. umbel captures that output, pleach
-journals it and seals the handback into a receipt, tend2 transcribes it into a Tried line, and
+journals it and seals the handback into a receipt, tend transcribes it into a Tried line, and
 the umbrella commits receipts and loops. The owner's hard limit is that a secret never reaches a
 log or a committed file. That holds only if scrubbing happens before persistence, on the one
 path that writes, so every reader downstream (verify, ledger, export, a pull request) inherits
@@ -65,5 +65,5 @@ is a live credential, and a fixture that ever held one would be replaced, not ro
 One claim per bed's fit script, verified by the umbrella: a planted secret in a worker's output
 never reaches disk. umbel: capture, read, logs and the opencode plugin's event and log files
 (jahala/umbel 82). pleach: the journal, the run log, the receipt's handback and quarantine notes
-(jahala/pleach 107). tend2: Tried lines and the ledger (jahala/tend 211). A bed calls the face
+(jahala/pleach 107). tend: Tried lines and the ledger (jahala/tend 211). A bed calls the face
 through the planted stem; a bed that reimplements the layers has drifted.

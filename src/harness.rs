@@ -592,7 +592,7 @@ mod tests {
                 .to_owned(),
         };
         let block = Answer::Block {
-            reason: "plotplot: the loop's checks are not stamped; run `tend2 verify`.".to_owned(),
+            reason: "plotplot: the loop's checks are not stamped; run `tend verify`.".to_owned(),
         };
 
         assert_eq!(
@@ -601,7 +601,7 @@ mod tests {
         );
         assert_eq!(
             render_answer(Harness::Claude, "Stop", &block),
-            r#"{"decision":"block","reason":"plotplot: the loop's checks are not stamped; run `tend2 verify`."}"#
+            r#"{"decision":"block","reason":"plotplot: the loop's checks are not stamped; run `tend verify`."}"#
         );
         assert_eq!(
             render_answer(Harness::Gemini, "BeforeTool", &deny),
@@ -609,7 +609,7 @@ mod tests {
         );
         assert_eq!(
             render_answer(Harness::Gemini, "AfterAgent", &block),
-            r#"{"decision":"block","reason":"plotplot: the loop's checks are not stamped; run `tend2 verify`."}"#
+            r#"{"decision":"block","reason":"plotplot: the loop's checks are not stamped; run `tend verify`."}"#
         );
         assert_eq!(
             render_answer(Harness::Codex, "PreToolUse", &deny),
@@ -617,7 +617,7 @@ mod tests {
         );
         assert_eq!(
             render_answer(Harness::Codex, "Stop", &block),
-            r#"{"decision":"block","reason":"plotplot: the loop's checks are not stamped; run `tend2 verify`."}"#
+            r#"{"decision":"block","reason":"plotplot: the loop's checks are not stamped; run `tend verify`."}"#
         );
     }
 

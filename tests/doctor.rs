@@ -550,12 +550,12 @@ fn a_judge_whose_recorded_digest_differs_fails_the_judges_check() {
 #[test]
 fn a_missing_judge_fails_the_judges_check() {
     let (root, home) = planted();
-    std::fs::remove_file(layout::judge_binary(root.path(), "tend2")).expect("tend2 is removed");
+    std::fs::remove_file(layout::judge_binary(root.path(), "tend")).expect("tend is removed");
 
     let (code, rows) = doctor(root.path(), home.path());
     assert_eq!(code, 3);
     only_failure(&rows, "judges");
-    assert!(detail(&rows, "judges").contains("tend2"));
+    assert!(detail(&rows, "judges").contains("tend"));
 }
 
 #[test]
