@@ -11,4 +11,5 @@
 pub mod garden_block;
 pub mod gitconfig;
 pub mod githooks;
+pub mod gitignore;
 pub mod region;

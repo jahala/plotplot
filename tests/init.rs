@@ -618,6 +618,78 @@ fn the_pull_request_workflow_runs_the_strict_check_on_a_hosted_runner() {
     assert!(workflow.contains("runs-on: ubuntu-latest"), "{workflow}");
 }
 
+// --------------------------------------------------------- the ignores, and a clone
+
+#[test]
+fn planting_ignores_everything_the_stem_writes_and_keeps_the_planters_own_ignores() {
+    let (tmp, root, template) = fixture();
+    let home = tmp.path().join("home");
+    write(&root.join(".gitignore"), "node_modules/\n*.log\n");
+
+    let output = init(
+        &root,
+        &home,
+        &[
+            "--harness",
+            "gemini,codex",
+            "--lock",
+            &template.display().to_string(),
+        ],
+    );
+    assert!(output.status.success(), "{output:?}");
+
+    let ignore = read(&root.join(".gitignore"));
+    assert!(ignore.starts_with("node_modules/\n*.log\n"), "{ignore}");
+    assert!(ignore.contains("# plotplot:begin\n"), "{ignore}");
+    assert!(ignore.contains("\n/.plotplot/\n"), "{ignore}");
+    assert!(ignore.ends_with("# plotplot:end\n"), "{ignore}");
+
+    // Everything the planting fetched and generated under .plotplot/ is out of git's view.
+    let status = std::process::Command::new("git")
+        .arg("-C")
+        .arg(&root)
+        .args(["status", "--porcelain", "--untracked-files=all"])
+        .output()
+        .expect("git status");
+    let status = String::from_utf8_lossy(&status.stdout);
+    assert!(
+        !status.lines().any(|line| line.contains(".plotplot/")),
+        "{status}"
+    );
+}
+
+#[test]
+fn a_fresh_clone_of_a_planted_repository_is_told_to_plant_before_its_first_commit() {
+    let (tmp, root, _template, _home) = planted();
+    git(&root, &["add", "--all"]);
+    git(
+        &root,
+        &[
+            "-c",
+            "core.hooksPath=/dev/null",
+            "commit",
+            "--quiet",
+            "--message",
+            "planted",
+        ],
+    );
+    let clone = tmp.path().join("clone");
+    git(
+        tmp.path(),
+        &["clone", "--quiet", &root.display().to_string(), "clone"],
+    );
+
+    // git carries no hooks configuration into a clone, and gives a repository no way to
+    // set one, so the clone's first commit runs none of the committed hooks.
+    assert!(git_config(&clone, "core.hooksPath").is_empty());
+    assert!(!clone.join(".plotplot").exists());
+    // What the clone carries tells whoever works in it, before that commit.
+    let agents = read(&clone.join("AGENTS.md"));
+    assert!(agents.contains("fresh clone or worktree"), "{agents}");
+    assert!(agents.contains("`plotplot init`"), "{agents}");
+    assert!(read(&clone.join(".gitignore")).contains("\n/.plotplot/\n"));
+}
+
 // ------------------------------------------------------- 9. what it says, and twice
 
 #[test]

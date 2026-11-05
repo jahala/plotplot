@@ -73,10 +73,16 @@ pub fn render(hook: GitHook, beds: &[Bed]) -> String {
             "# The first guard that refuses ends the {name}, with its own status.\n"
         ));
         for binary in guards {
-            let call = format!(
-                "\"$root/{bin}/{binary}\" guard {name} \"$@\"",
-                bin = bin_dir()
-            );
+            let judge = format!("$root/{bin}/{binary}", bin = bin_dir());
+            // A fresh worktree shares core.hooksPath and not the ignored judges, so a judge
+            // that is not there is refused by name and with the fix, never by the shell.
+            script.push_str(&format!("if [ ! -x \"{judge}\" ]; then\n"));
+            script.push_str(&format!(
+                "\techo \"plotplot: {binary}, a judge {name} calls, is not placed in this \
+                 checkout; run \\`plotplot lock verify\\` here, then try again\" >&2\n"
+            ));
+            script.push_str("\texit 1\nfi\n");
+            let call = format!("\"{judge}\" guard {name} \"$@\"");
             if hook == GitHook::PrePush {
                 script.push_str(&format!("printf '%s' \"$refs\" | {call} || exit $?\n"));
             } else {

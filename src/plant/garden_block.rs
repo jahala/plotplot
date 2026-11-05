@@ -40,6 +40,7 @@ Season: {season}.
 - Orient first: `tend2 next docs/tend2` says what is next, what is running, and what went stale.
 - Gates: `plotplot check` runs every planted gate and returns one SARIF log.
 - Help: `plotplot doctor` says whether the law is live, and what is missing when it is not.
+- In a fresh clone or worktree, run `plotplot init` before the first commit: until then the hooks do not run there, or refuse.
 - The hard limits are enforced at the boundary: `--no-verify` is refused, and `{lock}` and `{hooks}/` are the stem's to write.
 {END}",
         lock = layout::GARDEN_LOCK,

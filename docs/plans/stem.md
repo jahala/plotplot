@@ -109,9 +109,16 @@ range, the judges are the base's (section 7).
    project-scope install, write the project config file directly and say so in `doctor`.
 6. Write `.githooks/pre-commit`, `pre-push`, `pre-rebase`, `post-commit` (weeder guard, receipt
    seal), set `core.hooksPath .githooks`, add the receipts ref to fetch and push refspecs.
+   A hook whose judge is not placed, as in a fresh worktree, refuses in one line naming the
+   judge and `plotplot lock verify`. Write the stem's region of `.gitignore`, one line,
+   `/.plotplot/`, between `# plotplot:begin` and `# plotplot:end`; every other line of the
+   file is left alone.
 7. Write or update the garden block in `AGENTS.md` (ten lines: what is planted, the season,
-   orient, gates, help, that hard limits are enforced at the boundary). Nothing else in the
-   file is touched; the block is marked and replaced in place.
+   orient, gates, help, that a fresh clone or worktree runs `plotplot init` before its first
+   commit, that hard limits are enforced at the boundary). Nothing else in the file is
+   touched; the block is marked and replaced in place. git gives a repository no way to run
+   its hooks in a fresh clone, so the block is what tells an agent there, and the pull
+   request check judges the range whatever ran locally.
 8. Print what changed. A second run changes nothing and says so.
 
 `init` never installs anything globally and never edits a user-scope settings file. Codex
