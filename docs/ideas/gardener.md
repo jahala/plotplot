@@ -14,7 +14,7 @@ what happened. When the session closes or the person sleeps, the factory stops.
 The gardener owns the choice of what runs next, and the brief it hands to the agent that runs
 it. It does not plan the work inside a product (tend2 does), run it (pleach and umbel do), judge
 whether it is done (tend2's verifier does), keep the calendar (almanac does), or decide anything
-the compass reserves for the owner (gate holds those).
+the compass reserves for the owner (hedge's queue holds those).
 
 ## How it works
 
@@ -24,7 +24,7 @@ The gardener is an agent, and each wake-up is one turn, the same command every t
    factory's health from `plotplot status`; what each product's map says is next
    (`tend2 next`); the budgets and the seat in well.
 2. **Choose.** One action, or none, from the candidates the maps and almanac offer, under the
-   compass's priorities. If the action needs a yes, it asks through gate and chooses something
+   compass's priorities. If the action needs a yes, it asks through hedge's queue and chooses something
    else meanwhile.
 3. **Act.** Start the bed's agent through umbel with a brief built from the work order: who the
    work is for, the paths, the acceptance checks, the rules. One seat unless the compass allows
@@ -32,12 +32,12 @@ The gardener is an agent, and each wake-up is one turn, the same command every t
 4. **Record.** The choice, the reason, the alternatives it passed over and the outcome, in
    almanac's log.
 
-It stops at the first failure, records it, and tells the owner through gate when the failure
+It stops at the first failure, records it, and tells the owner through hedge's queue when the failure
 needs a person.
 
 ## What code decides
 
-Whether it may act at all: hedge's limits, well's budgets and seat, gate's yeses. Which
+Whether it may act at all: hedge's limits and the owner's yeses, well's budgets and seat. Which
 candidates exist: tend2 and almanac, never the gardener's own invention. Whether work is done:
 the verifier. The gardener's judgment is only the choice among allowed candidates and the
 writing of the brief, and every choice is recorded so it can be checked.

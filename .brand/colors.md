@@ -65,8 +65,7 @@ colour already. `/petals check` warns when one product's accent appears in anoth
 | the shed | wood and iron | mycelium | #C9A18D | same | ink | messages between agents |
 | the shed | wood and iron | weeder | #A37A6E | same | ink | the judge of the diff |
 | the shed | wood and iron | stake | #774F4C | #835A57 | paper | docs that stay true, planned |
-| the boundary | stone | hedge | #C9C7E7 | same | ink | hard limits, being built |
-| the boundary | stone | gate | #8F94B2 | same | ink | the owner's queue, being built |
+| the boundary | stone | hedge | #C9C7E7 | same | ink | hard limits and the owner's queue, being built |
 | the boundary | stone | well | #4D5972 | #58647E | paper | the one door for paid calls |
 | the seasons | weather | gardener | #C7C784 | same | ink | what runs next, planned |
 | the seasons | weather | almanac | #A19251 | same | ink | what is due, planned |
@@ -174,10 +173,6 @@ Color is only on-brand when it is legible. Classes: **reading** ≥ 4.5:1 (body,
 | Hedge #C9C7E7 on Night #1C1610 | 10.9 | labels |
 | Night #1C1610 on Hedge #C9C7E7 | 10.9 | reading |
 | Night #1C1610 on Hedge #C9C7E7 | 10.9 | reading |
-| Gate #8F94B2 on Paper #FAF5E9 | 2.7 | decorative |
-| Gate #8F94B2 on Night #1C1610 | 6.0 | labels |
-| Night #1C1610 on Gate #8F94B2 | 6.0 | reading |
-| Night #1C1610 on Gate #8F94B2 | 6.0 | reading |
 | Well #4D5972 on Paper #FAF5E9 | 6.5 | labels |
 | Well-night #58647E on Night #1C1610 | 3.0 | labels |
 | Night-text #F3ECD9 on Well #4D5972 | 6.0 | reading |
@@ -304,7 +299,6 @@ Dark mode is "soil at night," not a harsh developer theme. Embedded terminal pan
   --pp-stake: #774F4C;
   /* the boundary: stone */
   --pp-hedge: #C9C7E7;
-  --pp-gate: #8F94B2;
   --pp-well: #4D5972;
   /* the seasons: weather */
   --pp-gardener: #C7C784;

@@ -23,7 +23,7 @@ notes and advisories (mull fetches them), plan the work (tend2) or run it (pleac
    the models and APIs the product calls; renewal and expiry dates from transplant and well.
 2. **Decide.** Each item becomes one of: a deadline in almanac (renew the domain by this date), a
    proposed loop for the product's map (upgrade this framework, with its checks), or an alert to
-   the owner through gate (a security advisory with a known exploit).
+   the owner through hedge's queue (a security advisory with a known exploit).
 3. **Batch.** Small upgrades of the same kind across products are proposed together, so one plan
    runs them all and lands each on its own product's checks.
 

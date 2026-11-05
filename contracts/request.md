@@ -1,12 +1,12 @@
 # Requests for the owner's answer, and the answers
 
-The contract between every tool that needs the owner's yes, gate (`jahala/gate`), which keeps the
-requests and their answers, and hedge (`jahala/hedge`), which refuses an act until gate holds a yes
-bound to that exact act (`docs/decisions/2026-10-26-layers.md`, rule 8). The rule they share, the
+The contract between every tool that needs the owner's yes and hedge (`jahala/hedge`), which keeps
+the requests and their answers and refuses an act until a yes bound to that exact act holds
+(`docs/decisions/2026-10-26-layers.md`, rule 8; `docs/decisions/2026-11-05-gate-folds-into-hedge.md`). The rule they share, the
 exact bytes a digest is computed over and when a yes holds, lives in the vector
 `contracts/fixtures/request/vector.json`, which every implementation passes. Schema:
 `contracts/request.schema.json`. Fixtures: `contracts/fixtures/request/`. Test:
-`contracts/test/request.test.sh`. First drafted by gate.
+`contracts/test/request.test.sh`. First drafted by gate, the queue's own tool until 2026-11-05; the format ids keep its name.
 
 ## Files
 
@@ -15,8 +15,9 @@ exact bytes a digest is computed over and when a yes holds, lives in the vector
 | `requests/<digest>.json` | one request, written once when it is first asked |
 | `answers/<digest>.json` | the answer to that request, written once |
 
-Both live in the owner's gate folder, `~/.local/share/plotplot/owner/gate/` by default. `<digest>`
-is the request's digest. Anything else in the folder is gate's own and not part of this contract.
+Both live in the owner's requests folder, `~/.local/share/plotplot/owner/requests/` by default.
+`<digest>` is the request's digest. Anything else in the folder is hedge's own and not part of this
+contract.
 
 ## A request
 
@@ -29,7 +30,7 @@ is the request's digest. Anything else in the folder is gate's own and not part 
 | `evidence` | yes | yes | what the owner should look at, in order; may be empty |
 | `options` | yes | yes | the answers that say go; never `no`, which every request may be answered |
 | `act` | no | yes | the exact act a yes allows, below |
-| `asked_at` | yes | no | when gate first recorded the request |
+| `asked_at` | yes | no | when hedge first recorded the request |
 | `expires_at` | yes | no | the moment after which the answer is no |
 | `waiting` | no | no | what waits on the answer, one item each; it ranks the request |
 
@@ -75,10 +76,10 @@ must match or must differ, `differ` naming the bound field that changed.
 | `format` | `gate-answer/1` |
 | `request` | the digest of the request it answers |
 | `answer` | one of the request's options, or `no` |
-| `by` | `owner`, or `expiry` when gate answered because the request expired unanswered |
+| `by` | `owner`, or `expiry` when hedge answered because the request expired unanswered |
 | `at` | when the answer was recorded, UTC |
 
-An answer by expiry is always `no`, recorded at or after the request's `expires_at`. gate records an
+An answer by expiry is always `no`, recorded at or after the request's `expires_at`. hedge records an
 owner's answer only before the expiry.
 
 ## When a yes holds
@@ -109,12 +110,12 @@ is ever rewritten. No lock is needed.
 ## Lifetime
 
 Requests answered by the owner are kept with their answers: they are the proof an act was approved.
-A request that expired unanswered is kept a year after its expiry, then gate compacts it to one
+A request that expired unanswered is kept a year after its expiry, then hedge compacts it to one
 line and moves its two files to the Trash.
 
 ## Open questions
 
 - Whether a yes for an act is spent by its first use, or holds for a window, and who records the
-  use. hedge would keep the use in its own state, since gate's folder is gate's to write.
+  use. hedge keeps the use beside the answer.
 - Whether the owner can grant a standing yes for a class of acts, with an expiry, and how hedge
   reads it.

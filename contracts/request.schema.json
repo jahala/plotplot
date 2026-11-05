@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://plotplot.ai/contracts/request.schema.json",
   "title": "request or answer",
-  "description": "One request for the owner's answer, or the answer to one request, each one file in the owner's gate folder. See contracts/request.md.",
+  "description": "One request for the owner's answer, or the answer to one request, each one file in the owner's requests folder. See contracts/request.md.",
   "oneOf": [
     {"$ref": "#/$defs/request"},
     {"$ref": "#/$defs/answer"}
