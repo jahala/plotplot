@@ -58,6 +58,8 @@ pub enum Error {
     },
     /// A receipt the stem could not seal, read or believe, named by the commit it is about.
     Receipt { commit: String, problem: String },
+    /// A range the stem will not judge as it stands, named by its base.
+    Range { base: String, problem: String },
 }
 
 /// The crate's result type; failure always lives here rather than in a panic.
@@ -89,6 +91,7 @@ impl fmt::Display for Error {
             Error::Archive { path, problem } => write!(f, "{}: {problem}", path.display()),
             Error::Install { harness, problem } => write!(f, "{harness}: {problem}"),
             Error::Receipt { commit, problem } => write!(f, "{commit}: {problem}"),
+            Error::Range { base, problem } => write!(f, "--base {base}: {problem}"),
         }
     }
 }
@@ -110,7 +113,8 @@ impl std::error::Error for Error {
             | Error::Checksum { .. }
             | Error::Archive { .. }
             | Error::Install { .. }
-            | Error::Receipt { .. } => None,
+            | Error::Receipt { .. }
+            | Error::Range { .. } => None,
         }
     }
 }

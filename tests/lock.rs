@@ -169,3 +169,139 @@ fn a_lock_the_contracts_refuse_answers_one_and_names_the_schema() {
     let said = String::from_utf8_lossy(&output.stderr);
     assert!(said.contains(lock::SCHEMA_REFUSED), "{said}");
 }
+
+// ------------------------------------------------------------------ the base's lock
+
+/// git in `repo`, with an identity of its own and no hook or signing of the machine's, and
+/// what it printed.
+fn git(repo: &Path, args: &[&str]) -> String {
+    let output = std::process::Command::new("git")
+        .arg("-C")
+        .arg(repo)
+        .args([
+            "-c",
+            "user.name=plotplot test",
+            "-c",
+            "user.email=test@plotplot.invalid",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "-c",
+            "commit.gpgSign=false",
+        ])
+        .args(args)
+        .output()
+        .expect("git runs on the build machine");
+    assert!(
+        output.status.success(),
+        "git {}: {}",
+        args.join(" "),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    String::from_utf8_lossy(&output.stdout).into_owned()
+}
+
+/// A repository whose first commit pins tilth at `PINNED` and whose second moves the pin to
+/// `STALE`, the way a pull request edits the lock; the judge placed is the base's, with its
+/// record. It answers the base commit.
+fn a_lock_the_change_moved() -> (tempfile::TempDir, String) {
+    let root = tempfile::tempdir().expect("a temporary root");
+    let path = root.path();
+    git(path, &["init", "--quiet"]);
+    write(&path.join(".gitignore"), ".plotplot/\n");
+    write(
+        &layout::garden_lock(path),
+        &lock_for(lock::platform(), UNREACHABLE, PINNED),
+    );
+    git(path, &["add", "--all"]);
+    git(path, &["commit", "--quiet", "--message", "the base"]);
+    let base = git(path, &["rev-parse", "HEAD"]).trim().to_owned();
+
+    write(
+        &layout::garden_lock(path),
+        &lock_for(lock::platform(), UNREACHABLE, STALE),
+    );
+    git(
+        path,
+        &["commit", "--quiet", "--all", "--message", "the change"],
+    );
+
+    write(&layout::judge_binary(path, "tilth"), "the base's judge\n");
+    write(&layout::judge_digest(path, "tilth"), &format!("{PINNED}\n"));
+    (root, base)
+}
+
+#[test]
+fn with_a_base_the_judges_are_the_ones_the_bases_lock_pins() {
+    let (root, base) = a_lock_the_change_moved();
+
+    let output = plotplot(root.path())
+        .args(["lock", "verify", "--base", &base])
+        .output()
+        .expect("the stem runs");
+    assert_eq!(
+        output.status.code(),
+        Some(0),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(
+        String::from_utf8_lossy(&output.stdout),
+        "tilth 0.10.1 verified\n"
+    );
+}
+
+#[test]
+fn without_a_base_the_judges_are_the_ones_the_working_tree_pins() {
+    let (root, _base) = a_lock_the_change_moved();
+
+    let output = plotplot(root.path())
+        .args(["lock", "verify"])
+        .output()
+        .expect("the stem runs");
+    // The tree's lock pins other bytes than the placed judge, so they are fetched, from a
+    // host that never resolves.
+    assert_eq!(output.status.code(), Some(1));
+    assert!(String::from_utf8_lossy(&output.stderr).contains(UNREACHABLE));
+}
+
+#[test]
+fn a_base_git_cannot_read_answers_one_and_names_it() {
+    let (root, _base) = a_lock_the_change_moved();
+
+    let output = plotplot(root.path())
+        .args(["lock", "verify", "--base", "origin/no-such-branch"])
+        .output()
+        .expect("the stem runs");
+    assert_eq!(output.status.code(), Some(1));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("origin/no-such-branch"), "{stderr}");
+    assert_eq!(
+        std::fs::read_to_string(layout::judge_digest(root.path(), "tilth"))
+            .expect("the record")
+            .trim(),
+        PINNED,
+        "nothing was placed over a base that could not be read"
+    );
+}
+
+#[test]
+fn a_base_that_carries_no_lock_answers_one_and_says_so() {
+    let (root, _base) = a_lock_the_change_moved();
+    let path = root.path();
+    git(path, &["checkout", "--quiet", "--orphan", "bare"]);
+    git(path, &["rm", "--quiet", "--cached", "garden.lock"]);
+    git(
+        path,
+        &["commit", "--quiet", "--allow-empty", "--message", "no lock"],
+    );
+    let bare = git(path, &["rev-parse", "HEAD"]).trim().to_owned();
+
+    let output = plotplot(path)
+        .args(["lock", "verify", "--base", &bare])
+        .output()
+        .expect("the stem runs");
+    assert_eq!(output.status.code(), Some(1));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("garden.lock"), "{stderr}");
+    assert!(stderr.contains(&bare), "{stderr}");
+}

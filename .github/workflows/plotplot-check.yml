@@ -31,19 +31,28 @@ jobs:
         # This repository is the stem's own, so the gate builds it from the checkout.
         run: cargo install --locked --path .
 
-      - name: resolve the pinned judges
-        run: plotplot lock verify
-
-      - name: plotplot check --strict
-        # Every gate judges the pull request's range: the tree against the commit where it
-        # left its base branch. The merge base rather than the base branch's tip, because a
-        # tip that moved on since would put its own new commits, reversed, into the range.
+      - name: the pull request's range
+        id: range
+        # The tree against the commit where the pull request left its base branch. The merge
+        # base rather than the base branch's tip, because a tip that moved on since would put
+        # its own new commits, reversed, into the range.
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
           git fetch --no-tags origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
           base="$(git merge-base "origin/$BASE_REF" HEAD)"
-          plotplot check --strict --base "$base"
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+
+      - name: resolve the judges the base pins
+        # Over a range, every judge is the one the base's garden.lock pins.
+        env:
+          BASE: ${{ steps.range.outputs.base }}
+        run: plotplot lock verify --base "$BASE"
+
+      - name: plotplot check --strict
+        env:
+          BASE: ${{ steps.range.outputs.base }}
+        run: plotplot check --strict --base "$BASE"
 
       - name: petals is petals' own, unedited
         # petals/ is vendored with petals' vendor.sh and stamped in petals/VERSION; take a release by running it again.

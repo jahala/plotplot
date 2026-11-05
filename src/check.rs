@@ -17,6 +17,12 @@
 //! fails to answer, and that is exit 3. A range that changes no tracked file is said in the
 //! log by a note of the stem's own, so a quiet run cannot pass for a judged one.
 //!
+//! Over a range, the judges are the ones the base's `garden.lock` pins, never the change's:
+//! a gate whose bed the base does not pin, or whose placed judge is not the one the base
+//! pins, does not run and is a gate that could not run. A tree that carries files under
+//! `.plotplot/`, which only the stem writes, is not judged at all, because its judges and
+//! their records would be the change's own.
+//!
 //! Nothing here reads the current directory: the repository root is a parameter, and the
 //! only paths under it come from [`crate::layout`].
 
@@ -32,6 +38,7 @@ use serde_json::Value;
 use crate::bed::Bed;
 use crate::cli::CheckArgs;
 use crate::error::{Error, Result};
+use crate::lock::{self, Lock};
 use crate::{layout, manifest, sarif};
 
 /// Every gate ran, and none of them blocked.
@@ -173,17 +180,131 @@ pub fn gates(root: &Path, beds: &[Bed], strict_checkers: &[String]) -> Result<Ve
 /// and nothing waits on a check the way a vendor waits on a hook. Each gate's stdout is the
 /// log it is judged on, whatever it exited with, because a gate that finds a block exits
 /// non-zero and has still answered.
+///
+/// Over a range, a gate the base's lock does not pin as placed is not called, and its
+/// outcome says why.
 pub fn run(
     root: &Path,
     gates: &[Gate],
     strict: bool,
-    base: Option<&str>,
+    range: Option<&Range>,
     timeout: Duration,
 ) -> Vec<GateOutcome> {
     gates
         .iter()
-        .map(|gate| call(root, gate, strict, base, timeout))
+        .map(
+            |gate| match range.and_then(|range| unpinned(root, gate, range)) {
+                Some(problem) => GateOutcome::CouldNotRun {
+                    bed: gate.bed.clone(),
+                    problem,
+                },
+                None => call(
+                    root,
+                    gate,
+                    strict,
+                    range.map(|range| range.base.as_str()),
+                    timeout,
+                ),
+            },
+        )
         .collect()
+}
+
+/// What a run over a range knows about it before any gate runs.
+#[derive(Clone, Debug)]
+pub struct Range {
+    /// The ref every gate is handed.
+    pub base: String,
+    /// Whether the range changes no tracked file.
+    pub empty: bool,
+    /// The lock the base carries, which names the judges; `None` when it carries none.
+    pub lock: Option<Lock>,
+}
+
+impl Range {
+    /// Read the range from `base` to the working tree.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Git`] when git cannot read `base` or the tree, [`Error::Range`] when the
+    /// tree carries files under `.plotplot/`, and whatever [`lock::read_base_lock`]
+    /// refuses.
+    pub fn read(root: &Path, base: &str) -> Result<Range> {
+        let empty = range_is_empty(root, base)?;
+        let carried = stems_files_in_the_tree(root)?;
+        if !carried.is_empty() {
+            let shown: Vec<&str> = carried.iter().take(5).map(String::as_str).collect();
+            let more = carried.len().saturating_sub(shown.len());
+            return Err(Error::Range {
+                base: base.to_owned(),
+                problem: format!(
+                    "the tree carries {}{}, under .plotplot/, which only the stem writes; over a \
+                     range the judges and their records come from the base's garden.lock, so a \
+                     tree that brings its own is not judged",
+                    shown.join(", "),
+                    if more > 0 {
+                        format!(" and {more} more")
+                    } else {
+                        String::new()
+                    }
+                ),
+            });
+        }
+        Ok(Range {
+            base: base.to_owned(),
+            empty,
+            lock: lock::read_base_lock(root, base)?,
+        })
+    }
+}
+
+/// Why a gate is not the judge the base's lock pins, or `None` when it is.
+fn unpinned(root: &Path, gate: &Gate, range: &Range) -> Option<String> {
+    let Some(judge) = range
+        .lock
+        .as_ref()
+        .and_then(|lock| lock.judges.get(&gate.bed))
+    else {
+        return Some(format!(
+            "the base's garden.lock at {} pins no judge named {}, so it does not judge the range",
+            range.base, gate.bed
+        ));
+    };
+    let differs = match lock::pinned_as(root, &gate.bed, judge, lock::platform()) {
+        Ok(None) => return None,
+        Ok(Some(differs)) => differs,
+        Err(error) => error.to_string(),
+    };
+    Some(format!(
+        "is not the judge the base's garden.lock at {base} pins ({differs}); run plotplot lock \
+         verify --base {base} first",
+        base = range.base
+    ))
+}
+
+/// The tracked files under `.plotplot/`, which a planted repository never commits.
+fn stems_files_in_the_tree(root: &Path) -> Result<Vec<String>> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(root)
+        .args(["ls-files", "-z", "--", layout::PLOTPLOT_DIR])
+        .stdin(Stdio::null())
+        .output()
+        .map_err(|source| Error::Git {
+            command: "git ls-files -- .plotplot".to_owned(),
+            stderr: source.to_string(),
+        })?;
+    if !output.status.success() {
+        return Err(Error::Git {
+            command: "git ls-files -- .plotplot".to_owned(),
+            stderr: manifest::one_line(&String::from_utf8_lossy(&output.stderr)),
+        });
+    }
+    Ok(String::from_utf8_lossy(&output.stdout)
+        .split('\0')
+        .filter(|path| !path.is_empty())
+        .map(str::to_owned)
+        .collect())
 }
 
 /// Whether the range from `base` to the working tree changes no tracked file.
@@ -391,20 +512,19 @@ pub fn run_face(
     stdout: &mut dyn Write,
     stderr: &mut dyn Write,
 ) -> i32 {
-    let base = args.base.as_deref();
     let planned = plan(root).and_then(|gates| {
-        let empty = match base {
-            Some(base) => range_is_empty(root, base)?,
-            None => false,
+        let range = match args.base.as_deref() {
+            Some(base) => Some(Range::read(root, base)?),
+            None => None,
         };
-        Ok((gates, empty))
+        Ok((gates, range))
     });
     let outcomes = match planned {
-        Ok((gates, empty)) => {
-            let mut outcomes = run(root, &gates, args.strict, base, TIMEOUT);
-            if let (true, Some(base)) = (empty, base) {
-                let _ = writeln!(stderr, "{}", empty_range_text(base));
-                outcomes.push(GateOutcome::Sarif(empty_range(base)));
+        Ok((gates, range)) => {
+            let mut outcomes = run(root, &gates, args.strict, range.as_ref(), TIMEOUT);
+            if let Some(range) = range.as_ref().filter(|range| range.empty) {
+                let _ = writeln!(stderr, "{}", empty_range_text(&range.base));
+                outcomes.push(GateOutcome::Sarif(empty_range(&range.base)));
             }
             outcomes
         }

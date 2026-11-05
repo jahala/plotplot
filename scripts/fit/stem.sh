@@ -13,7 +13,8 @@
 #   scripts/fit/stem.sh check        `plotplot check` runs the gate the manifests declare, the
 #                                    pinned weeder, and emits one valid SARIF 2.1.0 log; exit 2
 #                                    on a block-level result, 3 when the judge could not run;
-#                                    with --base, a committed test deletion blocks (T1) and a
+#                                    with --base, a committed test deletion blocks (T1) under
+#                                    the base's pin while the change pins another judge, and a
 #                                    range that changes nothing says so in the log
 #   scripts/fit/stem.sh init         `plotplot init` plants a fixture repository: the garden
 #                                    block beside tend2's, which it leaves byte for byte, the
@@ -869,9 +870,8 @@ CHECK_JUDGE="weeder"
 # A fixture repository with one feature and its test, committed, and weeder planted as its
 # only gate, fetched and verified through the lock. The manifest is
 # `contracts/fixtures/manifest/weeder.garden.json`, unedited, so the gate command the stem
-# runs is the one the contracts declare. `.plotplot/` and the fixture's `garden.lock` are
-# ignored, so the judge's own bytes and the lock written after the first commit are never
-# part of what it judges.
+# runs is the one the contracts declare. The lock is committed with the first commit, so the
+# base of every range pins the judge; `.plotplot/` is ignored, as in a planted repository.
 plant_check_fixture() {
   local repo="$1" platform lookup version url sha
   mkdir -p "$repo" || fail "could not make the fixture repository at $repo"
@@ -894,14 +894,7 @@ test("parses an empty string", () => {
   expect(parse("")).toBe(0);
 });
 TEST
-  printf '%s\n' ".plotplot/" "garden.lock" > "$repo/.gitignore"
-  git -C "$repo" add src tests .gitignore || fail "could not stage the fixture's first commit"
-  git -C "$repo" commit -qm "the feature and its test" || fail "could not commit the fixture"
-
-  mkdir -p "$repo/.plotplot/beds/$CHECK_JUDGE"
-  cp "$ROOT/contracts/fixtures/manifest/$CHECK_JUDGE.garden.json" \
-     "$repo/.plotplot/beds/$CHECK_JUDGE/garden.json" \
-    || fail "could not copy the $CHECK_JUDGE manifest"
+  printf '%s\n' ".plotplot/" > "$repo/.gitignore"
 
   platform="$(fit_platform)"
   lookup="$(fit_lock_lookup "$ROOT/contracts/fixtures/garden.lock" "$CHECK_JUDGE" "$platform" 2>&1)" \
@@ -919,6 +912,13 @@ version = "$version"
 url = "$url"
 sha256 = "$sha"
 LOCK
+  git -C "$repo" add src tests .gitignore garden.lock || fail "could not stage the fixture's first commit"
+  git -C "$repo" commit -qm "the feature and its test" || fail "could not commit the fixture"
+
+  mkdir -p "$repo/.plotplot/beds/$CHECK_JUDGE"
+  cp "$ROOT/contracts/fixtures/manifest/$CHECK_JUDGE.garden.json" \
+     "$repo/.plotplot/beds/$CHECK_JUDGE/garden.json" \
+    || fail "could not copy the $CHECK_JUDGE manifest"
   ( cd "$repo" && "$STEM" lock verify ) >"$repo/.plotplot/verify.out" 2>&1 \
     || { cat "$repo/.plotplot/verify.out" >&2; fail "plotplot lock verify could not fetch $CHECK_JUDGE $version for $platform"; }
   note "the judge: $CHECK_JUDGE $version from $url, sha256 $sha, fetched and verified by plotplot lock verify"
@@ -997,10 +997,30 @@ check_check() {
     || { cat "$tmp/blocked.json" >&2; fail "the blocked change's log carries no block-level result"; }
   note "deleted test file: exit 2, one run by $CHECK_JUDGE, $(log_blocks "$tmp/blocked.json") block-level result(s)"
 
-  # 3. The same deletion committed, the view CI has of a pull request: the tree is clean, so
-  #    a check without a range has no change before it, and the range from the base blocks.
-  git -C "$repo" -c core.hooksPath=/dev/null commit -qm "the test, deleted" \
+  # 3. The same deletion committed, the view CI has of a pull request, with a lock that pins
+  #    other bytes for the judge, as a pull request can: the tree is clean, so a check
+  #    without a range has no change before it, and the range from the base blocks, judged
+  #    by the base's pin.
+  local pinned bent
+  pinned="$(fit_lock_lookup "$repo/garden.lock" "$CHECK_JUDGE" "$(fit_platform)" | jq -r '.sha256')" \
+    || fail "could not read the fixture's own pin"
+  bent="$(bend_digest "$pinned")"
+  sed -i.orig "s/$pinned/$bent/" "$repo/garden.lock" || fail "could not move the fixture's pin"
+  mv "$repo/garden.lock.orig" "$tmp/garden.lock.orig" || fail "could not set sed's backup aside"
+  git -C "$repo" -c core.hooksPath=/dev/null commit -qam "the test, deleted, and another judge pinned" \
     || fail "could not commit the deletion"
+
+  ( cd "$repo" && "$STEM" lock verify ) >"$tmp/moved.out" 2>&1
+  status=$?
+  [ "$status" -eq 3 ] \
+    || { cat "$tmp/moved.out" >&2; fail "plotplot lock verify exited $status on the change's own pin, not 3"; }
+  ( cd "$repo" && "$STEM" lock verify --base "$base" ) >"$tmp/based.out" 2>&1
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/based.out" >&2; fail "plotplot lock verify --base exited $status on the base's pin, not 0"; }
+  grep -q "^$CHECK_JUDGE .* verified$" "$tmp/based.out" \
+    || { cat "$tmp/based.out" >&2; fail "lock verify --base did not keep the base's $CHECK_JUDGE"; }
+  note "the change's pin: lock verify exit 3 (mismatch); lock verify --base: exit 0, the base's judge kept"
   ( cd "$repo" && "$STEM" check --strict ) >"$tmp/no-range.json" 2>"$tmp/no-range.err"
   status=$?
   [ "$status" -eq 0 ] \
@@ -1270,8 +1290,10 @@ check_init() {
   # 8. The gate every pull request passes, on a hosted runner and no other.
   local workflow="$repo/.github/workflows/plotplot-check.yml"
   [ -f "$workflow" ] || fail "init wrote no pull request workflow"
-  grep -qx '        run: plotplot check --strict' "$workflow" \
-    || { cat "$workflow" >&2; fail "the workflow has no step running plotplot check --strict"; }
+  grep -qxF '        run: plotplot lock verify --base "$BASE"' "$workflow" \
+    || { cat "$workflow" >&2; fail "the workflow has no step resolving the judges the base pins"; }
+  grep -qxF '        run: plotplot check --strict --base "$BASE"' "$workflow" \
+    || { cat "$workflow" >&2; fail "the workflow has no step running plotplot check --strict over the range"; }
   # The job's name is the status check the ruleset requires (ruled 2026-09-10): a job
   # renamed away from it silently unprotects the default branch.
   grep -qx "    name: $REQUIRED_CHECK" "$workflow" \
@@ -1283,7 +1305,7 @@ check_init() {
   fi
   [ ! -e "$repo/.github/CODEOWNERS" ] \
     || fail "plain init wrote .github/CODEOWNERS, which only --github writes"
-  note "the pull request gate: job $REQUIRED_CHECK, a step running plotplot check --strict, on a hosted runner"
+  note "the pull request gate: job $REQUIRED_CHECK, the base's judges resolved, plotplot check --strict over the range, on a hosted runner"
 
   # 9. And a second run changes nothing, and says so.
   tree_hash "$repo" > "$tmp/before.hashes"
