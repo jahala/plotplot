@@ -203,6 +203,41 @@ fn two_gates_become_one_log_of_two_runs_that_the_sarif_schema_accepts() {
     assert_eq!(log["runs"].as_array().expect("runs").len(), 2, "{merged}");
 }
 
+/// petals' own log as `petals gate` writes it: an error, a warning and a note from one real change.
+fn petals_log() -> Value {
+    let text = std::fs::read_to_string(contracts("fixtures/sarif/petals-check.sarif.json"))
+        .expect("the contracts' petals SARIF fixture");
+    serde_json::from_str(&text).expect("the petals fixture is JSON")
+}
+
+#[test]
+fn petals_real_log_and_weeders_become_one_log_that_blocks_on_petals_error() {
+    let fixture = Fixture::new();
+    fixture
+        .bed("weeder", "weeder", "weeder check --format sarif", false)
+        .bed("petals", "petals", "petals gate --format sarif", true)
+        .gate("weeder", Some(&sarif_log("weeder", false)), 0)
+        .gate("petals", Some(&petals_log()), 1);
+
+    let output = fixture.check(&[]);
+    // One error-level result in petals' log blocks the merged run.
+    assert_eq!(code_of(&output), 2, "{}", stderr_of(&output));
+
+    let merged = stdout_of(&output);
+    let log = sarif::validate(&merged).expect("the merged log validates against the schema");
+    assert_eq!(tool_names(&log), ["petals", "weeder"]);
+    let ids: Vec<&str> = log["runs"][0]["results"]
+        .as_array()
+        .expect("petals' results")
+        .iter()
+        .map(|result| result["ruleId"].as_str().expect("a rule id"))
+        .collect();
+    assert_eq!(
+        ids,
+        ["content/placeholder", "color/off-palette", "layout/spacing"]
+    );
+}
+
 #[test]
 fn the_merged_logs_tool_names_are_each_gates_own() {
     let fixture = Fixture::new();

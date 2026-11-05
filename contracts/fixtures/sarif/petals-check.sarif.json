@@ -1,0 +1,201 @@
+{
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "results": [
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/designs/draft.html"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "placeholder copy. Write the real words, or keep this page under a mockup path."
+          },
+          "ruleId": "content/placeholder"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "public/index.html"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "#3B82F6 is not in the palette. Did you mean #4E88A6?"
+          },
+          "properties": {
+            "suggestion": "#4E88A6"
+          },
+          "ruleId": "color/off-palette"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "public/index.html"
+                },
+                "region": {
+                  "startLine": 2
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "13px is outside the spacing scale. Did you mean 12px or 16px?"
+          },
+          "properties": {
+            "suggestion": "12px or 16px"
+          },
+          "ruleId": "layout/spacing"
+        }
+      ],
+      "tool": {
+        "driver": {
+          "informationUri": "https://github.com/jahala/petals",
+          "name": "petals",
+          "rules": [
+            {
+              "id": "color/contrast",
+              "shortDescription": {
+                "text": "A text and background pair below its contrast minimum"
+              }
+            },
+            {
+              "id": "color/off-palette",
+              "shortDescription": {
+                "text": "A colour that is not in the palette"
+              }
+            },
+            {
+              "id": "color/product-accent",
+              "shortDescription": {
+                "text": "Another product's accent in this product's UI"
+              }
+            },
+            {
+              "id": "content/dead-link",
+              "shortDescription": {
+                "text": "A link to # in a production page"
+              }
+            },
+            {
+              "id": "content/dummy-contact",
+              "shortDescription": {
+                "text": "A dummy phone number, address or name in a production page"
+              }
+            },
+            {
+              "id": "content/placeholder",
+              "shortDescription": {
+                "text": "Placeholder copy in a production page"
+              }
+            },
+            {
+              "id": "layout/breakpoint",
+              "shortDescription": {
+                "text": "A breakpoint the brand does not document"
+              }
+            },
+            {
+              "id": "layout/spacing",
+              "shortDescription": {
+                "text": "Spacing off the scale"
+              }
+            },
+            {
+              "id": "surface/garden-row",
+              "shortDescription": {
+                "text": "A footer garden row that differs from the brand's"
+              }
+            },
+            {
+              "id": "surface/motion",
+              "shortDescription": {
+                "text": "An easing that bounces or overshoots"
+              }
+            },
+            {
+              "id": "surface/radius",
+              "shortDescription": {
+                "text": "A radius off the radius scale"
+              }
+            },
+            {
+              "id": "surface/shadow",
+              "shortDescription": {
+                "text": "A shadow that is not a documented recipe"
+              }
+            },
+            {
+              "id": "surface/stroke",
+              "shortDescription": {
+                "text": "A border, outline or ring width off the stroke tokens"
+              }
+            },
+            {
+              "id": "typography/family",
+              "shortDescription": {
+                "text": "A font family outside typography.md"
+              }
+            },
+            {
+              "id": "typography/faux-style",
+              "shortDescription": {
+                "text": "A weight or italic the face does not have"
+              }
+            },
+            {
+              "id": "typography/unloaded-family",
+              "shortDescription": {
+                "text": "A brand family the page never loads"
+              }
+            },
+            {
+              "id": "voice/casing",
+              "shortDescription": {
+                "text": "A product name not in lowercase"
+              }
+            },
+            {
+              "id": "voice/em-dash",
+              "shortDescription": {
+                "text": "An em dash where the brand bans them"
+              }
+            },
+            {
+              "id": "voice/forbidden-term",
+              "shortDescription": {
+                "text": "A term the brand forbids"
+              }
+            },
+            {
+              "id": "voice/terminology",
+              "shortDescription": {
+                "text": "A synonym where the brand has a canonical term"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}
