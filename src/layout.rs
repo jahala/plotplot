@@ -22,6 +22,8 @@ pub const AGENTS_MD: &str = "AGENTS.md";
 pub const GARDEN_JSON: &str = "garden.json";
 /// Where GitHub reads code owners from; `init --github` writes the stem's region of it.
 pub const CODEOWNERS: &str = ".github/CODEOWNERS";
+/// What git leaves out of view; `init` writes the stem's region of it.
+pub const GITIGNORE: &str = ".gitignore";
 
 /// `garden.lock`, the pinned judges. Committed.
 pub fn garden_lock(root: &Path) -> PathBuf {
@@ -36,6 +38,11 @@ pub fn agents_md(root: &Path) -> PathBuf {
 /// `.github/CODEOWNERS`, which carries the stem's region between its markers. Committed.
 pub fn codeowners(root: &Path) -> PathBuf {
     root.join(CODEOWNERS)
+}
+
+/// `.gitignore`, which carries the stem's region between its markers. Committed.
+pub fn gitignore(root: &Path) -> PathBuf {
+    root.join(GITIGNORE)
 }
 
 /// `.githooks/`, what `core.hooksPath` is set to. Committed.

@@ -24,7 +24,7 @@ use crate::error::{Error, Result};
 use crate::fetch::Https;
 use crate::harness::Harness;
 use crate::lock::{self, JudgeState, Lock};
-use crate::plant::{garden_block, gitconfig, githooks};
+use crate::plant::{garden_block, gitconfig, githooks, gitignore};
 use crate::platform::{self, Gh, GhCli, Unapplied, Unreachable};
 use crate::{install, layout, manifest};
 
@@ -643,9 +643,11 @@ fn plant(
         planted.notes.extend(installed.notes);
     }
 
-    // 6. The git hooks, and the configuration that makes git run them.
+    // 6. The git hooks, the configuration that makes git run them, and the ignores that keep
+    //    the stem's own state out of every commit.
     write_git_hooks(root, &beds, &mut planted)?;
     write_git_config(root, &mut planted)?;
+    write_gitignore(root, &mut planted)?;
 
     // 7. The garden block, and the repository's own manifest.
     write_garden_block(root, &lock, &beds, &mut planted)?;
@@ -778,6 +780,24 @@ fn write_git_config(root: &Path, planted: &mut Planted) -> Result<()> {
         gitconfig::Receipts::AlreadyHere
         | gitconfig::Receipts::NoneOnRemote
         | gitconfig::Receipts::NoOrigin => {}
+    }
+    Ok(())
+}
+
+/// The stem's region of `.gitignore`, and every other line of that file left alone.
+fn write_gitignore(root: &Path, planted: &mut Planted) -> Result<()> {
+    let path = layout::gitignore(root);
+    let existing = match std::fs::read_to_string(&path) {
+        Ok(existing) => existing,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
+        Err(source) => return Err(Error::Io { path, source }),
+    };
+    let text = format!(
+        "{}\n",
+        gitignore::replace_in(&existing)?.trim_end_matches('\n')
+    );
+    if write_if_changed(&path, text.as_bytes())? {
+        planted.changed.push(layout::GITIGNORE.to_owned());
     }
     Ok(())
 }

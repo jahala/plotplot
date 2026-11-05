@@ -154,6 +154,10 @@ fn the_block_is_marked_short_and_says_what_a_planted_repository_needs() {
     assert!(block.contains("--no-verify"), "{block}");
     assert!(block.contains("garden.lock"), "{block}");
     assert!(block.contains(".githooks"), "{block}");
+    // A fresh clone runs none of the hooks, and git gives a repository no way to change
+    // that; the block is what an agent in one reads before its first commit.
+    assert!(block.contains("fresh clone or worktree"), "{block}");
+    assert!(block.contains("`plotplot init`"), "{block}");
     assert!(!body.contains('!'), "{block}");
     assert!(!body.contains('\u{2014}'), "{block}");
 }
@@ -664,6 +668,39 @@ fn a_hook_whose_judge_was_never_fetched_refuses_rather_than_passing() {
     let code = run_hook(repo.path(), GitHook::PreCommit, &beds, &[], "");
 
     assert_ne!(code, 0, "a missing judge let the commit through");
+}
+
+#[test]
+fn a_hook_whose_judge_is_not_placed_names_it_and_how_to_place_it() {
+    // A new worktree shares core.hooksPath and not the ignored .plotplot/bin/, so this is
+    // the first commit in any fresh worktree of a planted repository.
+    let repo = repository();
+    let beds = vec![bed(
+        "weeder",
+        "0.1.0",
+        Some("weeder"),
+        &[GitHook::PreCommit],
+    )];
+    let hooks = repo.path().join(".githooks");
+    std::fs::create_dir_all(&hooks).expect("the hooks directory");
+    let path = hooks.join(GitHook::PreCommit.file_name());
+    std::fs::write(&path, githooks::render(GitHook::PreCommit, &beds)).expect("the hook");
+    make_executable(&path);
+
+    let output = spawn_written(&path, repo.path(), &[])
+        .wait_with_output()
+        .expect("the hook finishes");
+
+    assert_eq!(output.status.code(), Some(1));
+    let said = String::from_utf8_lossy(&output.stderr);
+    assert_eq!(said.lines().count(), 1, "{said}");
+    assert!(said.starts_with("plotplot: "), "{said}");
+    assert!(said.contains("weeder"), "{said}");
+    assert!(said.contains("plotplot lock verify"), "{said}");
+    assert!(
+        !said.contains("No such file"),
+        "the shell's own words: {said}"
+    );
 }
 
 // ------------------------------------------------------------------ gitconfig

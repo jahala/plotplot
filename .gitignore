@@ -9,13 +9,11 @@ node_modules/
 docs/brand/pp-*.png
 .mcp.json
 
-# the stem's build and machine-written trees (docs/prompts/stem-build-2026-09.md §3)
+# the stem's build and its scratch
 target/
 .loop-scratch/
-.plotplot/bin/
-.plotplot/beds/
-.plotplot/bundles/
-.plotplot/marketplace/
-.plotplot/friction/
-.plotplot/receipts/
-.plotplot/npm/
+
+# plotplot:begin
+# Written by plotplot init: the stem's machine-written state, never committed.
+/.plotplot/
+# plotplot:end
