@@ -74,7 +74,7 @@ The scripts find `.brand/` by walking up from `$PWD` — they don't need to be i
 
 ### CI (the one reason to put petals in a project)
 
-If you want the deterministic check engine in CI, copy or symlink the skill directory into the project before the CI job runs. The scripts don't need a per-project copy otherwise.
+If you want the deterministic check engine in CI, copy or symlink the skill directory into the project before the CI job runs. The scripts don't need a per-project copy otherwise. A repository that keeps a committed copy (the plotplot umbrella does) takes it with `bash scripts/vendor.sh <repo>` from a clean petals checkout, which stamps `petals/VERSION` with the commit, its tag and a checksum per file, and runs `bash petals/scripts/vendor.sh --check .` in CI so a hand-edited or stale copy fails.
 
 ## Brand Architecture (umbrella + product layers)
 
@@ -95,7 +95,7 @@ A brand may be one entity (a flat `.brand/` — the zero-config default) or a fa
 | `/petals check [file]` | Audit file against brand rules; if no file, check for brand drift |
 | `/petals voice <text>` | Check copy against `.brand/voice.md`; return score and suggestions |
 | `/petals color <name>` | Look up a specific color from `.brand/colors.md` |
-| `/petals token <format>` | Export design tokens in specified format (css, dtcg) via `scripts/export-tokens.sh` |
+| `/petals token <format>` | Export design tokens in specified format (css, dtcg) via `scripts/export-tokens.sh`; `--check` exits 1 listing every token the committed files and the markdown disagree on |
 | `/petals update` | Sync `.brand/` with latest from central, preserving project overrides |
 | `/petals logo [variant]` | Return the correct logo asset path for the requested variant |
 | `/petals book` | Render `.brand/` as a single self-contained brand-book HTML for human review and sharing |

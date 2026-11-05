@@ -2,520 +2,500 @@
 set -euo pipefail
 
 # ============================================================================
-# export-tokens.sh — deterministic token regeneration
+# export-tokens.sh: derive the brand's machine views from its markdown
 # ============================================================================
-# Reads canonical markdown TABLES from .brand/*.md (not CSS blocks, which are
-# convenience snapshots that can drift) and generates:
-#   .brand/tokens.css  — CSS custom properties
-#   .brand/tokens.json — W3C DTCG format
+# Usage: export-tokens.sh [<brand-dir>] [--check]
 #
-# Every emitted value must be sourced from a markdown table row.
-# Exit non-zero if any value cannot be sourced (never launder guesses).
+# Builds ONE token list from .brand/*.md and writes it twice:
+#   <brand-dir>/tokens.css   CSS custom properties
+#   <brand-dir>/tokens.json  W3C DTCG groups of { $value, $type }
+#
+# Where each token comes from:
+#   colour    the --pp-*: #hex declarations in colors.md's own CSS blocks
+#             (:root and [data-theme="dark"]); each hex must also sit in a
+#             colors.md table row
+#   font      --font-<role> in typography.md's CSS block, as --pp-font-<role>
+#   space, radius, stroke, shadow, motion
+#             the token and value columns of their tables, found by header
+#   layout    container max width, gutter and breakpoints, only as layout.md
+#             states them
+# A value that is prose rather than a CSS value is skipped, never guessed.
+#
+# --check derives into a scratch folder, compares it with the committed files
+# token by token, writes nothing into the brand folder, prints one DIFF line
+# per difference and exits 1 if there is any.
+#
+# Exit codes: 0 derived (or, with --check, the tokens match); 1 with --check,
+# the committed tokens differ from the markdown; 2 the markdown cannot be
+# derived (a FATAL line says why) or the command line is wrong.
 # ============================================================================
 
-BRAND_DIR="${1:-.brand}"
-OUTPUT_CSS="${BRAND_DIR}/tokens.css"
-OUTPUT_JSON="${BRAND_DIR}/tokens.json"
-
-# ── Verify source files exist ──────────────────────────────────────────────
-for f in colors.md typography.md layout.md components.md identity.md; do
-  [[ -f "$BRAND_DIR/$f" ]] || { echo "Missing: $BRAND_DIR/$f" >&2; exit 1; }
+BRAND_DIR=".brand"
+CHECK=0
+SEEN_DIR=0
+for arg in "$@"; do
+  case "$arg" in
+    --check) CHECK=1 ;;
+    -*) echo "Unknown option: $arg" >&2; echo "Usage: export-tokens.sh [<brand-dir>] [--check]" >&2; exit 2 ;;
+    *)
+      [[ "$SEEN_DIR" -eq 0 ]] || { echo "Usage: export-tokens.sh [<brand-dir>] [--check]" >&2; exit 2; }
+      BRAND_DIR="$arg"; SEEN_DIR=1 ;;
+  esac
 done
 
-COLORS_MD=$(cat "$BRAND_DIR/colors.md")
-TYPOG_MD=$(cat "$BRAND_DIR/typography.md")
-LAYOUT_MD=$(cat "$BRAND_DIR/layout.md")
-COMPS_MD=$(cat "$BRAND_DIR/components.md")
-IDENTITY_MD=$(cat "$BRAND_DIR/identity.md")
-
-# ── Extract brand name from identity.md ───────────────────────────────────
-BRAND_NAME=$(echo "$IDENTITY_MD" | awk -F'|' '/Brand Name/ {gsub(/^[[:space:]]+|[[:space:]]+$/,"",$3); print $3; exit}')
-: "${BRAND_NAME:="brand"}"
-
-# ── Helper: extract motion token value from components.md by token name ────
-motion_val() {
-  echo "$COMPS_MD" | awk -v tok="$1" -F '|' '
-    BEGIN { in_table = 0 }
-    /^## Motion Tokens/ { in_table = 1; next }
-    /^## / && !/^## Motion Tokens/ { in_table = 0 }
-    in_table && /^\|/ && $2 ~ tok {
-      val = $3; gsub(/^[[:space:]]+|[[:space:]]+$/, "", val)
-      print val
-    }
-  '
-}
-
-# ════════════════════════════════════════════════════════════════════════════
-# GENERATE tokens.css
-# ════════════════════════════════════════════════════════════════════════════
+for f in colors.md typography.md layout.md components.md identity.md; do
+  [[ -f "$BRAND_DIR/$f" ]] || { echo "Missing: $BRAND_DIR/$f" >&2; exit 2; }
+done
 
 # Work files live in a folder this run creates and removes on any exit.
 SCRATCH=$(mktemp -d)
 trap 'rm -rf "$SCRATCH"' EXIT
-CSS_OUT="$SCRATCH/tokens.css"
 
-# Helper: add a CSS custom property line
-get_css_line() {
-  local token="$1" hex="$2"
-  printf '  %s: %s;\n' "$token" "$hex"
-}
+PY=$(cat <<'PYEOF'
+import json
+import os
+import re
+import sys
+from collections import namedtuple
 
-# Helper: extract hex from a table, mapping roles to token names
-# Args: heading_name match_pattern1:token_name1 match_pattern2:token_name2 ...
-# Outputs: token_name=hex on each line
-extract_color_rows() {
-  local heading="$1"
-  shift
-  echo "$COLORS_MD" | awk -F '|' -v hdr="$heading" '
-    BEGIN { in_table = 0 }
-    $0 ~ "^## " hdr { in_table = 1; next }
-    $0 ~ /^## / && !($0 ~ "^## " hdr) { in_table = 0 }
-    in_table && /^\|/ && NF >= 3 {
-      role = $2; hex = ""
-      for (i = 3; i <= NF; i++) {
-        gsub(/^[[:space:]]+|[[:space:]]+$/, "", $i)
-        if ($i ~ /^#[0-9A-Fa-f]{6}/) { hex = $i; break }
-      }
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", role)
-      if (hex != "" && role != "" && role !~ /^-/) printf "%s|%s\n", role, hex
-    }
-  '
-}
+EM_DASH = "—"
+PREFIX = "--pp-"
 
-# Build CSS output
-{
-  cat <<CSSHEAD
-/* ${BRAND_NAME} design tokens — generated from .brand/*.md (canonical).
-   Regenerate via: bash petals/scripts/export-tokens.sh
-   Import this file and reference the variables; never hard-code brand values. */
 
-:root {
-CSSHEAD
+class Fail(Exception):
+    pass
 
-  # ── Color — shared family palette ──
-  # Parse the CSS :root block from colors.md to get canonical variable names.
-  # The brand's own CSS block IS the authority on what tokens exist and
-  # what they are named. Never hard-code role names — brands vary.
-  echo '  /* color — shared family palette */'
-  echo "$COLORS_MD" | awk '/:root[[:space:]]*{/,/^}/' | grep -oE -- '--pp-[a-z0-9-]+[[:space:]]*:[[:space:]]*#[0-9A-Fa-f]{6}' | while read -r decl; do
-    var_name=$(echo "$decl" | sed -E 's/^--pp-([a-z0-9-]+)[[:space:]]*:.*$/\1/')
-    hex_val=$(echo "$decl" | grep -oE '#[0-9A-Fa-f]{6}')
-    # Only emit if hex exists in the canonical palette tables (not flagged/guessed)
-    if echo "$COLORS_MD" | grep -qF "$hex_val"; then
-      get_css_line "--pp-${var_name}" "$hex_val"
-    fi
-  done
 
-  # ── Color — product accents ──
-  echo
-  echo '  /* color — product accents / blooms */'
-  extract_color_rows "Product Accents" | while IFS='|' read -r product hex; do
-    printf '  --pp-%s:    %s;\n' "$product" "$hex"
-  done
+# One token in the model. group is the JSON group, key the name inside it.
+Token = namedtuple("Token", "section css value type group key")
 
-  # ── Color — soil-night terminal ──
-  echo
-  echo '  /* color — soil-night terminal */'
-  extract_color_rows "Soil-Night Surfaces" | while IFS='|' read -r role hex; do
-    [[ -z "$role" || -z "$hex" ]] && continue
-    # Derive CSS variable name from the role name slug — brand-agnostic
-    token_name=$(echo "$role" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//')
-    get_css_line "--pp-term-${token_name}" "$hex"
-  done
 
-  # ── Type — font families ──
-  echo
-  echo '  /* type */'
-  echo "$TYPOG_MD" | grep -E -- '^  --font-' | while IFS=: read -r raw_key raw_value; do
-    key=$(echo "$raw_key" | sed 's/^[[:space:]]*//;s/--font-/--pp-font-/')
-    value=$(echo "$raw_value" | sed 's/;.*$//;s/^[[:space:]]*//;s/[[:space:]]*$//')
-    printf '  %s: %s;\n' "$key" "$value"
-  done
-
-  # ── Space — 4px grid ──
-  echo
-  echo '  /* space — 4px grid */'
-  echo "$LAYOUT_MD" | awk -F '|' '
-    BEGIN { in_table = 0 }
-    /^## Spacing Scale/ { in_table = 1; next }
-    /^## / && !/^## Spacing Scale/ { in_table = 0 }
-    in_table && /^\|/ && NF >= 3 {
-      token = $2; value = $3
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", token)
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
-      if (token != "" && token !~ /^-/ && value != "") printf "  --pp-space-%s: %s;\n", token, value
-    }
-  '
-
-  # ── Layout — containers ──
-  echo
-  echo '  /* layout */'
-  echo '  --pp-container-max: 1200px;'
-  echo '  --pp-gutter:        32px;'
-
-  # ── Breakpoints ──
-  echo
-  echo '  /* breakpoints */'
-  echo "$LAYOUT_MD" | awk -F '|' '
-    BEGIN { in_table = 0; idx = 0 }
-    /^## Breakpoints/ { in_table = 1; next }
-    /^## / && !/^## Breakpoints/ { in_table = 0 }
-    in_table && /^\|/ && NF >= 2 {
-      bp = $2; gsub(/^[[:space:]]+|[[:space:]]+$/, "", bp)
-      if (bp == "" || bp !~ /[0-9]/) next
-      idx++
-      name = (idx == 1) ? "stack" : "dense"
-      printf "  --pp-breakpoint-%s: %s;\n", name, bp
-    }
-  '
-
-  # ── Radius ──
-  echo
-  echo '  /* radius */'
-  echo "$COMPS_MD" | awk -F '|' '
-    BEGIN { in_table = 0 }
-    /^## Radius Scale/ { in_table = 1; next }
-    /^## / && !/^## Radius Scale/ { in_table = 0 }
-    in_table && /^\|/ && NF >= 3 {
-      token = $2; value = $3
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", token)
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
-      if (token == "" || token ~ /^-/ || value == "") next
-      sub(/ .*$/, "", value)
-      printf "  --pp-%s: %s;\n", token, value
-    }
-  '
-
-  # ── Stroke ──
-  echo
-  echo '  /* stroke */'
-  echo "$COMPS_MD" | awk -F '|' '
-    BEGIN { in_table = 0 }
-    /^## Border Strokes/ { in_table = 1; next }
-    /^## / && !/^## Border Strokes/ { in_table = 0 }
-    in_table && /^\|/ && NF >= 3 {
-      token = $2; value = $3
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", token)
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
-      if (token == "" || token ~ /^-/ || value == "") next
-      printf "  --pp-%s: %s;\n", token, value
-    }
-  '
-
-  # ── Shadow ──
-  echo
-  echo '  /* shadow — ink-tinted */'
-  echo "$COMPS_MD" | awk -F '|' '
-    BEGIN { in_table = 0 }
-    /^## Shadow Recipes/ { in_table = 1; next }
-    /^## / && !/^## Shadow Recipes/ { in_table = 0 }
-    in_table && /^\|/ && NF >= 3 {
-      token = $2; value = $3
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", token)
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
-      if (token == "" || token ~ /^-/ || value == "") next
-      printf "  --pp-%s: %s;\n", token, value
-    }
-  '
-
-  # ── Motion ──
-  echo
-  echo '  /* motion */'
-  echo "$COMPS_MD" | awk -F '|' '
-    BEGIN { in_table = 0 }
-    /^## Motion Tokens/ { in_table = 1; next }
-    /^## / && !/^## Motion Tokens/ { in_table = 0 }
-    in_table && /^\|/ && NF >= 3 {
-      token = $2; value = $3
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", token)
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
-      if (token == "" || token ~ /^-/ || value == "") next
-      printf "  --pp-%s: %s;\n", token, value
-    }
-  '
-
-  echo '}'
-
-  # ── Dark mode block ──
-  echo
-  echo '[data-theme="dark"] {'
-  echo "$COLORS_MD" | awk -F '|' '
-    BEGIN { in_table = 0 }
-    /^## Light \/ Dark Mode Variants/ { in_table = 1; next }
-    /^## / && !/^## Light \/ Dark/ { in_table = 0 }
-    in_table && /^\|/ && NF >= 4 {
-      role = $2; dark = $4
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", role)
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", dark)
-      if (role == "" || role ~ /^-/ || dark !~ /^#/) next
-      if (role ~ /^Primary/)       printf "  --pp-primary:      %s;\n", dark
-      else if (role ~ /Accent/)    printf "  --pp-accent:       %s;\n", dark
-      else if (role ~ /^Text$/)    printf "  --pp-text:         %s;\n", dark
-      else if (role ~ /Text.*soft/)printf "  --pp-text-soft:    %s;\n", dark
-      else if (role ~ /Background/)printf "  --pp-bg:           %s;\n", dark
-      else if (role ~ /^Band/)     printf "  --pp-bg-band:      %s;\n", dark
-      else if (role ~ /^Surface/)  printf "  --pp-surface:      %s;\n", dark
-      else if (role ~ /^Border/)   printf "  --pp-border:       %s;\n", dark
-      else if (role ~ /Leaf/)      printf "  --pp-leaf:         %s;\n", dark
-    }
-  '
-  echo '}'
-} > "$CSS_OUT"
-
-# ════════════════════════════════════════════════════════════════════════════
-# VERIFY: Every hex value emitted appears in the colors.md palette
-# ════════════════════════════════════════════════════════════════════════════
-
-while IFS= read -r line; do
-  emitted_hex=$(echo "$line" | grep -oE '#[0-9A-Fa-f]{6}' || true)
-  if [[ -n "$emitted_hex" ]]; then
-    if ! echo "$COLORS_MD" | grep -qF "$emitted_hex"; then
-      echo "FATAL: Hex value $emitted_hex emitted in CSS but not found in colors.md palette" >&2
-      rm -f "$CSS_OUT"
-      exit 1
-    fi
-  fi
-done < "$CSS_OUT"
-
-mv "$CSS_OUT" "$OUTPUT_CSS"
-echo "  -> $OUTPUT_CSS"
-
-# ════════════════════════════════════════════════════════════════════════════
-# GENERATE tokens.json (W3C DTCG format)
-# ════════════════════════════════════════════════════════════════════════════
-
-JSON_OUT="$SCRATCH/tokens.json"
-
-# Use Python for JSON generation — deterministic, properly escaped, no shell gotchas
-python3 - "$BRAND_DIR" "$JSON_OUT" <<'PYEOF'
-import sys, json, os, re
-
-brand_dir = sys.argv[1]
-json_path = sys.argv[2]
-
-def read_file(name):
-    with open(os.path.join(brand_dir, name)) as f:
+def read(brand_dir, name):
+    with open(os.path.join(brand_dir, name), encoding="utf-8") as f:
         return f.read()
 
-colors_md = read_file("colors.md")
-typog_md = read_file("typography.md")
-layout_md = read_file("layout.md")
-comps_md = read_file("components.md")
-identity_md = read_file("identity.md")
 
-def extract_brand_name(text):
-    """Extract brand name from identity.md table (column 2 of a | key | value | row)."""
-    for line in text.split("\n"):
-        if "Brand Name" in line:
-            parts = [c.strip() for c in line.split("|")[1:-1]]
-            if len(parts) >= 2:
-                return parts[1]  # column 2 is the value (column 0 is the key)
-    return "brand"
+# ── reading markdown ───────────────────────────────────────────────────────
 
-brand_name = extract_brand_name(identity_md)
+def strip_comments(css):
+    return re.sub(r"/\*.*?\*/", "", css, flags=re.S)
 
-def extract_table(content, heading, skip_header=2):
-    """Extract rows from a markdown table under the given heading.
-    Returns list of lists (each row is column values)."""
-    lines = content.split("\n")
-    in_table = False
-    rows = []
-    for line in lines:
-        if line.startswith("## " + heading):
-            in_table = True
+
+def fenced_blocks(md):
+    return re.findall(r"```[^\n]*\n(.*?)```", md, flags=re.S)
+
+
+def split_row(line):
+    cells = line.strip().strip("|").split("|")
+    return [c.strip().replace("`", "").strip() for c in cells]
+
+
+def is_separator(cells):
+    return all(re.fullmatch(r":?-+:?", c) for c in cells if c) and any(cells)
+
+
+def tables_under(md, heading_prefix):
+    """Every table under a heading that starts with heading_prefix, as
+    (header cells, data rows). Code fences are skipped."""
+    out = []
+    active = False
+    in_fence = False
+    block = []
+
+    def flush():
+        if len(block) >= 2:
+            header = split_row(block[0])
+            rest = [split_row(x) for x in block[1:]]
+            rows = [r for r in rest if not is_separator(r)]
+            out.append((header, rows))
+        del block[:]
+
+    for line in md.split("\n"):
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+            flush()
             continue
-        if in_table:
-            if line.startswith("## "):
-                break
-            if line.startswith("|"):
-                cols = [c.strip() for c in line.split("|")[1:-1]]
-                rows.append(cols)
-    # Remove header and separator rows
-    result = []
-    for i, row in enumerate(rows):
-        if i < skip_header:
+        if in_fence:
             continue
-        if all(c.startswith("-") for c in row if c):
+        m = re.match(r"^#{1,6}\s+(.*?)\s*$", line)
+        if m:
+            flush()
+            active = m.group(1).lower().startswith(heading_prefix.lower())
             continue
-        result.append(row)
-    return result
+        if active and line.lstrip().startswith("|"):
+            block.append(line)
+        else:
+            flush()
+    flush()
+    return out
 
-def find_hex(cols):
-    for c in cols[1:]:
-        if re.match(r'^#[0-9A-Fa-f]{6}$', c):
-            return c
+
+def token_value_rows(md, heading_prefix):
+    """(token, value) pairs found by the Token and Value header names."""
+    pairs = []
+    for header, rows in tables_under(md, heading_prefix):
+        names = [h.lower() for h in header]
+        tcol = next((i for i, h in enumerate(names) if h in ("token", "name")), None)
+        vcol = names.index("value") if "value" in names else None
+        if tcol is None or vcol is None:
+            continue
+        for r in rows:
+            if len(r) <= max(tcol, vcol):
+                continue
+            tok, val = r[tcol], r[vcol]
+            if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9-]*", tok) and val:
+                pairs.append((tok, val))
+    return pairs
+
+
+# ── value rules: a value is a CSS value or it is skipped ───────────────────
+
+LENGTH = r"-?(?:\d+\.?\d*|\.\d+)(?:px|rem|em|vw|vh|ch|%)?"
+
+
+def as_length(val):
+    return val if re.fullmatch(LENGTH, val) else None
+
+
+def as_radius(val):
+    # "999px / 50%" lists alternatives; the first one is the token's value.
+    first = val.split(" / ")[0].strip()
+    return as_length(first)
+
+
+def as_stroke(val):
+    m = re.fullmatch(r"(" + LENGTH + r")(?:\s+(?:solid|dashed|dotted|double|none))?", val)
+    return m.group(1) if m else None
+
+
+def as_shadow(val):
+    rest = re.sub(r"rgba?\(\s*[\d.\s,%/]+\)", "", val)
+    rest = re.sub(r"#[0-9A-Fa-f]{3,8}\b", "", rest)
+    rest = re.sub(r"\binset\b", "", rest)
+    rest = re.sub(r"(?<=\d)(?:px|rem|em)\b", "", rest)
+    if re.fullmatch(r"[\d.,\s-]+", rest) and re.search(r"\d", rest):
+        return " ".join(val.split())
     return None
 
-# Build JSON structure
-result = {
-    "$description": (
-        f"Machine view of the resolved {brand_name} brand, "
-        "generated from .brand/*.md (canonical) by "
-        "petals/scripts/export-tokens.sh. Shape follows the W3C "
-        "design-tokens draft: groups of { $value, $type }."
-    )
-}
 
-# ── color ──
-color = {}
+EASE = re.compile(r"cubic-bezier\(\s*-?[\d.]+\s*(?:,\s*-?[\d.]+\s*){3}\)|ease|ease-in|ease-out|ease-in-out|linear")
+DURATION = re.compile(r"(?:\d+\.?\d*|\.\d+)(?:ms|s)")
 
-# Parse the CSS :root block from colors.md as the canonical token-name source.
-# Every --pp-* variable maps directly to a token ID (strip the --pp- prefix).
-# The CSS block IS the brand's own declaration of what its tokens are.
-# Avoids matching on role-name substrings that vary per brand.
-css_block = re.search(r':root\s*{([^}]+)}', colors_md)
-if css_block:
-    for match in re.finditer(r'--pp-([a-z0-9-]+)\s*:\s*(#[0-9A-Fa-f]{6})', css_block.group(1)):
-        token_id = match.group(1)
-        hex_val = match.group(2)
-        if token_id not in color:
-            color[token_id] = {"$value": hex_val, "$type": "color"}
 
-# If CSS block parsing produced no tokens (brand uses different prefix),
-# fall back to scanning all tables for hex values with generic keys.
-if not color:
-    all_color_rows = (
-        extract_table(colors_md, "Primary Palette")
-        + extract_table(colors_md, "Paper & Ink")
-        + extract_table(colors_md, "Semantic Roles")
-        + extract_table(colors_md, "Product Accents")
-    )
-    for row in all_color_rows:
-        hex_v = find_hex(row)
-        if hex_v and len(row) >= 1:
-            # Use a slug of the role name as the token key
-            key = re.sub(r'[^a-z0-9]+', '-', row[0].lower()).strip('-')
-            if key and key not in color:
-                color[key] = {"$value": hex_v, "$type": "color"}
-# Product Accents — read from the colors.md table, not a hardcoded dict
-# Each product row: [name, hex, role_description]
-# Token key uses the product name slug, description is generic
-for row in extract_table(colors_md, "Product Accents"):
-    product_name = row[0].strip()
-    hex_v = find_hex(row)
-    if not hex_v or not product_name:
-        continue
-    key = re.sub(r'[^a-z0-9]+', '-', product_name.lower()).strip('-')
-    if key and key not in color:
-        color[key] = {"$value": hex_v, "$type": "color"}
+def as_motion(val):
+    """(value, DTCG type) or None."""
+    if EASE.fullmatch(val):
+        return val, "cubicBezier"
+    if DURATION.fullmatch(val):
+        return val, "duration"
+    return None
 
-# Soil-Night / Terminal surfaces — match by table heading attendance, not role names
-for row in extract_table(colors_md, "Soil-Night Surfaces"):
-    role = row[0]
-    hex_v = find_hex(row)
-    if not hex_v:
-        continue
-    # Key the token by a slug of the role name itself
-    key = "terminal-" + re.sub(r'[^a-z0-9]+', '-', role.lower()).strip('-')
-    if key and key not in color:
-        color[key] = {"$value": hex_v, "$type": "color"}
-result["color"] = color
 
-# ── fontFamily ──
-font_family = {}
-font_pat = re.compile(r'^\s*--font-([^:]+):\s*(.+);')
-for line in typog_md.split("\n"):
-    m = font_pat.match(line)
-    if m:
-        name = m.group(1).strip()
-        stack = [f.strip().strip("'\"") for f in m.group(2).strip().split(",")]
-        font_family[name] = {"$value": stack, "$type": "fontFamily"}
-result["fontFamily"] = font_family
+# ── deriving the token list ────────────────────────────────────────────────
 
-# ── space ──
-space = {}
-for row in extract_table(layout_md, "Spacing Scale"):
-    token = row[0]
-    val = row[1] if len(row) > 1 else ""
-    if token and val and not token.startswith("-"):
-        space[token] = {"$value": val, "$type": "dimension"}
-result["space"] = space
+def brand_name(identity_md):
+    for line in identity_md.split("\n"):
+        if line.lstrip().startswith("|") and "Brand Name" in line:
+            cells = split_row(line)
+            if len(cells) >= 2 and cells[1]:
+                return cells[1]
+    return "brand"
 
-# ── layout ──
-layout = {
-    "container-max": {"$value": "1200px", "$type": "dimension"},
-    "container-gutter": {"$value": "32px", "$type": "dimension"},
-}
-# Breakpoints
-bp_idx = 0
-for row in extract_table(layout_md, "Breakpoints"):
-    bp = row[0] if row else ""
-    if bp and re.search(r'\d', bp):
-        bp_idx += 1
-        name = "breakpoint-stack" if bp_idx == 1 else "breakpoint-dense"
-        layout[name] = {"$value": bp, "$type": "dimension"}
-result["layout"] = layout
 
-# ── radius ──
-radius = {}
-for row in extract_table(comps_md, "Radius Scale"):
-    token = row[0]
-    val = row[1] if len(row) > 1 else ""
-    if token and val and not token.startswith("-"):
-        short = token.replace("radius-", "")
-        val = val.split()[0]  # Take first value (999px / 50% -> 999px)
-        radius[short] = {"$value": val, "$type": "dimension"}
-result["radius"] = radius
+def css_blocks(md, selector):
+    """Bodies of the CSS rules with this selector, inside code fences."""
+    bodies = []
+    for block in fenced_blocks(md):
+        text = strip_comments(block)
+        for m in re.finditer(selector + r"\s*\{(.*?)\}", text, flags=re.S):
+            bodies.append(m.group(1))
+    return bodies
 
-# ── stroke ──
-stroke = {}
-for row in extract_table(comps_md, "Border Strokes"):
-    token = row[0]
-    val = row[1] if len(row) > 1 else ""
-    if token and val and not token.startswith("-"):
-        short = token.replace("stroke-", "")
-        val = val.split()[0]
-        stroke[short] = {"$value": val, "$type": "dimension"}
-result["stroke"] = stroke
 
-# ── shadow ──
-shadow = {}
-for row in extract_table(comps_md, "Shadow Recipes"):
-    token = row[0]
-    val = row[1] if len(row) > 1 else ""
-    if token and val and not token.startswith("-"):
-        short = token.replace("shadow-", "")
-        shadow[short] = {"$value": val, "$type": "shadow"}
-result["shadow"] = shadow
+def colour_decls(bodies, where):
+    out = []
+    seen = {}
+    for body in bodies:
+        for name, hexv in re.findall(r"--pp-([A-Za-z0-9_-]+)\s*:\s*(#[0-9A-Fa-f]{6})\s*;", body):
+            if name in seen and seen[name].lower() != hexv.lower():
+                raise Fail("%s declares %s twice with different values (%s, %s)" % (where, PREFIX + name, seen[name], hexv))
+            if name not in seen:
+                out.append((name, hexv))
+            seen[name] = hexv
+    return out
 
-# ── motion ──
-motion = {}
-for row in extract_table(comps_md, "Motion Tokens"):
-    token = row[0]
-    val = row[1] if len(row) > 1 else ""
-    if not token or not val or token.startswith("-"):
-        continue
-    if "ease" in token:
-        # cubic-bezier(0.22, 1, 0.36, 1) -> [0.22, 1, 0.36, 1]
-        m = re.search(r'cubic-bezier\(([^)]+)\)', val)
+
+def derive_tokens(brand_dir):
+    colors_md = read(brand_dir, "colors.md")
+    typog_md = read(brand_dir, "typography.md")
+    layout_md = read(brand_dir, "layout.md")
+    comps_md = read(brand_dir, "components.md")
+    identity_md = read(brand_dir, "identity.md")
+
+    root = []
+    dark = []
+
+    # 1. colour: the brand's own CSS blocks name the tokens
+    light = colour_decls(css_blocks(colors_md, r":root"), "colors.md :root")
+    night = colour_decls(css_blocks(colors_md, r"\[data-theme\s*=\s*\"dark\"\]"), 'colors.md [data-theme="dark"]')
+    if not light:
+        raise Fail("colors.md has no --pp-*: #hex declarations in a CSS :root block")
+    table_hexes = set()
+    for line in colors_md.split("\n"):
+        if line.lstrip().startswith("|"):
+            table_hexes.update(h.lower() for h in re.findall(r"#[0-9A-Fa-f]{6}", line))
+    for block, decls in (("", light), ("[data-theme=\"dark\"] ", night)):
+        for name, hexv in decls:
+            if hexv.lower() not in table_hexes:
+                raise Fail("%s in colors.md's %sCSS block (%s) appears in no colors.md table row" % (hexv, block, PREFIX + name))
+    for name, hexv in light:
+        root.append(Token("color", PREFIX + name, hexv, "color", "color", name))
+    for name, hexv in night:
+        dark.append(Token("color", PREFIX + name, hexv, "color", "color", name))
+
+    # 2. fonts
+    fonts = []
+    for block in fenced_blocks(typog_md):
+        for role, stack in re.findall(r"^\s*--font-([A-Za-z0-9_-]+)\s*:\s*([^;]+);", strip_comments(block), flags=re.M):
+            fonts.append(Token("type", PREFIX + "font-" + role, " ".join(stack.split()), "fontFamily", "fontFamily", role))
+    root.extend(fonts)
+
+    # 3. space, radius, stroke, shadow, motion
+    for tok, val in token_value_rows(layout_md, "Spacing Scale"):
+        v = as_length(val)
+        if v:
+            tid = tok if tok.startswith("space-") else "space-" + tok
+            root.append(Token("space", PREFIX + tid, v, "dimension", "space", tid[len("space-"):]))
+
+    # 4. layout, only as layout.md states it
+    for header, rows in tables_under(layout_md, "Containers"):
+        names = [h.lower() for h in header]
+        if "token" not in names or "value" not in names:
+            continue
+        tcol, vcol = names.index("token"), names.index("value")
+        for r in rows:
+            if len(r) <= max(tcol, vcol):
+                continue
+            tok, val = r[tcol], r[vcol]
+            if tok == "container":
+                m = re.fullmatch(r"(" + LENGTH + r")\s+max-width\b.*", val)
+                if m:
+                    root.append(Token("layout", PREFIX + "container-max", m.group(1), "dimension", "layout", "container-max"))
+            elif tok == "gutter":
+                m = re.fullmatch(r"(" + LENGTH + r")(?:\s*\(.*\))?", val)
+                if m:
+                    root.append(Token("layout", PREFIX + "gutter", m.group(1), "dimension", "layout", "gutter"))
+    for header, rows in tables_under(layout_md, "Breakpoints"):
+        # a Token column names each breakpoint; without one, the width does
+        hdr = [h.lower() for h in header]
+        tcol = hdr.index("token") if "token" in hdr else None
+        for r in rows:
+            m = re.fullmatch(r"(\d+\.?\d*)(px|em|rem)", r[0]) if r else None
+            if m:
+                named = r[tcol].strip() if tcol is not None and len(r) > tcol else ""
+                if named:
+                    bid = named if named.startswith("breakpoint-") else "breakpoint-" + named
+                else:
+                    bid = "breakpoint-" + (m.group(1) if m.group(2) == "px" else m.group(1) + m.group(2))
+                root.append(Token("layout", PREFIX + bid, r[0], "dimension", "layout", bid))
+
+    for heading, group, conv, dtype in (
+        ("Radius Scale", "radius", as_radius, "dimension"),
+        ("Border Strokes", "stroke", as_stroke, "dimension"),
+        ("Shadow Recipes", "shadow", as_shadow, "shadow"),
+    ):
+        for tok, val in token_value_rows(comps_md, heading):
+            v = conv(val)
+            if v:
+                key = tok[len(group) + 1:] if tok.startswith(group + "-") else tok
+                root.append(Token(group, PREFIX + tok, v, dtype, group, key))
+    for tok, val in token_value_rows(comps_md, "Motion Tokens"):
+        m = as_motion(val)
         if m:
-            nums = [float(x.strip()) for x in m.group(1).split(",")]
-            motion[token] = {"$value": nums, "$type": "cubicBezier"}
-    elif "dur" in token or "stagger" in token:
-        # 0.8s -> 800ms, 0.18s -> 180ms, 0.1s -> 100ms
-        # Handle ranges like "0.15–0.3s" — take known-good midpoint
-        if "–" in val or "-" in val:
-            # dur-micro is 0.15–0.3s, convention is 0.18s for CSS / 180ms for JSON
-            if "micro" in token:
-                val_ms = "180ms"
-            else:
-                val_ms = val  # leave as-is, shouldn't happen
+            root.append(Token("motion", PREFIX + tok, m[0], m[1], "motion", tok))
+
+    names = [t.css for t in root]
+    dupes = sorted({n for n in names if names.count(n) > 1})
+    if dupes:
+        raise Fail("these tokens come out twice: " + ", ".join(dupes))
+    return brand_name(identity_md), root, dark
+
+
+# ── two serialisations of the one list ─────────────────────────────────────
+
+def render_css(brand, root, dark):
+    lines = [
+        "/* %s design tokens, generated from .brand/*.md (canonical)." % brand,
+        "   Regenerate via: bash petals/scripts/export-tokens.sh",
+        "   Import this file and reference the variables; never hard-code brand values. */",
+        "",
+        ":root {",
+    ]
+    section = None
+    for t in root:
+        if t.section != section:
+            if section is not None:
+                lines.append("")
+            lines.append("  /* %s */" % t.section)
+            section = t.section
+        lines.append("  %s: %s;" % (t.css, t.value))
+    lines.append("}")
+    if dark:
+        lines += ["", "[data-theme=\"dark\"] {"]
+        lines += ["  %s: %s;" % (t.css, t.value) for t in dark]
+        lines.append("}")
+    return "\n".join(lines) + "\n"
+
+
+GROUP_ORDER = ["color", "fontFamily", "space", "layout", "radius", "stroke", "shadow", "motion"]
+
+
+def render_json(brand, root, dark):
+    doc = {
+        "$description": (
+            "Machine view of the resolved %s brand, generated from .brand/*.md (canonical) "
+            "by bash petals/scripts/export-tokens.sh. Shape follows the W3C design-tokens "
+            "draft: groups of { $value, $type }. The dark group holds the dark-theme overrides." % brand
+        )
+    }
+    for g in GROUP_ORDER:
+        members = {t.key: {"$value": t.value, "$type": t.type} for t in root if t.group == g}
+        if members:
+            doc[g] = members
+    if dark:
+        doc["dark"] = {"color": {t.key: {"$value": t.value, "$type": t.type} for t in dark}}
+    return json.dumps(doc, indent=2, ensure_ascii=False) + "\n"
+
+
+# ── comparing committed files with the derivation ──────────────────────────
+
+def num(x):
+    return format(float(x), "g")
+
+
+def canon(value, typ):
+    """A form of a value that ignores spacing, quoting, hex case and units
+    that mean the same thing (0.8s and 800ms)."""
+    if isinstance(value, list):
+        if typ == "cubicBezier":
+            return "cubic-bezier(" + ",".join(num(x) for x in value) + ")"
+        return ",".join(str(x).strip().strip("'\"") for x in value)
+    s = " ".join(str(value).split())
+    if typ == "fontFamily":
+        return ",".join(p.strip().strip("'\"") for p in s.split(","))
+    m = re.fullmatch(r"(\d*\.?\d+)(ms|s)", s)
+    if m:
+        return num(float(m.group(1)) * (1 if m.group(2) == "ms" else 1000)) + "ms"
+    m = re.fullmatch(r"cubic-bezier\(([^)]*)\)", s)
+    if m:
+        return "cubic-bezier(" + ",".join(num(x) for x in m.group(1).split(",")) + ")"
+    s = re.sub(r"\s*([,()/])\s*", r"\1", s)
+    return s.lower()
+
+
+def shown(value):
+    if isinstance(value, list):
+        return json.dumps(value, ensure_ascii=False)
+    return " ".join(str(value).split())
+
+
+def parse_css(path):
+    out = {}
+    if not os.path.exists(path):
+        return out
+    with open(path, encoding="utf-8") as f:
+        text = strip_comments(f.read())
+    for selector, body in re.findall(r"([^{}]+)\{([^}]*)\}", text):
+        sel = " ".join(selector.split())
+        if sel == ":root":
+            prefix = ""
+        elif re.fullmatch(r"\[data-theme\s*=\s*\"dark\"\]", sel):
+            prefix = "[dark]"
         else:
-            num = float(val.replace("s", "").strip())
-            val_ms = f"{int(num * 1000)}ms"
-        motion[token] = {"$value": val_ms, "$type": "duration"}
-result["motion"] = motion
+            prefix = "[" + sel + "]"
+        for name, val in re.findall(r"(--[A-Za-z0-9_-]+)\s*:\s*([^;]+);", body):
+            out[prefix + name] = (shown(val), canon(val, None))
+    return out
 
-# Write JSON
-with open(json_path, "w") as f:
-    json.dump(result, f, indent=2, ensure_ascii=False)
-    f.write("\n")
 
-print("OK")
+def parse_json(path):
+    out = {}
+    if not os.path.exists(path):
+        return out
+    with open(path, encoding="utf-8") as f:
+        try:
+            doc = json.load(f)
+        except ValueError as e:
+            raise Fail("%s is not valid JSON: %s" % (path, e))
+
+    def walk(node, trail):
+        if not isinstance(node, dict):
+            return
+        if "$value" in node:
+            out[".".join(trail)] = (shown(node["$value"]), canon(node["$value"], node.get("$type")))
+            return
+        for k, v in node.items():
+            if not k.startswith("$"):
+                walk(v, trail + [k])
+
+    walk(doc, [])
+    return out
+
+
+def diff_maps(kind, committed, derived):
+    lines = []
+    for name in list(committed) + [n for n in derived if n not in committed]:
+        c, d = committed.get(name), derived.get(name)
+        if c is not None and d is not None and c[1] == d[1]:
+            continue
+        lines.append("DIFF %s %s committed: %s derived: %s" % (kind, name, c[0] if c else "(absent)", d[0] if d else "(absent)"))
+    return lines
+
+
+def main(argv):
+    mode = argv[0]
+    if mode == "derive":
+        brand_dir, out_dir = argv[1], argv[2]
+        brand, root, dark = derive_tokens(brand_dir)
+        css, js = render_css(brand, root, dark), render_json(brand, root, dark)
+        if EM_DASH in css or EM_DASH in js:
+            raise Fail("the derived files would carry an em dash; the brand bans them")
+        with open(os.path.join(out_dir, "tokens.css"), "w", encoding="utf-8") as f:
+            f.write(css)
+        with open(os.path.join(out_dir, "tokens.json"), "w", encoding="utf-8") as f:
+            f.write(js)
+        return 0
+    if mode == "compare":
+        brand_dir, derived_dir = argv[1], argv[2]
+        lines = diff_maps("css", parse_css(os.path.join(brand_dir, "tokens.css")), parse_css(os.path.join(derived_dir, "tokens.css")))
+        lines += diff_maps("json", parse_json(os.path.join(brand_dir, "tokens.json")), parse_json(os.path.join(derived_dir, "tokens.json")))
+        for line in lines:
+            print(line)
+        if lines:
+            return 1
+        print("tokens match the markdown")
+        return 0
+    raise Fail("unknown mode " + mode)
+
+
+try:
+    sys.exit(main(sys.argv[1:]))
+except Fail as e:
+    print("FATAL: %s" % e, file=sys.stderr)
+    sys.exit(2)
 PYEOF
+)
 
-# Move to final location
-mv "$JSON_OUT" "$OUTPUT_JSON"
-echo "  -> $OUTPUT_JSON"
+python3 -I -c "$PY" derive "$BRAND_DIR" "$SCRATCH"
 
+if [[ "$CHECK" -eq 1 ]]; then
+  # set -e makes the comparison's status the script's: 1 when anything differs.
+  python3 -I -c "$PY" compare "$BRAND_DIR" "$SCRATCH"
+  exit 0
+fi
+
+mv "$SCRATCH/tokens.css" "$BRAND_DIR/tokens.css"
+echo "  -> $BRAND_DIR/tokens.css"
+mv "$SCRATCH/tokens.json" "$BRAND_DIR/tokens.json"
+echo "  -> $BRAND_DIR/tokens.json"
 echo "tokens.css + tokens.json regenerated from canonical sources"

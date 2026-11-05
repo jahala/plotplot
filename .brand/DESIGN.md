@@ -61,7 +61,7 @@ Icons feel like botanical diagrams with character (sprouts, leaves, plots, nodes
 2. **One ink on the bed's bloom.** A bed's mark is its drawing in one ink on a rounded tile of its bloom (radius 5.5, the drawing scaled to 72 percent), the way the site's plates carry a bed's number. The ink is the plate text the bloom carries, ink or paper, held at 4.5:1 by `scripts/palette_contrast.py`. No third colour. The bloom is the bed's colour, so the tile is what tells beds apart, and no bed's mark competes with growth green.
 3. **plotplot's own mark is the exception.** It is drawn in two inks with no tile: growth green is what grows, marigold is its bloom. copeca's mark, which left the garden, keeps the same two-ink form.
 4. **Parts are separated by space,** never by colour alone, so the drawing survives as a stamp, a terminal glyph or a README badge.
-5. **Night is derived.** The paper file is the only drawing. `scripts/marks.py` writes the night file through the tokens (the tile takes the bloom's soil-night value; the ink stays), prints a tile for plotplot's mark (`marks.py tile plotplot [--night]`), and `marks.py --check` holds the rules.
+5. **Night is derived.** The paper file is the only drawing. `petals/scripts/marks.py` (petals' own, vendored) writes the night file through the tokens (the tile takes the bloom's soil-night value; the ink stays), prints a tile for plotplot's mark (`marks.py tile plotplot [--night]`), and `marks.py --check` holds the rules.
 
 Files: `assets/plotplot-mark.svg` and `products/<bed>/assets/<bed>-mark.svg`, each with its `-night.svg`.
 
