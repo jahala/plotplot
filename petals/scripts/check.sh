@@ -137,8 +137,14 @@ FORBIDDEN=$(awk -F'|' '/^## Forbidden Terms/{f=1} /^## /{if(f&&$0!~/Forbidden/)f
 # Terminology: "canonical<TAB>banned_synonym" from voice.md Terminology table
 TERMS=$(awk -F'|' '/^## Terminology/{f=1} /^## /{if(f&&$0!~/Terminology/)f=0} f && NF>=4 && $2!~/Use|---/ {gsub(/^ +| +$/,"",$2); gsub(/^ +| +$/,"",$3); if($3!=""){ n=split($3, syns, ","); for(i=1;i<=n;i++){ gsub(/^ +| +$/,"",syns[i]); gsub(/"/,"",syns[i]); if(syns[i]!="") print $2"\t"syns[i] }}}' "$BRAND/voice.md" $PRODUCT_VOICE 2>/dev/null | tr '\n' '\036')
 
+# Font families: the "Font Family" column of typography.md's Font Families
+# table, deduplicated, newline -> \036
+PRODUCT_TYPO=""
+[ -n "$PRODUCT" ] && [ -f "$BRAND/products/$PRODUCT/typography.md" ] && PRODUCT_TYPO="$BRAND/products/$PRODUCT/typography.md"
+FONTS=$(awk -F'|' '/^## Font Families/{f=1;next} /^## /{f=0} f && NF>=4 && $2!~/Role|---/ {gsub(/^ +| +$/,"",$3); if($3!="" && !seen[$3]++) print $3}' "$BRAND/typography.md" $PRODUCT_TYPO 2>/dev/null | tr '\n' '\036')
+
 awk -v palette="$PALETTE" -v radii="$RADII" -v bps="$BREAKPOINTS" \
-    -v unit="$SPACE_UNIT" -v forbidden="$FORBIDDEN" -v docpairs="$DOCPAIRS" -v accents="$ACCENTS" -v product="$PRODUCT" -v terms="$TERMS" -v pnames="$PRODUCT_NAMES" -v json="$JSON_MODE" '
+    -v unit="$SPACE_UNIT" -v forbidden="$FORBIDDEN" -v docpairs="$DOCPAIRS" -v accents="$ACCENTS" -v product="$PRODUCT" -v terms="$TERMS" -v pnames="$PRODUCT_NAMES" -v json="$JSON_MODE" -v fonts="$FONTS" '
 function hexval(c,   i){ return index("0123456789ABCDEF", toupper(c)) - 1 }
 function h2(s){ return hexval(substr(s,1,1))*16 + hexval(substr(s,2,1)) }
 function expand(h){ if(length(h)==4) return "#" substr(h,2,1) substr(h,2,1) substr(h,3,1) substr(h,3,1) substr(h,4,1) substr(h,4,1); return h }
@@ -152,7 +158,35 @@ function err(dim,msg){ if(json){ printf "ERROR [%s] %s\n", dim, msg > "/dev/stde
 function warn(dim,msg){ if(json){ printf "WARNING [%s] %s\n", dim, msg > "/dev/stderr" } else { printf "WARNING [%s] %s\n", dim, msg }; w[dim]++ }
 function quotectx(s){ return (s ~ /never|use instead|forbidden|class="no"|class="ba bad"/) }
 
+# ── typography: font families a line loads or declares (issue #8) ──
+{
+  fl=$0
+  if(fl ~ /@font-face/) inface=1
+  s=fl
+  while(match(s, /family=[A-Za-z0-9+]+/)){
+    nm=substr(s, RSTART+7, RLENGTH-7); gsub(/\+/, " ", nm); s=substr(s, RSTART+RLENGTH)
+    loadedany=1; loaded[tolower(nm)]=1
+    if(nfam>0 && !(tolower(nm) in brandfam) && !((NR ":" tolower(nm)) in seenf)){ seenf[NR ":" tolower(nm)]=1; err("typography", "line " NR ": loads \"" nm "\", which is not a typography.md family (" famlist ").") }
+  }
+  s=fl
+  while(match(s, /(font-family|fontFamily|--[A-Za-z0-9-]*font[A-Za-z0-9-]*)[ \t]*:[ \t]*[^;}]+/)){
+    decl=substr(s, RSTART, RLENGTH); s=substr(s, RSTART+RLENGTH)
+    v=decl; sub(/^[^:]*:[ \t]*/, "", v)
+    # a custom property is a font stack only when it holds a list or a quoted name
+    if(decl ~ /^--/ && v !~ /,/ && v !~ /["\047]/) continue
+    split(v, parts, ","); first=parts[1]; gsub(/^[ \t"\047`]+|[ \t"\047`]+$/, "", first)
+    lf=tolower(first)
+    if(lf=="" || lf ~ /^var\(/ || lf ~ /^[0-9.]/ || lf ~ /^(inherit|initial|unset|revert|serif|sans-serif|monospace|system-ui|cursive|fantasy|emoji|math|ui-[a-z-]+|-apple-system)$/) continue
+    if(inface){ loadedany=1; loaded[lf]=1 }
+    if(nfam>0 && !(lf in brandfam) && !((NR ":" lf) in seenf)){ seenf[NR ":" lf]=1; err("typography", "line " NR ": \"" first "\" is not a typography.md family (" famlist ").") }
+  }
+  if(inface && fl ~ /}/) inface=0
+}
+
 BEGIN{
+  nfam=split(fonts, famrows, "\036"); famlist=""
+  for(i=1;i<=nfam;i++){ if(famrows[i]=="") continue; brandfam[tolower(famrows[i])]=famrows[i]; famlist=famlist (famlist==""?"":", ") famrows[i] }
+  if(famlist=="") nfam=0
   np=split(palette, pal, " ")
   nr=split(radii, rad, " ")
   nb=split(bps, bp, " ")
@@ -352,12 +386,14 @@ function resolve(v,   m){
 }
 
 END{
+  if(loadedany) for(k in brandfam) if(!(k in loaded)) warn("typography", "typography.md names \"" brandfam[k] "\" but the page never loads it.")
   if(json){
-    printf "{\"tool\":\"check\",\"ok\":%s,\"data\":{\"dimensions\":{", (e["color"]+e["layout"]+e["surface"]+e["voice"]==0?"true":"false")
+    printf "{\"tool\":\"check\",\"ok\":%s,\"data\":{\"dimensions\":{", (e["color"]+e["layout"]+e["surface"]+e["voice"]+e["typography"]==0?"true":"false")
     printf "\"color\":{\"errors\":%d,\"warnings\":%d},", e["color"]+0, w["color"]+0
     printf "\"layout\":{\"errors\":%d,\"warnings\":%d},", e["layout"]+0, w["layout"]+0
     printf "\"surface\":{\"errors\":%d,\"warnings\":%d},", e["surface"]+0, w["surface"]+0
-    printf "\"voice\":{\"errors\":%d,\"warnings\":%d}", e["voice"]+0, w["voice"]+0
+    printf "\"voice\":{\"errors\":%d,\"warnings\":%d},", e["voice"]+0, w["voice"]+0
+    printf "\"typography\":{\"errors\":%d,\"warnings\":%d}", e["typography"]+0, w["typography"]+0
     printf "}},\"error\":\"\"}\n"
   } else {
     printf "\n--- petals check (deterministic) ---\n"
@@ -365,13 +401,13 @@ END{
     printf "Layout:   %d error(s), %d warning(s)\n", e["layout"]+0, w["layout"]+0
     printf "Surface:  %d error(s), %d warning(s)\n", e["surface"]+0, w["surface"]+0
     printf "Voice:    %d error(s), %d warning(s)\n", e["voice"]+0,  w["voice"]+0
-    printf "Typography: agent dimension — run via the skill\n"
-    te = e["color"]+e["layout"]+e["surface"]+e["voice"]
-    tw = w["color"]+w["layout"]+w["surface"]+w["voice"]
+    printf "Typography: %d error(s), %d warning(s) (families; heading and body roles stay with the agent)\n", e["typography"]+0, w["typography"]+0
+    te = e["color"]+e["layout"]+e["surface"]+e["voice"]+e["typography"]
+    tw = w["color"]+w["layout"]+w["surface"]+w["voice"]+w["typography"]
     if(te==0) printf "Result: PASS (%d warning(s) to review)\n", tw
     else      printf "Result: FAIL — %d error(s) to fix, %d warning(s) to review.\n", te, tw
   }
-  exit (e["color"]+e["layout"]+e["surface"]+e["voice"] > 0 ? 1 : 0)
+  exit (e["color"]+e["layout"]+e["surface"]+e["voice"]+e["typography"] > 0 ? 1 : 0)
 }
 ' "$TARGET"
 AWK_EXIT=$?
