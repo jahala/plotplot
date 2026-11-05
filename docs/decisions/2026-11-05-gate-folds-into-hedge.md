@@ -34,8 +34,8 @@ gate stops being a tool. Its three jobs move to the homes that already need them
 
 1. hedge takes over the request store, `ask`, `holds`, `list`, `answer`, `expire`, `prune` and
    the tend2 source, porting gate's code as prior art, with the owner-only answer path from the
-   start (jahala/hedge issue, linked from umbrella issue for this decision).
-2. pollen's owner-yes edge (`src/edges/gate.ts`) calls hedge instead.
+   start (jahala/hedge#42). The steps are tracked in this repository's issue 227.
+2. pollen's owner-yes edge (`src/edges/gate.ts`) calls hedge instead (jahala/pollen#58).
 3. Only then is jahala/gate archived, and its install removed from the owner's machine.
 4. gate leaves the brand's bed list and plotplot.ai's list in the same change as this decision.
 
