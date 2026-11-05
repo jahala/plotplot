@@ -24,7 +24,7 @@ new people (pollen does), fetch what people say (mull does) or sort it into need
    the thread, the review. It never contacts anyone anywhere else, and it never contacts another
    product's users. Each reply waits for a yes in gate unless the compass allows it.
 3. **Support.** Support messages arrive through mull as a private source. harvest drafts replies,
-   answers what the help pages already answer, and sends the rest to the owner through gate.
+   answers what the help pages already answer, and sends the rest to the owner through hedge's queue.
 4. **Measure.** The analytics events trellis defines for each outcome say whether the feature was
    used and by how many.
 5. **Verdict.** After the window the compass sets: helped, no change, or harmed, with the evidence.

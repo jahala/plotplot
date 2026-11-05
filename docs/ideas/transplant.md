@@ -31,7 +31,7 @@ product (pleach does), decide prices (the owner does, from cultivate's evidence)
    before the step runs.
 4. **Watch.** Uptime and error-rate checks on the live product. A breach opens an incident: roll
    back to the last good release with the recorded undo, record what happened, tell the owner
-   through gate.
+   through hedge's queue.
 5. **Before going live**, a checklist code can check: terms and privacy pages present, the
    product's data stores each declare a lifetime (trellis), a way for users to delete their data.
 

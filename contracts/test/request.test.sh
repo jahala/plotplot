@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Requests for the owner's answer, and the answers: gate's contract, which hedge checks. The schema
+# Requests for the owner's answer, and the answers: the contract hedge keeps and checks. The schema
 # compiles; every valid fixture validates and every negative fixture is rejected and declared below;
 # every request and answer in the vector validates; each digest case's bytes follow from its text
 # by the page's rule and hash to its digest; the same and differ pairs agree with their names; and

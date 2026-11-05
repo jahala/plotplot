@@ -14,8 +14,11 @@ a limit.
 
 hedge owns the moment before a tool call runs, on every agent CLI: one policy file holding the
 owner's hard limits and the acts that need a yes, compiled to each harness's own hooks, refusing
-with a reason the agent can act on. weeder keeps the moment of commit and push, through git hooks.
-gate holds the yeses; hedge checks them.
+with a reason the agent can act on, and the owner's queue: every request that needs the owner's
+yes, its answer, and whether a yes holds for an exact act. weeder keeps the moment of commit and
+push, through git hooks. Showing the owner what waits belongs to the owner's screen (the stem's
+`plotplot status`, later conducted); hedge supplies the data and the answer command. The queue was
+its own tool, gate, until 2026-11-05 (`docs/decisions/2026-11-05-gate-folds-into-hedge.md`).
 
 ## How it works
 
@@ -30,11 +33,27 @@ gate holds the yeses; hedge checks them.
 4. **Deny with the replacement.** A refusal names the sanctioned way (rm to trash, reset to the
    revert path), so the agent acts instead of retrying variants.
 5. **Needs a yes.** An act the compass lists (deploy, publish, send, spend above a line) is
-   refused until gate holds a yes bound to that exact act.
+   refused until hedge's queue holds the owner's yes bound to that exact act.
 6. **Canary per harness.** Install is not done until one denied call has been attempted on each
    harness and the reason came back. A hooks file can be present and silent.
 
 The seed is the owner's existing git guard hook and its 75 tests.
+
+## The owner's queue
+
+1. **Ask.** Any tool writes a request (`contracts/request.md`): what is asked, why, who asks, the
+   evidence, the options, the expiry. On expiry the answer is always no, so silence never acts.
+2. **Rank and cap.** Open requests are ranked by what waits on them and capped, so the owner never
+   faces a wall. A question already answered is never asked again; its answer is reused.
+3. **Answer.** Only the owner answers. An agent session that tries is refused by hedge's own
+   boundary, the same way it refuses `rm`. The answer is bound to a digest of the exact request.
+4. **Holds.** An act the compass lists passes only when a yes bound to that exact act holds.
+5. **Data.** Open and answered requests are files under `~/.local/share/plotplot/owner/requests/`.
+   Answered requests are kept, as the proof an act was approved; requests that expired unanswered
+   are kept a year, then compacted to one line each.
+6. **Metric.** The share of requests answered before they expire, and the number the owner faces
+   per day. If the owner answers more often through something else, the queue's records move to
+   that surface.
 
 ## What code decides
 
@@ -42,8 +61,8 @@ Everything. hedge has no model in it.
 
 ## Alone, and with the garden
 
-Alone, it is the owner's hard limits enforced on every agent CLI they use. With gate, it is what
-makes "needs the owner's yes" true.
+Alone, it is the owner's hard limits enforced on every agent CLI they use, and a file-based
+approval queue any script can wait on. It is what makes "needs the owner's yes" true.
 
 ## Data and its lifetime
 
