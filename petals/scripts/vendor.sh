@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# vendor.sh: keep a copy of petals inside another repository, stamped (issue #23).
+# vendor.sh: keep a copy of petals inside another repository, stamped.
 #
 # Usage:
 #   vendor.sh [--from <petals-checkout>] <dest-repo>   copy petals/ into <dest-repo>/petals
@@ -86,5 +86,23 @@ done
 } > "$STAGE/VERSION.tmp"
 mv "$STAGE/VERSION.tmp" "$STAGE/petals/VERSION"
 mkdir -p "$COPY"
-rsync -a --delete "$STAGE/petals/" "$COPY/"
+# Files the copy holds that this petals no longer ships: a tracked one leaves
+# through `git rm` (git keeps it), an untracked one through `trash`. Without
+# trash the stale files are named and nothing changes, so the copy is never
+# left half-synced. Nothing is rm'd.
+stale=$( (cd "$COPY" && find . -type f | sed 's#^\./##') | while IFS= read -r f; do [ -e "$STAGE/petals/$f" ] || printf '%s\n' "$f"; done)
+if [ -n "$stale" ]; then
+  untracked=$(printf '%s\n' "$stale" | while IFS= read -r f; do git -C "$DEST" ls-files --error-unmatch "petals/$f" >/dev/null 2>&1 || printf '%s\n' "$f"; done)
+  if [ -n "$untracked" ] && ! command -v trash >/dev/null 2>&1; then
+    echo "vendor: these files in $COPY are not part of petals, and trash is not installed to remove them:"
+    printf '  %s\n' $untracked
+    echo "  Remove them, then run vendor.sh again."
+    exit 2
+  fi
+  printf '%s\n' "$stale" | while IFS= read -r f; do
+    if git -C "$DEST" ls-files --error-unmatch "petals/$f" >/dev/null 2>&1; then git -C "$DEST" rm -q -- "petals/$f"
+    else trash "$COPY/$f"; fi
+  done
+fi
+rsync -a "$STAGE/petals/" "$COPY/"
 echo "vendor: $COPY is petals $tag $commit"

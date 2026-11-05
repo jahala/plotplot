@@ -1,7 +1,7 @@
 # {{BRAND_DESIGN_SYSTEM}}
 
 <!--
-  Template: DESIGN.md — Google Stitch 9-section standard (Apache 2.0)
+  Template: DESIGN.md, the open 9-section design-system format (Apache 2.0)
   Fill each section from extracted brand values.
   Placeholders `{{...}}` are replaced during extraction.
 -->

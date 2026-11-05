@@ -31,10 +31,11 @@ source "$SCRIPT_DIR/lib/common.sh"
 ROOT=$(find_project_root) && cd "$ROOT"
 TARGET="${1:?usage: check.sh <file> [--brand <dir>] [--product <name>]}"
 shift || true
-BRAND=""; PRODUCT=""; FORMAT="text"
+BRAND=""; PRODUCT=""; FORMAT="text"; STAGE=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --brand)   BRAND="${2:?--brand needs a dir}"; shift 2 ;;
+    --stage)   STAGE="${2:?--stage needs mockup or production}"; shift 2 ;;
     --format)  FORMAT="${2:?--format needs text or sarif}"; shift 2 ;;
     --product) PRODUCT="${2:?--product needs a name}"; shift 2 ;;
     *) shift ;;
@@ -46,13 +47,15 @@ TARGET=$(from_caller "$TARGET")
 [ -n "$BRAND" ] && BRAND=$(from_caller "$BRAND")
 BRAND="${BRAND:-.brand}"
 # product context: flag > .petalsrc > the single products/ dir > flat brand
-if [ -z "$PRODUCT" ] && [ -f .petalsrc ]; then
+# "--product -" says there is no product context; .petalsrc is not consulted
+if [ "$PRODUCT" = "-" ]; then PRODUCT=""; NO_PRODUCT=1; else NO_PRODUCT=0; fi
+if [ -z "$PRODUCT" ] && [ "$NO_PRODUCT" = 0 ] && [ -f .petalsrc ]; then
   PRODUCT=$(awk -F': *' '/^[ ]*product:/{print $2; exit}' .petalsrc 2>/dev/null)
 fi
 [ -f "$TARGET" ] || { echo "ERROR target file not found: $TARGET"; exit 1; }
 [ -d "$BRAND" ] || { echo "No brand configured. Run /petals init first."; exit 1; }
 
-if [ -z "$PRODUCT" ] && [ -d "$BRAND/products" ]; then
+if [ -z "$PRODUCT" ] && [ "$NO_PRODUCT" = 0 ] && [ -d "$BRAND/products" ]; then
   PCOUNT=$(ls -1 "$BRAND/products" 2>/dev/null | wc -l | tr -d " ")
   [ "$PCOUNT" = "1" ] && PRODUCT=$(ls -1 "$BRAND/products")
 fi
@@ -153,20 +156,20 @@ FORBIDDEN=$(awk -F'|' '/^## Forbidden Terms/{f=1} /^## /{if(f&&$0!~/Forbidden/)f
 TERMS=$(awk -F'|' '/^## Terminology/{f=1} /^## /{if(f&&$0!~/Terminology/)f=0} f && NF>=4 && $2!~/Use|---/ {gsub(/^ +| +$/,"",$2); gsub(/^ +| +$/,"",$3); if($3!=""){ n=split($3, syns, ","); for(i=1;i<=n;i++){ gsub(/^ +| +$/,"",syns[i]); gsub(/"/,"",syns[i]); if(syns[i]!="") print $2"\t"syns[i] }}}' "$BRAND/voice.md" $PRODUCT_VOICE 2>/dev/null | tr '\n' '\036')
 
 # Stroke widths: whole-pixel values from components.md's Border Strokes table.
-# A spacing value equal to one is a hairline seam, not off-scale (issue #13).
+# A spacing value equal to one is a hairline seam, not off-scale.
 STROKES=$(awk -F'|' '/^## Border Strokes/{f=1;next} /^## /{f=0} f && NF>=4 && $2!~/Token|---/ { if(match($3, /[0-9.]+px/)){ v=substr($3, RSTART, RLENGTH-2); if(v ~ /^[0-9]+$/) printf "%s ", v } }' "$BRAND/components.md" 2>/dev/null)
 
 # Every stroke width (decimals too) and the shadow recipes, for the surface
-# audit of borders, outlines and box-shadows (issue #25).
+# audit of borders, outlines and box-shadows.
 STROKEW=$(awk -F'|' '/^## Border Strokes/{f=1;next} /^## /{f=0} f && NF>=4 && $2!~/Token|---/ { if(match($3, /[0-9.]+px/)) printf "%s ", substr($3, RSTART, RLENGTH-2) }' "$BRAND/components.md" 2>/dev/null)
 SHADOWS=$(awk -F'|' '/^## Shadow Recipes/{f=1;next} /^## /{f=0} f && NF>=4 && $2!~/Token|---/ { v=$3; gsub(/`/, "", v); gsub(/^ +| +$/, "", v); if(v!="") print v }' "$BRAND/components.md" 2>/dev/null | tr '\n' '\036')
 
-# Em dashes: judged only when voice.md bans them (issue #14)
+# Em dashes: judged only when voice.md bans them
 EMBAN=0
 grep -qiE 'no em dash|em dashes? (are|is) (banned|forbidden)|never (use )?(an )?em dash' "$BRAND/voice.md" $PRODUCT_VOICE 2>/dev/null && EMBAN=1
 
 # Markup files hold colours only in style/script blocks and attribute values;
-# everywhere else a "#abc" is an anchor or a word (issue #12)
+# everywhere else a "#abc" is an anchor or a word
 case "$TARGET" in *.html|*.htm|*.svg|*.xhtml) MARKUP=1 ;; *) MARKUP=0 ;; esac
 
 # Font families: the "Font Family" column of typography.md's Font Families
@@ -176,11 +179,12 @@ PRODUCT_TYPO=""
 FONTS=$(awk -F'|' '/^## Font Families/{f=1;next} /^## /{f=0} f && NF>=4 && $2!~/Role|---/ {gsub(/^ +| +$/,"",$3); if($3!="" && !seen[$3]++) print $3}' "$BRAND/typography.md" $PRODUCT_TYPO 2>/dev/null | tr '\n' '\036')
 
 # Faces: "role|family|weights|style" rows from typography.md's Font Families
-# table, newline -> \036. Used to catch faux bold and italic (issue #9).
+# table, newline -> \036. Used to catch faux bold and italic.
 FACES=$(awk -F'|' '/^## Font Families/{f=1;next} /^## /{f=0} f && NF>=6 && $2!~/Role|---/ {for(i=2;i<=5;i++) gsub(/^ +| +$/,"",$i); if($3!="") print $2"|"$3"|"$4"|"$5}' "$BRAND/typography.md" $PRODUCT_TYPO 2>/dev/null | tr '\n' '\036')
 case "$TARGET" in *.css|*.scss|*.less) CSSFILE=1 ;; *) CSSFILE=0 ;; esac
+case "$TARGET" in *.md|*.markdown) MDFILE=1 ;; *) MDFILE=0 ;; esac
 
-# Garden row (issue #15): the beds, in order, are the reference row in
+# Garden row: the beds, in order, are the reference row in
 # components.md. A page's .gf-garden must list exactly those, each pill with
 # its own bloom, and a product page (one with the plotplot band, .gf-plot)
 # marks exactly one pill current. Findings are "line|message", \036-joined.
@@ -208,7 +212,7 @@ if [ -n "$GARDEN_BEDS" ] && grep -q 'class="gf-garden"' "$TARGET" 2>/dev/null; t
     }' "$TARGET" 2>/dev/null | tr '\n' '\036')
 fi
 
-# Custom properties per theme (issue #11): "L|--name|#HEX" for the default
+# Custom properties per theme: "L|--name|#HEX" for the default
 # (light) theme and "D|--name|#HEX" for values set under a dark marker
 # ([data-theme="dark"], .dark, prefers-color-scheme: dark). Braces are tracked
 # character by character, since minified CSS puts several blocks on a line.
@@ -239,8 +243,21 @@ THEMEVARS=$(awk '
 # The file as SARIF names it: relative to the project root when inside it.
 case "$TARGET" in "$PWD"/*) URI="${TARGET#"$PWD"/}" ;; *) URI="$TARGET" ;; esac
 
+# Stage: --stage wins; else a mockup glob in .petalsrc's
+# stages: mockup: list that matches the file; else production.
+case "$STAGE" in ""|mockup|production) ;; *) echo "ERROR --stage must be mockup or production"; exit 2 ;; esac
+if [ -z "$STAGE" ]; then
+  STAGE=production
+  if [ -f .petalsrc ]; then
+    while IFS= read -r glob; do
+      # shellcheck disable=SC2053  # the glob is meant to match as a pattern
+      [ -n "$glob" ] && [[ "$URI" == $glob ]] && { STAGE=mockup; break; }
+    done < <(awk '/^stages:/{s=1;next} s && /^[^ ]/{s=0} s && /^[ ]+mockup:/{m=1;next} s && m && /^[ ]+[a-z]+:/{m=0} s && m && /^[ ]+- /{sub(/^[ ]+- /,""); gsub(/["\047]/,""); print}' .petalsrc)
+  fi
+fi
+
 awk -v palette="$PALETTE" -v radii="$RADII" -v bps="$BREAKPOINTS" \
-    -v unit="$SPACE_UNIT" -v forbidden="$FORBIDDEN" -v docpairs="$DOCPAIRS" -v accents="$ACCENTS" -v product="$PRODUCT" -v terms="$TERMS" -v pnames="$PRODUCT_NAMES" -v sarif="$([ "$FORMAT" = sarif ] && echo 1 || echo 0)" -v uri="$URI" -v fonts="$FONTS" -v markup="$MARKUP" -v strokes="$STROKES" -v emban="$EMBAN" -v faces="$FACES" -v cssfile="$CSSFILE" -v garden="$GARDEN" -v themevars="$THEMEVARS" -v strokew="$STROKEW" -v shadows="$SHADOWS" '
+    -v unit="$SPACE_UNIT" -v forbidden="$FORBIDDEN" -v docpairs="$DOCPAIRS" -v accents="$ACCENTS" -v product="$PRODUCT" -v terms="$TERMS" -v pnames="$PRODUCT_NAMES" -v sarif="$([ "$FORMAT" = sarif ] && echo 1 || echo 0)" -v uri="$URI" -v fonts="$FONTS" -v markup="$MARKUP" -v md="$MDFILE" -v strokes="$STROKES" -v emban="$EMBAN" -v faces="$FACES" -v cssfile="$CSSFILE" -v garden="$GARDEN" -v stage="$STAGE" -v themevars="$THEMEVARS" -v strokew="$STROKEW" -v shadows="$SHADOWS" '
 function hexval(c,   i){ return index("0123456789ABCDEF", toupper(c)) - 1 }
 function h2(s){ return hexval(substr(s,1,1))*16 + hexval(substr(s,2,1)) }
 function expand(h){ if(length(h)==4) return "#" substr(h,2,1) substr(h,2,1) substr(h,3,1) substr(h,3,1) substr(h,4,1) substr(h,4,1); return h }
@@ -252,15 +269,18 @@ function nearest(h,   a,b,i,d,best,bd){ rgb(h,a); bd=1e9; for(i=1;i<=np;i++){ rg
 function nearname(h,   n){ n=nearest(h); return (n in accent_owner) ? n " (" accent_owner[n] "\047s product accent)" : n }
 function err(dim,msg){ if(sarif) keep("error", dim, msg); else printf "ERROR [%s] %s\n", dim, msg; e[dim]++ }
 function warn(dim,msg){ if(sarif) keep("warning", dim, msg); else printf "WARNING [%s] %s\n", dim, msg; w[dim]++ }
+function note(dim,msg){ if(sarif) keep("note", dim, msg); else printf "NOTE [%s] %s\n", dim, msg; notecount[dim]++ }
+function content(msg){ if(stage=="mockup") note("content", msg); else err("content", msg) }
 function keep(level, dim, msg){ nres++; rlevel[nres]=level; rdim[nres]=dim; rmsg[nres]=msg }
 
-# ── SARIF (issue #6): one rule id per kind of finding, named <dimension>/<rule>.
+# ── SARIF: one rule id per kind of finding, named <dimension>/<rule>.
 # The table below is the one place a finding gets its id and description.
 function ruleid(dim, msg){
   if(dim=="color"){ if(msg ~ /not in the palette/) return "color/off-palette"; if(msg ~ /product accent/) return "color/product-accent"; return "color/contrast" }
   if(dim=="layout"){ if(msg ~ /breakpoint/) return "layout/breakpoint"; return "layout/spacing" }
   if(dim=="surface"){ if(msg ~ /radius/) return "surface/radius"; if(msg ~ /stroke tokens/) return "surface/stroke"; if(msg ~ /shadow/) return "surface/shadow"; if(msg ~ /garden row|current pill/) return "surface/garden-row"; return "surface/motion" }
   if(dim=="voice"){ if(msg ~ /forbidden term/) return "voice/forbidden-term"; if(msg ~ /canonical term/) return "voice/terminology"; if(msg ~ /em dash/) return "voice/em-dash"; return "voice/casing" }
+  if(dim=="content"){ if(msg ~ /placeholder/) return "content/placeholder"; if(msg ~ /href=/) return "content/dead-link"; return "content/dummy-contact" }
   if(dim=="typography"){ if(msg ~ /has no (weight|italic)/) return "typography/faux-style"; if(msg ~ /never loads/) return "typography/unloaded-family"; return "typography/family" }
   return dim "/" dim
 }
@@ -282,6 +302,9 @@ function rules_init(){
   rdesc["typography/family"]="A font family outside typography.md"
   rdesc["typography/unloaded-family"]="A brand family the page never loads"
   rdesc["typography/faux-style"]="A weight or italic the face does not have"
+  rdesc["content/placeholder"]="Placeholder copy in a production page"
+  rdesc["content/dummy-contact"]="A dummy phone number, address or name in a production page"
+  rdesc["content/dead-link"]="A link to # in a production page"
 }
 function jesc(s){ gsub(/\\/, "\\\\", s); gsub(/"/, "\\\"", s); gsub(/\t/, "\\t", s); gsub(/\r/, "", s); gsub(/\n/, "\\n", s); return s }
 function emit_sarif(   i, n, k, ln, text, sug, first){
@@ -305,7 +328,7 @@ function emit_sarif(   i, n, k, ln, text, sug, first){
 }
 function quotectx(s){ return (s ~ /never|use instead|forbidden|class="no"|class="ba bad"/) }
 
-# ── typography: weights and styles a face does not have (issue #9) ──
+# ── typography: weights and styles a face does not have ──
 # Rules are read from stylesheets and <style> blocks with comments stripped.
 # A rule is judged when it names its face (a family, or a var() whose name
 # says its role); findings wait for END, since font-synthesis: none anywhere
@@ -344,6 +367,13 @@ function judgerule(sel, body, sline,   f, w, st){
   if(match(body, /font-style[ \t]*:[ \t]*(italic|oblique)/)) st="italic"
   if(st!="" && tolower(famstyles[f]) !~ /italic/) faux[++nfaux]="line " sline ": \"" famname[f] "\" has no italic (typography.md: " famstyles[f] "), so the browser fakes it. Drop the italic, or set font-synthesis: none."
 }
+# ── markdown: fenced blocks and inline code are quoted output, as <pre> and
+# <code> are in a page. Blank them for every rule; line numbers stay. ──
+md {
+  if($0 ~ /^[ \t]*(```|~~~)/){ infence=!infence; $0="" }
+  else if(infence) $0=""
+  else gsub(/`[^`]*`/, "", $0)
+}
 {
   if(nfaces>0 && (cssfile || markup)){
     cl=$0
@@ -367,34 +397,65 @@ function judgerule(sel, body, sline,   f, w, st){
   }
 }
 
-# ── voice: em dashes, when voice.md bans them (issue #14) ──
+# ── voice: em dashes, when voice.md bans them ──
 # Copy is an error. A comment is a warning, since copied comments are how
 # dashes spread. Quoted output in <pre> and inline <code> is skipped.
-emban {
-  el=$0
+# ── copy and comments: one split per line, shared by the voice and content
+# rules. Quoted output (<pre>, inline <code>) is neither, and a line in a
+# quoted-example context ("never ...", "use instead") is skipped.
+{
+  el=$0; copytext=""; commenttext=""; iscopy=0
+  if(markup && el ~ /<(style|script)[ >]/) incodeblock=1
   if(el ~ /<pre[ >]/) inpre=1
   if(!inpre && !quotectx(el)){
+    iscopy=1
     gsub(/<code[^>]*>[^<]*<\/code>/, "", el)
-    copy=""; com=""; rest=el
+    rest=el
     while(rest!=""){
       if(incom){
         endpos=(comtype=="css") ? index(rest, "*/") : index(rest, "-->")
-        if(endpos==0){ com=com rest; rest="" }
-        else { com=com substr(rest, 1, endpos-1); rest=substr(rest, endpos+(comtype=="css"?2:3)); incom=0 }
+        if(endpos==0){ commenttext=commenttext rest; rest="" }
+        else { commenttext=commenttext substr(rest, 1, endpos-1); rest=substr(rest, endpos+(comtype=="css"?2:3)); incom=0 }
       } else {
         a=index(rest, "/*"); b=index(rest, "<!--")
-        if(a==0 && b==0){ copy=copy rest; rest="" }
-        else if(a>0 && (b==0 || a<b)){ copy=copy substr(rest, 1, a-1); rest=substr(rest, a+2); incom=1; comtype="css" }
-        else { copy=copy substr(rest, 1, b-1); rest=substr(rest, b+4); incom=1; comtype="html" }
+        if(a==0 && b==0){ seg=rest; rest="" }
+        else if(a>0 && (b==0 || a<b)){ seg=substr(rest, 1, a-1); rest=substr(rest, a+2); incom=1; comtype="css" }
+        else { seg=substr(rest, 1, b-1); rest=substr(rest, b+4); incom=1; comtype="html" }
+        if(!incodeblock) copytext=copytext seg
       }
     }
-    if(index(com, "—")>0) warn("voice", "line " NR ": em dash in a comment. voice.md bans em dashes in copy, and copied comments are how they spread.")
-    if(index(copy, "—")>0 || copy ~ /&mdash;/) err("voice", "line " NR ": em dash in copy. voice.md bans em dashes: use a comma, a full stop, or a colon.")
   }
   if($0 ~ /<\/pre>/) inpre=0
+  if(markup && $0 ~ /<\/(style|script)>/) incodeblock=0
+  # the words the voice rules read: copy and comments (comments get copied
+  # into pages), never code; in markup, tags and their attributes are not words
+  voicetext=copytext " " commenttext
+  if(markup) gsub(/<[^>]*>/, " ", voicetext)
 }
 
-# ── typography: font families a line loads or declares (issue #8) ──
+# ── voice: em dashes, when voice.md bans them ──
+emban && iscopy {
+  if(index(commenttext, "—")>0) warn("voice", "line " NR ": em dash in a comment. voice.md bans em dashes in copy, and copied comments are how they spread.")
+  if(index(copytext, "—")>0 || copytext ~ /&mdash;/) err("voice", "line " NR ": em dash in copy. voice.md bans em dashes: use a comma, a full stop, or a colon.")
+}
+
+# ── content: what is not true yet. Errors in production, notes in
+# a mockup, where believable filler is how a design gets judged.
+iscopy {
+  lc=tolower(copytext)
+  if(lc ~ /lorem ipsum/ || lc ~ /your (text|name|company|title|email|copy|headline) here/ || lc ~ /\[(company|product|customer|client|first|last|your)[^]]*\]/)
+    content("line " NR ": placeholder copy. Write the real words, or keep this page under a mockup path.")
+  if(match(copytext, /(\(555\) ?|555[-. ])[0-9]{3,4}([-. ][0-9]{4})?/))
+    content("line " NR ": " substr(copytext, RSTART, RLENGTH) " is a dummy phone number (555). Use a real one, or keep this page under a mockup path.")
+  if(match(lc, /[a-z0-9._%+-]+@example\.(com|org|net)/))
+    content("line " NR ": " substr(copytext, RSTART, RLENGTH) " is a dummy address (example.com). Use a real one, or keep this page under a mockup path.")
+  if(lc ~ /(^|[^a-z])(john|jane) doe([^a-z]|$)/)
+    content("line " NR ": John or Jane Doe is a dummy name. Use a real one, or keep this page under a mockup path.")
+  if(copytext ~ /href[ ]*=[ ]*("#"|\047#\047)/)
+    content("line " NR ": href=\"#\" goes nowhere. Link the real page, or keep this page under a mockup path.")
+}
+
+# ── typography: font families a line loads or declares ──
 {
   fl=$0
   if(fl ~ /@font-face/) inface=1
@@ -561,7 +622,13 @@ BEGIN{
 
   # ── layout: spacing scale + breakpoints ──
   if(line ~ /(padding|margin|gap)[a-z-]*[ ]*:/ && line !~ /--/){
-    tmp=line
+    # scan only the spacing declaration values, not the whole line
+    tmp=""
+    rest=line
+    while(match(rest, /(padding|margin|gap)[a-z-]*[ ]*:[ ]*[^;}]*/)){
+      tmp=tmp " " substr(rest, RSTART, RLENGTH)
+      rest=substr(rest, RSTART+RLENGTH)
+    }
     while(match(tmp, /[0-9]+px/)){
       v=substr(tmp, RSTART, RLENGTH)+0
       if(v % unit != 0 && !(v in stroke_px)){
@@ -612,7 +679,7 @@ BEGIN{
   if(line ~ /box-shadow[ ]*:/ && (line ~ /#000([^0-9a-fA-F]|$)/ || line ~ /rgba\(0,[ ]*0,[ ]*0/))
     warn("surface", "line " NR ": shadow uses pure black. Brand shadows are ink-tinted (components.md Shadow Recipes).")
 
-  # border and outline widths against the stroke tokens (issue #25)
+  # border and outline widths against the stroke tokens
   if(nstw>0 && line ~ /(border|outline)/){
     rest=line
     while(match(rest, /(border(-top|-right|-bottom|-left)?(-width)?|outline(-width)?)[ ]*:[ ]*[^;}]*/)){
@@ -624,7 +691,7 @@ BEGIN{
       }
     }
   }
-  # a box-shadow is a token, none, or a documented recipe (issue #25)
+  # a box-shadow is a token, none, or a documented recipe
   if(nshadow>0 && match(line, /box-shadow[ ]*:[ ]*[^;}]*/)){
     sv=substr(line, RSTART, RLENGTH); sub(/^[^:]*:[ ]*/, "", sv); gsub(/!important/, "", sv)
     nsv=tolower(sv); gsub(/[ \t]/, "", nsv)
@@ -639,21 +706,22 @@ BEGIN{
       warn("surface", "line " NR ": box-shadow matches no shadow recipe. Use a shadow token or a recipe from components.md Shadow Recipes.")
   }
   # ── voice: forbidden terms, terminology, product casing ──
-  if(!quotectx(line)){
+  if(iscopy){
+    vl=tolower(voicetext)
     for(i=1;i<=nf;i++){
-      if(fterm[i]!="" && tolower(line) ~ ("(^|[^a-z])" tolower(fterm[i]))){
+      if(fterm[i]!="" && vl ~ ("(^|[^a-z])" tolower(fterm[i]))){
         err("voice", "line " NR ": \"" fterm[i] "\" is a forbidden term. Use \"" falt[i] "\" instead.")
       }
     }
     for(i=1;i<=nt;i++){
-      if(tsyn[i]!="" && tolower(line) ~ ("(^|[^a-z])" tolower(tsyn[i]))){
-        match(tolower(line), "(^|[^a-z])" tolower(tsyn[i]))
-        warn("voice", "line " NR ": \"" substr(tolower(line), RSTART+1, RLENGTH-1) "\" — use the canonical term \"" tcanon[i] "\" (voice.md Terminology).")
+      # a synonym is a whole word, and not the tail of a domain (plotplot.ai)
+      if(tsyn[i]!="" && vl ~ ("(^|[^a-z.])" tolower(tsyn[i]) "($|[^a-z])")){
+        warn("voice", "line " NR ": \"" tolower(tsyn[i]) "\" — use the canonical term \"" tcanon[i] "\" (voice.md Terminology).")
       }
     }
     if(nprod>0){
-      tmp=tolower(line)
-      lref=line
+      tmp=vl
+      lref=voicetext
       prodpat="("
       for(i=1;i<=nprod;i++){ prodpat = prodpat (i>1?"|":"") prodnames[i] }
       prodpat = prodpat ")"
@@ -717,12 +785,13 @@ END{
     printf "Surface:  %d error(s), %d warning(s)\n", e["surface"]+0, w["surface"]+0
     printf "Voice:    %d error(s), %d warning(s)\n", e["voice"]+0,  w["voice"]+0
     printf "Typography: %d error(s), %d warning(s) (families; heading and body roles stay with the agent)\n", e["typography"]+0, w["typography"]+0
-    te = e["color"]+e["layout"]+e["surface"]+e["voice"]+e["typography"]
-    tw = w["color"]+w["layout"]+w["surface"]+w["voice"]+w["typography"]
+    printf "Content:  %d error(s), %d warning(s), %d note(s) (%s stage)\n", e["content"]+0, w["content"]+0, notecount["content"]+0, stage
+    te = e["color"]+e["layout"]+e["surface"]+e["voice"]+e["typography"]+e["content"]
+    tw = w["color"]+w["layout"]+w["surface"]+w["voice"]+w["typography"]+w["content"]
     if(te==0) printf "Result: PASS (%d warning(s) to review)\n", tw
     else      printf "Result: FAIL — %d error(s) to fix, %d warning(s) to review.\n", te, tw
   }
-  exit (e["color"]+e["layout"]+e["surface"]+e["voice"]+e["typography"] > 0 ? 1 : 0)
+  exit (e["color"]+e["layout"]+e["surface"]+e["voice"]+e["typography"]+e["content"] > 0 ? 1 : 0)
 }
 ' "$TARGET"
 AWK_EXIT=$?

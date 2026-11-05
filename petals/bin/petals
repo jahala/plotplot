@@ -1,0 +1,286 @@
+#!/usr/bin/env bash
+# petals/bin/petals: the one executable a host (plotplot's stem, CI, a person)
+# calls. It finds the scripts beside it, so a symlink or a vendored copy works.
+#
+#   petals guard pre-commit | petals guard commit-msg <message-file>
+#       The commit-time face the stem's git hooks call; nonzero refuses the commit.
+#   petals gate [--base <ref>] [--strict] [--message-file <path>] [--format sarif|text]
+#       Judge the UI files a change touches and write one SARIF 2.1.0 log.
+#   petals check <file> [check.sh args...]
+#       Judge one file (scripts/check.sh).
+#   petals --version
+#
+# The gate reads .petalsrc and the brand from the base (--base <ref>, else
+# HEAD), never from the change, so a change cannot loosen its own rules.
+# Exit (gate): 0 no errors, 1 any error-level result, 2 usage, 3 no brand,
+# 4 could not judge (nothing on stdout).
+set -uo pipefail
+
+PETALS_VERSION="0.2.0"
+
+# Resolve this script's real path, following symlinks (macOS has no readlink -f
+# on older systems).
+self="${BASH_SOURCE[0]}"
+while [ -L "$self" ]; do
+  dir=$(cd -P "$(dirname "$self")" && pwd)
+  self=$(readlink "$self")
+  case "$self" in /*) ;; *) self="$dir/$self" ;; esac
+done
+BIN_DIR=$(cd -P "$(dirname "$self")" && pwd)
+SCRIPTS="$BIN_DIR/../scripts"
+
+usage() {
+  cat >&2 <<'USAGE'
+usage: petals guard pre-commit | petals guard commit-msg <message-file>
+       petals gate [--base <ref>] [--strict] [--message-file <path>] [--format sarif|text]
+       petals review <page> [--note <text>]... [--no-open] | petals review --stop
+       petals check <file> [--brand <dir>] [--product <name>] [--stage mockup|production] [--format sarif|text]
+       petals --version
+USAGE
+}
+
+# List items under "<section>:" > "<key>:" in a .petalsrc, one per line.
+# Same shape as the stages: mockup: list that scripts/check.sh reads.
+rc_list() { # <file> <section> <key>
+  awk -v sec="$2" -v key="$3" '
+    $0 ~ "^" sec ":" {s=1;next}
+    s && /^[^ ]/ {s=0}
+    s && $0 ~ "^[ ]+" key ":" {m=1;next}
+    s && m && /^[ ]+[a-z]+:/ {m=0}
+    s && m && /^[ ]+- / {sub(/^[ ]+- /,""); gsub(/["\047]/,""); print}' "$1"
+}
+
+gate() {
+  local base="" format="" strict=0 msgfile="" index=0 arg
+  while [ $# -gt 0 ]; do
+    arg="$1"
+    case "$arg" in
+      --base)   base="${2:-}"; [ -n "$base" ] || { echo "petals gate: --base needs a ref" >&2; return 2; }; shift 2 ;;
+      --format) format="${2:-}"; shift 2 || true ;;
+      --strict) strict=1; shift ;;
+      --index) index=1; shift ;;
+      --message-file) msgfile="${2:-}"; [ -f "$msgfile" ] || { echo "petals gate: --message-file needs a file" >&2; return 2; }; msgfile=$(cd "$(dirname "$msgfile")" && pwd)/$(basename "$msgfile"); shift 2 ;;
+      *) echo "petals gate: unknown argument: $arg" >&2; usage; return 2 ;;
+    esac
+  done
+  if [ -z "$format" ]; then if [ -t 1 ]; then format=text; else format=sarif; fi; fi
+  case "$format" in sarif|text) ;; *) echo "petals gate: --format must be sarif or text" >&2; return 2 ;; esac
+
+  local root
+  root=$(git rev-parse --show-toplevel 2>/dev/null) || { echo "petals gate: not inside a git repository" >&2; return 2; }
+  cd "$root" || return 2
+
+  # The ref whose config and brand rule: the base, else HEAD (the working tree
+  # is the change; HEAD is what it changes). No commits yet means no ref.
+  local ref=""
+  if [ -n "$base" ]; then
+    git rev-parse --verify --quiet "$base^{commit}" >/dev/null || { echo "petals gate: unknown base ref: $base" >&2; return 2; }
+    ref="$base"
+  elif git rev-parse --verify --quiet "HEAD^{commit}" >/dev/null; then
+    ref="HEAD"
+  fi
+
+  local scratch
+  scratch=$(mktemp -d "${TMPDIR:-/tmp}/petals-gate.XXXXXX") || return 4
+  # shellcheck disable=SC2064  # expand now: the path is fixed for this run
+  trap "rm -rf '$scratch'" EXIT
+
+  # The brand: the base's .brand when it tracks one; else the working tree's
+  # (a product repo that ignores the umbrella's cache); else none.
+  local brand=""
+  if [ -n "$ref" ] && [ -n "$(git ls-tree -d --name-only "$ref" .brand 2>/dev/null)" ]; then
+    mkdir -p "$scratch/brand/.brand"
+    # A product repo tracks only its own layer and ignores the umbrella's
+    # fetched files: start from the working tree's cache, then lay the base's
+    # tracked files over it, so what the repository commits always comes
+    # from the base.
+    if [ -d "$root/.brand" ] && ! git cat-file -e "$ref:.brand/colors.md" 2>/dev/null; then
+      cp -R "$root/.brand/." "$scratch/brand/.brand/"
+      git ls-files -z -- .brand | while IFS= read -r -d '' tracked; do rm -f "$scratch/brand/$tracked"; done
+    fi
+    git archive "$ref" .brand | tar -x -C "$scratch/brand" || { echo "petals gate: could not read .brand at $ref" >&2; return 4; }
+    brand="$scratch/brand/.brand"
+  elif [ -d "$root/.brand" ]; then
+    brand="$root/.brand"
+  else
+    echo "petals gate: no brand found: .brand is not tracked at ${ref:-HEAD} and not present in the working tree" >&2
+    return 3
+  fi
+
+  # The config: the base's .petalsrc; when the base has none and there is no
+  # --base, the working tree's (no base exists to trust); else none.
+  local rcfile="$scratch/petalsrc"
+  : > "$rcfile"
+  if [ -n "$ref" ] && git cat-file -e "$ref:.petalsrc" 2>/dev/null; then
+    git show "$ref:.petalsrc" > "$rcfile" || return 4
+  elif [ -z "$base" ] && [ -f "$root/.petalsrc" ]; then
+    cp "$root/.petalsrc" "$rcfile"
+  fi
+  local product
+  product=$(awk -F': *' '/^[ ]*product:/{print $2; exit}' "$rcfile" 2>/dev/null)
+  rc_list "$rcfile" stages mockup > "$scratch/mockup.globs"
+  rc_list "$rcfile" gate exclude > "$scratch/exclude.globs"
+
+  # Changed files, NUL-delimited, deduplicated. --index (the commit-time
+  # view) takes what is staged, and judges the staged content itself.
+  if [ "$index" = 1 ]; then
+    git diff --cached -z --name-only --diff-filter=ACMR > "$scratch/changed.raw" || { echo "petals guard: could not list staged files" >&2; return 2; }
+  elif [ -n "$base" ]; then
+    git diff -z --name-only --diff-filter=ACMR "$base...HEAD" > "$scratch/changed.raw" || { echo "petals gate: could not diff $base...HEAD" >&2; return 2; }
+  else
+    {
+      if [ -n "$ref" ]; then git diff -z --name-only --diff-filter=ACMR HEAD; fi
+      git ls-files -z --others --exclude-standard
+    } > "$scratch/changed.raw" || { echo "petals gate: could not list changed files" >&2; return 2; }
+  fi
+  sort -zu "$scratch/changed.raw" > "$scratch/changed"
+
+  local f glob skip n=0 nerr=0 st rc
+  local -a pargs
+  local logs="$scratch/logs"; : > "$logs"
+  while IFS= read -r -d '' f; do
+    case "$f" in
+      *.html|*.htm|*.svg|*.css|*.scss|*.less|*.jsx|*.tsx|*.vue|*.svelte|*.astro) ;;
+      *) continue ;;
+    esac
+    case "$f" in .brand/*|*/.brand/*|node_modules/*|*/node_modules/*) continue ;; esac
+    local src="$f"
+    if [ "$index" = 1 ]; then
+      src="$scratch/index/$f"; mkdir -p "$(dirname "$src")"
+      git show ":$f" > "$src" 2>/dev/null || continue
+    fi
+    [ -f "$src" ] || continue
+    skip=0
+    while IFS= read -r glob; do
+      # shellcheck disable=SC2053  # the glob is meant to match as a pattern
+      [ -n "$glob" ] && [[ "$f" == $glob ]] && { skip=1; break; }
+    done < "$scratch/exclude.globs"
+    [ "$skip" = 1 ] && continue
+
+    st=production
+    while IFS= read -r glob; do
+      # shellcheck disable=SC2053
+      [ -n "$glob" ] && [[ "$f" == $glob ]] && { st=mockup; break; }
+    done < "$scratch/mockup.globs"
+    pargs=(--brand "$brand" --stage "$st")
+    # always explicit, so check.sh never reads the change's .petalsrc: "-" means none
+    pargs+=(--product "${product:--}")
+
+    n=$((n+1))
+    if [ "$format" = text ]; then
+      printf '== %s (%s) ==\n' "$f" "$st"
+      "$SCRIPTS/check.sh" "$src" "${pargs[@]}"; rc=$?
+      [ "$rc" -le 1 ] || { echo "petals gate: check.sh failed on $f (exit $rc)" >&2; return 4; }
+      [ "$rc" = 1 ] && nerr=$((nerr+1))
+      echo
+    else
+      "$SCRIPTS/check.sh" "$src" "${pargs[@]}" --format sarif > "$scratch/log.$n"; rc=$?
+      [ "$rc" -le 1 ] || { echo "petals gate: check.sh failed on $f (exit $rc)" >&2; return 4; }
+      printf '%s\n' "$scratch/log.$n" >> "$logs"
+    fi
+  done < "$scratch/changed"
+
+  if [ "$format" = text ]; then
+    if [ "$n" = 0 ]; then echo "petals gate: no UI files to judge."; return 0; fi
+    echo "petals gate: $n file(s) judged, $nerr with errors."
+    [ "$nerr" -gt 0 ] && return 1
+    return 0
+  fi
+
+  # No file judged: still one valid log. The driver (and its rule list) comes
+  # from check.sh on an empty file; its results are dropped.
+  local probe=0
+  if [ "$n" = 0 ]; then
+    : > "$scratch/empty.html"
+    "$SCRIPTS/check.sh" "$scratch/empty.html" --brand "$brand" --stage production --format sarif > "$scratch/log.0" 2>/dev/null
+    [ "$?" -le 1 ] || { echo "petals gate: check.sh could not build an empty log" >&2; return 4; }
+    printf '%s\n' "$scratch/log.0" >> "$logs"
+    probe=1
+  fi
+  # Allowances (Petals-allow: <rule> <reason>): from the commit being
+  # prepared, and from every commit in the change. A trailer without a reason
+  # allows nothing, and says so.
+  : > "$scratch/allow"
+  {
+    [ -n "$msgfile" ] && cat "$msgfile"
+    [ -n "$base" ] && git log --format=%B "$base..HEAD"
+  } 2>/dev/null | awk '/^Petals-allow:/ { sub(/^Petals-allow:[ \t]*/, ""); print }' > "$scratch/allow.raw"
+  while IFS= read -r line; do
+    rule=${line%%[[:space:]]*}; reason=${line#"$rule"}; reason=${reason#"${reason%%[![:space:]]*}"}
+    if [ -z "$reason" ]; then echo "petals gate: Petals-allow: $rule has no reason, so it allows nothing" >&2; continue; fi
+    printf '%s\t%s\n' "$rule" "$reason" >> "$scratch/allow"
+  done < "$scratch/allow.raw"
+
+  python3 -I - "$probe" "$logs" "$scratch/allow" "$strict" "$scratch/index/" <<'PY'
+import json, sys
+probe, listing = sys.argv[1] == "1", sys.argv[2]
+allow = {}
+for line in open(sys.argv[3], encoding="utf-8"):
+    rule, _, reason = line.rstrip("\n").partition("\t")
+    allow.setdefault(rule, reason)
+strict = sys.argv[4] == "1"
+staged = sys.argv[5]
+try:
+    paths = [p for p in open(listing).read().split("\n") if p]
+    logs = [json.load(open(p)) for p in paths]
+    merged = logs[0]
+    run = merged["runs"][0]
+    results = [] if probe else [r for l in logs for r in l["runs"][0]["results"]]
+    # an allowed finding stays on the record: a suppression carrying the
+    # reason, and a note unless --strict asks for its own level
+    for r in results:
+        # a staged copy is named by its path in the repository
+        for loc in r.get("locations", []):
+            a = loc.get("physicalLocation", {}).get("artifactLocation", {})
+            if a.get("uri", "").startswith(staged):
+                a["uri"] = a["uri"][len(staged):]
+        reason = allow.get(r.get("ruleId", ""))
+        if reason:
+            r["suppressions"] = [{"kind": "external", "justification": reason}]
+            if not strict:
+                r["level"] = "note"
+    run["results"] = results
+    out = json.dumps(merged, separators=(",", ":"))
+except Exception as e:
+    sys.stderr.write("petals gate: could not merge check.sh output: %s\n" % e)
+    sys.exit(4)
+print(out)
+sys.exit(1 if any(r.get("level") == "error" for r in results) else 0)
+PY
+}
+
+# The commit-time face the stem's planted git hooks call: pre-commit judges
+# the index, commit-msg judges it again with the message's Petals-allow
+# trailers. Exit 0 lets the commit through; nonzero refuses it, with each
+# blocking finding on stderr. Hooks petals does not judge pass through.
+guard() {
+  local hook="${1:-}"; shift || true
+  local -a extra=()
+  case "$hook" in
+    pre-commit) ;;
+    commit-msg) [ -f "${1:-}" ] || { echo "petals guard: commit-msg needs the message file" >&2; return 2; }; extra=(--message-file "$1") ;;
+    *) return 0 ;;
+  esac
+  local log rc
+  log=$(gate --index --format sarif ${extra[@]+"${extra[@]}"}); rc=$?
+  [ "$rc" -le 1 ] || { echo "petals guard: could not judge the commit (exit $rc), so it is refused" >&2; return "$rc"; }
+  printf '%s' "$log" | python3 -I -c '
+import json, sys
+blocks = [r for r in json.load(sys.stdin)["runs"][0]["results"] if r.get("level") == "error"]
+for r in blocks:
+    loc = r["locations"][0]["physicalLocation"]
+    line = loc.get("region", {}).get("startLine")
+    sys.stderr.write("petals: %s%s: [%s] %s\n" % (loc["artifactLocation"]["uri"], " line %d" % line if line else "", r["ruleId"], r["message"]["text"]))
+if blocks:
+    sys.stderr.write("petals: %d finding(s) block this commit. Fix them, or allow one on the record with a Petals-allow: <rule> <reason> trailer.\n" % len(blocks))
+sys.exit(1 if blocks else 0)'
+}
+
+case "${1:-}" in
+  guard)      shift; guard "$@"; exit $? ;;
+  gate)       shift; gate "$@"; exit $? ;;
+  check)      shift; exec "$SCRIPTS/check.sh" "$@" ;;
+  review)     shift; exec "$SCRIPTS/review.sh" "$@" ;;
+  --version)  echo "petals $PETALS_VERSION" ;;
+  *)          usage; exit 2 ;;
+esac

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# lint-skills.sh: find the skills a harness would drop without a word (issue #7).
+# lint-skills.sh: find the skills a harness would drop without a word.
 #
 # Usage: lint-skills.sh [project-dir]   (default: the current directory)
 #
