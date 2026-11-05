@@ -37,6 +37,10 @@ jobs:
       - name: plotplot check --strict
         run: plotplot check --strict
 
+      - name: petals is petals' own, unedited
+        # petals/ is vendored with petals' vendor.sh and stamped in petals/VERSION; take a release by running it again.
+        run: bash petals/scripts/vendor.sh --check .
+
       - name: the marks hold their rules
         # One grid, two inks, night files derived from paper (.brand/DESIGN.md, section 7).
-        run: python3 scripts/marks.py --check
+        run: python3 petals/scripts/marks.py --check --brand .brand
