@@ -1,0 +1,197 @@
+name: release
+
+# A tag v<version>, pushed by the owner, builds the stem for five platforms, attaches each
+# build and SHA256SUMS to the GitHub release, and publishes the npm package carrying those
+# digests, so `npm install -g plotplot` needs no Rust. A pull request that touches this file
+# or npm/ runs the same five builds and the package's tests and publishes nothing, so a
+# platform that no longer builds shows before a tag does.
+on:
+  push:
+    tags: ["v*"]
+  pull_request:
+    paths:
+      - .github/workflows/release.yml
+      - npm/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  versions:
+    name: one version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Cargo.toml, npm/package.json and the tag agree
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          crate="$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml)"
+          package="$(node -p "require('./npm/package.json').version")"
+          echo "Cargo.toml: $crate; npm/package.json: $package; ref: $REF_TYPE $REF_NAME"
+          if [ -z "$crate" ] || [ "$crate" != "$package" ]; then
+            echo "::error::Cargo.toml says '$crate' and npm/package.json says '$package'"
+            exit 1
+          fi
+          if [ "$REF_TYPE" = tag ] && [ "$REF_NAME" != "v$crate" ]; then
+            echo "::error::the tag is $REF_NAME and the version is $crate"
+            exit 1
+          fi
+
+  package:
+    name: the npm package's tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: node --test npm/test/
+
+  build:
+    name: build (${{ matrix.target }})
+    needs: versions
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            cross: true
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-latest
+            cross: true
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            cross: false
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            cross: false
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            cross: false
+    runs-on: ${{ matrix.os }}
+    env:
+      TARGET: ${{ matrix.target }}
+      CROSS: ${{ matrix.cross }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Rust toolchain from rust-toolchain.toml, with the target
+        shell: bash
+        run: |
+          rustup toolchain install
+          rustup target add "$TARGET"
+
+      - name: cross, which builds the Linux targets in a container
+        if: matrix.cross
+        run: cargo install cross --locked
+
+      - name: build
+        shell: bash
+        run: |
+          if [ "$CROSS" = true ]; then
+            cross build --release --locked --target "$TARGET"
+          else
+            cargo build --release --locked --target "$TARGET"
+          fi
+
+      # The executable alone, at the archive's root, the shape npm/install.js unpacks.
+      - name: pack
+        shell: bash
+        run: |
+          binary=plotplot
+          if [ "$RUNNER_OS" = Windows ]; then binary=plotplot.exe; fi
+          tar -czf "plotplot-$TARGET.tar.gz" -C "target/$TARGET/release" "$binary"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plotplot-${{ matrix.target }}
+          path: plotplot-${{ matrix.target }}.tar.gz
+          if-no-files-found: error
+
+  release:
+    name: the GitHub release
+    if: github.ref_type == 'tag'
+    needs: [build, package]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: plotplot-*
+          merge-multiple: true
+          path: built
+
+      # A release that already exists keeps its assets: a rebuild is not byte for byte the
+      # same, and the npm package may already carry the published digests. The digests the
+      # package gets are always read back from the release.
+      - name: create the release once, with every build and SHA256SUMS
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "the release $TAG exists; its assets stand"
+          else
+            (cd built && sha256sum plotplot-*.tar.gz > SHA256SUMS)
+            gh release create "$TAG" --verify-tag --generate-notes built/plotplot-*.tar.gz built/SHA256SUMS
+          fi
+          gh release download "$TAG" --pattern SHA256SUMS --dir published
+          test "$(wc -l < published/SHA256SUMS)" -eq 5
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sha256sums
+          path: published/SHA256SUMS
+          if-no-files-found: error
+
+  npm:
+    name: the npm package
+    if: github.ref_type == 'tag'
+    needs: release
+    runs-on: ubuntu-latest
+    # Trusted publishing: npm takes this job's OIDC identity, so no token is stored here.
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # ratchet:actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      # Trusted publishing needs npm 11.5.1 or later.
+      - run: npm install -g npm@11
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: sha256sums
+          path: published
+
+      - name: the release's digests, into the package
+        run: node npm/checksums.js published/SHA256SUMS > npm/checksums.json
+
+      - run: node --test npm/test/
+
+      # Each name once: a run again after a partial publish finishes the rest.
+      - name: publish plotplot and @plotplot/plotplot
+        working-directory: npm
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          for name in plotplot @plotplot/plotplot; do
+            if npm view "$name@$version" version > /dev/null 2>&1; then
+              echo "$name@$version is already published"
+              continue
+            fi
+            npm pkg set name="$name"
+            npm publish --access public
+          done

@@ -41,6 +41,13 @@ each tool landing. Move `contracts/pins.json` in a pull request when a pinned re
   `contracts/fixtures/garden.lock` by digest, run `plotplot lock verify` and the bed's fit
   script, record the result on the bed's loop, land by pull request (the weeder 0.2.4 pin,
   2026-09-18, is the worked example).
+- **Release the stem.** Set the same version in `Cargo.toml` and `npm/package.json` and land
+  it; the owner pushes the tag `v<version>`. `.github/workflows/release.yml` builds five
+  platforms, attaches each build and `SHA256SUMS` to the GitHub release, writes those digests
+  into the npm package (`npm/checksums.js`), and publishes `plotplot` and `@plotplot/plotplot`
+  by trusted publishing, each once. Publishing needs a trusted publisher for both names on
+  npmjs.com, set once by the owner. A pull request touching the workflow or `npm/` runs the
+  five builds and `node --test npm/test/` and publishes nothing.
 - **Conduct a node here.** A hand-written `docs/dogfood/<loop>/plan.json`, one phased node
   closing one check; setup builds the stem and runs `plotplot lock verify`; smoke
   `weeder check --strict`; audit `tend2 verify ... --audit-egress` on a second provider. A test
