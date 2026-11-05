@@ -19,19 +19,31 @@
 # class="no" are skipped by the voice pass (they quote the rule, not break it).
 #
 # Usage: check.sh <file> [--brand <dir>]   (default brand dir: .brand)
-# Exit: 0 when zero errors (warnings alone do not fail), else the error count.
+# Exit: 0 when zero errors, 1 when any error present (binary pass/fail).
 set -uo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [[ ! -f "$SCRIPT_DIR/lib/common.sh" ]]; then
+  echo "petals: lib/common.sh is missing beside $(basename "$0"); install the whole petals/ directory" >&2
+  exit 127
+fi
+source "$SCRIPT_DIR/lib/common.sh"
+ROOT=$(find_project_root) && cd "$ROOT"
 TARGET="${1:?usage: check.sh <file> [--brand <dir>] [--product <name>]}"
 shift || true
-BRAND=".brand"; PRODUCT=""
+BRAND=""; PRODUCT=""; JSON_MODE=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --brand)   BRAND="${2:?--brand needs a dir}"; shift 2 ;;
+    --json)    JSON_MODE=1; shift ;;
     --product) PRODUCT="${2:?--product needs a name}"; shift 2 ;;
     *) shift ;;
   esac
 done
+# Paths the caller typed are relative to where they called from.
+TARGET=$(from_caller "$TARGET")
+[ -n "$BRAND" ] && BRAND=$(from_caller "$BRAND")
+BRAND="${BRAND:-.brand}"
 # product context: flag > .petalsrc > the single products/ dir > flat brand
 if [ -z "$PRODUCT" ] && [ -f .petalsrc ]; then
   PRODUCT=$(awk -F': *' '/^[ ]*product:/{print $2; exit}' .petalsrc 2>/dev/null)
@@ -43,12 +55,62 @@ if [ -z "$PRODUCT" ] && [ -d "$BRAND/products" ]; then
   PCOUNT=$(ls -1 "$BRAND/products" 2>/dev/null | wc -l | tr -d " ")
   [ "$PCOUNT" = "1" ] && PRODUCT=$(ls -1 "$BRAND/products")
 fi
-PRODUCT_VOICE=""
 [ -n "$PRODUCT" ] && [ -f "$BRAND/products/$PRODUCT/voice.md" ] && PRODUCT_VOICE="$BRAND/products/$PRODUCT/voice.md"
+
+# ── tokens drift detection ──
+TOKENS_CSS="$BRAND/tokens.css"
+if [ -f "$TOKENS_CSS" ]; then
+  # Compare high-signal token values against canonical sources.
+  # colors.md canonical: CSS :root block values.
+  # typography.md canonical: Font Families table values.
+
+  # Primary color
+  CANON_PRIMARY=$(awk -F'[ ;]' '/--pp-primary:/{gsub(/^[ ]*--pp-primary:[ ]*/,""); gsub(/[ ;].*/,""); print; exit}' "$BRAND/colors.md" 2>/dev/null | tr -d '\n')
+  TOKENS_PRIMARY=$(awk -F'[ ;]' '/--pp-primary:/{gsub(/^[ ]*--pp-primary:[ ]*/,""); gsub(/[ ;].*/,""); print; exit}' "$TOKENS_CSS" 2>/dev/null | tr -d '\n')
+  if [ -n "$CANON_PRIMARY" ] && [ -n "$TOKENS_PRIMARY" ] && [ "$CANON_PRIMARY" != "$TOKENS_PRIMARY" ]; then
+    echo "WARNING [tokens] tokens.css --pp-primary: $TOKENS_PRIMARY does not match colors.md: $CANON_PRIMARY" >&2
+  fi
+
+  # Accent color
+  CANON_ACCENT=$(awk -F'[ ;]' '/--pp-accent:/{gsub(/^[ ]*--pp-accent:[ ]*/,""); gsub(/[ ;].*/,""); print; exit}' "$BRAND/colors.md" 2>/dev/null | tr -d '\n')
+  TOKENS_ACCENT=$(awk -F'[ ;]' '/--pp-accent:/{gsub(/^[ ]*--pp-accent:[ ]*/,""); gsub(/[ ;].*/,""); print; exit}' "$TOKENS_CSS" 2>/dev/null | tr -d '\n')
+  if [ -n "$CANON_ACCENT" ] && [ -n "$TOKENS_ACCENT" ] && [ "$CANON_ACCENT" != "$TOKENS_ACCENT" ]; then
+    echo "WARNING [tokens] tokens.css --pp-accent: $TOKENS_ACCENT does not match colors.md: $CANON_ACCENT" >&2
+  fi
+
+  # Text color
+  CANON_TEXT=$(awk -F'[ ;]' '/--pp-text:/{gsub(/^[ ]*--pp-text:[ ]*/,""); gsub(/[ ;].*/,""); print; exit}' "$BRAND/colors.md" 2>/dev/null | tr -d '\n')
+  TOKENS_TEXT=$(awk -F'[ ;]' '/--pp-text:/{gsub(/^[ ]*--pp-text:[ ]*/,""); gsub(/[ ;].*/,""); print; exit}' "$TOKENS_CSS" 2>/dev/null | tr -d '\n')
+  if [ -n "$CANON_TEXT" ] && [ -n "$TOKENS_TEXT" ] && [ "$CANON_TEXT" != "$TOKENS_TEXT" ]; then
+    echo "WARNING [tokens] tokens.css --pp-text: $TOKENS_TEXT does not match colors.md: $CANON_TEXT" >&2
+  fi
+
+  # Background color
+  CANON_BG=$(awk -F'[ ;]' '/--pp-bg:/{gsub(/^[ ]*--pp-bg:[ ]*/,""); gsub(/[ ;].*/,""); print; exit}' "$BRAND/colors.md" 2>/dev/null | tr -d '\n')
+  TOKENS_BG=$(awk -F'[ ;]' '/--pp-bg:/{gsub(/^[ ]*--pp-bg:[ ]*/,""); gsub(/[ ;].*/,""); print; exit}' "$TOKENS_CSS" 2>/dev/null | tr -d '\n')
+  if [ -n "$CANON_BG" ] && [ -n "$TOKENS_BG" ] && [ "$CANON_BG" != "$TOKENS_BG" ]; then
+    echo "WARNING [tokens] tokens.css --pp-bg: $TOKENS_BG does not match colors.md: $CANON_BG" >&2
+  fi
+
+  # Heading font
+  CANON_HEADING=$(awk -F'|' '/^## Font Families/{f=1} /^## /{if(f&&!~/Font Families/)f=0} f && NF>=3 && $2!~/Role|---/{gsub(/^ +| +$/,"",$3); if($2~/Heading/){if($3!=""){print $3; exit}}}' "$BRAND/typography.md" 2>/dev/null | tr -d '\n')
+  TOKENS_HEADING=$(awk -F'[ ;]' '/--pp-font-heading:/{gsub(/^[ ]*--pp-font-heading:[ ]*/,""); gsub(/[ ;].*/,""); gsub(/^'"'"'|'"'"'$/,""); print; exit}' "$TOKENS_CSS" 2>/dev/null | tr -d '\n')
+  if [ -n "$CANON_HEADING" ] && [ -n "$TOKENS_HEADING" ] && [ "$CANON_HEADING" != "$TOKENS_HEADING" ]; then
+    echo "WARNING [tokens] tokens.css --pp-font-heading: $TOKENS_HEADING does not match typography.md: $CANON_HEADING" >&2
+  fi
+
+  # Body font
+  CANON_BODY=$(awk -F'|' '/^## Font Families/{f=1} /^## /{if(f&&!~/Font Families/)f=0} f && NF>=3 && $2!~/Role|---/{gsub(/^ +| +$/,"",$3); if($2~/Body/){if($3!=""){print $3; exit}}}' "$BRAND/typography.md" 2>/dev/null | tr -d '\n')
+  TOKENS_BODY=$(awk -F'[ ;]' '/--pp-font-body:/{gsub(/^[ ]*--pp-font-body:[ ]*/,""); gsub(/[ ;].*/,""); gsub(/^'"'"'|'"'"'$/,""); print; exit}' "$TOKENS_CSS" 2>/dev/null | tr -d '\n')
+  if [ -n "$CANON_BODY" ] && [ -n "$TOKENS_BODY" ] && [ "$CANON_BODY" != "$TOKENS_BODY" ]; then
+    echo "WARNING [tokens] tokens.css --pp-font-body: $TOKENS_BODY does not match typography.md: $CANON_BODY" >&2
+  fi
+fi
 
 # Product accents from the umbrella Product Accents table ("HEX|name" rows).
 # In a product context, other products accents are markers, not UI colors.
 ACCENTS=$(awk -F"|" "/^## Product Accents/{f=1} /^## /{if(f&&\$0!~/Product Accents/)f=0} f && NF>=4 && \$3~/#[0-9a-fA-F]{6}/ {gsub(/^ +| +\$/,\"\",\$2); gsub(/^ +| +\$/,\"\",\$3); print toupper(\$3) \"|\" \$2}" "$BRAND/colors.md" 2>/dev/null | tr "\n" "\036")
+PRODUCT_NAMES=$(awk -F"|" "/^## Product Accents/{f=1} /^## /{if(f&&\$0!~/Product Accents/)f=0} f && NF>=4 && \$3~/#[0-9a-fA-F]{6}/ {gsub(/^ +| +\$/,\"\",\$2); print tolower(\$2)}" "$BRAND/colors.md" 2>/dev/null | tr "\n" "\034")
 
 PALETTE=$(grep -ohE '#[0-9a-fA-F]{6}' "$BRAND/colors.md" 2>/dev/null | tr 'a-f' 'A-F' | sort -u | tr '\n' ' ')
 RADII=$(grep -ohE '^\| radius-[a-z]+ \| [0-9]+px' "$BRAND/components.md" 2>/dev/null | grep -oE '[0-9]+px' | tr '\n' ' ')
@@ -72,9 +134,11 @@ DOCPAIRS=$(awk '/^## Contrast Pairings/{f=1;next} /^## /{f=0} f && /^\|.* on .*\
 # Forbidden terms: "term<TAB>alternatives" rows from voice.md's Forbidden Terms
 # table, newline -> \036 (awk -v cannot carry newlines portably)
 FORBIDDEN=$(awk -F'|' '/^## Forbidden Terms/{f=1} /^## /{if(f&&$0!~/Forbidden/)f=0} f && NF>=4 && $2!~/Term|---/ {gsub(/^ +| +$/,"",$2); gsub(/^ +| +$/,"",$4); if($2!="") print $2"\t"$4}' "$BRAND/voice.md" $PRODUCT_VOICE 2>/dev/null | tr '\n' '\036')
+# Terminology: "canonical<TAB>banned_synonym" from voice.md Terminology table
+TERMS=$(awk -F'|' '/^## Terminology/{f=1} /^## /{if(f&&$0!~/Terminology/)f=0} f && NF>=4 && $2!~/Use|---/ {gsub(/^ +| +$/,"",$2); gsub(/^ +| +$/,"",$3); if($3!=""){ n=split($3, syns, ","); for(i=1;i<=n;i++){ gsub(/^ +| +$/,"",syns[i]); gsub(/"/,"",syns[i]); if(syns[i]!="") print $2"\t"syns[i] }}}' "$BRAND/voice.md" $PRODUCT_VOICE 2>/dev/null | tr '\n' '\036')
 
 awk -v palette="$PALETTE" -v radii="$RADII" -v bps="$BREAKPOINTS" \
-    -v unit="$SPACE_UNIT" -v forbidden="$FORBIDDEN" -v docpairs="$DOCPAIRS" -v accents="$ACCENTS" -v product="$PRODUCT" '
+    -v unit="$SPACE_UNIT" -v forbidden="$FORBIDDEN" -v docpairs="$DOCPAIRS" -v accents="$ACCENTS" -v product="$PRODUCT" -v terms="$TERMS" -v pnames="$PRODUCT_NAMES" -v json="$JSON_MODE" '
 function hexval(c,   i){ return index("0123456789ABCDEF", toupper(c)) - 1 }
 function h2(s){ return hexval(substr(s,1,1))*16 + hexval(substr(s,2,1)) }
 function expand(h){ if(length(h)==4) return "#" substr(h,2,1) substr(h,2,1) substr(h,3,1) substr(h,3,1) substr(h,4,1) substr(h,4,1); return h }
@@ -84,8 +148,8 @@ function lum(h,   a){ rgb(h,a); return 0.2126*chan(a[1]) + 0.7152*chan(a[2]) + 0
 function ratio(f,b,   lf,lb,hi,lo){ lf=lum(f); lb=lum(b); hi=(lf>lb?lf:lb); lo=(lf>lb?lb:lf); return (hi+0.05)/(lo+0.05) }
 function nearest(h,   a,b,i,d,best,bd){ rgb(h,a); bd=1e9; for(i=1;i<=np;i++){ rgb(pal[i],b); d=(a[1]-b[1])^2+(a[2]-b[2])^2+(a[3]-b[3])^2; if(d<bd){bd=d;best=pal[i]} } return best }
 function nearname(h,   n){ n=nearest(h); return (n in accent_owner) ? n " (" accent_owner[n] "\047s product accent)" : n }
-function err(dim,msg){ printf "ERROR [%s] %s\n", dim, msg; e[dim]++ }
-function warn(dim,msg){ printf "WARNING [%s] %s\n", dim, msg; w[dim]++ }
+function err(dim,msg){ if(json){ printf "ERROR [%s] %s\n", dim, msg > "/dev/stderr" } else { printf "ERROR [%s] %s\n", dim, msg }; e[dim]++ }
+function warn(dim,msg){ if(json){ printf "WARNING [%s] %s\n", dim, msg > "/dev/stderr" } else { printf "WARNING [%s] %s\n", dim, msg }; w[dim]++ }
 function quotectx(s){ return (s ~ /never|use instead|forbidden|class="no"|class="ba bad"/) }
 
 BEGIN{
@@ -98,6 +162,10 @@ BEGIN{
   for(i=1;i<=ndp;i++){ m=split(dprows[i], dpkv, "|"); if(m>=3) docclass[dpkv[1] "|" dpkv[2]] = tolower(dpkv[3]) }
   nf=split(forbidden, frows, "\036")
   for(i=1;i<=nf;i++){ split(frows[i], kv, "\t"); fterm[i]=kv[1]; falt[i]=kv[2] }
+  nt=split(terms, trows, "\036")
+  for(i=1;i<=nt;i++){ split(trows[i], tkv, "\t"); tcanon[i]=tkv[1]; tsyn[i]=tkv[2] }
+  nprod=split(pnames, prodrows, "\034")
+  npn=0; for(i=1;i<=nprod;i++) if(prodrows[i]!="") prodnames[++npn]=prodrows[i]; nprod=npn
   blockstart=0; block=""
 }
 
@@ -137,6 +205,34 @@ BEGIN{
     tmp=substr(tmp, RSTART+RLENGTH)
   }
 
+  # ── JSX inline style contrast ──
+  if(line ~ /style[ ]*=[ ]*\{\{/ && line !~ /\/\*.*\*\// && line !~ /<!-- /){
+    jsxfg=""; jsxbg=""
+    if(match(line, /color:[ ]*"#[0-9a-fA-F]{3,6}"/)){
+      c=substr(line, RSTART, RLENGTH)
+      gsub(/color:[ ]*"/, "", c); gsub(/"/, "", c)
+      jsxfg=toupper(expand(c))
+    }
+    if(match(line, /background(Color)?:[ ]*"#[0-9a-fA-F]{3,6}"/)){
+      c=substr(line, RSTART, RLENGTH)
+      sub(/background(Color)?:[ ]*"/, "", c); gsub(/"/, "", c)
+      jsxbg=toupper(expand(c))
+    }
+    if(jsxfg!="" && jsxbg!=""){
+      r=ratio(jsxfg,jsxbg)
+      key=jsxfg "|" jsxbg; cls=(key in docclass) ? docclass[key] : ((jsxbg "|" jsxfg) in docclass ? docclass[jsxbg "|" jsxfg] : "")
+      if(cls ~ /decorative/)
+        err("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1 — documented decorative-only pair (colors.md Contrast Pairings): never words.")
+      else if(cls ~ /label|display/){
+        if(r<3.0) err("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1 — below the 3.0:1 labels minimum (colors.md Contrast Pairings).")
+      }
+      else if(cls ~ /reading/){
+        if(r<4.5) err("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1 — below the 4.5:1 reading minimum (colors.md Contrast Pairings).")
+      }
+      else if(r<3.0) err("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1 — below the 3.0:1 labels minimum (colors.md Contrast Pairings).")
+      else if(r<4.5) warn("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1 — labels & display only; verify the pair class for reading copy (4.5:1).")
+    }
+  }
   # ── rule-block accumulation for contrast ──
   if(line ~ /{/ && blockstart==0){ blockstart=NR; block="" }
   if(blockstart){ block=block " " line }
@@ -225,16 +321,25 @@ BEGIN{
         err("voice", "line " NR ": \"" fterm[i] "\" is a forbidden term. Use \"" falt[i] "\" instead.")
       }
     }
-    if(tolower(line) ~ /brand (bible|folder|config)/){
-      match(tolower(line), /brand (bible|folder|config)/)
-      warn("voice", "line " NR ": \"" substr(tolower(line), RSTART, RLENGTH) "\" — use the canonical term (voice.md Terminology).")
+    for(i=1;i<=nt;i++){
+      if(tsyn[i]!="" && tolower(line) ~ ("(^|[^a-z])" tolower(tsyn[i]))){
+        match(tolower(line), "(^|[^a-z])" tolower(tsyn[i]))
+        warn("voice", "line " NR ": \"" substr(tolower(line), RSTART+1, RLENGTH-1) "\" — use the canonical term \"" tcanon[i] "\" (voice.md Terminology).")
+      }
     }
-    tmp=line
-    while(match(tmp, /(^|[^A-Za-z])(Petals|Tilth|Plotplot|Tend)([^A-Za-z]|$)/)){
-      seg=substr(tmp, RSTART, RLENGTH)
-      gsub(/[^A-Za-z]/, "", seg)
-      warn("voice", "line " NR ": \"" seg "\" — product names are lowercase, always (voice.md).")
-      tmp=substr(tmp, RSTART+RLENGTH)
+    if(nprod>0){
+      tmp=tolower(line)
+      lref=line
+      prodpat="("
+      for(i=1;i<=nprod;i++){ prodpat = prodpat (i>1?"|":"") prodnames[i] }
+      prodpat = prodpat ")"
+      while(match(tmp, "(^|[^a-z])" prodpat "($|[^a-z])")){
+        seg=substr(lref, RSTART, RLENGTH)
+        gsub(/[^A-Za-z]/, "", seg)
+        if(seg!="" && seg!=tolower(seg)) warn("voice", "line " NR ": \"" seg "\" — product names are lowercase, always (voice.md).")
+        tmp=substr(tmp, RSTART+RLENGTH)
+        lref=substr(lref, RSTART+RLENGTH)
+      }
     }
   }
 }
@@ -247,16 +352,28 @@ function resolve(v,   m){
 }
 
 END{
-  printf "\n--- petals check (deterministic) ---\n"
-  printf "Colors:   %d error(s), %d warning(s)\n", e["color"]+0,  w["color"]+0
-  printf "Layout:   %d error(s), %d warning(s)\n", e["layout"]+0, w["layout"]+0
-  printf "Surface:  %d error(s), %d warning(s)\n", e["surface"]+0, w["surface"]+0
-  printf "Voice:    %d error(s), %d warning(s)\n", e["voice"]+0,  w["voice"]+0
-  printf "Typography: agent dimension — run via the skill\n"
-  te = e["color"]+e["layout"]+e["surface"]+e["voice"]
-  tw = w["color"]+w["layout"]+w["surface"]+w["voice"]
-  if(te==0) printf "Result: PASS (%d warning(s) to review)\n", tw
-  else      printf "Result: FAIL — %d error(s) to fix, %d warning(s) to review.\n", te, tw
-  exit te
+  if(json){
+    printf "{\"tool\":\"check\",\"ok\":%s,\"data\":{\"dimensions\":{", (e["color"]+e["layout"]+e["surface"]+e["voice"]==0?"true":"false")
+    printf "\"color\":{\"errors\":%d,\"warnings\":%d},", e["color"]+0, w["color"]+0
+    printf "\"layout\":{\"errors\":%d,\"warnings\":%d},", e["layout"]+0, w["layout"]+0
+    printf "\"surface\":{\"errors\":%d,\"warnings\":%d},", e["surface"]+0, w["surface"]+0
+    printf "\"voice\":{\"errors\":%d,\"warnings\":%d}", e["voice"]+0, w["voice"]+0
+    printf "}},\"error\":\"\"}\n"
+  } else {
+    printf "\n--- petals check (deterministic) ---\n"
+    printf "Colors:   %d error(s), %d warning(s)\n", e["color"]+0,  w["color"]+0
+    printf "Layout:   %d error(s), %d warning(s)\n", e["layout"]+0, w["layout"]+0
+    printf "Surface:  %d error(s), %d warning(s)\n", e["surface"]+0, w["surface"]+0
+    printf "Voice:    %d error(s), %d warning(s)\n", e["voice"]+0,  w["voice"]+0
+    printf "Typography: agent dimension — run via the skill\n"
+    te = e["color"]+e["layout"]+e["surface"]+e["voice"]
+    tw = w["color"]+w["layout"]+w["surface"]+w["voice"]
+    if(te==0) printf "Result: PASS (%d warning(s) to review)\n", tw
+    else      printf "Result: FAIL — %d error(s) to fix, %d warning(s) to review.\n", te, tw
+  }
+  exit (e["color"]+e["layout"]+e["surface"]+e["voice"] > 0 ? 1 : 0)
 }
 ' "$TARGET"
+AWK_EXIT=$?
+
+exit $AWK_EXIT

@@ -27,6 +27,13 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [[ ! -f "$SCRIPT_DIR/lib/common.sh" ]]; then
+  echo "petals: lib/common.sh is missing beside $(basename "$0"); install the whole petals/ directory" >&2
+  exit 127
+fi
+source "$SCRIPT_DIR/lib/common.sh"
+ROOT=$(find_project_root) && cd "$ROOT"
 # ── Argument parsing ─────────────────────────────────────────────────────────
 
 SOURCE_URL=""
@@ -41,14 +48,14 @@ while [[ $# -gt 0 ]]; do
     --ref)
       REF="$2"; shift 2 ;;
     --target)
-      TARGET="$2"; shift 2 ;;
+      TARGET=$(from_caller "$2"); shift 2 ;;
     --help|-h)
       echo "Usage: fetch-brand.sh <source-url> [--ref <tag-or-branch>] [--target <dir>]"
       exit 0 ;;
     -*)
       echo "Unknown flag: $1" >&2; exit 1 ;;
     *)
-      SOURCE_URL="$1"; shift ;;
+      SOURCE_URL=$(from_caller_if_exists "$1"); shift ;;
   esac
 done
 

@@ -1,10 +1,10 @@
 # Extraction Guide — `/petals init` Process
 
-This document defines the structured process for the `/petals init <folder>` subcommand. Follow these steps in order. Deviate only when you encounter an edge case documented in Section 7.
+This document defines the structured process for the `/petals init <folder | url>` subcommand. Follow these steps in order. Deviate only when you encounter an edge case documented in Section 7.
 
 ## 1. Asset Discovery
 
-Scan the source folder recursively. Catalog every file by type:
+Scan the source. If the source is a URL, proceed to §2a (Website Extraction). If the source is a local folder, catalog every file by type:
 
 ```
 Expected types and how to handle them:
@@ -19,6 +19,8 @@ Expected types and how to handle them:
 
 Build a file inventory. Note which file types are present and which expected brand dimensions (colors, typography, voice, identity, assets) each file might contain.
 
+For URL sources, skip to §2a — the agent navigates to the page and extracts from the live DOM rather than from files on disk.
+
 ## 2. Asset-Type Routing
 
 Route each asset to the best native capability:
@@ -31,6 +33,85 @@ Route each asset to the best native capability:
 | CSS/SCSS | Parse | Extract custom properties, font declarations, color variables |
 | SVG/PNG/JPG | Bash (`cp`) | Copy verbatim to `.brand/assets/` |
 | Font files | Bash (`cp`) | Copy to `.brand/assets/`; catalog family and weight from filename |
+
+## 2a. Website Extraction
+
+When the source is a URL, the agent navigates to the live page and extracts
+brand values from the rendered DOM. This is a folder of a different kind —
+the page IS the brand asset, rendered.
+
+**Step-by-step:**
+
+1. **Navigate** — use Playwright MCP (`browser_navigate`) to load the URL.
+   Wait for the page to settle (fonts loaded, CSS applied).
+
+2. **Snapshot** — capture the accessibility tree (`browser_snapshot`) for
+   copy text and structural context. Take a full-page screenshot for visual
+   reference.
+
+3. **Extract colors** — use `browser_evaluate` to read computed CSS values:
+   ```js
+   () => {
+     const styles = getComputedStyle(document.documentElement);
+     const vars = [];
+     // Collect all CSS custom properties that look like color tokens
+     for (const prop of Array.from(document.styleSheets)
+       .flatMap(s => { try { return [...s.cssRules] } catch { return [] } })
+       .filter(r => r.selectorText === ':root')
+       .flatMap(r => [...r.style])
+       .filter(p => p.startsWith('--'))) {
+       vars.push({ prop, value: styles.getPropertyValue(prop) });
+     }
+     // Also grab explicit colors from key elements
+     const body = getComputedStyle(document.body);
+     return {
+       customProperties: vars,
+       bodyColor: body.color,
+       bodyBackground: body.backgroundColor,
+       links: getComputedStyle(document.querySelector('a')).color,
+     };
+   }
+   ```
+   Each resolved hex/rgb value is **explicit** — `getComputedStyle` returns
+   calculated values, not inferred ones. The explicit-only policy (§3) holds.
+
+4. **Extract typography** — read rendered font stacks:
+   ```js
+   () => {
+     const h1 = document.querySelector('h1');
+     const body = getComputedStyle(document.body);
+     return {
+       headingFont: h1 ? getComputedStyle(h1).fontFamily : null,
+       headingWeight: h1 ? getComputedStyle(h1).fontWeight : null,
+       headingSize: h1 ? getComputedStyle(h1).fontSize : null,
+       bodyFont: body.fontFamily,
+       bodyWeight: body.fontWeight,
+       bodySize: body.fontSize,
+     };
+   }
+   ```
+
+5. **Extract voice** — read visible page copy from the accessibility snapshot
+   and page text (WebFetch). Identify headlines, CTAs, body copy, and error
+   messages. The explicit-only policy applies: capture what the page actually
+   says; never invent a tone description from inference.
+
+6. **Extract identity** — read the page `<title>`, meta description, and
+   visible brand name from headers/nav. Capture the favicon URL and download
+   it via `browser_evaluate` or a direct fetch.
+
+7. **Copy assets** — download the favicon, logo images, and any visible brand
+   marks to `.brand/assets/`. Use the page's own filenames where available.
+
+8. **Flag gaps** — computed styles return what's rendered, not what's
+   documented. A page may use a font without declaring it as the brand font.
+   Flag: `[FLAG: website-source] Values extracted from rendered page at <url>.
+   These are what the site USES, not necessarily the documented brand. Review
+   before treating as canonical.`
+
+The output is the same `.brand/` directory structure — website extraction is
+a source adapter, not a different output format. Synthesis into templates (§5)
+and ambiguity detection (§4) apply unchanged.
 
 ## 3. Explicit-Only Extraction Policy
 
@@ -82,7 +163,7 @@ After the templates are populated, emit two generated views (never templates —
 - `.brand/tokens.css` — every brand value as a CSS custom property, using the brand's own token prefix (take it from the CSS custom-properties block in colors.md when one exists; otherwise derive it from the brand name, e.g. `--acme-*`). Colors, font stacks, spacing, radius, strokes, shadows, motion. Projects import it and reference variables instead of hard-coding values.
 - `.brand/tokens.json` — the same values in W3C design-tokens shape (`{ "$value", "$type" }` groups: color, fontFamily, space, layout, radius, stroke, shadow, motion). Build tools and Tailwind/theme configs consume this directly.
 
-Skip a token when its source value was flagged rather than extracted — a generated view must not launder a guess into a value. Regenerate both files on every `/petals update`.
+Skip a token when its source value was flagged rather than extracted — a generated view must not launder a guess into a value. Regenerate both files on every `/petals update` by running `bash petals/scripts/export-tokens.sh`.
 
 Replace each `{{PLACEHOLDER}}` in the template with the extracted value. For placeholders where no explicit value was found:
 - If the field is optional (metadata, visual theme attributes), write "not specified" or remove the line.
@@ -115,6 +196,29 @@ If two different values appear for the same field (e.g., "Primary: #FF4D00" on p
 
 ### 7.4 Partial information
 It is normal and acceptable for some templates to have more flags than values. A `.brand/` with three fully specified files and two flagged ones is more useful than five files full of guesses.
+
+### 7.5 Website-specific edge cases
+
+**URL unreachable.** If the page fails to load (timeout, 404, DNS failure),
+stop immediately. Report the error to the user. Do not create any output.
+
+**SPA / JS-heavy page.** Wait for the page to settle after navigation. If
+the page requires authentication or renders nothing without JS, flag it:
+`[FLAG: website-source] Page at <url> requires JavaScript to render. Extracted
+values may be incomplete.`
+
+**No CSS custom properties.** If the page uses no `--*` custom properties,
+extract the computed values from key elements (body, h1-h4, a, button) as
+the closest approximation of the brand's visual language. Flag every value
+with the website-source flag above — these are observed usage, not documented
+brand rules.
+
+**Conflicting computed values.** If two elements that should share a color
+(e.g., two headings at the same level) have different computed values, flag
+the contradiction. Pick the most prominent instance (first occurrence in DOM
+order) as the primary value.
+
+### 7.6 (reserved for future edge cases)
 
 ## 8. Voice & Tone Extraction
 
@@ -166,7 +270,7 @@ When filling `templates/voice.md`:
 
 ## 9. Constraints
 
-- **No external tools** — This process uses only agent-native capabilities: Read, vision, Bash (`cp`, `mkdir`, `diff`). Do not invoke Playwright, Puppeteer, or any browser automation. Do not use external APIs.
-- **No color inference** — Never use vision to extract a hex value from an image. Colors must come from explicit text in the source.
-- **No value invention** — If the source doesn't state it, don't write it. "Not specified" is the correct answer for missing data.
+- **Use the tools the agent has** — For file-based sources, use the agent's native capabilities: Read, vision, Bash (`cp`, `mkdir`, `diff`). For URL sources (§2a), the agent navigates with its installed browser tools (Playwright MCP) and reads page text with WebFetch. These are MCP tools the agent already has — nothing is installed and no external API key is needed. Do not invoke tools the agent does not already carry.
+- **No color inference** — Never use vision to extract a hex value from an image. Colors must come from explicit text in the source or computed CSS values from `getComputedStyle`. A color name alone ("Teal", "Warm Orange") without a hex is still not a color value.
+- **No value invention** — If the source doesn't state it, don't write it. "Not specified" is the correct answer for missing data. For website sources, computed values ARE explicit — `getComputedStyle` returns calculated RGB values from the browser's layout engine, not estimates. But they represent what the site renders, not necessarily the documented brand — flag them accordingly.
 - **Templates are the schema** — The template files define the output format. Follow them. Do not add or remove sections.

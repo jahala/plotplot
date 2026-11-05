@@ -101,6 +101,15 @@ If `.brand/colors.md` has a "Contrast Pairings" section:
 ERROR [color] line 18: #C9923C on #F0EDE1 is 2.34:1 — below the labels minimum of 3.0:1. Decorative only on light surfaces (see Contrast Pairings).
 ```
 
+### 9. Chart Categorical Series
+
+If `.brand/colors.md` has a "Data Visualization" section with a categorical series order, hex literals used in chart configs should follow the documented order. A categorical series that does not follow the documented order is a **warning**:
+
+```
+WARNING [color] line 32: chart categorical series does not follow the Data Visualization order (colors.md). Expected: Growth #357E2C, Sunlight #E89227, Sky #4E88A6, ...
+```
+
+This step is advisory — it helps the agent check, but cases where only a subset of the categorical colors are used are not flagged.
 ### Reference
 
 - Canonical color source: `.brand/colors.md` (palette + Contrast Pairings + Data Visualization)
