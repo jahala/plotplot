@@ -50,7 +50,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - run: node --test npm/test/
+      # A quoted glob, which node expands itself: Node 22 reads a directory argument as one
+      # module to load.
+      - run: node --test "npm/test/*.test.js"
 
   build:
     name: build (${{ matrix.target }})
@@ -180,7 +182,9 @@ jobs:
       - name: the release's digests, into the package
         run: node npm/checksums.js published/SHA256SUMS > npm/checksums.json
 
-      - run: node --test npm/test/
+      # A quoted glob, which node expands itself: Node 22 reads a directory argument as one
+      # module to load.
+      - run: node --test "npm/test/*.test.js"
 
       # Each name once: a run again after a partial publish finishes the rest.
       - name: publish plotplot and @plotplot/plotplot
