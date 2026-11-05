@@ -4,13 +4,15 @@
 //! and whose gates are scripts under `.plotplot/bin/` that print the contracts' own SARIF
 //! fixture. A gate script records the arguments it was called with, so what the stem passed
 //! a gate is read from the gate itself rather than asserted about the stem's intentions.
+//! Each gate carries the digest record `lock verify` would have left beside it, so a lock
+//! can pin it, and a range can be judged only by what the base's lock pins.
 
 use std::path::{Path, PathBuf};
 
 use assert_cmd::Command;
 use serde_json::{Value, json};
 
-use plotplot::sarif;
+use plotplot::{layout, lock, sarif};
 
 fn contracts(relative: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -61,6 +63,29 @@ fn manifest(name: &str, binary: &str, check: &str, strict: bool) -> Value {
         manifest["check_strict"] = json!(true);
     }
     manifest
+}
+
+/// The digest record a gate carries until a test says otherwise: well-formed, and the gate's
+/// own, so two gates never share one.
+fn digest_for(binary: &str) -> String {
+    use sha2::{Digest, Sha256};
+    hex::encode(Sha256::digest(binary.as_bytes()))
+}
+
+/// A lock pinning each named judge at its digest, for the platform this binary was built
+/// for, from a host that never resolves: nothing in these tests fetches.
+fn lock_pinning(pins: &[(&str, &str)]) -> String {
+    let mut toml = "season = \"2026.09\"\n".to_owned();
+    for (name, sha256) in pins {
+        toml.push_str(&format!(
+            "\n[judges.{name}]\nversion = \"0.1.0\"\n\n\
+             [judges.{name}.platforms.\"{platform}\"]\n\
+             url = \"https://plotplot-fit.invalid/{name}.tar.gz\"\n\
+             sha256 = \"{sha256}\"\n",
+            platform = lock::platform()
+        ));
+    }
+    toml
 }
 
 /// A planted repository with beds and gates, made one call at a time.
@@ -116,6 +141,27 @@ impl Fixture {
         let path = self.path().join(".plotplot/bin").join(binary);
         write(&path, &script);
         make_executable(&path);
+        self.record(binary, &digest_for(binary))
+    }
+
+    /// The digest record beside one gate, as `lock verify` writes it after placing a judge.
+    fn record(&self, binary: &str, digest: &str) -> &Fixture {
+        write(
+            &layout::judge_digest(self.path(), binary),
+            &format!("{digest}\n"),
+        );
+        self
+    }
+
+    /// `garden.lock`, pinning each named gate at its own digest.
+    fn pin(&self, names: &[&str]) -> &Fixture {
+        let digests: Vec<String> = names.iter().map(|name| digest_for(name)).collect();
+        let pins: Vec<(&str, &str)> = names
+            .iter()
+            .zip(&digests)
+            .map(|(name, digest)| (*name, digest.as_str()))
+            .collect();
+        write(&layout::garden_lock(self.path()), &lock_pinning(&pins));
         self
     }
 
@@ -136,6 +182,8 @@ impl Fixture {
     fn commit(&self, message: &str) -> String {
         if !self.path().join(".git").exists() {
             git(self.path(), &["init", "--quiet"]);
+            // What `init` ignores: the stem's own tree is never part of what is judged.
+            write(&self.path().join(".gitignore"), ".plotplot/\n");
         }
         git(self.path(), &["add", "--all"]);
         git(
@@ -396,7 +444,8 @@ fn a_range_reaches_every_gate_as_base_whether_or_not_it_declared_strict() {
         .bed("weeder", "weeder", "weeder check --format sarif", true)
         .bed("petals", "petals", "petals gate --format sarif", false)
         .gate("weeder", Some(&sarif_log("weeder", false)), 0)
-        .gate("petals", Some(&sarif_log("petals", false)), 0);
+        .gate("petals", Some(&sarif_log("petals", false)), 0)
+        .pin(&["petals", "weeder"]);
     let base = fixture.commit("the base of the range");
 
     let output = fixture.check(&["--strict", "--base", &base]);
@@ -434,7 +483,8 @@ fn a_range_that_changes_no_file_says_so_in_the_log() {
     let fixture = Fixture::new();
     fixture
         .bed("weeder", "weeder", "weeder check --format sarif", false)
-        .gate("weeder", Some(&sarif_log("weeder", false)), 0);
+        .gate("weeder", Some(&sarif_log("weeder", false)), 0)
+        .pin(&["weeder"]);
     let base = fixture.commit("everything, and nothing after it");
 
     let output = fixture.check(&["--base", &base]);
@@ -464,7 +514,8 @@ fn a_range_that_changes_a_file_carries_no_note_of_the_stems() {
     let fixture = Fixture::new();
     fixture
         .bed("weeder", "weeder", "weeder check --format sarif", false)
-        .gate("weeder", Some(&sarif_log("weeder", false)), 0);
+        .gate("weeder", Some(&sarif_log("weeder", false)), 0)
+        .pin(&["weeder"]);
     let base = fixture.commit("the base of the range");
     write(&fixture.path().join("src/lib.rs"), "pub fn changed() {}\n");
     fixture.commit("one change in the range");
@@ -508,6 +559,119 @@ fn a_base_git_cannot_read_exits_three_naming_it_and_runs_no_gate() {
         !fixture.argv_path("weeder").exists(),
         "a gate was called over a range that could not be read"
     );
+}
+
+/// A repository whose base pins weeder at its own digest and whose change moves the pin to
+/// another judge, the way a pull request can edit the lock. It answers the base commit.
+fn a_change_that_moves_the_pin(fixture: &Fixture) -> String {
+    fixture
+        .bed("weeder", "weeder", "weeder check --format sarif", false)
+        .gate("weeder", Some(&sarif_log("weeder", true)), 2)
+        .pin(&["weeder"]);
+    let base = fixture.commit("the base pins weeder");
+    write(
+        &layout::garden_lock(fixture.path()),
+        &lock_pinning(&[("weeder", &digest_for("another judge"))]),
+    );
+    write(
+        &fixture.path().join("tests/kept.rs"),
+        "#[test]\nfn kept() {}\n",
+    );
+    fixture.commit("the change pins another judge");
+    base
+}
+
+#[test]
+fn a_judge_the_change_pinned_does_not_judge_the_range() {
+    let fixture = Fixture::new();
+    let base = a_change_that_moves_the_pin(&fixture);
+    // What a plain `lock verify` leaves after reading the change's own lock.
+    fixture.record("weeder", &digest_for("another judge"));
+
+    let output = fixture.check(&["--strict", "--base", &base]);
+    assert_eq!(code_of(&output), 3, "{}", stdout_of(&output));
+
+    let stderr = stderr_of(&output);
+    assert!(stderr.contains("weeder: "), "{stderr}");
+    assert!(stderr.contains("the base's garden.lock"), "{stderr}");
+    assert!(stderr.contains("lock verify --base"), "{stderr}");
+    assert!(
+        !fixture.argv_path("weeder").exists(),
+        "a judge the base does not pin was called"
+    );
+}
+
+#[test]
+fn the_judge_the_base_pins_judges_the_range_whatever_the_change_pins() {
+    let fixture = Fixture::new();
+    let base = a_change_that_moves_the_pin(&fixture);
+    // What `lock verify --base` leaves: the base's judge, with the base's digest.
+
+    let output = fixture.check(&["--strict", "--base", &base]);
+    assert_eq!(code_of(&output), 2, "{}", stderr_of(&output));
+    assert_eq!(
+        fixture.argv("weeder"),
+        ["check", "--format", "sarif", "--base", base.as_str()]
+    );
+}
+
+#[test]
+fn a_bed_the_base_does_not_pin_is_no_judge_over_a_range() {
+    let fixture = Fixture::new();
+    fixture
+        .bed("weeder", "weeder", "weeder check --format sarif", false)
+        .gate("weeder", Some(&sarif_log("weeder", false)), 0)
+        .pin(&["weeder"]);
+    let base = fixture.commit("the base pins weeder alone");
+    fixture
+        .bed("petals", "petals", "petals gate --format sarif", false)
+        .gate("petals", Some(&sarif_log("petals", false)), 0)
+        .pin(&["petals", "weeder"]);
+    fixture.commit("the change adds petals");
+
+    let output = fixture.check(&["--base", &base]);
+    assert_eq!(code_of(&output), 3, "{}", stdout_of(&output));
+
+    let stderr = stderr_of(&output);
+    assert!(stderr.contains("petals: "), "{stderr}");
+    assert!(!fixture.argv_path("petals").exists());
+    // weeder is the base's, and still judges.
+    assert_eq!(
+        fixture.argv("weeder"),
+        ["check", "--format", "sarif", "--base", base.as_str()]
+    );
+}
+
+#[test]
+fn a_tree_that_carries_the_stems_own_files_is_refused_over_a_range() {
+    let fixture = Fixture::new();
+    fixture
+        .bed("weeder", "weeder", "weeder check --format sarif", false)
+        .gate("weeder", Some(&sarif_log("weeder", false)), 0)
+        .pin(&["weeder"]);
+    let base = fixture.commit("the base");
+    // A change that commits a judge and its record past the ignore, so the record matches
+    // the base's lock and the bytes are whatever the change wants.
+    git(
+        fixture.path(),
+        &[
+            "add",
+            "--force",
+            ".plotplot/bin/weeder",
+            ".plotplot/bin/weeder.sha256",
+        ],
+    );
+    git(
+        fixture.path(),
+        &["commit", "--quiet", "--message", "a judge of its own"],
+    );
+
+    let output = fixture.check(&["--base", &base]);
+    assert_eq!(code_of(&output), 3, "{}", stdout_of(&output));
+
+    let stderr = stderr_of(&output);
+    assert!(stderr.contains(".plotplot/bin/weeder"), "{stderr}");
+    assert!(!fixture.argv_path("weeder").exists());
 }
 
 #[test]

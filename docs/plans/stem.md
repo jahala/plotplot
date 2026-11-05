@@ -91,7 +91,9 @@ npm = "@plotplot/tend2"
 `plotplot lock verify` resolves each judge for the current platform, fetches into
 `.plotplot/bin/` (ignored) when absent, verifies the sha256, and refuses to run a judge whose
 bytes do not match. `check` and the hooks call judges only through that directory, never
-through PATH, so the version that judged is the version the lock names.
+through PATH, so the version that judged is the version the lock names. `lock verify --base
+<ref>` resolves the judges the lock at that commit pins instead of the working tree's: over a
+range, the judges are the base's (section 7).
 
 ## 5. What `init` does, exactly, and idempotently
 
@@ -152,8 +154,15 @@ judged one. A note, because every SARIF reader shows a result and few show a pro
 never a block, because an empty range is a fact about the run. Without `--base`, each gate
 judges the working tree against `HEAD`, for local runs and hooks.
 
-The workflow `init` writes runs `plotplot check --strict --base` with the merge base of the
-pull request's base branch and `HEAD`, fetched first. The merge base rather than the branch's
+Over a range, the judges are the ones the base's `garden.lock` pins, so a change to the lock
+is judged by the lock it changes from. A gate whose bed the base's lock does not pin, or whose
+placed judge is not the one it pins (the digest record, the clone's commit, the npm version),
+does not run and counts as a gate that could not run. A tree that carries tracked files under
+`.plotplot/`, which only the stem writes, is not judged at all, and the run exits 3.
+
+The workflow `init` writes computes the merge base of the pull request's base branch and
+`HEAD`, fetched first, then runs `plotplot lock verify --base` and `plotplot check --strict
+--base` with it. The merge base rather than the branch's
 tip: a tip that moved on since GitHub built the merge commit would put its own new commits,
 reversed, into the range.
 

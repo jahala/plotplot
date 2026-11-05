@@ -65,7 +65,12 @@ pub enum Face {
 pub enum LockFace {
     /// Resolve every judge for this platform, fetching what is absent and refusing bytes
     /// whose digest is not the one the lock pins.
-    Verify,
+    Verify {
+        /// Resolve the judges the lock at this ref pins, instead of the working tree's: the
+        /// judges a range is judged by.
+        #[arg(long, value_name = "ref", value_parser = base_value)]
+        base: Option<String>,
+    },
 }
 
 /// What `plotplot bundle` can be asked to do.

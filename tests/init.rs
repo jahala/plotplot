@@ -607,7 +607,8 @@ fn the_pull_request_workflow_runs_the_strict_check_on_a_hosted_runner() {
     let workflow = read(&root.join(".github/workflows/plotplot-check.yml"));
     assert!(workflow.contains("pull_request"), "{workflow}");
     assert!(
-        workflow.contains("plotplot check --strict --base \"$base\""),
+        workflow.contains("plotplot lock verify --base \"$BASE\"")
+            && workflow.contains("plotplot check --strict --base \"$BASE\""),
         "the check judges the pull request's range: {workflow}"
     );
     assert!(

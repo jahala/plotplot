@@ -123,6 +123,124 @@ pub fn read_lock(root: &Path) -> Result<Option<Lock>> {
     parse_lock_at(&path, &toml).map(Some)
 }
 
+/// The lock `base` carries, read from git rather than the working tree, or `None` when that
+/// commit carries none.
+///
+/// Over a range, the judges are the ones the base pins: a change that edits `garden.lock`
+/// is judged by the lock it changes from, never by the lock it brings.
+///
+/// # Errors
+///
+/// [`Error::Git`] when git cannot read `base` as a commit or cannot show its lock, and
+/// whatever [`parse_lock_at`] refuses.
+pub fn read_base_lock(root: &Path, base: &str) -> Result<Option<Lock>> {
+    let commit = git_at(
+        root,
+        &[
+            "rev-parse",
+            "--verify",
+            "--quiet",
+            &format!("{base}^{{commit}}"),
+        ],
+    )
+    .map_err(|_| Error::Git {
+        command: format!("git rev-parse --verify {base}"),
+        stderr: "git cannot read it as a commit".to_owned(),
+    })?;
+    let blob = format!("{}:{}", commit.trim(), layout::GARDEN_LOCK);
+    let present = Command::new("git")
+        .arg("-C")
+        .arg(root)
+        .args(["cat-file", "-e", &blob])
+        .stdin(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status()
+        .map_err(|source| Error::Git {
+            command: format!("git cat-file -e {blob}"),
+            stderr: source.to_string(),
+        })?;
+    if !present.success() {
+        return Ok(None);
+    }
+    let toml = git_at(root, &["show", &blob])?;
+    parse_lock_at(Path::new(&format!("{base}:{}", layout::GARDEN_LOCK)), &toml).map(Some)
+}
+
+/// Whether the judge placed under `.plotplot/` is the one `judge` pins: `None` when it is,
+/// and what differs when it is not. Nothing is fetched, placed or changed.
+///
+/// The same evidence [`verify`] accepts as settled: the digest record beside an artifact,
+/// the commit a clone stands on, the version npm installed.
+///
+/// # Errors
+///
+/// [`Error::Io`] when a record exists and cannot be read, [`Error::Git`] when a clone's
+/// commit cannot be read, and whatever a cached manifest refuses.
+pub fn pinned_as(root: &Path, name: &str, judge: &Judge, platform: &str) -> Result<Option<String>> {
+    if !judge.platforms.is_empty() {
+        let Some((_, artifact)) = artifact_for(judge, platform) else {
+            return Ok(Some(format!("the lock pins no artifact for {platform}")));
+        };
+        let placed = cached_binary_name(root, name)?;
+        if !layout::judge_binary(root, &placed).is_file() {
+            return Ok(Some("no judge is placed".to_owned()));
+        }
+        return Ok(
+            match read_if_present(&layout::judge_digest(root, &placed))? {
+                Some(recorded) if recorded.trim() == artifact.sha256 => None,
+                Some(recorded) => Some(format!(
+                    "the judge placed is {}, and the lock pins {}",
+                    recorded.trim(),
+                    artifact.sha256
+                )),
+                None => Some("the judge placed carries no digest record".to_owned()),
+            },
+        );
+    }
+    if let Some(package) = &judge.npm {
+        let path = layout::npm_prefix(root, name)
+            .join("node_modules")
+            .join(package)
+            .join("package.json");
+        let Some(json) = read_if_present(&path)? else {
+            return Ok(Some(format!("npm has installed no {package}")));
+        };
+        let document: Value = serde_json::from_str(&json).map_err(|source| Error::Json {
+            path: Some(path.clone()),
+            source,
+        })?;
+        let installed = document.get("version").and_then(Value::as_str);
+        return Ok(if installed == Some(judge.version.as_str()) {
+            None
+        } else {
+            Some(format!(
+                "npm installed {package} {}, and the lock pins {}",
+                installed.unwrap_or("of no version"),
+                judge.version
+            ))
+        });
+    }
+    if let Some(git) = &judge.git {
+        let artifact_dir = layout::bed_artifact(root, name);
+        if !artifact_dir.join(".git").exists() {
+            return Ok(Some("no clone is placed".to_owned()));
+        }
+        let head = git_at(&artifact_dir, &["rev-parse", "HEAD"])?;
+        let head = head.trim();
+        return Ok(if head == git.rev {
+            None
+        } else {
+            Some(format!(
+                "the clone stands on {head}, and the lock pins {}",
+                git.rev
+            ))
+        });
+    }
+    Ok(Some(
+        "the lock pins no artifact, npm package or clone for it".to_owned(),
+    ))
+}
+
 /// The Rust target triple this binary was built for, as `build.rs` read it from cargo.
 ///
 /// The lock keys its artifacts by this triple, so the judge that gets fetched is the one
@@ -510,29 +628,37 @@ fn from_git(root: &Path, name: &str, git: &GitInstall) -> Result<JudgeState> {
 /// `plotplot lock <face>`: the lockfile wrapper as a command.
 pub fn run(root: &Path, face: &LockFace, stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     match face {
-        LockFace::Verify => verify_face(root, &Https, stdout, stderr),
+        LockFace::Verify { base } => verify_face(root, base.as_deref(), &Https, stdout, stderr),
     }
 }
 
 /// `plotplot lock verify`: one line per judge, exit 0 when every judge is resolved, 3 when
 /// any is missing or mismatched, 1 when the run could not reach a verdict at all.
 ///
+/// With a base, the lock is the one that commit carries, so the judges placed are the ones
+/// a range is judged by (`plotplot check --base`).
+///
 /// The fetcher is a parameter so the face itself, and not only the resolving underneath it,
 /// can be run against bytes a test supplies.
 pub fn verify_face(
     root: &Path,
+    base: Option<&str>,
     fetch: &dyn Fetch,
     stdout: &mut dyn Write,
     stderr: &mut dyn Write,
 ) -> i32 {
-    let lock = match read_lock(root) {
+    let read = match base {
+        Some(base) => read_base_lock(root, base),
+        None => read_lock(root),
+    };
+    let lock = match read {
         Ok(Some(lock)) => lock,
         Ok(None) => {
-            let _ = writeln!(
-                stderr,
-                "{} is not there, so there are no judges to verify",
-                layout::garden_lock(root).display()
-            );
+            let missing = match base {
+                Some(base) => format!("{base} carries no {}", layout::GARDEN_LOCK),
+                None => format!("{} is not there", layout::garden_lock(root).display()),
+            };
+            let _ = writeln!(stderr, "{missing}, so there are no judges to verify");
             return 1;
         }
         Err(error) => {
@@ -1481,7 +1607,7 @@ mod verify_tests {
 
         let mut stdout = Vec::new();
         let mut stderr = Vec::new();
-        let code = verify_face(root.path(), &fetcher, &mut stdout, &mut stderr);
+        let code = verify_face(root.path(), None, &fetcher, &mut stdout, &mut stderr);
         assert_eq!(code, 0, "{}", String::from_utf8_lossy(&stderr));
         assert_eq!(String::from_utf8_lossy(&stdout), "weeder 0.1.0 fetched\n");
         assert!(stderr.is_empty());
@@ -1500,7 +1626,7 @@ mod verify_tests {
 
         let mut stdout = Vec::new();
         let mut stderr = Vec::new();
-        let code = verify_face(root.path(), &fetcher, &mut stdout, &mut stderr);
+        let code = verify_face(root.path(), None, &fetcher, &mut stdout, &mut stderr);
         assert_eq!(code, 3);
         let printed = String::from_utf8_lossy(&stdout);
         assert!(printed.starts_with("weeder 0.1.0 missing: "), "{printed}");
@@ -1514,7 +1640,7 @@ mod verify_tests {
 
         let mut stdout = Vec::new();
         let mut stderr = Vec::new();
-        let code = verify_face(root.path(), &fetcher, &mut stdout, &mut stderr);
+        let code = verify_face(root.path(), None, &fetcher, &mut stdout, &mut stderr);
         assert_eq!(code, 1);
         assert!(stdout.is_empty());
         let said = String::from_utf8_lossy(&stderr);
@@ -1630,6 +1756,93 @@ mod verify_tests {
                 expected: wanted,
                 actual: first,
             }
+        );
+    }
+
+    // ------------------------------------------------------- what a lock says is placed
+
+    #[test]
+    fn an_artifact_judge_is_pinned_as_placed_only_by_its_own_digest_record() {
+        let root = tempfile::tempdir().expect("a temp root");
+        let bytes = artifact();
+        let digest = digest_of(&bytes);
+        let lock = lock_pinning("weeder", PLATFORM, URL, &digest);
+        verify(root.path(), &lock, PLATFORM, &FromMap::serving(URL, bytes)).expect("a fetch");
+        let judge = &lock.judges["weeder"];
+
+        assert_eq!(
+            pinned_as(root.path(), "weeder", judge, PLATFORM).expect("an answer"),
+            None
+        );
+
+        let other = lock_pinning("weeder", PLATFORM, URL, &"0".repeat(64));
+        let differs = pinned_as(root.path(), "weeder", &other.judges["weeder"], PLATFORM)
+            .expect("an answer")
+            .expect("another digest is not the judge placed");
+        assert!(differs.contains(&digest), "{differs}");
+        assert!(differs.contains(&"0".repeat(64)), "{differs}");
+
+        std::fs::remove_file(layout::judge_digest(root.path(), "weeder")).expect("the record");
+        assert!(
+            pinned_as(root.path(), "weeder", judge, PLATFORM)
+                .expect("an answer")
+                .is_some(),
+            "a judge with no record is not the pinned one"
+        );
+    }
+
+    #[test]
+    fn a_clone_judge_is_pinned_as_placed_only_on_its_commit() {
+        let scratch = tempfile::tempdir().expect("a temp scratch");
+        let source = scratch.path().join("origin");
+        let rev = origin(&source);
+        let root = tempfile::tempdir().expect("a temp root");
+        let url = source.display().to_string();
+        let lock = git_lock(&url, &rev);
+        verify(
+            root.path(),
+            &lock,
+            PLATFORM,
+            &FromMap::serving(URL, Vec::new()),
+        )
+        .expect("a clone");
+
+        assert_eq!(
+            pinned_as(root.path(), "weeder", &lock.judges["weeder"], PLATFORM).expect("an answer"),
+            None
+        );
+        let other = git_lock(&url, &"0".repeat(40));
+        let differs = pinned_as(root.path(), "weeder", &other.judges["weeder"], PLATFORM)
+            .expect("an answer")
+            .expect("another commit is not the clone placed");
+        assert!(differs.contains(&rev), "{differs}");
+    }
+
+    #[test]
+    fn an_npm_judge_is_pinned_as_placed_only_at_its_version() {
+        let root = tempfile::tempdir().expect("a temp root");
+        let package_json = layout::npm_prefix(root.path(), "tend2")
+            .join("node_modules/@plotplot/tend2/package.json");
+        std::fs::create_dir_all(package_json.parent().expect("a parent")).expect("the package");
+        std::fs::write(&package_json, "{\"version\": \"1.0.0\"}\n").expect("package.json");
+        let judge = |version: &str| Judge {
+            version: version.to_owned(),
+            npm: Some("@plotplot/tend2".to_owned()),
+            platforms: BTreeMap::new(),
+            git: None,
+            extra: BTreeMap::new(),
+        };
+
+        assert_eq!(
+            pinned_as(root.path(), "tend2", &judge("1.0.0"), PLATFORM).expect("an answer"),
+            None
+        );
+        let differs = pinned_as(root.path(), "tend2", &judge("1.1.0"), PLATFORM)
+            .expect("an answer")
+            .expect("another version is not the package installed");
+        assert!(
+            differs.contains("1.0.0") && differs.contains("1.1.0"),
+            "{differs}"
         );
     }
 }

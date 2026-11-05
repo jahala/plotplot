@@ -363,19 +363,28 @@ jobs:
 
 {plant}
 
-      - name: resolve the pinned judges
-        run: plotplot lock verify
-
-      - name: plotplot check --strict
-        # Every gate judges the pull request's range: the tree against the commit where it
-        # left its base branch. The merge base rather than the base branch's tip, because a
-        # tip that moved on since would put its own new commits, reversed, into the range.
+      - name: the pull request's range
+        id: range
+        # The tree against the commit where the pull request left its base branch. The merge
+        # base rather than the base branch's tip, because a tip that moved on since would put
+        # its own new commits, reversed, into the range.
         env:
           BASE_REF: ${{{{ github.base_ref }}}}
         run: |
           git fetch --no-tags origin \"+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF\"
           base=\"$(git merge-base \"origin/$BASE_REF\" HEAD)\"
-          plotplot check --strict --base \"$base\"
+          echo \"base=$base\" >> \"$GITHUB_OUTPUT\"
+
+      - name: resolve the judges the base pins
+        # Over a range, every judge is the one the base's garden.lock pins.
+        env:
+          BASE: ${{{{ steps.range.outputs.base }}}}
+        run: plotplot lock verify --base \"$BASE\"
+
+      - name: plotplot check --strict
+        env:
+          BASE: ${{{{ steps.range.outputs.base }}}}
+        run: plotplot check --strict --base \"$BASE\"
 ",
         check = platform::REQUIRED_CHECK,
     )
@@ -1175,9 +1184,25 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
                 "{text}"
             );
             assert!(
-                text.contains("          plotplot check --strict --base \"$base\"\n"),
+                text.contains("          echo \"base=$base\" >> \"$GITHUB_OUTPUT\"\n"),
                 "{text}"
             );
+            // The judges are the ones the base's lock pins, resolved before the check, and
+            // the check is handed the same range.
+            let resolve = text
+                .find("        run: plotplot lock verify --base \"$BASE\"\n")
+                .unwrap_or_else(|| panic!("no step resolves the base's judges: {text}"));
+            let check = text
+                .find("        run: plotplot check --strict --base \"$BASE\"\n")
+                .unwrap_or_else(|| panic!("no step checks the range: {text}"));
+            assert!(resolve < check, "{text}");
+            assert_eq!(
+                text.matches("          BASE: ${{ steps.range.outputs.base }}\n")
+                    .count(),
+                2,
+                "{text}"
+            );
+            assert!(!text.contains("run: plotplot lock verify\n"), "{text}");
         }
     }
 
