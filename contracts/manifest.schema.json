@@ -221,7 +221,7 @@
       "additionalProperties": true
     },
     "check": {
-      "description": "the command that runs this bed's gate and emits SARIF 2.1.0 on stdout (F2); null for a bed with no gate of its own (kind does not include \"gate\")",
+      "description": "the command that runs this bed's gate and emits SARIF 2.1.0 on stdout (F2); null for a bed with no gate of its own (kind does not include \"gate\"). The command judges the working tree against HEAD as declared, and must also accept --base <ref> appended and then judge the tree against that ref: plotplot check --base <ref> hands every gate that flag, with no opt-in, so every gate in one run judges the same range (docs/plans/stem.md, section 7). A gate that cannot take it fails to answer, and the run exits 3.",
       "oneOf": [
         {
           "type": "string",

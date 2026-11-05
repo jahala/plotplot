@@ -11,6 +11,12 @@
 //! is the worse of the two answers, because a block is a decision and a gate that could not
 //! run is a decision missing.
 //!
+//! A run over a range (`--base <ref>`) hands every gate `--base <ref>`, so each one judges the
+//! tree against that ref, the view CI has of a pull request. Every gate gets it, with no
+//! opt-in, so every gate in one run judges the same range; a gate that cannot take the flag
+//! fails to answer, and that is exit 3. A range that changes no tracked file is said in the
+//! log by a note of the stem's own, so a quiet run cannot pass for a judged one.
+//!
 //! Nothing here reads the current directory: the repository root is a parameter, and the
 //! only paths under it come from [`crate::layout`].
 
@@ -45,6 +51,15 @@ pub const TIMEOUT: Duration = Duration::from_secs(120);
 /// The flag the gates that declared `check_strict` are asked for.
 pub const STRICT: &str = "--strict";
 
+/// The flag every gate is handed, with the ref after it, when the run is over a range.
+pub const BASE: &str = "--base";
+
+/// The tool name of the run the stem writes itself, which is never a gate's.
+pub const STEM: &str = "plotplot";
+
+/// The rule of the stem's note saying a range changed no tracked file.
+pub const EMPTY_RANGE: &str = "plotplot/empty-range";
+
 /// How often a waiting run looks to see whether a gate has answered.
 const POLL: Duration = Duration::from_millis(20);
 
@@ -76,11 +91,16 @@ pub struct Gate {
 }
 
 impl Gate {
-    /// The arguments one gate is called with in this run.
-    pub fn arguments(&self, strict: bool) -> Vec<String> {
+    /// The arguments one gate is called with in this run: `--strict` when the run is strict
+    /// and the gate declared it, and `--base <ref>` whenever the run is over a range.
+    pub fn arguments(&self, strict: bool, base: Option<&str>) -> Vec<String> {
         let mut args = self.args.clone();
         if strict && self.takes_strict {
             args.push(STRICT.to_owned());
+        }
+        if let Some(base) = base {
+            args.push(BASE.to_owned());
+            args.push(base.to_owned());
         }
         args
     }
@@ -153,11 +173,82 @@ pub fn gates(root: &Path, beds: &[Bed], strict_checkers: &[String]) -> Result<Ve
 /// and nothing waits on a check the way a vendor waits on a hook. Each gate's stdout is the
 /// log it is judged on, whatever it exited with, because a gate that finds a block exits
 /// non-zero and has still answered.
-pub fn run(root: &Path, gates: &[Gate], strict: bool, timeout: Duration) -> Vec<GateOutcome> {
+pub fn run(
+    root: &Path,
+    gates: &[Gate],
+    strict: bool,
+    base: Option<&str>,
+    timeout: Duration,
+) -> Vec<GateOutcome> {
     gates
         .iter()
-        .map(|gate| call(root, gate, strict, timeout))
+        .map(|gate| call(root, gate, strict, base, timeout))
         .collect()
+}
+
+/// Whether the range from `base` to the working tree changes no tracked file.
+///
+/// Tracked files only, because that is what a range is: the gates leave untracked files out
+/// of it too, and in CI there are none. Asked before any gate runs, so a base git cannot
+/// read stops the run before a gate judges a range that does not exist.
+///
+/// # Errors
+///
+/// [`Error::Git`] when git cannot be run, or cannot read `base` as a commit.
+pub fn range_is_empty(root: &Path, base: &str) -> Result<bool> {
+    let spelled = format!("git diff --quiet {base} --");
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(root)
+        .args(["diff", "--quiet", base, "--"])
+        .stdin(Stdio::null())
+        .output()
+        .map_err(|source| Error::Git {
+            command: spelled.clone(),
+            stderr: source.to_string(),
+        })?;
+    match output.status.code() {
+        Some(0) => Ok(true),
+        Some(1) => Ok(false),
+        _ => Err(Error::Git {
+            command: spelled,
+            stderr: manifest::one_line(&String::from_utf8_lossy(&output.stderr)),
+        }),
+    }
+}
+
+/// The stem's own log for a range that changes no tracked file: one run, one note.
+///
+/// A result, because every SARIF reader shows one and almost none show a property bag; at
+/// note level, because an empty range is a fact about the run and never a refusal.
+pub fn empty_range(base: &str) -> Value {
+    serde_json::json!({
+        "$schema": sarif::SCHEMA_URL,
+        "version": sarif::VERSION,
+        "runs": [{
+            "tool": { "driver": {
+                "name": STEM,
+                "version": env!("CARGO_PKG_VERSION"),
+                "rules": [{
+                    "id": EMPTY_RANGE,
+                    "shortDescription": { "text": "The range changes no tracked file." }
+                }]
+            } },
+            "results": [{
+                "ruleId": EMPTY_RANGE,
+                "level": "note",
+                "message": { "text": empty_range_text(base) }
+            }]
+        }]
+    })
+}
+
+/// What the stem says about a range that changes no tracked file, in the log and on stderr.
+fn empty_range_text(base: &str) -> String {
+    format!(
+        "the range from {base} to the working tree changes no tracked file, so the gates had \
+         no change to judge"
+    )
 }
 
 /// The exit code the outcomes add up to: 3 if any gate could not run, else 2 if any run
@@ -300,8 +391,23 @@ pub fn run_face(
     stdout: &mut dyn Write,
     stderr: &mut dyn Write,
 ) -> i32 {
-    let outcomes = match plan(root) {
-        Ok(gates) => run(root, &gates, args.strict, TIMEOUT),
+    let base = args.base.as_deref();
+    let planned = plan(root).and_then(|gates| {
+        let empty = match base {
+            Some(base) => range_is_empty(root, base)?,
+            None => false,
+        };
+        Ok((gates, empty))
+    });
+    let outcomes = match planned {
+        Ok((gates, empty)) => {
+            let mut outcomes = run(root, &gates, args.strict, base, TIMEOUT);
+            if let (true, Some(base)) = (empty, base) {
+                let _ = writeln!(stderr, "{}", empty_range_text(base));
+                outcomes.push(GateOutcome::Sarif(empty_range(base)));
+            }
+            outcomes
+        }
         Err(error) => {
             let _ = writeln!(stderr, "{error}");
             return CANNOT;
@@ -344,14 +450,20 @@ fn plan(root: &Path) -> Result<Vec<Gate>> {
 }
 
 /// One gate, run in the repository root with its output captured.
-fn call(root: &Path, gate: &Gate, strict: bool, timeout: Duration) -> GateOutcome {
+fn call(
+    root: &Path,
+    gate: &Gate,
+    strict: bool,
+    base: Option<&str>,
+    timeout: Duration,
+) -> GateOutcome {
     let cannot = |problem: String| GateOutcome::CouldNotRun {
         bed: gate.bed.clone(),
         problem,
     };
 
     let mut child = match Command::new(&gate.program)
-        .args(gate.arguments(strict))
+        .args(gate.arguments(strict, base))
         .current_dir(root)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -583,10 +695,39 @@ mod tests {
         assert!(!gates[0].takes_strict);
         assert!(gates[1].takes_strict);
 
-        assert_eq!(gates[0].arguments(true), ["check"]);
-        assert_eq!(gates[1].arguments(true), ["check", "--strict"]);
-        assert_eq!(gates[0].arguments(false), ["check"]);
-        assert_eq!(gates[1].arguments(false), ["check"]);
+        assert_eq!(gates[0].arguments(true, None), ["check"]);
+        assert_eq!(gates[1].arguments(true, None), ["check", "--strict"]);
+        assert_eq!(gates[0].arguments(false, None), ["check"]);
+        assert_eq!(gates[1].arguments(false, None), ["check"]);
+    }
+
+    #[test]
+    fn a_range_reaches_every_gate_after_strict() {
+        let root = Path::new("/work/repo");
+        let beds = [
+            bed("petals", Some("petals"), Some("petals gate")),
+            bed("weeder", Some("weeder"), Some("weeder check")),
+        ];
+        let gates = gates(root, &beds, &["weeder".to_owned()]).expect("two gates");
+        assert_eq!(
+            gates[0].arguments(true, Some("abc123")),
+            ["gate", "--base", "abc123"]
+        );
+        assert_eq!(
+            gates[1].arguments(true, Some("abc123")),
+            ["check", "--strict", "--base", "abc123"]
+        );
+    }
+
+    #[test]
+    fn the_stems_note_on_an_empty_range_is_sarif_and_never_a_block() {
+        let log = empty_range("abc123");
+        let text = serde_json::to_string(&log).expect("a log serialises");
+        let log = sarif::validate(&text).expect("the vendored schema accepts it");
+        assert_eq!(sarif::tool_name(&log), Some(STEM));
+        assert_eq!(sarif::result_count(&log), 1);
+        assert_eq!(sarif::block_count(&log), 0);
+        assert!(text.contains("abc123"), "{text}");
     }
 
     #[test]
@@ -688,7 +829,7 @@ mod tests {
             args: vec!["check".to_owned()],
             takes_strict: false,
         };
-        let outcomes = run(root, &[gate], false, TIMEOUT);
+        let outcomes = run(root, &[gate], false, None, TIMEOUT);
         match &outcomes[0] {
             GateOutcome::CouldNotRun { bed, problem } => {
                 assert_eq!(bed, "weeder");

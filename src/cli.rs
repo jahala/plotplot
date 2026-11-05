@@ -169,6 +169,11 @@ pub struct CheckArgs {
     /// Ask for the strictest judgement of every gate that declares it takes one.
     #[arg(long)]
     pub strict: bool,
+    /// Judge the tree against this ref, the range a pull request changed; every gate is
+    /// handed the same `--base <ref>`. Without it, each gate judges the working tree against
+    /// `HEAD`.
+    #[arg(long, value_name = "ref", value_parser = base_value)]
+    pub base: Option<String>,
     /// How to write the answer; a table at a terminal and SARIF everywhere else.
     #[arg(long, value_name = "sarif|table", value_parser = format_value)]
     pub format: Option<Format>,
@@ -277,6 +282,20 @@ fn harness_value(value: &str) -> std::result::Result<Harness, String> {
 /// in; clap prints the error beside the bad value.
 fn format_value(value: &str) -> std::result::Result<Format, String> {
     value.parse::<Format>()
+}
+
+/// One base ref from the command line. Empty, it names no range; starting with a hyphen, git
+/// and every gate would read it as an option. Both are refused before anything runs.
+fn base_value(value: &str) -> std::result::Result<String, String> {
+    if value.is_empty() {
+        Err("an empty ref names no range to judge".to_owned())
+    } else if value.starts_with('-') {
+        Err(format!(
+            "\"{value}\" starts with a hyphen, which git and every gate would read as an option"
+        ))
+    } else {
+        Ok(value.to_owned())
+    }
 }
 
 /// Run one face. The only exit codes this returns are the face's own; `main` turns the
