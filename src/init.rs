@@ -367,7 +367,15 @@ jobs:
         run: plotplot lock verify
 
       - name: plotplot check --strict
-        run: plotplot check --strict
+        # Every gate judges the pull request's range: the tree against the commit where it
+        # left its base branch. The merge base rather than the base branch's tip, because a
+        # tip that moved on since would put its own new commits, reversed, into the range.
+        env:
+          BASE_REF: ${{{{ github.base_ref }}}}
+        run: |
+          git fetch --no-tags origin \"+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF\"
+          base=\"$(git merge-base \"origin/$BASE_REF\" HEAD)\"
+          plotplot check --strict --base \"$base\"
 ",
         check = platform::REQUIRED_CHECK,
     )
@@ -1137,16 +1145,40 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
         let workflow = workflow(false);
         assert!(workflow.contains("on:\n  pull_request:\n"), "{workflow}");
         assert!(workflow.contains("runs-on: ubuntu-latest"), "{workflow}");
-        assert!(
-            workflow.contains("run: plotplot check --strict"),
-            "{workflow}"
-        );
         assert!(!workflow.contains("self-hosted"), "{workflow}");
         assert_eq!(
             workflow.matches("runs-on:").count(),
             1,
             "one job, one runner: {workflow}"
         );
+    }
+
+    #[test]
+    fn the_workflow_judges_the_range_from_where_the_pull_request_left_its_base() {
+        for text in [workflow(false), workflow(true)] {
+            // The base branch's name reaches the shell through the environment, never
+            // spliced into the script.
+            assert!(
+                text.contains("          BASE_REF: ${{ github.base_ref }}\n"),
+                "{text}"
+            );
+            assert!(
+                text.contains(
+                    "git fetch --no-tags origin \"+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF\""
+                ),
+                "{text}"
+            );
+            // An assignment, so a merge base git cannot find stops the step under bash -e
+            // rather than handing the stem an empty ref.
+            assert!(
+                text.contains("          base=\"$(git merge-base \"origin/$BASE_REF\" HEAD)\"\n"),
+                "{text}"
+            );
+            assert!(
+                text.contains("          plotplot check --strict --base \"$base\"\n"),
+                "{text}"
+            );
+        }
     }
 
     #[test]
@@ -1161,9 +1193,7 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
             );
             // The command the job runs may change without touching the ruleset; it is a step.
             assert!(
-                text.contains(
-                    "      - name: plotplot check --strict\n        run: plotplot check --strict\n"
-                ),
+                text.contains("      - name: plotplot check --strict\n"),
                 "{text}"
             );
             assert!(

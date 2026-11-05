@@ -35,7 +35,15 @@ jobs:
         run: plotplot lock verify
 
       - name: plotplot check --strict
-        run: plotplot check --strict
+        # Every gate judges the pull request's range: the tree against the commit where it
+        # left its base branch. The merge base rather than the base branch's tip, because a
+        # tip that moved on since would put its own new commits, reversed, into the range.
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch --no-tags origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
+          base="$(git merge-base "origin/$BASE_REF" HEAD)"
+          plotplot check --strict --base "$base"
 
       - name: petals is petals' own, unedited
         # petals/ is vendored with petals' vendor.sh and stamped in petals/VERSION; take a release by running it again.

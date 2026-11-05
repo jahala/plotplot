@@ -131,6 +131,20 @@ impl Fixture {
         text.lines().map(str::to_owned).collect()
     }
 
+    /// Commit everything in the root, making it a repository first if it is not one yet, and
+    /// return the commit, which is the ref a range is named by.
+    fn commit(&self, message: &str) -> String {
+        if !self.path().join(".git").exists() {
+            git(self.path(), &["init", "--quiet"]);
+        }
+        git(self.path(), &["add", "--all"]);
+        git(
+            self.path(),
+            &["commit", "--quiet", "--allow-empty", "--message", message],
+        );
+        git(self.path(), &["rev-parse", "HEAD"]).trim().to_owned()
+    }
+
     fn check(&self, args: &[&str]) -> std::process::Output {
         let mut command = Command::cargo_bin("plotplot").expect("the plotplot binary is built");
         command.current_dir(self.path());
@@ -145,6 +159,34 @@ fn write(path: &Path, contents: &str) {
         std::fs::create_dir_all(parent).expect("the parent directory");
     }
     std::fs::write(path, contents).unwrap_or_else(|error| panic!("{}: {error}", path.display()));
+}
+
+/// git in `repo`, with an identity of its own and no hook or signing of the machine's, and
+/// what it printed.
+fn git(repo: &Path, args: &[&str]) -> String {
+    let output = std::process::Command::new("git")
+        .arg("-C")
+        .arg(repo)
+        .args([
+            "-c",
+            "user.name=plotplot test",
+            "-c",
+            "user.email=test@plotplot.invalid",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "-c",
+            "commit.gpgSign=false",
+        ])
+        .args(args)
+        .output()
+        .expect("git runs on the build machine");
+    assert!(
+        output.status.success(),
+        "git {}: {}",
+        args.join(" "),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    String::from_utf8_lossy(&output.stdout).into_owned()
 }
 
 fn make_executable(path: &Path) {
@@ -345,6 +387,145 @@ fn without_strict_the_flag_reaches_nobody() {
     let output = fixture.check(&[]);
     assert_eq!(code_of(&output), 0, "{}", stderr_of(&output));
     assert_eq!(fixture.argv("weeder"), ["check", "--format", "sarif"]);
+}
+
+#[test]
+fn a_range_reaches_every_gate_as_base_whether_or_not_it_declared_strict() {
+    let fixture = Fixture::new();
+    fixture
+        .bed("weeder", "weeder", "weeder check --format sarif", true)
+        .bed("petals", "petals", "petals gate --format sarif", false)
+        .gate("weeder", Some(&sarif_log("weeder", false)), 0)
+        .gate("petals", Some(&sarif_log("petals", false)), 0);
+    let base = fixture.commit("the base of the range");
+
+    let output = fixture.check(&["--strict", "--base", &base]);
+
+    assert_eq!(
+        fixture.argv("weeder"),
+        [
+            "check",
+            "--format",
+            "sarif",
+            "--strict",
+            "--base",
+            base.as_str()
+        ]
+    );
+    assert_eq!(
+        fixture.argv("petals"),
+        ["gate", "--format", "sarif", "--base", base.as_str()]
+    );
+    assert_eq!(code_of(&output), 0, "{}", stderr_of(&output));
+}
+
+/// The runs in a merged log that the stem wrote itself, rather than a gate.
+fn the_stems_own_runs(log: &Value) -> Vec<&Value> {
+    log["runs"]
+        .as_array()
+        .expect("runs")
+        .iter()
+        .filter(|run| run.pointer("/tool/driver/name") == Some(&json!("plotplot")))
+        .collect()
+}
+
+#[test]
+fn a_range_that_changes_no_file_says_so_in_the_log() {
+    let fixture = Fixture::new();
+    fixture
+        .bed("weeder", "weeder", "weeder check --format sarif", false)
+        .gate("weeder", Some(&sarif_log("weeder", false)), 0);
+    let base = fixture.commit("everything, and nothing after it");
+
+    let output = fixture.check(&["--base", &base]);
+    assert_eq!(code_of(&output), 0, "{}", stderr_of(&output));
+
+    let log = sarif::validate(&stdout_of(&output)).expect("the merged log validates");
+    assert_eq!(tool_names(&log), ["weeder", "plotplot"]);
+    let own = the_stems_own_runs(&log);
+    let results = own[0]["results"].as_array().expect("the stem's results");
+    assert_eq!(results.len(), 1, "{log}");
+    assert_eq!(results[0]["level"], json!("note"));
+    assert_eq!(results[0]["ruleId"], json!("plotplot/empty-range"));
+    let text = results[0]["message"]["text"].as_str().expect("a message");
+    assert!(text.contains(&base), "{text}");
+    // A note is never a block: an empty range is a fact about the run, not a refusal.
+    assert_eq!(sarif::block_count(&log), 0);
+    // And whoever reads the job's log, not the SARIF, is told the same.
+    assert!(
+        stderr_of(&output).contains("changes no tracked file"),
+        "{}",
+        stderr_of(&output)
+    );
+}
+
+#[test]
+fn a_range_that_changes_a_file_carries_no_note_of_the_stems() {
+    let fixture = Fixture::new();
+    fixture
+        .bed("weeder", "weeder", "weeder check --format sarif", false)
+        .gate("weeder", Some(&sarif_log("weeder", false)), 0);
+    let base = fixture.commit("the base of the range");
+    write(&fixture.path().join("src/lib.rs"), "pub fn changed() {}\n");
+    fixture.commit("one change in the range");
+
+    let output = fixture.check(&["--base", &base]);
+    assert_eq!(code_of(&output), 0, "{}", stderr_of(&output));
+
+    let log = sarif::validate(&stdout_of(&output)).expect("the merged log validates");
+    assert_eq!(tool_names(&log), ["weeder"]);
+}
+
+#[test]
+fn without_a_base_there_is_no_range_and_no_note() {
+    let fixture = Fixture::new();
+    fixture
+        .bed("weeder", "weeder", "weeder check --format sarif", false)
+        .gate("weeder", Some(&sarif_log("weeder", false)), 0);
+    fixture.commit("a clean tree");
+
+    let output = fixture.check(&[]);
+    assert_eq!(code_of(&output), 0, "{}", stderr_of(&output));
+    assert_eq!(fixture.argv("weeder"), ["check", "--format", "sarif"]);
+    let log = sarif::validate(&stdout_of(&output)).expect("the merged log validates");
+    assert_eq!(tool_names(&log), ["weeder"]);
+}
+
+#[test]
+fn a_base_git_cannot_read_exits_three_naming_it_and_runs_no_gate() {
+    let fixture = Fixture::new();
+    fixture
+        .bed("weeder", "weeder", "weeder check --format sarif", false)
+        .gate("weeder", Some(&sarif_log("weeder", true)), 2);
+    fixture.commit("the only commit");
+
+    let output = fixture.check(&["--base", "origin/no-such-branch"]);
+    assert_eq!(code_of(&output), 3, "{}", stdout_of(&output));
+
+    let stderr = stderr_of(&output);
+    assert!(stderr.contains("origin/no-such-branch"), "{stderr}");
+    assert!(
+        !fixture.argv_path("weeder").exists(),
+        "a gate was called over a range that could not be read"
+    );
+}
+
+#[test]
+fn an_empty_base_is_refused_before_any_gate_runs() {
+    let fixture = Fixture::new();
+    fixture
+        .bed("weeder", "weeder", "weeder check --format sarif", false)
+        .gate("weeder", Some(&sarif_log("weeder", false)), 0);
+    fixture.commit("the only commit");
+
+    let output = fixture.check(&["--base="]);
+    assert_ne!(code_of(&output), 0, "{}", stdout_of(&output));
+    assert!(
+        stderr_of(&output).contains("names no range"),
+        "{}",
+        stderr_of(&output)
+    );
+    assert!(!fixture.argv_path("weeder").exists());
 }
 
 #[test]

@@ -10,9 +10,11 @@
 #   scripts/fit/stem.sh lock         `plotplot lock verify` fetches a real pinned release into
 #                                    an ignored directory, verifies its checksum, refuses a
 #                                    mismatch, and no judge is committed anywhere
-#   scripts/fit/stem.sh check        `plotplot check` runs the gate the manifests declare and
-#                                    emits one valid SARIF 2.1.0 log; exit 2 on a block-level
-#                                    result, 3 when the judge could not run
+#   scripts/fit/stem.sh check        `plotplot check` runs the gate the manifests declare, the
+#                                    pinned weeder, and emits one valid SARIF 2.1.0 log; exit 2
+#                                    on a block-level result, 3 when the judge could not run;
+#                                    with --base, a committed test deletion blocks (T1) and a
+#                                    range that changes nothing says so in the log
 #   scripts/fit/stem.sh init         `plotplot init` plants a fixture repository: the garden
 #                                    block beside tend2's, which it leaves byte for byte, the
 #                                    harness project configs, the git law and the pull
@@ -857,17 +859,21 @@ check_lock() {
 # `plotplot check`, against the real judge
 # ---------------------------------------------------------------------------------------
 
-# The judge this check runs. weeder is the garden's gate, and it is the one bed whose check
-# face emits SARIF today; it has no release yet (the comment at the head of
-# `contracts/fixtures/garden.lock` says so), so there is no artifact for `lock verify` to
-# fetch and this check takes the binary the build machine already carries.
+# The judge this check runs. weeder is the garden's gate, and its check face emits SARIF and
+# judges a range with `--base <ref>`. The fixture pins the release the contracts' own
+# `contracts/fixtures/garden.lock` names and `plotplot lock verify` fetches and verifies it,
+# so the gate that judges is the one a planted repository would get, never a binary that
+# happens to be on this machine.
 CHECK_JUDGE="weeder"
 
 # A fixture repository with one feature and its test, committed, and weeder planted as its
-# only gate. The manifest is `contracts/fixtures/manifest/weeder.garden.json`, unedited, so
-# the gate command the stem runs is the one the contracts declare.
+# only gate, fetched and verified through the lock. The manifest is
+# `contracts/fixtures/manifest/weeder.garden.json`, unedited, so the gate command the stem
+# runs is the one the contracts declare. `.plotplot/` and the fixture's `garden.lock` are
+# ignored, so the judge's own bytes and the lock written after the first commit are never
+# part of what it judges.
 plant_check_fixture() {
-  local repo="$1" judge="$2" digest
+  local repo="$1" platform lookup version url sha
   mkdir -p "$repo" || fail "could not make the fixture repository at $repo"
   git init -q "$repo" || fail "git init failed in $repo"
   git -C "$repo" config user.email "fit@plotplot.invalid" || fail "could not configure git"
@@ -888,36 +894,34 @@ test("parses an empty string", () => {
   expect(parse("")).toBe(0);
 });
 TEST
-  git -C "$repo" add -A || fail "could not stage the fixture's first commit"
+  printf '%s\n' ".plotplot/" "garden.lock" > "$repo/.gitignore"
+  git -C "$repo" add src tests .gitignore || fail "could not stage the fixture's first commit"
   git -C "$repo" commit -qm "the feature and its test" || fail "could not commit the fixture"
 
-  mkdir -p "$repo/.plotplot/beds/$CHECK_JUDGE" "$repo/.plotplot/bin"
+  mkdir -p "$repo/.plotplot/beds/$CHECK_JUDGE"
   cp "$ROOT/contracts/fixtures/manifest/$CHECK_JUDGE.garden.json" \
      "$repo/.plotplot/beds/$CHECK_JUDGE/garden.json" \
     || fail "could not copy the $CHECK_JUDGE manifest"
 
-  # weeder has no release, so nothing can be fetched and verified against a pinned digest.
-  # The binary on this machine is placed by hand, its own sha256 recorded in the companion
-  # `lock verify` would have written, and `garden.lock` pinned to the same digest, so the
-  # fixture is coherent with what a planted repository looks like and the one thing that is
-  # not real about it is said out loud, here and on stdout.
-  cp "$judge" "$repo/.plotplot/bin/$CHECK_JUDGE" || fail "could not place $judge"
-  chmod +x "$repo/.plotplot/bin/$CHECK_JUDGE"
-  digest="$(fit_sha256 "$repo/.plotplot/bin/$CHECK_JUDGE")" \
-    || fail "could not hash the placed judge"
-  printf '%s\n' "$digest" > "$repo/.plotplot/bin/$CHECK_JUDGE.sha256"
+  platform="$(fit_platform)"
+  lookup="$(fit_lock_lookup "$ROOT/contracts/fixtures/garden.lock" "$CHECK_JUDGE" "$platform" 2>&1)" \
+    || fail "contracts/fixtures/garden.lock names no $CHECK_JUDGE artifact for $platform, so this check cannot run on this machine: $lookup"
+  version="$(echo "$lookup" | jq -r '.version')"
+  url="$(echo "$lookup" | jq -r '.url')"
+  sha="$(echo "$lookup" | jq -r '.sha256')"
   cat > "$repo/garden.lock" <<LOCK
 season = "2026.09"
 
 [judges.$CHECK_JUDGE]
-version = "$("$judge" --version | awk '{print $2}')"
+version = "$version"
 
-[judges.$CHECK_JUDGE.platforms."$(fit_platform)"]
-url = "file://$repo/.plotplot/bin/$CHECK_JUDGE"
-sha256 = "$digest"
+[judges.$CHECK_JUDGE.platforms."$platform"]
+url = "$url"
+sha256 = "$sha"
 LOCK
-
-  note "the judge was pre-placed from the build machine because $CHECK_JUDGE has no release: $judge, sha256 $digest, pinned in garden.lock and recorded beside it"
+  ( cd "$repo" && "$STEM" lock verify ) >"$repo/.plotplot/verify.out" 2>&1 \
+    || { cat "$repo/.plotplot/verify.out" >&2; fail "plotplot lock verify could not fetch $CHECK_JUDGE $version for $platform"; }
+  note "the judge: $CHECK_JUDGE $version from $url, sha256 $sha, fetched and verified by plotplot lock verify"
 }
 
 # The names of the tools a merged log's runs carry, one to a line.
@@ -928,6 +932,16 @@ log_tools() {
 # How many block-level results a merged log carries.
 log_blocks() {
   jq '[.runs[] | .results // [] | .[] | select(.level == "error")] | length' "$1"
+}
+
+# How many results of one rule a merged log carries, at any level.
+log_rule() {
+  jq --arg rule "$2" '[.runs[] | .results // [] | .[] | select(.ruleId == $rule)] | length' "$1"
+}
+
+# How many results of one rule a merged log carries at block level.
+log_rule_blocks() {
+  jq --arg rule "$2" '[.runs[] | .results // [] | .[] | select(.ruleId == $rule and .level == "error")] | length' "$1"
 }
 
 check_check() {
@@ -941,24 +955,23 @@ check_check() {
   [ -d "$ROOT/node_modules/ajv-draft-04" ] \
     || fail "the contracts' SARIF validator needs ajv-draft-04; run 'npm ci' in $ROOT first"
 
-  local judge
-  judge="$(command -v "$CHECK_JUDGE")" \
-    || fail "$CHECK_JUDGE is not on this machine's PATH, and it has no release for the lock to fetch, so this check has no judge to run; install $CHECK_JUDGE and run this again"
-  note "judge on the build machine: $judge ($("$judge" --version))"
+  [ -d "$ROOT/node_modules/smol-toml" ] \
+    || fail "the fit runner's lock reader needs smol-toml; run 'npm ci' in $ROOT first"
 
-  local tmp repo status
+  local tmp repo status base
   scratch
   tmp="$SCRATCH_DIR"
   repo="$tmp/repo"
 
   note "planting the fixture repository at $repo"
-  plant_check_fixture "$repo" "$judge"
+  plant_check_fixture "$repo"
+  base="$(git -C "$repo" rev-parse HEAD)" || fail "the fixture has no first commit"
 
   # 1. A clean tree: every gate ran, nothing blocks, and the log is SARIF 2.1.0.
   ( cd "$repo" && "$STEM" check ) >"$tmp/clean.json" 2>"$tmp/clean.err"
   status=$?
   [ "$status" -eq 0 ] \
-    || { cat "$tmp/clean.err" >&2; fail "plotplot check exited $status on a clean tree, not 0"; }
+    || { cat "$tmp/clean.json" "$tmp/clean.err" >&2; fail "plotplot check exited $status on a clean tree, not 0"; }
   node "$ROOT/contracts/test/lib/validate-sarif.mjs" "$tmp/clean.json" >/dev/null \
     || { node "$ROOT/contracts/test/lib/validate-sarif.mjs" "$tmp/clean.json" >&2; \
          fail "the log from a clean tree is not SARIF 2.1.0 by the contracts' vendored schema"; }
@@ -984,7 +997,47 @@ check_check() {
     || { cat "$tmp/blocked.json" >&2; fail "the blocked change's log carries no block-level result"; }
   note "deleted test file: exit 2, one run by $CHECK_JUDGE, $(log_blocks "$tmp/blocked.json") block-level result(s)"
 
-  # 3. And with the judge gone, the answer is missing rather than permissive.
+  # 3. The same deletion committed, the view CI has of a pull request: the tree is clean, so
+  #    a check without a range has no change before it, and the range from the base blocks.
+  git -C "$repo" -c core.hooksPath=/dev/null commit -qm "the test, deleted" \
+    || fail "could not commit the deletion"
+  ( cd "$repo" && "$STEM" check --strict ) >"$tmp/no-range.json" 2>"$tmp/no-range.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/no-range.json" "$tmp/no-range.err" >&2; \
+         fail "plotplot check --strict exited $status on the clean tree after the commit, not 0"; }
+  [ "$(log_rule "$tmp/no-range.json" T1)" -eq 0 ] \
+    || { cat "$tmp/no-range.json" >&2; fail "with no range, the clean tree's log still carries T1"; }
+  note "deletion committed, no --base: exit 0, no T1 (the tree matches HEAD)"
+
+  ( cd "$repo" && "$STEM" check --strict --base "$base" ) >"$tmp/range.json" 2>"$tmp/range.err"
+  status=$?
+  [ "$status" -eq 2 ] \
+    || { cat "$tmp/range.json" "$tmp/range.err" >&2; \
+         fail "plotplot check --strict --base exited $status over a range that deletes a test, not 2"; }
+  node "$ROOT/contracts/test/lib/validate-sarif.mjs" "$tmp/range.json" >/dev/null \
+    || { node "$ROOT/contracts/test/lib/validate-sarif.mjs" "$tmp/range.json" >&2; \
+         fail "the log over the range is not SARIF 2.1.0"; }
+  [ "$(log_rule_blocks "$tmp/range.json" T1)" -ge 1 ] \
+    || { cat "$tmp/range.json" >&2; fail "the range's log carries no block-level T1, the deleted test"; }
+  [ "$(log_rule "$tmp/range.json" plotplot/empty-range)" -eq 0 ] \
+    || { cat "$tmp/range.json" >&2; fail "a range that changes a file carries the stem's empty-range note"; }
+  note "deletion committed, --base the first commit: exit 2, T1 at error in $CHECK_JUDGE's run"
+
+  # 4. A range that changes no tracked file says so in the log, and is not a block.
+  ( cd "$repo" && "$STEM" check --strict --base HEAD ) >"$tmp/empty.json" 2>"$tmp/empty.err"
+  status=$?
+  [ "$status" -eq 0 ] \
+    || { cat "$tmp/empty.json" "$tmp/empty.err" >&2; \
+         fail "plotplot check --strict --base HEAD exited $status over an empty range, not 0"; }
+  node "$ROOT/contracts/test/lib/validate-sarif.mjs" "$tmp/empty.json" >/dev/null \
+    || { node "$ROOT/contracts/test/lib/validate-sarif.mjs" "$tmp/empty.json" >&2; \
+         fail "the log over an empty range is not SARIF 2.1.0"; }
+  [ "$(log_rule "$tmp/empty.json" plotplot/empty-range)" -eq 1 ] \
+    || { cat "$tmp/empty.json" >&2; fail "the empty range's log does not carry the stem's one empty-range note"; }
+  note "empty range: exit 0, and the log says $(jq -r '.runs[] | .results[]? | select(.ruleId == "plotplot/empty-range") | .message.text' "$tmp/empty.json")"
+
+  # 5. And with the judge gone, the answer is missing rather than permissive.
   mv "$repo/.plotplot/bin/$CHECK_JUDGE" "$tmp/$CHECK_JUDGE.withdrawn" \
     || fail "could not take the judge out of the fixture"
   ( cd "$repo" && "$STEM" check ) >"$tmp/gone.json" 2>"$tmp/gone.err"

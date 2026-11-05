@@ -606,7 +606,10 @@ fn the_pull_request_workflow_runs_the_strict_check_on_a_hosted_runner() {
 
     let workflow = read(&root.join(".github/workflows/plotplot-check.yml"));
     assert!(workflow.contains("pull_request"), "{workflow}");
-    assert!(workflow.contains("plotplot check --strict"), "{workflow}");
+    assert!(
+        workflow.contains("plotplot check --strict --base \"$base\""),
+        "the check judges the pull request's range: {workflow}"
+    );
     assert!(
         !workflow.contains("self-hosted"),
         "a public bed never registers a self-hosted runner: {workflow}"

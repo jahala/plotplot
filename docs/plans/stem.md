@@ -140,6 +140,23 @@ any gate could not run (fail closed), 0 otherwise. `--strict` passes through to 
 that define it. pleach's default smoke is `plotplot check --strict` when the stem is
 planted, else `weeder check --strict`.
 
+`--base <ref>` judges a range: the tree against that ref, the view CI has of a pull request.
+The stem hands every gate the same `--base <ref>`, after `--strict` when that applies, and a
+gate's check command must accept it and judge the tree against that ref (the manifest
+contract, `check`). Every gate gets it, with no opt-in field, so every gate in one run judges
+the same range; a gate that cannot take the flag fails to answer, and the run exits 3. Before any gate runs, the stem asks git whether the range
+changes a tracked file; a base git cannot read exits 3 and no gate runs. A range that changes
+no tracked file adds one run of the stem's own, tool `plotplot`, carrying one note
+(`plotplot/empty-range`), and says the same on stderr, so a quiet run cannot pass for a
+judged one. A note, because every SARIF reader shows a result and few show a property bag;
+never a block, because an empty range is a fact about the run. Without `--base`, each gate
+judges the working tree against `HEAD`, for local runs and hooks.
+
+The workflow `init` writes runs `plotplot check --strict --base` with the merge base of the
+pull request's base branch and `HEAD`, fetched first. The merge base rather than the branch's
+tip: a tip that moved on since GitHub built the merge commit would put its own new commits,
+reversed, into the range.
+
 ## 8. Context cost
 
 The stem adds one description line for its own skill (under 160 characters) and the garden
