@@ -149,6 +149,10 @@
         "resolution": {
           "type": "string",
           "minLength": 1
+        },
+        "about": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
@@ -337,6 +341,13 @@
             "problem",
             "remove"
           ]
+        },
+        "about": {
+          "enum": [
+            "product",
+            "project"
+          ],
+          "description": "Whether the need is about the product, or only about the project around it (its website, blog, the documentation site's frame, its repository and how it is run, its community spaces). Decided from the lead post by the rule in rules.about; absent when the rule was not applied, as on a source whose posts carry no labels."
         },
         "features": {
           "type": "array",
