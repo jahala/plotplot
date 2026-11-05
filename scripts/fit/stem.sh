@@ -71,9 +71,16 @@ INSTALLED=""
 # saying what happened
 # ---------------------------------------------------------------------------------------
 
+# One TAP line per claim an assertion just held, so a verifier counts what ran: `ok` here,
+# `not ok` from fail. Progress and context stay indented notes, which TAP readers skip.
 fail() {
+  echo "not ok $*"
   echo "stem.sh: $*" >&2
   exit 1
+}
+
+ok() {
+  echo "ok $*"
 }
 
 note() {
@@ -512,10 +519,10 @@ check_bundles() {
       codex) install_through_codex "$tmp" "$repo" "$home" ;;
     esac
     [ -n "$INSTALLED" ] || fail "$vendor reported no install path"
-    note "$vendor installed to $INSTALLED"
+    ok "$vendor installed to $INSTALLED"
     same_sets "$repo/.plotplot/bundles/$vendor" "$INSTALLED" "$vendor" \
       "the $vendor bundle $vendor installed is not the one the stem generated"
-    note "$vendor: the installed bundle carries the same hooks, skills and MCP entries"
+    ok "$vendor: the installed bundle carries the same hooks, skills and MCP entries"
   done
 
   # And the three generated bundles against each other, on the sets that do not depend on a
@@ -528,7 +535,7 @@ check_bundles() {
     || { echo "stem.sh: claude and gemini register different events" >&2; diff <(echo "$claude_events") <(echo "$gemini_events") >&2; exit 1; }
   [ "$claude_events" = "$codex_events" ] \
     || { echo "stem.sh: claude and codex register different events" >&2; diff <(echo "$claude_events") <(echo "$codex_events") >&2; exit 1; }
-  note "the three bundles register the same events: $(echo "$claude_events" | tr '\n' ' ')"
+  ok "the three bundles register the same events: $(echo "$claude_events" | tr '\n' ' ')"
 
   local claude_skills gemini_skills codex_skills
   claude_skills="$(bundle_skills "$repo/.plotplot/bundles/claude")"
@@ -537,7 +544,7 @@ check_bundles() {
   [ -n "$claude_skills" ] || fail "the bundles carry no skills, so comparing them proves nothing"
   [ "$claude_skills" = "$gemini_skills" ] && [ "$claude_skills" = "$codex_skills" ] \
     || { echo "stem.sh: the three bundles carry different skills" >&2; diff <(echo "$claude_skills") <(echo "$gemini_skills") >&2; diff <(echo "$claude_skills") <(echo "$codex_skills") >&2; exit 1; }
-  note "the three bundles carry the same skills: $(echo "$claude_skills" | awk '{print $1}' | tr '\n' ' ')"
+  ok "the three bundles carry the same skills: $(echo "$claude_skills" | awk '{print $1}' | tr '\n' ' ')"
 
   local claude_mcp gemini_mcp codex_mcp
   claude_mcp="$(bundle_mcp_normalised "$repo/.plotplot/bundles/claude" claude)"
@@ -545,7 +552,7 @@ check_bundles() {
   codex_mcp="$(bundle_mcp_normalised "$repo/.plotplot/bundles/codex" codex)"
   [ "$claude_mcp" = "$gemini_mcp" ] && [ "$claude_mcp" = "$codex_mcp" ] \
     || { echo "stem.sh: the three bundles carry different MCP entries" >&2; diff <(echo "$claude_mcp") <(echo "$gemini_mcp") >&2; diff <(echo "$claude_mcp") <(echo "$codex_mcp") >&2; exit 1; }
-  note "the three bundles carry the same MCP entries: $(bundle_mcp_names "$repo/.plotplot/bundles/claude" claude | tr '\n' ' ')(none from these two manifests; tilth declares a tool count and no launch line, and the stem says so on stderr)"
+  ok "the three bundles carry the same MCP entries: $(bundle_mcp_names "$repo/.plotplot/bundles/claude" claude | tr '\n' ' ')(none from these two manifests; tilth declares a tool count and no launch line, and the stem says so on stderr)"
 
   echo "stem.sh bundles: pass"
 }
@@ -675,7 +682,7 @@ check_hook_faces() {
         *) fail "the $harness entry for $event is \"$command\", not a dispatcher call for $harness $event" ;;
       esac
     done
-    note "$harness: every friction event and the session end dispatch to the stem ($(echo "$wanted" | wc -w | tr -d ' ') entries)"
+    ok "$harness: every friction event and the session end dispatch to the stem ($(echo "$wanted" | wc -w | tr -d ' ') entries)"
   done
 
   # 2. The dispatcher answers, on the before-tool event and on the session-end event.
@@ -704,7 +711,7 @@ check_hook_faces() {
     [ -f "$draft" ] || fail "$harness $session wrote no receipt draft at $draft"
     [ "$(jq -r '.sessions[0]' "$draft")" = "$id" ] \
       || fail "the receipt draft at $draft is not this session's"
-    note "$harness: $before and $session answered, session.ended journalled, draft written"
+    ok "$harness: $before and $session answered, session.ended journalled, draft written"
   done
 
   # 3. And it answers fast enough for the budget the vendors give a hook.
@@ -721,7 +728,7 @@ check_hook_faces() {
       echo $(( end - start )) >> "$runs"
     done
     got_median="$(median < "$runs")"
-    note "$harness $before: median $got_median ms over ten runs ($(tr '\n' ' ' < "$runs"))"
+    ok "$harness $before: median $got_median ms over ten runs ($(tr '\n' ' ' < "$runs"))"
     [ "$got_median" -lt "$budget" ] \
       || fail "$harness $before took a median of $got_median ms, over the ${budget}ms budget"
   done
@@ -822,7 +829,7 @@ check_lock() {
   recorded="$(tr -d '[:space:]' < "$placed.sha256")" || fail "no digest companion beside $placed"
   [ "$recorded" = "$sha" ] \
     || fail "the companion at $placed.sha256 records $recorded, not the $sha the lock pins"
-  note "fetched, verified and runnable: $(head -1 "$tmp/good.out")"
+  ok "fetched, verified and runnable: $(head -1 "$tmp/good.out")"
 
   # 2. A lock whose digest is off by one digit is refused, and nothing is placed.
   local bent
@@ -838,20 +845,20 @@ check_lock() {
   if [ -d "$bad/.plotplot/bin" ] && [ -n "$(ls -A "$bad/.plotplot/bin" 2>/dev/null)" ]; then
     fail "a refused judge left files under $bad/.plotplot/bin: $(ls -A "$bad/.plotplot/bin")"
   fi
-  note "refused: $(head -1 "$tmp/bad.out")"
+  ok "refused: $(head -1 "$tmp/bad.out")"
 
   # 3. What was fetched is ignored by git, under this repository's own .gitignore.
   cp "$ROOT/.gitignore" "$good/.gitignore" || fail "could not copy this repository's .gitignore"
   git init -q "$good" || fail "git could not make a repository at $good"
   ( cd "$good" && git check-ignore -q ".plotplot/bin/$LOCK_JUDGE" ) \
     || fail "this repository's .gitignore does not ignore .plotplot/bin/$LOCK_JUDGE"
-  note "ignored by this repository's .gitignore: .plotplot/bin/$LOCK_JUDGE"
+  ok "ignored by this repository's .gitignore: .plotplot/bin/$LOCK_JUDGE"
 
   # 4. And nothing under .plotplot is committed here either.
   local tracked
   tracked="$(git -C "$ROOT" ls-files -- .plotplot)"
   [ -z "$tracked" ] || fail "this repository tracks files under .plotplot: $tracked"
-  note "no file under .plotplot is tracked in this repository"
+  ok "no file under .plotplot is tracked in this repository"
 
   echo "stem.sh lock: pass"
 }
@@ -921,7 +928,7 @@ LOCK
     || fail "could not copy the $CHECK_JUDGE manifest"
   ( cd "$repo" && "$STEM" lock verify ) >"$repo/.plotplot/verify.out" 2>&1 \
     || { cat "$repo/.plotplot/verify.out" >&2; fail "plotplot lock verify could not fetch $CHECK_JUDGE $version for $platform"; }
-  note "the judge: $CHECK_JUDGE $version from $url, sha256 $sha, fetched and verified by plotplot lock verify"
+  ok "the judge: $CHECK_JUDGE $version from $url, sha256 $sha, fetched and verified by plotplot lock verify"
 }
 
 # The names of the tools a merged log's runs carry, one to a line.
@@ -979,7 +986,7 @@ check_check() {
     || { cat "$tmp/clean.json" >&2; fail "the clean tree's log does not carry exactly $CHECK_JUDGE's run"; }
   [ "$(log_blocks "$tmp/clean.json")" -eq 0 ] \
     || { cat "$tmp/clean.json" >&2; fail "the clean tree's log carries a block-level result"; }
-  note "clean tree: exit 0, one run by $CHECK_JUDGE, valid SARIF 2.1.0, no block"
+  ok "clean tree: exit 0, one run by $CHECK_JUDGE, valid SARIF 2.1.0, no block"
 
   # 2. A change the judge blocks: a deleted test file.
   git -C "$repo" rm -q tests/parser.test.ts || fail "could not delete the fixture's test file"
@@ -995,7 +1002,7 @@ check_check() {
     || { cat "$tmp/blocked.json" >&2; fail "the blocked change's log does not carry exactly $CHECK_JUDGE's run"; }
   [ "$(log_blocks "$tmp/blocked.json")" -ge 1 ] \
     || { cat "$tmp/blocked.json" >&2; fail "the blocked change's log carries no block-level result"; }
-  note "deleted test file: exit 2, one run by $CHECK_JUDGE, $(log_blocks "$tmp/blocked.json") block-level result(s)"
+  ok "deleted test file: exit 2, one run by $CHECK_JUDGE, $(log_blocks "$tmp/blocked.json") block-level result(s)"
 
   # 3. The same deletion committed, the view CI has of a pull request, with a lock that pins
   #    other bytes for the judge, as a pull request can: the tree is clean, so a check
@@ -1020,7 +1027,7 @@ check_check() {
     || { cat "$tmp/based.out" >&2; fail "plotplot lock verify --base exited $status on the base's pin, not 0"; }
   grep -q "^$CHECK_JUDGE .* verified$" "$tmp/based.out" \
     || { cat "$tmp/based.out" >&2; fail "lock verify --base did not keep the base's $CHECK_JUDGE"; }
-  note "the change's pin: lock verify exit 3 (mismatch); lock verify --base: exit 0, the base's judge kept"
+  ok "the change's pin: lock verify exit 3 (mismatch); lock verify --base: exit 0, the base's judge kept"
   ( cd "$repo" && "$STEM" check --strict ) >"$tmp/no-range.json" 2>"$tmp/no-range.err"
   status=$?
   [ "$status" -eq 0 ] \
@@ -1028,7 +1035,7 @@ check_check() {
          fail "plotplot check --strict exited $status on the clean tree after the commit, not 0"; }
   [ "$(log_rule "$tmp/no-range.json" T1)" -eq 0 ] \
     || { cat "$tmp/no-range.json" >&2; fail "with no range, the clean tree's log still carries T1"; }
-  note "deletion committed, no --base: exit 0, no T1 (the tree matches HEAD)"
+  ok "deletion committed, no --base: exit 0, no T1 (the tree matches HEAD)"
 
   ( cd "$repo" && "$STEM" check --strict --base "$base" ) >"$tmp/range.json" 2>"$tmp/range.err"
   status=$?
@@ -1042,9 +1049,13 @@ check_check() {
     || { cat "$tmp/range.json" >&2; fail "the range's log carries no block-level T1, the deleted test"; }
   [ "$(log_rule "$tmp/range.json" plotplot/empty-range)" -eq 0 ] \
     || { cat "$tmp/range.json" >&2; fail "a range that changes a file carries the stem's empty-range note"; }
-  note "deletion committed, --base the first commit: exit 2, T1 at error in $CHECK_JUDGE's run"
+  ok "deletion committed, --base the first commit: exit 2, T1 at error in $CHECK_JUDGE's run"
 
-  # 4. A range that changes no tracked file says so in the log, and is not a block.
+  # 4. A range that changes no tracked file says so in the log, and is not a block. HEAD's lock
+  #    must pin the judge that is placed, so the pin moves back first.
+  cp "$tmp/garden.lock.orig" "$repo/garden.lock" || fail "could not move the fixture's pin back"
+  git -C "$repo" -c core.hooksPath=/dev/null commit -qam "the base's judge pinned again" \
+    || fail "could not commit the pin moved back"
   ( cd "$repo" && "$STEM" check --strict --base HEAD ) >"$tmp/empty.json" 2>"$tmp/empty.err"
   status=$?
   [ "$status" -eq 0 ] \
@@ -1055,7 +1066,7 @@ check_check() {
          fail "the log over an empty range is not SARIF 2.1.0"; }
   [ "$(log_rule "$tmp/empty.json" plotplot/empty-range)" -eq 1 ] \
     || { cat "$tmp/empty.json" >&2; fail "the empty range's log does not carry the stem's one empty-range note"; }
-  note "empty range: exit 0, and the log says $(jq -r '.runs[] | .results[]? | select(.ruleId == "plotplot/empty-range") | .message.text' "$tmp/empty.json")"
+  ok "empty range: exit 0, and the log says $(jq -r '.runs[] | .results[]? | select(.ruleId == "plotplot/empty-range") | .message.text' "$tmp/empty.json")"
 
   # 5. And with the judge gone, the answer is missing rather than permissive.
   mv "$repo/.plotplot/bin/$CHECK_JUDGE" "$tmp/$CHECK_JUDGE.withdrawn" \
@@ -1069,7 +1080,7 @@ check_check() {
     || { cat "$tmp/gone.err" >&2; fail "plotplot check did not name $CHECK_JUDGE as the gate that could not run"; }
   [ "$(jq '.runs | length' "$tmp/gone.json")" -eq 0 ] \
     || { cat "$tmp/gone.json" >&2; fail "a gate that could not run still contributed a run to the log"; }
-  note "judge removed: exit 3, no run in the log, $(head -1 "$tmp/gone.err")"
+  ok "judge removed: exit 3, no run in the log, $(head -1 "$tmp/gone.err")"
 
   echo "stem.sh check: pass"
 }
@@ -1232,7 +1243,7 @@ check_init() {
     cat "$repo/garden.lock" >&2
     fail "the written lock still pins tilth, which the minimal profile drops"
   fi
-  note "garden.lock: $INIT_JUDGE $INIT_VERSION, and nothing else"
+  ok "garden.lock: $INIT_JUDGE $INIT_VERSION, and nothing else"
 
   # 3. The garden block is in AGENTS.md, and it names what is planted.
   grep -q '<!-- plotplot:begin -->' "$repo/AGENTS.md" \
@@ -1241,18 +1252,18 @@ check_init() {
     || fail "AGENTS.md's garden block has no end marker"
   grep -q "$INIT_JUDGE $INIT_VERSION" "$repo/AGENTS.md" \
     || { cat "$repo/AGENTS.md" >&2; fail "the garden block does not name $INIT_JUDGE $INIT_VERSION"; }
-  note "AGENTS.md: the garden block names $INIT_JUDGE $INIT_VERSION"
+  ok "AGENTS.md: the garden block names $INIT_JUDGE $INIT_VERSION"
   assert_tend2_block "$repo/AGENTS.md" "first run"
   assert_tend2_block_first "$repo/AGENTS.md" "first run"
   grep -qxF "$AGENTS_PROSE" "$repo/AGENTS.md" \
     || { cat "$repo/AGENTS.md" >&2; fail "first run: the repository's own line in AGENTS.md is gone"; }
-  note "AGENTS.md after the first run: tend2's block byte for byte the fixture, still from line 1, the repository's own line kept"
+  ok "AGENTS.md after the first run: tend2's block byte for byte the fixture, still from line 1, the repository's own line kept"
 
   # 4. The repository's own manifest, which is never a bed.
   [ -f "$repo/garden.json" ] || fail "init wrote no garden.json beside the lock"
   [ "$(jq -r '.kind | join(",")' "$repo/garden.json")" = "repository" ] \
     || { cat "$repo/garden.json" >&2; fail "the repository's own manifest is not kind [\"repository\"]"; }
-  note "garden.json: $(jq -r '.name' "$repo/garden.json"), kind repository"
+  ok "garden.json: $(jq -r '.name' "$repo/garden.json"), kind repository"
 
   # 5. Gemini's project settings, which is where its hooks live because it has no project
   #    scope of its own.
@@ -1261,7 +1272,7 @@ check_init() {
     '.hooks.BeforeTool[0].hooks[0].command' gemini BeforeTool
   assert_dispatcher_entry "$repo/.gemini/settings.json" \
     '.hooks.SessionEnd[0].hooks[0].command' gemini SessionEnd
-  note "gemini: $(jq -r '.hooks | keys | join(", ")' "$repo/.gemini/settings.json")"
+  ok "gemini: $(jq -r '.hooks | keys | join(", ")' "$repo/.gemini/settings.json")"
 
   # 6. Codex's project hook file.
   [ -f "$repo/.codex/hooks.json" ] || fail "init wrote no $repo/.codex/hooks.json"
@@ -1269,7 +1280,7 @@ check_init() {
     '.hooks.PreToolUse[0].hooks[0].command' codex PreToolUse
   assert_dispatcher_entry "$repo/.codex/hooks.json" \
     '.hooks.Stop[0].hooks[0].command' codex Stop
-  note "codex: $(jq -r '.hooks | keys | join(", ")' "$repo/.codex/hooks.json")"
+  ok "codex: $(jq -r '.hooks | keys | join(", ")' "$repo/.codex/hooks.json")"
   grep -q "trust" "$tmp/first.err" \
     || { cat "$tmp/first.err" >&2; fail "init did not say that codex waits on project trust"; }
 
@@ -1285,7 +1296,7 @@ check_init() {
       | grep -q 'refs/notes/plotplot/receipts'; then
     fail "init set a refspec for the receipts ref; a fetch refspec fails every fetch until the ref exists and a push refspec sends the ref alone"
   fi
-  note "git: core.hooksPath .githooks, five runnable hooks, no refspec for the receipts ref"
+  ok "git: core.hooksPath .githooks, five runnable hooks, no refspec for the receipts ref"
 
   # 8. The gate every pull request passes, on a hosted runner and no other.
   local workflow="$repo/.github/workflows/plotplot-check.yml"
@@ -1305,7 +1316,7 @@ check_init() {
   fi
   [ ! -e "$repo/.github/CODEOWNERS" ] \
     || fail "plain init wrote .github/CODEOWNERS, which only --github writes"
-  note "the pull request gate: job $REQUIRED_CHECK, the base's judges resolved, plotplot check --strict over the range, on a hosted runner"
+  ok "the pull request gate: job $REQUIRED_CHECK, the base's judges resolved, plotplot check --strict over the range, on a hosted runner"
 
   # 9. And a second run changes nothing, and says so.
   tree_hash "$repo" > "$tmp/before.hashes"
@@ -1319,10 +1330,10 @@ check_init() {
   tree_hash "$repo" > "$tmp/after.hashes"
   diff "$tmp/before.hashes" "$tmp/after.hashes" >/dev/null \
     || { diff "$tmp/before.hashes" "$tmp/after.hashes" >&2; fail "the second init changed files"; }
-  note "second run: nothing to do, and every file byte for byte as it was"
+  ok "second run: nothing to do, and every file byte for byte as it was"
   assert_tend2_block "$repo/AGENTS.md" "second run"
   assert_tend2_block_first "$repo/AGENTS.md" "second run"
-  note "AGENTS.md after the second run: tend2's block byte for byte the fixture, still from line 1"
+  ok "AGENTS.md after the second run: tend2's block byte for byte the fixture, still from line 1"
 
   # 10. The other order the two blocks can stand in: the garden block above tend2's.
   check_init_above_tend2 "$repo/AGENTS.md"
@@ -1367,12 +1378,12 @@ check_init_above_tend2() {
     || { cat "$repo/AGENTS.md" >&2; fail "the garden block no longer opens the second fixture's AGENTS.md"; }
   grep -qx 'Season: 2026.09.' "$repo/AGENTS.md" \
     || { cat "$repo/AGENTS.md" >&2; fail "the older season's garden block was not replaced"; }
-  note "second layout: init replaced the older season's garden block at the top of AGENTS.md"
+  ok "second layout: init replaced the older season's garden block at the top of AGENTS.md"
 
   assert_tend2_block "$repo/AGENTS.md" "second layout"
   sed '1,/<!-- plotplot:end -->/d' "$repo/AGENTS.md" | cmp -s - <(echo && cat "$TEND2_BLOCK") \
     || { cat "$repo/AGENTS.md" >&2; fail "second layout: tend2's block is not where it was, one blank line below the garden block"; }
-  note "second layout: tend2's block byte for byte the fixture, still one blank line after the garden block"
+  ok "second layout: tend2's block byte for byte the fixture, still one blank line after the garden block"
 }
 
 # Claude Code's half of the check: the same repository, planted again with --harness claude,
@@ -1416,7 +1427,7 @@ check_init_claude() {
   tree_hash "$repo" > "$tmp/claude-after.hashes"
   diff "$tmp/claude-before.hashes" "$tmp/claude-after.hashes" >/dev/null \
     || { diff "$tmp/claude-before.hashes" "$tmp/claude-after.hashes" >&2; fail "the second claude init changed files"; }
-  note "claude: installed at project scope from $repo/.plotplot/marketplace, and a second run changed nothing"
+  ok "claude: installed at project scope from $repo/.plotplot/marketplace, and a second run changed nothing"
 }
 
 # ---------------------------------------------------------------------------------------
@@ -1629,7 +1640,7 @@ check_platform() {
     || { cat "$tmp/github.out" >&2; fail "init --github did not name .github/CODEOWNERS"; }
   grep -qxF "ruleset \"$RULESET_NAME\" applied on $PLATFORM_OWNER/$PLATFORM_REPO" "$tmp/github.out" \
     || { cat "$tmp/github.out" >&2; fail "init --github did not name the ruleset it applied"; }
-  note "init --github: exit 0, changed: $(paste -sd ';' "$tmp/github.out")"
+  ok "init --github: exit 0, changed: $(paste -sd ';' "$tmp/github.out")"
 
   # 2. Exactly one POST, carrying the desired body.
   [ "$(journal_count "$journal" POST)" -eq 1 ] \
@@ -1648,7 +1659,7 @@ check_platform() {
     || { cat "$tmp/posted.json" >&2; fail "the POSTed ruleset does not target ~DEFAULT_BRANCH"; }
   [ "$(jq -r '.name' "$tmp/posted.json")" = "$RULESET_NAME" ] \
     || fail "the POSTed ruleset is not called $RULESET_NAME"
-  note "one POST: rules $(jq -c '[.rules[].type]' "$tmp/posted.json"), context $REQUIRED_CHECK, ~DEFAULT_BRANCH, no linear history"
+  ok "one POST: rules $(jq -c '[.rules[].type]' "$tmp/posted.json"), context $REQUIRED_CHECK, ~DEFAULT_BRANCH, no linear history"
 
   # 3. The region names the owner for the twelve paths, and the repository's own lines stay.
   platform_region > "$tmp/region.expected"
@@ -1657,7 +1668,7 @@ check_platform() {
     || { diff "$tmp/region.expected" <(sed -n '/^# plotplot:begin$/,/^# plotplot:end$/p' "$repo/.github/CODEOWNERS") >&2; fail "the CODEOWNERS region is not the twelve guarded paths naming @$PLATFORM_OWNER"; }
   head -c "$(wc -c < "$tmp/codeowners.before")" "$repo/.github/CODEOWNERS" | cmp -s - "$tmp/codeowners.before" \
     || { cat "$repo/.github/CODEOWNERS" >&2; fail "the repository's own CODEOWNERS lines did not survive byte for byte"; }
-  note "CODEOWNERS: twelve lines naming @$PLATFORM_OWNER inside the markers, the repository's own two lines above them untouched"
+  ok "CODEOWNERS: twelve lines naming @$PLATFORM_OWNER inside the markers, the repository's own two lines above them untouched"
 
   # 4. A second run changes nothing and writes nothing to the platform.
   tree_hash "$repo" > "$tmp/before.hashes"
@@ -1673,7 +1684,7 @@ check_platform() {
   tree_hash "$repo" > "$tmp/after.hashes"
   diff "$tmp/before.hashes" "$tmp/after.hashes" >/dev/null \
     || { diff "$tmp/before.hashes" "$tmp/after.hashes" >&2; fail "the second init --github changed files"; }
-  note "second run: nothing to do, no POST or PUT, every file as it was"
+  ok "second run: nothing to do, no POST or PUT, every file as it was"
 
   # 5. doctor --platform reads the three rules back, and the gate job on main.
   ( cd "$repo" && HOME="$home" CODEX_HOME="$home/.codex" PATH="$path_with_stub" \
@@ -1699,7 +1710,7 @@ check_platform() {
     || { cat "$tmp/platform.table" >&2; fail "the gate job line does not say main's plotplot-check.yml reports $REQUIRED_CHECK"; }
   [ "$(journal_count "$journal" POST)" -eq 1 ] && [ "$(journal_count "$journal" PUT)" -eq 0 ] \
     || { cat "$journal" >&2; fail "doctor --platform made a writing call"; }
-  note "doctor --platform: exit 0, read-only calls only"
+  ok "doctor --platform: exit 0, read-only calls only"
   sed 's/^/    /' "$tmp/platform.table"
 
   # 6. With the force-push rule gone from the branch, doctor says so and exits 3.
@@ -1712,7 +1723,7 @@ check_platform() {
   platform_table "$tmp/noforce.out" > "$tmp/noforce.table"
   [ "$(platform_verdict "$tmp/noforce.table" "force push")" = "fail" ] \
     || { cat "$tmp/noforce.out" >&2; fail "the force push line does not read fail"; }
-  note "without non_fast_forward: exit 3, $(grep '^force push  ' "$tmp/noforce.table" | tr -s ' ')"
+  ok "without non_fast_forward: exit 3, $(grep '^force push  ' "$tmp/noforce.table" | tr -s ' ')"
   echo "all" > "$stub/rules-mode"
 
   # 7. With no gh on PATH: one unavailable line and exit 3; init --github refuses with 2.
@@ -1727,7 +1738,7 @@ check_platform() {
   platform_table "$tmp/nogh.out" > "$tmp/nogh.table"
   [ "$(wc -l < "$tmp/nogh.table" | tr -d ' ')" -eq 1 ] && [ "$(platform_verdict "$tmp/nogh.table" platform)" = "unavailable" ] \
     || { cat "$tmp/nogh.out" >&2; fail "with no gh the platform table is not one unavailable line"; }
-  note "no gh, doctor: exit 3, $(tr -s ' ' < "$tmp/nogh.table")"
+  ok "no gh, doctor: exit 3, $(tr -s ' ' < "$tmp/nogh.table")"
 
   local writes_before
   writes_before="$(grep -c . "$journal")"
@@ -1744,7 +1755,7 @@ check_platform() {
     || { diff "$tmp/nogh-before.hashes" "$tmp/nogh-after.hashes" >&2; fail "init --github with no gh planted something"; }
   [ "$(grep -c . "$journal")" -eq "$writes_before" ] \
     || fail "something reached the recording gh while no gh was on PATH"
-  note "no gh, init --github: exit 2, $(grep 'gh is not on PATH' "$tmp/nogh-init.err"), nothing new planted"
+  ok "no gh, init --github: exit 2, $(grep 'gh is not on PATH' "$tmp/nogh-init.err"), nothing new planted"
 
   # 8. The deadlock the ordering rule exists for (jahala/plotplot issue 33): ruleset 41 already
   #    requires garden, and main's workflow still reports the old job. init --github refuses,
@@ -1768,7 +1779,7 @@ check_platform() {
   tree_hash "$repo" > "$tmp/deadlock-after.hashes"
   diff "$tmp/deadlock-before.hashes" "$tmp/deadlock-after.hashes" >/dev/null \
     || { diff "$tmp/deadlock-before.hashes" "$tmp/deadlock-after.hashes" >&2; fail "the refused init --github changed files"; }
-  note "old job on main under ruleset 41: exit 1, no POST or PUT, every file as it was; stderr:"
+  ok "old job on main under ruleset 41: exit 1, no POST or PUT, every file as it was; stderr:"
   sed 's/^/    /' "$tmp/deadlock.err"
   echo "garden" > "$stub/gate-mode"
 
@@ -1803,7 +1814,7 @@ check_platform() {
   fi
   [ -f "$second/repo/.github/CODEOWNERS" ] && grep -qx '.github/CODEOWNERS' "$second/old.out" \
     || { cat "$second/old.out" >&2; fail "the refused init --github did not write and name .github/CODEOWNERS first"; }
-  note "old job on main, no ruleset: exit 1, no POST or PUT, .github/CODEOWNERS written and named; stderr:"
+  ok "old job on main, no ruleset: exit 1, no POST or PUT, .github/CODEOWNERS written and named; stderr:"
   sed 's/^/    /' "$second/old.err"
 
   # doctor --platform there: the three rules answered, the gate job failing, exit 3, and the
@@ -1828,7 +1839,7 @@ check_platform() {
     || { cat "$second/doctor.out" >&2; fail "with the old job on main, the gate job line does not read fail"; }
   grep '^gate job  ' "$second/platform.table" | grep -qF '(jobs: check, reported as "plotplot check --strict")' \
     || { cat "$second/platform.table" >&2; fail "the gate job line does not name the job main reports"; }
-  note "doctor --platform with the old job on main: exit 3"
+  ok "doctor --platform with the old job on main: exit 3"
   sed 's/^/    /' "$second/platform.table"
 
   # 10. main holds no workflow at all: init --github refuses naming the missing file, and
@@ -1843,7 +1854,7 @@ check_platform() {
     || { cat "$second_journal" >&2; fail "init --github made a writing call while main holds no workflow"; }
   grep -qxF "$refusal_absent" "$second/absent.err" \
     || { cat "$second/absent.err" >&2; fail "the refusal does not name the file main is missing"; }
-  note "no workflow on main: exit 1, no POST or PUT; stderr:"
+  ok "no workflow on main: exit 1, no POST or PUT; stderr:"
   sed 's/^/    /' "$second/absent.err"
 
   # 11. This repository itself: read-only calls through the real gh, with the planter's own
@@ -1935,7 +1946,7 @@ check_context() {
   total=$(( always_on + block_tokens ))
   [ "$total" -lt "$CONTEXT_BAR" ] \
     || fail "the planted repository costs ~$total tokens at session start, not under the $CONTEXT_BAR bar"
-  note "total: ~$total tokens at session start, under the $CONTEXT_BAR bar"
+  ok "total: ~$total tokens at session start, under the $CONTEXT_BAR bar"
   echo "stem.sh context: pass"
 }
 
@@ -2023,11 +2034,11 @@ assert_reported_honestly() {
     unavailable)
       [ -n "$detail" ] \
         || { cat "$out" >&2; fail "$harness is unavailable with no reason, which is a silent skip"; }
-      note "$harness: unavailable — $detail"
+      ok "$harness: unavailable — $detail"
       ;;
     ok)
       assert_proved "$out" "$harness"
-      note "$harness: proved as well as $LIVE_PROVED, which the plan did not expect on this machine"
+      ok "$harness: proved as well as $LIVE_PROVED, which the plan did not expect on this machine"
       ;;
     *)
       cat "$out" >&2
@@ -2096,7 +2107,7 @@ check_doctor_live() {
   statics="$(sed -n '1,/^$/p' "$out" | grep -c '  ok  ')"
   [ "$statics" -eq 9 ] \
     || { cat "$out" >&2; fail "only $statics of the nine static findings are ok"; }
-  note "the nine static findings are ok"
+  ok "the nine static findings are ok"
 
   # 2. The harness this machine can authenticate proves all three event classes.
   assert_proved "$out" "$LIVE_PROVED"
@@ -2110,13 +2121,13 @@ check_doctor_live() {
   # 4. A vendor that will not run is not a broken stem.
   [ "$status" -eq 0 ] \
     || { cat "$out" "$err" >&2; fail "doctor --live exited $status, not 0"; }
-  note "doctor --live exited 0"
+  ok "doctor --live exited 0"
 
   # 5. And the proof itself, read from the journal rather than from the doctor's own table.
   session="$(live_session_id "$out" "$LIVE_PROVED")"
   [ -n "$session" ] \
     || { cat "$out" >&2; fail "the doctor named no session id for $LIVE_PROVED"; }
-  note "$LIVE_PROVED reported session $session"
+  ok "$LIVE_PROVED reported session $session"
 
   local journal kind line
   journal="$tmp/journal.jsonl"
@@ -2133,7 +2144,7 @@ check_doctor_live() {
       'select(.["gen_ai.conversation.id"] == $s and .["plotplot.kind"] == "tool.denied") | .["plotplot.rule"]' \
       "$journal")" = "deny.no-verify" ] \
     || { cat "$journal" >&2; fail "the refusal for $session names another rule than deny.no-verify"; }
-  note "the refusal names the rule deny.no-verify"
+  ok "the refusal names the rule deny.no-verify"
 
   local draft="$repo/.plotplot/receipts/drafts/$session.json"
   [ -f "$draft" ] || fail "no receipt draft at $draft"
