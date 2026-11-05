@@ -70,6 +70,7 @@ colour already. `/petals check` warns when one product's accent appears in anoth
 | the boundary | stone | well | #4D5972 | #58647E | paper | the one door for paid calls |
 | the seasons | weather | gardener | #C7C784 | same | ink | what runs next, planned |
 | the seasons | weather | almanac | #A19251 | same | ink | what is due, planned |
+| the seasons | weather | coldframe | #4E5A48 | #5A6853 | paper | tests and CI on the owner's machines, planned |
 | the seasons | weather | upkeep | #6E520D | #7D6021 | paper | keeping products alive, planned |
 
 copeca left the garden on 2026-10-26 and keeps juniper `#1F8A7B` on its public page.
@@ -189,6 +190,10 @@ Color is only on-brand when it is legible. Classes: **reading** ≥ 4.5:1 (body,
 | Almanac #A19251 on Night #1C1610 | 5.8 | labels |
 | Night #1C1610 on Almanac #A19251 | 5.8 | reading |
 | Night #1C1610 on Almanac #A19251 | 5.8 | reading |
+| Coldframe #4E5A48 on Paper #FAF5E9 | 6.7 | labels |
+| Coldframe-night #5A6853 on Night #1C1610 | 3.0 | labels |
+| Night-text #F3ECD9 on Coldframe #4E5A48 | 6.2 | reading |
+| Night-text #F3ECD9 on Coldframe-night #5A6853 | 5.0 | reading |
 | Upkeep #6E520D on Paper #FAF5E9 | 6.7 | labels |
 | Upkeep-night #7D6021 on Night #1C1610 | 3.0 | labels |
 | Night-text #F3ECD9 on Upkeep #6E520D | 6.2 | reading |
@@ -304,6 +309,7 @@ Dark mode is "soil at night," not a harsh developer theme. Embedded terminal pan
   /* the seasons: weather */
   --pp-gardener: #C7C784;
   --pp-almanac: #A19251;
+  --pp-coldframe: #4E5A48;
   --pp-upkeep: #6E520D;
   /* copeca left the garden on 2026-10-26; its public page keeps juniper */
   --pp-copeca: #1F8A7B;
@@ -336,6 +342,7 @@ Dark mode is "soil at night," not a harsh developer theme. Embedded terminal pan
   --pp-harvest: #8A3EBF;
   --pp-stake: #835A57;
   --pp-well: #58647E;
+  --pp-coldframe: #5A6853;
   --pp-upkeep: #7D6021;
   --pp-pollen-ink: #BD59D2;
   --pp-weeder-word: #A37A6E;
