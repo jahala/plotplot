@@ -9,7 +9,8 @@
   Things a copy must take from the bed's own layer and repository:
   - the mark: its tiled file products/<bed>/assets/<bed>-mark.svg, inlined in the header with the
     tile as --bed and the ink as --bed-on;
-  - the frame: the product's real output, never a mock. A command-line tool shows a terminal of a
+  - the frame: the product's real output, never a mock. A bed under construction may show the output
+    its finished tool will give, with "preview" in the frame's title, beside the .wip ribbon. A command-line tool shows a terminal of a
     real run; a tool whose output is a page shows a browser view of a real page (light and dark
     screenshots, plus a phone-width one under 520). Say where it came from in the frame's title;
   - the proof band: four numbers counted from the bed's repository, with its version, commit and
@@ -376,6 +377,26 @@
   /* the script's loops need room between lines */
   .hero h1{line-height:1.1!important}
   h2{line-height:1.25!important}
+
+  /* under construction (components.md): a ribbon across the hero's top-right corner on a bed page
+     whose product is planted but not yet shipping. hazard tape in sunlight and soil; it scrolls
+     with the page and takes no clicks; the hero copy stops short of it */
+  .wip{position:absolute;top:0;right:0;width:240px;height:240px;overflow:hidden;z-index:30;pointer-events:none}
+  .wip span{position:absolute;top:68px;right:-74px;width:340px;transform:rotate(45deg);
+    display:flex;align-items:center;justify-content:center;
+    padding:var(--pp-space-3xs) 0;background:var(--pp-accent);color:var(--pp-term-bg);
+    font-family:var(--pp-font-code);font-size:.64rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+    box-shadow:var(--pp-shadow-lift)}
+  .wip span::before,.wip span::after{content:"";position:absolute;left:0;right:0;height:6px;
+    background:repeating-linear-gradient(-45deg,var(--pp-term-bg) 0 6px,var(--pp-accent) 6px 12px)}
+  .wip span::before{top:-6px}
+  .wip span::after{bottom:-6px}
+  .hero:has(.wip) .hero-copy{padding-right:clamp(0px,calc(190px - max(var(--pp-gutter),(100vw - var(--pp-container-max)) / 2 + var(--pp-gutter))),160px)}
+  @media (max-width:880px){
+    .hero:has(.wip) .hero-copy{padding-right:0}
+    .wip{position:relative;width:auto;height:auto;overflow:visible}
+    .wip span{position:relative;top:auto;right:auto;width:auto;transform:none;margin:6px 0;padding:var(--pp-space-4xs) 0;font-size:.6rem}
+  }
 </style>
 </head>
 <body id="top">
@@ -441,6 +462,9 @@
 <main>
   <!-- swap: the hero. the title (one live word in <em>), the signature line, the lede (its first sentence says what the bed is), the two actions, and the product frame: a terminal of a real run here; a browser view where the product is a page -->
   <section class="hero" aria-labelledby="hero-title">
+    <!-- swap: under construction. weeder ships, so its page has no ribbon. A bed that is planted but not yet
+         shipping keeps this line, uncommented, and deletes it the day its first real command ships:
+    <div class="wip" role="note" aria-label="this tool is under construction"><span>under construction</span></div> -->
     <div class="wrap">
       <div class="hero-grid g12">
         <div class="hero-title rise">
@@ -624,6 +648,7 @@
           <span style="--bloom:var(--pp-mycelium)"><span class="gf-dot"></span>mycelium</span>
           <a href="#top" style="--bloom:var(--pp-weeder)" class="is-current" aria-current="page"><span class="gf-dot"></span>weeder</a>
           <span style="--bloom:var(--pp-well)"><span class="gf-dot"></span>well</span>
+          <span style="--bloom:var(--pp-coldframe)"><span class="gf-dot"></span>coldframe</span>
         </nav>
         <p class="gf-soft">small, sharp tools for building with agents.</p>
       </div>
