@@ -16,8 +16,14 @@
 # Output (stderr): operational logs.
 
 set -euo pipefail
-# Allow empty arrays for the JSON output helper (APPLIED_KEYS/SKIPPED_KEYS may be empty)
-shopt -s nullglob 2>/dev/null || true
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [[ ! -f "$SCRIPT_DIR/lib/common.sh" ]]; then
+  echo "petals: lib/common.sh is missing beside $(basename "$0"); install the whole petals/ directory" >&2
+  exit 127
+fi
+source "$SCRIPT_DIR/lib/common.sh"
+ROOT=$(find_project_root) && cd "$ROOT"
 
 PETALRC=".petalsrc"
 BRAND_DIR=".brand"
@@ -28,8 +34,8 @@ SKIPPED_KEYS=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --petalrc) PETALRC="$2"; shift 2 ;;
-    --brand)   BRAND_DIR="$2"; shift 2 ;;
+    --petalrc) PETALRC=$(from_caller "$2"); shift 2 ;;
+    --brand)   BRAND_DIR=$(from_caller "$2"); shift 2 ;;
     --help|-h)
       echo "Usage: apply-overrides.sh [--petalrc <path>] [--brand <path>]"
       exit 0 ;;
@@ -103,7 +109,7 @@ parse_overrides() {
       if echo "$line" | grep -qE '^[[:space:]]{4,}[a-zA-Z_.-]+:'; then
         local key val
         key=$(echo "$line" | sed -E 's/^[[:space:]]*([a-zA-Z_.-]+):.*$/\1/')
-        val=$(echo "$line" | sed -E 's/^[[:space:]]*[a-zA-Z_.-]+:[[:space:]]*"?([^"]+)"?[[:space:]]*$/\1/' | sed -E 's/[[:space:]]*$//')
+        val=$(echo "$line" | sed -E 's/^[[:space:]]*[a-zA-Z_.-]+:[[:space:]]*//' | sed -E "s/^(['\"])//;s/['\"]$//" | sed -E 's/[[:space:]]*$//')
 
         # Normalize null
         if [[ "$val" == "null" || "$val" == "~" || "$val" == "" ]]; then
@@ -221,39 +227,84 @@ apply_override_typography_mono() {
   log "  Applied typography.mono=$value in typography.md"
 }
 
+# Override handler dispatch table — maps override keys to handler functions.
+# Uses variable-indirection convention (bash 3.2 compatible).
+# Handler for key X.Y is stored in OVERRIDE_HANDLER_X_Y.
+OVERRIDE_HANDLER_colors_primary="apply_override_colors_primary"
+OVERRIDE_HANDLER_colors_accent="apply_override_colors_accent"
+OVERRIDE_HANDLER_typography_heading="apply_override_typography_heading"
+OVERRIDE_HANDLER_typography_body="apply_override_typography_body"
+OVERRIDE_HANDLER_typography_mono="apply_override_typography_mono"
+OVERRIDE_HANDLER_voice_terms="apply_override_voice_terms"
+
+_override_handler_var() {
+  # Convert key (e.g. "colors.primary") to variable name (e.g. "OVERRIDE_HANDLER_colors_primary")
+  local varname
+  varname=$(echo "$1" | sed 's/\./_/g')
+  echo "OVERRIDE_HANDLER_${varname}"
+}
+
 apply_override() {
   local key="$1"
   local value="$2"
 
-  case "$key" in
-    colors.primary)
-      apply_override_colors_primary "$value"
-      ;;
-    colors.accent)
-      apply_override_colors_accent "$value"
-      ;;
-    typography.heading)
-      apply_override_typography_heading "$value"
-      ;;
-    typography.body)
-      apply_override_typography_body "$value"
-      ;;
-    typography.mono)
-      apply_override_typography_mono "$value"
-      ;;
-    *)
-      err "Unknown override key: $key (no handler registered)"
-      return 1
-      ;;
-  esac
+  local handler_var handler
+  handler_var=$(_override_handler_var "$key")
+  handler="${!handler_var:-}"
+  if [[ -n "$handler" ]]; then
+    "$handler" "$value"
+  else
+    err "Unknown override key: $key (no handler registered)"
+    return 1
+  fi
+}
+
+# ── Override handlers ────────────────────────────────────────────────────────
+
+apply_override_voice_terms() {
+  local value="$1"
+  local file="$BRAND_DIR/voice.md"
+
+  if [[ ! -f "$file" ]]; then
+    err "voice.md not found in $BRAND_DIR"
+    return 1
+  fi
+
+  if ! echo "$value" | jq -e '.' >/dev/null 2>&1; then
+    err "voice.terms override must be a valid JSON array"
+    return 1
+  fi
+
+  local rows
+  rows=$(echo "$value" | jq -r '.[] | "| \(.term) | \(.reason) | \(.use_instead) |"')
+  if [[ -z "$rows" ]]; then
+    log "  voice.terms: no project-specific terms to append"
+    return 0
+  fi
+
+  local table_end
+  table_end=$(grep -n '^## ' "$file" | grep -A1 'Forbidden Terms' | tail -1 | cut -d: -f1)
+  if [[ -z "$table_end" ]]; then
+    table_end=$(wc -l < "$file" | tr -d ' ')
+  else
+    table_end=$((table_end - 1))
+  fi
+
+  local tmpfile
+  tmpfile=$(mktemp)
+  head -n "$table_end" "$file" > "$tmpfile"
+  echo "$rows" >> "$tmpfile"
+  tail -n +$((table_end + 1)) "$file" >> "$tmpfile"
+  mv "$tmpfile" "$file"
+
+  log "  Applied voice.terms: appended project-specific forbidden terms"
 }
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 main() {
   if [[ ! -d "$BRAND_DIR" ]]; then
-    err "Brand directory not found: $BRAND_DIR"
-    exit 1
+    echo "No brand configured. Run /petals init first."; exit 1
   fi
 
   log "Reading overrides from $PETALRC"

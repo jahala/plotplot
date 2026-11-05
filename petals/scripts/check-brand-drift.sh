@@ -9,6 +9,13 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [[ ! -f "$SCRIPT_DIR/lib/common.sh" ]]; then
+  echo "petals: lib/common.sh is missing beside $(basename "$0"); install the whole petals/ directory" >&2
+  exit 127
+fi
+source "$SCRIPT_DIR/lib/common.sh"
+ROOT=$(find_project_root) && cd "$ROOT"
 PETALRC=".petalsrc"
 LOCAL_ARG=""
 SOURCE_ARG=""
@@ -16,7 +23,7 @@ CLI_MODE=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --petalrc) PETALRC="$2"; shift 2 ;;
+    --petalrc) PETALRC=$(from_caller "$2"); shift 2 ;;
     --help|-h)
       echo "Usage: CLI mode: check-brand-drift.sh <local-version> <source-path>"
       echo "       Config mode: check-brand-drift.sh [--petalrc <path>]"
@@ -25,7 +32,7 @@ while [[ $# -gt 0 ]]; do
       echo "Unknown flag: $1" >&2; exit 1 ;;
     *)
       if [[ -z "$LOCAL_ARG" ]]; then LOCAL_ARG="$1"
-      elif [[ -z "$SOURCE_ARG" ]]; then SOURCE_ARG="$1"
+      elif [[ -z "$SOURCE_ARG" ]]; then SOURCE_ARG=$(from_caller_if_exists "$1")
       fi
       shift ;;
   esac
@@ -112,7 +119,7 @@ else
     CENTRAL_VERSION=$(git ls-remote --tags "$SOURCE" 2>/dev/null | grep -oE 'refs/tags/v?[0-9]+\.[0-9]+\.[0-9]+' | sed -E 's|refs/tags/||' | sort -V | tail -1 || echo "")
   fi
   if [[ -z "$CENTRAL_VERSION" ]] && [[ "$SOURCE" =~ github\.com ]]; then
-    local owner_repo=$(echo "$SOURCE" | sed -E 's|^https?://github\.com/||; s|\.git$||; s|^git@github\.com:||; s|/$||')
+    owner_repo=$(echo "$SOURCE" | sed -E 's|^https?://github\.com/||; s|\.git$||; s|^git@github\.com:||; s|/$||')
     CENTRAL_VERSION=$(curl -s --max-time 10 "https://raw.githubusercontent.com/${owner_repo}/main/.brand/identity.md" 2>/dev/null | grep -iE 'Brand Version' | head -1 | grep -oE 'v?[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "")
   fi
 fi
