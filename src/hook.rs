@@ -572,7 +572,7 @@ mod tests {
         assert_eq!(
             merge(&[
                 result("weeder", ALLOW, "", ""),
-                result("tend2", ALLOW, "", "")
+                result("tend", ALLOW, "", "")
             ]),
             Dispatch::allow()
         );
@@ -589,10 +589,10 @@ mod tests {
                 "weeder: a test was deleted\n",
             ),
             result(
-                "tend2",
+                "tend",
                 DENY,
                 "{\"decision\":\"deny\"}",
-                "tend2: the claim is unproven\n",
+                "tend: the claim is unproven\n",
             ),
             result("petals", CANNOT, "", "petals: no tokens\n"),
         ]);
@@ -600,7 +600,7 @@ mod tests {
         assert_eq!(merged.stdout, "{\"decision\":\"deny\"}");
         assert_eq!(
             merged.stderr,
-            "weeder: a test was deleted\ntend2: the claim is unproven\n"
+            "weeder: a test was deleted\ntend: the claim is unproven\n"
         );
     }
 
@@ -609,13 +609,13 @@ mod tests {
         let merged = merge(&[
             result("apple", ALLOW, "", ""),
             result("weeder", CANNOT, "", "weeder: the index is stale\n"),
-            result("tend2", CANNOT, "", "tend2: no map here\n"),
+            result("tend", CANNOT, "", "tend: no map here\n"),
         ]);
         assert_eq!(merged.code, CANNOT);
         assert_eq!(merged.stdout, "");
         assert_eq!(
             merged.stderr,
-            "weeder: the index is stale\ntend2: no map here\n"
+            "weeder: the index is stale\ntend: no map here\n"
         );
     }
 

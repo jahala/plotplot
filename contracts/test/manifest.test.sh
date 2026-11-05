@@ -56,7 +56,7 @@ for f in "$fixdir"/*.garden.json; do
   put_away /tmp/manifest-test-out.$$
 done
 
-expected_beds="tilth tend2 petals pleach umbel copeca pollen weeder"
+expected_beds="tilth tend petals pleach umbel copeca pollen weeder"
 for bed in $expected_beds; do
   if [ -f "$fixdir/$bed.garden.json" ]; then
     assert 0 "a positive fixture exists for bed '$bed'"

@@ -37,7 +37,7 @@ pub fn render(season: &str, beds: &[Bed]) -> String {
 Planted: {planted}.
 Season: {season}.
 
-- Orient first: `tend2 next docs/tend2` says what is next, what is running, and what went stale.
+- Orient first: `tend next docs/tend` says what is next, what is running, and what went stale.
 - Gates: `plotplot check` runs every planted gate and returns one SARIF log.
 - Help: `plotplot doctor` says whether the law is live, and what is missing when it is not.
 - In a fresh clone or worktree, run `plotplot init` before the first commit: until then the hooks do not run there, or refuse.
@@ -87,7 +87,7 @@ mod tests {
     }
 
     fn beds() -> Vec<Bed> {
-        vec![bed("tend2", "1.0.0"), bed("weeder", "0.1.0")]
+        vec![bed("tend", "1.0.0"), bed("weeder", "0.1.0")]
     }
 
     /// The lines between the markers, which is what the ten-line budget counts.
@@ -123,7 +123,7 @@ mod tests {
     #[test]
     fn the_body_names_every_bed_with_its_version_and_the_season() {
         let block = render("2026.09", &beds());
-        assert!(block.contains("tend2 1.0.0"), "{block}");
+        assert!(block.contains("tend 1.0.0"), "{block}");
         assert!(block.contains("weeder 0.1.0"), "{block}");
         assert!(block.contains("Season: 2026.09."), "{block}");
     }
@@ -138,7 +138,7 @@ mod tests {
     fn the_body_carries_the_three_commands_and_the_hard_limits() {
         let block = render("2026.09", &beds());
         for phrase in [
-            "tend2 next docs/tend2",
+            "tend next docs/tend",
             "plotplot check",
             "plotplot doctor",
             "--no-verify",
@@ -155,7 +155,7 @@ mod tests {
         let body = body(&block).join("\n");
         assert!(!body.contains('!'), "{block}");
         assert!(!body.contains('\u{2014}'), "{block}");
-        for product in ["plotplot", "tend2", "weeder"] {
+        for product in ["plotplot", "tend", "weeder"] {
             let shouted = format!("{}{}", product[..1].to_uppercase(), &product[1..]);
             assert!(
                 !body.contains(&shouted),

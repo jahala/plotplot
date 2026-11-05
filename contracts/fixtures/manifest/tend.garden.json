@@ -1,0 +1,109 @@
+{
+  "$schema": "test/fixtures/garden/manifest.schema.json",
+  "name": "tend",
+  "summary": "Loops and evals for agents, self-briefing pages for humans; a pass only a verifier can write.",
+  "kind": [
+    "capability",
+    "channel",
+    "gate"
+  ],
+  "version": "1.0.0",
+  "install": {
+    "npm": "@plotplot/tend",
+    "git": {
+      "url": "https://github.com/jahala/tend",
+      "rev": "eb99cbc85d2d278724359eb495e2a5a3c73c6615"
+    }
+  },
+  "faces": {
+    "cli": "tend",
+    "skill": "plugin/skills/next/SKILL.md",
+    "hooks": {
+      "claude": [
+        "SessionStart"
+      ]
+    },
+    "mcp": {
+      "tools": 6,
+      "command": "tend",
+      "args": [
+        "mcp"
+      ]
+    }
+  },
+  "check": "tend lint --format sarif docs/tend",
+  "metric": "tend badge docs/tend",
+  "context": {
+    "upfront_tokens": 1453
+  },
+  "coverage": {
+    "languages": [
+      "go",
+      "javascript",
+      "python",
+      "rust",
+      "typescript"
+    ],
+    "kinds": [
+      "test"
+    ]
+  },
+  "smoke": {
+    "commands": [
+      {
+        "argv": [
+          "npm",
+          "run",
+          "build"
+        ],
+        "timeout_ms": 120000
+      },
+      {
+        "argv": [
+          "npm",
+          "run",
+          "typecheck"
+        ],
+        "timeout_ms": 300000
+      },
+      {
+        "argv": [
+          "npm",
+          "test"
+        ],
+        "timeout_ms": 900000
+      },
+      {
+        "argv": [
+          "node",
+          "dist/cli.js",
+          "next",
+          "docs/tend"
+        ],
+        "timeout_ms": 60000
+      }
+    ]
+  },
+  "flagged": [
+    {
+      "what": "install.npm",
+      "why": "@plotplot/tend is not published yet; the publish is owner-run. Until it lands the umbrella pins this bed by install.git.rev (jahala/plotplot 60). That rev names the master this manifest was planted on, so every landing leaves it one behind; the pin is the umbrella's to move."
+    },
+    {
+      "what": "faces.skill",
+      "why": "the plugin carries eight skills under plugin/skills/*/SKILL.md; the manifest names the router (next), the one a session reads first. The umbrella's tend loop decided on 2026-09-05 to fold the eight into one SKILL.md and cut the MCP surface to three pens; neither has landed, so the cost below is the eight descriptions plus six tool schemas as they stand."
+    },
+    {
+      "what": "context.upfront_tokens",
+      "why": "measured as every skill description plus the tools/list schemas at four characters per token (test/garden-manifest.test.ts recomputes it). The SessionStart hook injects more on top, about 1,300 tokens on tend's own 42-loop map on 2026-09-16, and is not counted here; its 300-token cap is an open check on the umbrella's tend loop."
+    },
+    {
+      "what": "check",
+      "why": "tend's gate judges loop pages, not diffs: `tend lint --format sarif <map>` emits one SARIF log with a result per finding, and on a repository with no map it emits an empty envelope. The umbrella's F2 fixture (a staged test deletion) is weeder's shape; tend's fixture needs a map with a malformed page."
+    },
+    {
+      "what": "test/fixtures/garden/manifest.schema.json",
+      "why": "vendored from jahala/plotplot contracts/manifest.schema.json at 48570a9fcecb1c2b7a62e493a6a1a6b2ffd35846 (read 2026-09-16); no umbrella tag carries that commit yet (v1.4.0 predates it). Move the pin to the tag the umbrella cuts and re-read the copy against the source."
+    }
+  ]
+}

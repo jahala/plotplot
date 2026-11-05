@@ -2,14 +2,14 @@
 
 Where the repository is hard, as numbers. Denials, failures, retries, re-reads, test loops,
 edit churn, refused stops and compactions, counted per path from the hooks every harness
-already fires, reduced into hot spots, and routed by tend2 into simplification loops. It is
+already fires, reduced into hot spots, and routed by tend into simplification loops. It is
 the instrument that turns "agent confusion is diagnostic" from an anecdote into a
 self-improving loop. Deterministic; nothing in it asks a model anything.
 
-Status: plan, 2026-09-06. Owners as settled on the channel with tend2: the event profile is
-a contracts deliverable; each bed emits its own domain's events; tend2 owns the reducer and
+Status: plan, 2026-09-06. Owners as settled on the channel with tend: the event profile is
+a contracts deliverable; each bed emits its own domain's events; tend owns the reducer and
 the hot spots in `next`. This plan adds one decision: the harness-session emitter ships in
-the stem's bundles, because the stem is the thing installed in every harness, and tend2's
+the stem's bundles, because the stem is the thing installed in every harness, and tend's
 plugin emits only until the stem exists.
 
 ## 1. Why this, and why deterministic
@@ -118,7 +118,7 @@ deciding the kind from `hook_event_name` and the tool, and appending one line to
 churn, retry and test-loop kinds need session memory: a small per-session state file under
 `.plotplot/friction/state/<session_id>.json` holding path counters and the last few input
 hashes, pruned at `SessionEnd`. The emitter is registered by the stem's bundles on the events
-above; until the stem exists, tend2's plugin hooks emit the same lines with the same
+above; until the stem exists, tend's plugin hooks emit the same lines with the same
 profile, and are removed when the bundle takes over.
 
 Redaction is structural: the emitter copies only the fields the profile names. Paths are
@@ -128,9 +128,9 @@ made repo-relative or dropped; a path outside the repository becomes `plotplot.p
 pleach and umbel emit their own domains from their own journals, in the same shape, into the
 same directory, when they choose to; the profile is the only coupling.
 
-## 6. The reducer (tend2)
+## 6. The reducer (tend)
 
-`tend2 friction reduce [dir]` reads every journal, groups by `plotplot.path`, and computes a
+`tend friction reduce [dir]` reads every journal, groups by `plotplot.path`, and computes a
 friction score per path over a window (default 90 days, with older months weighted by half
 per quarter):
 
@@ -139,20 +139,20 @@ score(path) = Σ_kind w_kind · count_kind(path) / sessions_touching(path)
 ```
 
 with default weights: denied 5, refused stop 5, failed 3, test loop 3, churn 2, reread 1,
-fanout 1, retry 2. Weights live in `.tend2/friction.toml` and are reported with the result.
+fanout 1, retry 2. Weights live in `.tend/friction.toml` and are reported with the result.
 The score is per session that touched the path, so a hot file is one that is hard every time,
 not one that is merely touched often. Minimum support: three sessions.
 
 Output: `.plotplot/friction/hotspots.json` (sorted paths with score, support, the kind
 breakdown, and the window), committed or ignored as the repo chooses, and a one-line summary
-in `tend2 next` beside needs-you:
+in `tend next` beside needs-you:
 
 ```
 hot spots (3)
   src/search/symbol.rs   friction 9.4 over 11 sessions — reread 31 · test loops 12 · churn 8
 ```
 
-Shaping a simplification loop from a hot spot is `tend2 shape --from-friction <path>`, which
+Shaping a simplification loop from a hot spot is `tend shape --from-friction <path>`, which
 seeds the goal ("this path stops being hard") and one check ("friction for <path> falls below
 <threshold> over the next N sessions"), which is how the loop closes on evidence.
 
@@ -164,9 +164,9 @@ seeds the goal ("this path stops being hard") and one check ("friction for <path
 - The journal directory is ignored by default; committing the reduced `hotspots.json` is a
   repo choice, and committing raw journals is discouraged (they name paths and models, not
   people, but they grow).
-- A repo can opt out per path prefix in `.tend2/friction.toml` (vendored code, fixtures).
+- A repo can opt out per path prefix in `.tend/friction.toml` (vendored code, fixtures).
 
-## 8. Checks (on the umbrella's `friction` loop; module checks in tend2's and the stem's maps)
+## 8. Checks (on the umbrella's `friction` loop; module checks in tend's and the stem's maps)
 
 - the profile exists in contracts with a fixture journal that validates, and every kind above
   has an attribute table;
@@ -177,24 +177,24 @@ seeds the goal ("this path stops being hard") and one check ("friction for <path
   fixture payload containing all three;
 - `SessionEnd` emission completes under 200 ms on the fixture;
 - the reducer, fed a fixture journal, ranks the path with the most denials and re-reads first
-  with the documented weights, and `tend2 next` shows it;
+  with the documented weights, and `tend next` shows it;
 - one hot spot named by the ledger on a garden repo is confirmed by the simplification loop it
   shaped (the kill criterion, human-owned).
 
 ## 9. Kill criteria
 
 - If a hot spot the ledger names is not confirmed by the next simplification loop it shapes,
-  the ledger is cut, per tend2's own plan.
+  the ledger is cut, per tend's own plan.
 - If the emitter cannot be made silent (any hook it is attached to fails or slows because of
   it), it is removed from that event.
 
 ## 10. Order of work
 
 1. Profile and fixture journal in contracts (rides the contracts loop, step 1 of the garden).
-2. Emitter as a face of the stem binary, registered by the stem's bundles; tend2's plugin
+2. Emitter as a face of the stem binary, registered by the stem's bundles; tend's plugin
    emits the same lines meanwhile.
-3. Reducer and hot spots in tend2.
-4. `tend2 shape --from-friction`.
+3. Reducer and hot spots in tend.
+4. `tend shape --from-friction`.
 5. pleach and umbel emit their own domains when they choose.
 
 ## 11. Decisions for the owner
@@ -202,5 +202,5 @@ seeds the goal ("this path stops being hard") and one check ("friction for <path
 - Whether raw journals are ignored by default (recommended) or committed.
 - The default weights, once a month of real journals exists to argue from.
 - Whether the harness-session emitter lives in the stem (recommended, this plan) or stays in
-  tend2's plugin; tend2 has agreed to the profile split and will be asked about this on the
+  tend's plugin; tend has agreed to the profile split and will be asked about this on the
   channel.

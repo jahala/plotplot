@@ -10,5 +10,5 @@
 /.codex/hooks.json @jahala
 /.github/workflows/plotplot-check.yml @jahala
 /.github/CODEOWNERS @jahala
-/docs/tend2/ @jahala
+/docs/tend/ @jahala
 # plotplot:end

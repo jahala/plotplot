@@ -254,7 +254,7 @@ mod tests {
             (".plotplot/beds/tilth/artifact", bed_artifact(root, "tilth")),
             (".plotplot/bin/tilth.sha256", judge_digest(root, "tilth")),
             (".plotplot/npm", npm_dir(root)),
-            (".plotplot/npm/tend2", npm_prefix(root, "tend2")),
+            (".plotplot/npm/tend", npm_prefix(root, "tend")),
         ] {
             assert_eq!(produced, root.join(relative), "{relative}");
             assert!(produced.starts_with(plotplot_dir(root)), "{relative}");
@@ -287,7 +287,7 @@ mod tests {
     #[test]
     fn the_digest_companion_is_the_judges_name_with_the_suffix_added() {
         let root = Path::new("/work/repo");
-        for binary in ["tilth", "weeder-cli", "tend2.js"] {
+        for binary in ["tilth", "weeder-cli", "tend.js"] {
             assert_eq!(
                 judge_digest(root, binary),
                 bin_dir(root).join(format!("{binary}.{DIGEST_SUFFIX}"))
@@ -339,8 +339,8 @@ mod tests {
     fn a_bed_manifest_sits_in_that_beds_own_directory() {
         let root = Path::new("/work/repo");
         assert_eq!(
-            bed_manifest(root, "tend2"),
-            bed_dir(root, "tend2").join("garden.json")
+            bed_manifest(root, "tend"),
+            bed_dir(root, "tend").join("garden.json")
         );
     }
 }

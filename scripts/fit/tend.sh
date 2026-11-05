@@ -1,33 +1,33 @@
 #!/usr/bin/env bash
-# scripts/fit/tend2.sh: tend2's fit evidence, the contract F1 to F6 of
+# scripts/fit/tend.sh: tend's fit evidence, the contract F1 to F6 of
 # docs/building-the-garden.md §3, against the revision contracts/fixtures/garden.lock pins.
 #
-#   scripts/fit/tend2.sh        every claim below, in order
-#   scripts/fit/tend2.sh f1     manifest: the clone at the lock's rev carries garden.json at its root;
-#                               it validates against contracts/manifest.schema.json, names tend2,
+#   scripts/fit/tend.sh        every claim below, in order
+#   scripts/fit/tend.sh f1     manifest: the clone at the lock's rev carries garden.json at its root;
+#                               it validates against contracts/manifest.schema.json, names tend,
 #                               and its version is the lock's
-#   scripts/fit/tend2.sh f2     SARIF: the manifest's check command, run from the clone's build on
+#   scripts/fit/tend.sh f2     SARIF: the manifest's check command, run from the clone's build on
 #                               the map it names, emits a log that validates against the vendored
-#                               SARIF 2.1.0 schema, whose tool is tend2 at the manifest's version;
+#                               SARIF 2.1.0 schema, whose tool is tend at the manifest's version;
 #                               the log judges the map's pages rather than refusing to read the
 #                               path, and the same command on a fixture map with one page that has
 #                               no title carries a result for that page
-#   scripts/fit/tend2.sh f3     standalone install: on a PATH that reaches no other garden tool, the
+#   scripts/fit/tend.sh f3     standalone install: on a PATH that reaches no other garden tool, the
 #                               clone installs from its lockfile, every smoke command the manifest
-#                               declares exits as declared, and tend2 --version reports the
+#                               declares exits as declared, and tend --version reports the
 #                               manifest's version
-#   scripts/fit/tend2.sh f4     declared context cost: context.upfront_tokens is declared, and every
+#   scripts/fit/tend.sh f4     declared context cost: context.upfront_tokens is declared, and every
 #                               skill description a session loads plus the MCP tools as a client
 #                               lists them cost no more, at four characters per token
-#   scripts/fit/tend2.sh f5     metric committed: the manifest's metric command runs in the clone,
+#   scripts/fit/tend.sh f5     metric committed: the manifest's metric command runs in the clone,
 #                               and every file it writes is committed at the pinned rev byte for
 #                               byte (where the result names the commit it measured, it is
 #                               reproduced at that commit)
-#   scripts/fit/tend2.sh f6     brand layer and footer: the pinned rev commits tend2's product layer
+#   scripts/fit/tend.sh f6     brand layer and footer: the pinned rev commits tend's product layer
 #                               and both marks, its page passes petals/scripts/check.sh against this
 #                               repository's .brand with zero errors, and its footer carries the
 #                               plotplot band and the garden row of .brand/components.md with
-#                               tend2's pill current
+#                               tend's pill current
 #
 # One line per assertion: `ok`, `not ok` or `unevaluable`, then the claim and what was seen.
 # Exit 0 when every assertion passed, 1 on any failure, 3 when none failed but a claim could not
@@ -35,7 +35,7 @@
 # standalone is unevaluable, never passed.
 #
 # Everything is read from one clone of the repository the lock names, at the rev it pins, made
-# by fit_clone into a scratch directory; never from a tend2 on this machine. The rev and the
+# by fit_clone into a scratch directory; never from a tend on this machine. The rev and the
 # version come from the lock, and the check, metric, smoke commands, faces and declared cost
 # from the clone's garden.json, so the next revision is checked by moving the lock and nothing
 # here. Every command of the clone runs with an emptied environment and a PATH of a scratch bin
@@ -46,13 +46,13 @@
 
 set -uo pipefail
 
-TEND2_SH_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TEND_SH_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/fit/lib.sh
-. "$TEND2_SH_DIR/lib.sh"
+. "$TEND_SH_DIR/lib.sh"
 
 ROOT="$(fit_repo_root)"
 LOCK="$ROOT/contracts/fixtures/garden.lock"
-BED="tend2"
+BED="tend"
 
 # The run's verdict so far: 0 while every assertion passed, 3 once one was unevaluable, 1 once
 # one failed. A failure outranks an unevaluable claim.
@@ -78,7 +78,7 @@ not_ok() {
 unevaluable() {
   local claim="$1" why="$2"
   echo "unevaluable $claim"
-  echo "tend2.sh: $claim: $why" >&2
+  echo "tend.sh: $claim: $why" >&2
   [ "$STATUS" -eq 1 ] || STATUS=3
 }
 
@@ -360,7 +360,7 @@ check_f1() {
 # F2 SARIF
 # ---------------------------------------------------------------------------------------
 
-# Validate a SARIF log and name its tool; prints why on failure. 0 valid and tend2 at the
+# Validate a SARIF log and name its tool; prints why on failure. 0 valid and tend at the
 # manifest's version, 1 otherwise.
 sarif_holds() {
   local log="$1" version="$2" tools
@@ -445,9 +445,9 @@ check_f2() {
   for word in "${words[@]:1}"; do
     case "$word" in -*) continue ;; esac
     if [ -d "$CLONE/$word" ]; then
-      page="$word/untitled.tend2.html"
+      page="$word/untitled.tend.html"
     elif [ -f "$CLONE/$word" ]; then
-      page="$(dirname "$word")/untitled.tend2.html"
+      page="$(dirname "$word")/untitled.tend.html"
     else
       continue
     fi
@@ -506,7 +506,7 @@ check_f3() {
   fi
 
   # No other garden tool on the PATH it runs with: every bed of the umbrella's garden row, and
-  # the stem, looked up on that PATH, and only tend2 found, in the scratch bin directory.
+  # the stem, looked up on that PATH, and only tend found, in the scratch bin directory.
   local beds bed where others=""
   beds="$(html_block "$ROOT/.brand/components.md" '<nav class="gf-garden"' '</nav>' | garden_pills | awk '$1 != "'"$BED"'" {print $1}')"
   if [ -z "$beds" ]; then
@@ -612,7 +612,7 @@ mcp_tool_chars() {
     return 1
   fi
   # The module path travels in the environment, never in argv: a module may start its server
-  # when its own name is the script argument, as tend2's does. stdin is empty, so a server that
+  # when its own name is the script argument, as tend's does. stdin is empty, so a server that
   # starts anyway reads end of file and stops.
   run_clean "$CLONE" FIT_MCP_MODULE="$module" node --input-type=module -e '
     const path = process.env.FIT_MCP_MODULE;
@@ -869,7 +869,7 @@ check_f6() {
     not_ok "$claim: the footer carries no plotplot band with $home"
   fi
 
-  # The garden row: the same beds as the reference's, and tend2's pill the one current.
+  # The garden row: the same beds as the reference's, and tend's pill the one current.
   local want got current
   want="$(html_block "$reference" '<nav class="gf-garden"' '</nav>' | garden_pills | awk '{print $1}' | LC_ALL=C sort)"
   got="$(html_block "$footer" '<nav class="gf-garden"' '</nav>' | garden_pills)"
@@ -896,7 +896,7 @@ case "${1:-}" in
   ""|f1|f2|f3|f4|f5|f6) ;;
   *)
     echo "unevaluable $1: this script proves f1 to f6; the claim '$1' has no evidence in it yet"
-    echo "tend2.sh: '$1' is not implemented; the loop's check stays open until it is" >&2
+    echo "tend.sh: '$1' is not implemented; the loop's check stays open until it is" >&2
     exit 3
     ;;
 esac
@@ -904,13 +904,13 @@ esac
 for tool in git jq node perl; do
   command -v "$tool" >/dev/null 2>&1 && continue
   echo "unevaluable $BED fit contract"
-  echo "tend2.sh: $tool is not on PATH, and every claim reads the clone through it" >&2
+  echo "tend.sh: $tool is not on PATH, and every claim reads the clone through it" >&2
   exit 3
 done
 
 RUN_DIR="$(mktemp -d "${TMPDIR:-/tmp}/plotplot-fit.XXXXXX")" || {
   echo "unevaluable $BED fit contract"
-  echo "tend2.sh: could not make a temp directory" >&2
+  echo "tend.sh: could not make a temp directory" >&2
   exit 3
 }
 

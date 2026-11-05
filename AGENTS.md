@@ -2,7 +2,7 @@
 
 The repo is the harness. This repository is the root of the plotplot garden: the law every bed
 follows (`docs/building-the-garden.md`), the contracts every bed speaks (`contracts/`), the
-canonical brand (`.brand/`), the fit map (`docs/tend2/`), the plans, the briefs, and the stem
+canonical brand (`.brand/`), the fit map (`docs/tend/`), the plans, the briefs, and the stem
 binary `plotplot`. The website is `jahala/plotplot-ai` and pulls the brand from here by tag.
 Long forms: `docs/architecture.md` (decisions with reasons) and `docs/engineering.md` (how
 work is done and proven here). Read the law before changing anything.
@@ -23,7 +23,7 @@ verifies beds from outside; it never builds them.
   is the shared runner.
 - `src/` and `build.rs` are the stem, a Rust binary: `plotplot check`, `lock verify`, `redact`,
   `receipt`, `doctor`, `init`.
-- `docs/tend2/` is the map: one loop per bed's fit, the contracts loop, the stem, receipts and
+- `docs/tend/` is the map: one loop per bed's fit, the contracts loop, the stem, receipts and
   friction, three persona pages and one opportunity page. State is derived; only the verifier
   writes a pass.
 - Machine-written state lives under the .plotplot directory; human-authored records under
@@ -36,7 +36,7 @@ verifies beds from outside; it never builds them.
 - **law**: `docs/building-the-garden.md`, the invariants and the fit contract every bed meets.
 - **fit contract**: the checks F1 to F7 the umbrella runs against a bed's pinned release.
 - **seam**: a contract two beds cite in their own tests, so a change is seen by both first.
-- **loop**: a tend2 page, a bet with checks; **stamp**: a pass the verifier wrote.
+- **loop**: a tend page, a bet with checks; **stamp**: a pass the verifier wrote.
 - **proof record**: the verifier's record of a pass on a tree, reused by later gates.
 - **receipt**: the per-commit provenance statement the stem seals as a git note.
 
@@ -65,23 +65,24 @@ verifies beds from outside; it never builds them.
 
 ## What done means
 
-A loop's check is done when `tend2 verify` stamps it against its evidence script; a hand
+A loop's check is done when `tend verify` stamps it against its evidence script; a hand
 `[x]` renders as claimed. A landing is done when its pull request merged on green with
 `npm test` run first on any change under `contracts/` (it is not in CI). A bed's version is
 proven when its fit script holds every claim against `garden.lock`. Records (Tried lines,
-plans, briefs) are the only things written by hand; work is conducted through tend2, pleach
+plans, briefs) are the only things written by hand; work is conducted through tend, pleach
 and umbel by the recipes in `docs/engineering.md`.
 
-<!-- tend2:begin -->
-## tend2 — this project plans on loops
+<!-- tend:begin -->
+## tend — this project plans on loops
 
-- Orient first: `tend2 next docs/tend2` (or the `loop_next` MCP tool) — next up, running now, needs-you, gone stale.
+- Orient first: `tend next docs/tend` (or the `loop_next` MCP tool) — next up, running now, needs-you, gone stale.
 - Nothing gets built that is not a loop first: shape the goal and its checks on the map before any code.
-- Only `tend2 verify` writes a pass. Never hand-flip a checkbox — a naked [x] renders claimed, not proven.
+- Only `tend verify` writes a pass. Never hand-flip a checkbox — a naked [x] renders claimed, not proven.
+- Done is what the checks say: a loop is done when every check on it carries a verified pass, and not one commit sooner.
 - Record decisions, scope-outs and dead ends in the loop's `## Tried` — append-only memory for whoever comes next.
 - The map holds bets, not maybes: ideas attached to a loop park in its `## Tried`; free-standing ideas park in `docs/ideas/`; shaping is the only transition onto the map.
-- Full craft lives in the tend2 plugin skills (next, shape, run, verify, discover, change).
-<!-- tend2:end -->
+- The by-laws are `docs/tend/practices.md` — the lessons this repository earned, carried into every work order. A line enters it by citing the `## Tried` entries that paid for it.
+<!-- tend:end -->
 
 <!-- plotplot:begin -->
 ## plotplot: what is planted here
@@ -89,7 +90,7 @@ and umbel by the recipes in `docs/engineering.md`.
 Planted: weeder 0.2.1.
 Season: 2026.09.
 
-- Orient first: `tend2 next docs/tend2` says what is next, what is running, and what went stale.
+- Orient first: `tend next docs/tend` says what is next, what is running, and what went stale.
 - Gates: `plotplot check` runs every planted gate and returns one SARIF log.
 - Help: `plotplot doctor` says whether the law is live, and what is missing when it is not.
 - The hard limits are enforced at the boundary: `--no-verify` is refused, and `garden.lock` and `.githooks/` are the stem's to write.

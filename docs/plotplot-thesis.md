@@ -45,7 +45,7 @@ Five things, all files, all in git, all readable by a person:
    answer with a confidence interval, on fixed axes, so a model, a harness change, or a
    tool can be compared honestly.
 
-The beds are the reference implementation of those five: tend2 for intent and proof, weeder
+The beds are the reference implementation of those five: tend for intent and proof, weeder
 for law, tilth and petals for structure, the findings contract for the channel, copeca for
 the yardstick, umbel and pleach to run and conduct workers against all of it, pollen for
 the workers to talk with a human at the gate.

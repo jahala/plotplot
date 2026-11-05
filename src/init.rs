@@ -959,9 +959,9 @@ mod tests {
     const TEMPLATE: &str = "\
 season = \"2026.09\"
 
-[judges.tend2]
+[judges.tend]
 version = \"1.0.0\"
-npm = \"@plotplot/tend2\"
+npm = \"@plotplot/tend\"
 
 [judges.weeder]
 version = \"0.1.0\"
@@ -976,7 +976,7 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
         let beds = chosen_beds(
             Profile::Minimal,
             None,
-            &judges(&["tend2", "tilth", "weeder"]),
+            &judges(&["tend", "tilth", "weeder"]),
         )
         .expect("a bed list");
         assert_eq!(beds, vec!["weeder".to_owned()]);
@@ -984,9 +984,9 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
 
     #[test]
     fn the_full_profile_is_every_judge_the_lock_pins() {
-        let beds = chosen_beds(Profile::Full, None, &judges(&["tend2", "tilth", "weeder"]))
+        let beds = chosen_beds(Profile::Full, None, &judges(&["tend", "tilth", "weeder"]))
             .expect("a bed list");
-        assert_eq!(beds, vec!["tend2", "tilth", "weeder"]);
+        assert_eq!(beds, vec!["tend", "tilth", "weeder"]);
     }
 
     #[test]

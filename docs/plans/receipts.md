@@ -15,11 +15,12 @@ For one commit (or one merged pull request), in machine-readable form:
 
 - **who produced it**: the harness and its version, the model or models, whether a human
   drove the session or a conductor did, the pleach plan and node if any, the principal in
-  tend2's vocabulary (`cli`, `ci:<run-id>`, `judge:<provider>`, `human:<name>` only when a
+  tend's vocabulary (`cli`, `ci:<run-id>`, `judge:<provider>`, `human:<name>` only when a
   person signs);
 - **what it touched**: the files changed, with the tree hash;
 - **what verified it**: weeder's result summary (block and warn counts, the SARIF log's digest),
-  tend2 stamps written in this change (check ids and their `@sha`), pleach gates passed,
+  tend stamps written in this change (check ids and their `@sha`, under the key `tend2`, the
+  v1 predicate's name for the tool), pleach gates passed,
   test commands run with exit codes;
 - **what it cost**: tokens where the harness reported them, wall time, tool-call counts by
   tool name; never an estimate, `null` when unknown;
@@ -91,7 +92,7 @@ writes an unsigned draft from counters the friction emitter and the hooks alread
 
 **Seal at commit.** `plotplot receipt seal`, run from the pre-commit git hook the stem
 installs beside `weeder guard`, gathers the drafts of the sessions that touched the staged
-files, folds in weeder's SARIF digest and any tend2 stamps in the diff, builds the Statement
+files, folds in weeder's SARIF digest and any tend stamps in the diff, builds the Statement
 with the commit-to-be's tree hash, and attaches it after the commit as a note on
 `refs/notes/plotplot/receipts` (a `post-commit` hook writes the note once the commit hash
 exists). Unsigned in v0: the note carries the statement and its sha256.
@@ -126,7 +127,7 @@ All faces of the stem binary; no separate tool.
 | Bed | Contributes | Through |
 |---|---|---|
 | weeder | SARIF digest and counts for the change | `weeder check --format sarif` at seal time |
-| tend2 | stamps in the diff, principal vocabulary | reading the loop files in the diff |
+| tend | stamps in the diff, principal vocabulary | reading the loop files in the diff |
 | pleach | plan, node, gates passed, audit provider, worker minutes | its journal; receipts fix the gap its handback exposed (no token counts) by carrying umbel's `telemetry.tokens` when present |
 | umbel | tokens, context percentage, compaction flag per worker | the unit result |
 | friction ledger | the session summary digest | `.plotplot/friction/` |
@@ -142,7 +143,7 @@ All faces of the stem binary; no separate tool.
   workflow", which is the provenance claim compliance asks for.
 - A receipt records what the harness reported. A harness that lies about its model is not
   caught by a receipt. That is a limit, stated, not a hole to paper over.
-- Principal is a claim, never proof, exactly as tend2's stamp rule says; the signature is the
+- Principal is a claim, never proof, exactly as tend's stamp rule says; the signature is the
   proof of who sealed, and only that.
 
 ## 8. Checks (on the umbrella's `receipts` loop)
@@ -184,5 +185,5 @@ mode Sigstore exists to avoid.
 
 - Whether receipts are drafted by default in every planted repository, or opt-in per repo.
 - Whether principal `human:<name>` ever appears automatically (recommended: never; only on
-  explicit signing, per tend2's rule).
+  explicit signing, per tend's rule).
 - When v1 signing is worth its CI cost.

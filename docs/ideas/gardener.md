@@ -12,8 +12,8 @@ what happened. When the session closes or the person sleeps, the factory stops.
 ## What it owns, and what it does not
 
 The gardener owns the choice of what runs next, and the brief it hands to the agent that runs
-it. It does not plan the work inside a product (tend2 does), run it (pleach and umbel do), judge
-whether it is done (tend2's verifier does), keep the calendar (almanac does), or decide anything
+it. It does not plan the work inside a product (tend does), run it (pleach and umbel do), judge
+whether it is done (tend's verifier does), keep the calendar (almanac does), or decide anything
 the compass reserves for the owner (hedge's queue holds those).
 
 ## How it works
@@ -22,7 +22,7 @@ The gardener is an agent, and each wake-up is one turn, the same command every t
 
 1. **Read.** What is due in almanac; the owner's answers in gate; messages on mycelium; the
    factory's health from `plotplot status`; what each product's map says is next
-   (`tend2 next`); the budgets and the seat in well.
+   (`tend next`); the budgets and the seat in well.
 2. **Choose.** One action, or none, from the candidates the maps and almanac offer, under the
    compass's priorities. If the action needs a yes, it asks through hedge's queue and chooses something
    else meanwhile.
@@ -38,7 +38,7 @@ needs a person.
 ## What code decides
 
 Whether it may act at all: hedge's limits and the owner's yeses, well's budgets and seat. Which
-candidates exist: tend2 and almanac, never the gardener's own invention. Whether work is done:
+candidates exist: tend and almanac, never the gardener's own invention. Whether work is done:
 the verifier. The gardener's judgment is only the choice among allowed candidates and the
 writing of the brief, and every choice is recorded so it can be checked.
 

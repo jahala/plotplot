@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Compares the plan schema text tend2 vendors with pleach's canonical text, byte for byte,
+# Compares the plan schema text tend vendors with pleach's canonical text, byte for byte,
 # each read at the commit contracts/pins.json pins. pins.test.sh compares version numbers,
 # and a version number cannot see a text that changes under it: at v1.1.5 the adapter seam's
-# wait gained idleMs in pleach while tend2's vendored copy kept the old line (tend 226). Both
+# wait gained idleMs in pleach while tend's vendored copy kept the old line (tend 226). Both
 # files come from the platform, or from PLOTPLOT_PIN_PLAN_SCHEMA_FILE and
 # PLOTPLOT_PIN_PLAN_SCHEMA_VENDORED_FILE on a machine without gh. Run from the repository
 # root, no arguments. Prints one line per assertion. Exits 0 if every assertion passed, 1 on
@@ -39,11 +39,11 @@ if ! read_pinned PLAN_SCHEMA > "$canonical" || ! read_pinned PLAN_SCHEMA_VENDORE
 fi
 
 [ -s "$canonical" ]; assert $? "pleach's canonical text is not empty at its pinned commit"
-[ -s "$vendored" ]; assert $? "tend2's vendored text is not empty at its pinned commit"
+[ -s "$vendored" ]; assert $? "tend's vendored text is not empty at its pinned commit"
 if cmp -s "$canonical" "$vendored"; then
-  assert 0 "tend2's vendored plan schema is byte-identical to pleach's canonical text"
+  assert 0 "tend's vendored plan schema is byte-identical to pleach's canonical text"
 else
-  assert 1 "tend2's vendored plan schema is byte-identical to pleach's canonical text"
+  assert 1 "tend's vendored plan schema is byte-identical to pleach's canonical text"
   diff "$vendored" "$canonical" | head -12 | sed 's/^/# /'
 fi
 

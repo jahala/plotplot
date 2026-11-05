@@ -318,7 +318,7 @@ mod tests {
         let merged = merge(&[
             log_of("weeder", &[("T1", Some("error"))]),
             log_of("petals", &[]),
-            log_of("tend2", &[("T4", Some("note")), ("T4", Some("note"))]),
+            log_of("tend", &[("T4", Some("note")), ("T4", Some("note"))]),
         ]);
         let runs = merged["runs"].as_array().expect("runs");
         assert_eq!(runs.len(), 3);
@@ -326,7 +326,7 @@ mod tests {
             runs.iter()
                 .map(|run| run.pointer("/tool/driver/name").and_then(Value::as_str))
                 .collect::<Vec<_>>(),
-            [Some("weeder"), Some("petals"), Some("tend2")]
+            [Some("weeder"), Some("petals"), Some("tend")]
         );
         assert_eq!(result_count(&merged), 3);
         let text = serde_json::to_string(&merged).expect("it serialises");

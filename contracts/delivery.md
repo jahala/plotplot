@@ -1,6 +1,6 @@
 # delivery: what a worker may write, what a conductor collects, what a pin covers
 
-Status: contract, 2026-09-11. One page both tend2 and pleach cite in their tests, so the two
+Status: contract, 2026-09-11. One page both tend and pleach cite in their tests, so the two
 never again disagree about whose file is whose.
 
 ## What a worker writes
@@ -8,7 +8,7 @@ never again disagree about whose file is whose.
 - Product files under the node's scope, as the work order names them.
 - Its dated `## Tried` line on the loop page it worked. That line is required by the law and is
   never drift: the payload pin covers the checks section of the page, not the page.
-- Scratch under `.loop-scratch/` only. Nothing there is ever delivered, by tend2's own runner or by
+- Scratch under `.loop-scratch/` only. Nothing there is ever delivered, by tend's own runner or by
   pleach's collector, and the work order may promise that because both keep it.
 
 ## What a worker never writes

@@ -131,12 +131,12 @@ fn fixture() -> (tempfile::TempDir, PathBuf, PathBuf) {
     (tmp, root, template)
 }
 
-/// A lock template naming two judges: weeder, pinned per platform, and tend2, pinned through
-/// npm. The minimal profile keeps weeder and drops tend2, which is what makes the filter
+/// A lock template naming two judges: weeder, pinned per platform, and tend, pinned through
+/// npm. The minimal profile keeps weeder and drops tend, which is what makes the filter
 /// visible in the written `garden.lock`.
 fn template_lock(weeder_sha: &str) -> String {
     format!(
-        "{}\n[judges.tend2]\nversion = \"1.0.0\"\nnpm = \"@plotplot/tend2\"\n",
+        "{}\n[judges.tend]\nversion = \"1.0.0\"\nnpm = \"@plotplot/tend\"\n",
         weeder_lock(weeder_sha)
     )
 }
@@ -276,7 +276,7 @@ fn the_minimal_profile_plants_weeder_and_drops_every_other_judge_in_the_template
 fn the_beds_flag_overrides_the_profiles_bed_list() {
     let (tmp, root, template) = fixture();
     let home = tmp.path().join("home");
-    // `--profile full` alone would keep tend2 too; `--beds` is what cuts it back to weeder.
+    // `--profile full` alone would keep tend too; `--beds` is what cuts it back to weeder.
     let output = init(
         &root,
         &home,

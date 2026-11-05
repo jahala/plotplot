@@ -72,7 +72,7 @@ Each step names how to undo it before it is taken.
    but the Pages address moves without a redirect, so step 5 follows at once. Undo: rename back.
 5. **Links and names outside the tool.** The website (brand tag, bed name, link, bloom, mark),
    then the umbrella (the stem's bed lists and tests, the manifest fixture, the law, the map page
-   renamed to `mycelium.tend2.html`, the brand), then the links and READMEs in pleach, weeder and
+   renamed to `mycelium.tend.html`, the brand), then the links and READMEs in pleach, weeder and
    tend. Each is its own pull request, landed on its repository's check. Undo: revert each.
 6. **Issues** on weeder and tend for their copies of the garden schema, for their agents' next
    run.

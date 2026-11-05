@@ -917,7 +917,7 @@ mod tests {
     #[test]
     fn load_beds_reads_every_cached_manifest_sorted_by_name() {
         let root = tempfile::tempdir().expect("a temp root");
-        for bed in ["weeder", "tend2"] {
+        for bed in ["weeder", "tend"] {
             let dir = crate::layout::bed_dir(root.path(), bed);
             std::fs::create_dir_all(&dir).expect("the bed directory");
             std::fs::write(
@@ -929,7 +929,7 @@ mod tests {
         let beds = load_beds(root.path()).expect("the planted beds");
         assert_eq!(
             beds.iter().map(|bed| bed.name.as_str()).collect::<Vec<_>>(),
-            ["tend2", "weeder"]
+            ["tend", "weeder"]
         );
     }
 

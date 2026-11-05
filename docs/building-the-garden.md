@@ -1,7 +1,7 @@
 # Building the garden — the brief every bed agent reads first
 
 You are building one bed of plotplot, or the stem that plants them. This page is the shared
-law for all of that work. It is self-contained; the loops in `docs/tend2/` are the work
+law for all of that work. It is self-contained; the loops in `docs/tend/` are the work
 orders; the documents it cites are the reasoning. Read this page, then your bed's loop, then
 your bed's own map. Do not start from the code.
 
@@ -22,7 +22,7 @@ The beds planted today, in four rows. The garden's layers and the tools still to
 
 | Row | Beds | Question |
 |---|---|---|
-| plan | tend2 | what should be built, and what does done mean |
+| plan | tend | what should be built, and what does done mean |
 | read | tilth, petals | how the agent reads code, design, and voice |
 | run | umbel, pleach, pollen | how one unit runs, how many run gated, how workers talk |
 | judge | weeder, copeca | is the diff honest, did any of it help |
@@ -69,13 +69,13 @@ A change that breaks one of these is wrong even if every test passes.
 
 ## 2. How work flows, and what done means
 
-- **Two maps.** The umbrella map in this repo (`docs/tend2/`) holds one loop per bed carrying
+- **Two maps.** The umbrella map in this repo (`docs/tend/`) holds one loop per bed carrying
   the **fit checks**: does this bed belong to the garden. Your bed's own repo holds its own
-  `docs/tend2/` map carrying the **module checks**: does the bed work. Parents carry
+  `docs/tend/` map carrying the **module checks**: does the bed work. Parents carry
   integration, children carry modules. Never duplicate a module check into the umbrella map.
 - **Shape before code.** Nothing is built that is not a loop first. If your task has no check
   a verifier can close, shape one, then build.
-- **Only the verifier writes pass.** `tend2 verify` runs the evidence and stamps it. A
+- **Only the verifier writes pass.** `tend verify` runs the evidence and stamps it. A
   hand-flipped box is a claim and renders as one. Your work order forbids touching the loop
   file; you produce evidence, the verifier produces stamps. Evidence that executed zero tests
   is not evidence, and neither is evidence that only mocks the unit it claims to cover: a
@@ -131,7 +131,7 @@ using `scripts/fit/<bed>.sh <check>`. Your bed must make each one pass.
 
 Beyond the fit contract, every bed ships: a CLI as its primary face; a `SKILL.md` whose
 description is one sentence and whose body carries everything an instruction block used to;
-its own `docs/tend2/` map; the garden footer with the plotplot band on its page.
+its own `docs/tend/` map; the garden footer with the plotplot band on its page.
 
 ### The references every bed keeps (2026-09-18, the owner's word)
 
@@ -152,7 +152,7 @@ written down once, given to every agent the same way, and made to fail when it s
   parked lives on the map's project page and nowhere else.
 
 **How it reaches an agent.** The harness loads the core page by itself, in every session and
-every spawned worker. A tend2 work order names the three documents and carries the numbered
+every spawned worker. A tend work order names the three documents and carries the numbered
 invariants and the recipes whose paths the node touches, a few lines, never the documents. The
 auditor is given the same lines and says which the diff keeps and which it breaks.
 
@@ -199,10 +199,10 @@ Rulings on the fit contract (2026-09-05, from tilth's questions; they bind every
 
 One paragraph each; the loop carries the checks.
 
-- **tend2** stays the center of proof. Add the verifier's identity and version to the stamp,
+- **tend** stays the center of proof. Add the verifier's identity and version to the stamp,
   additively. Make Tried a machine-checked required section of every work order. Build the
   friction ledger: hook events in OpenTelemetry shape, reduced per path, surfaced as hot spots
-  in `next`. Keep the SessionStart hook as tend2's own experiment; do not build a briefing
+  in `next`. Keep the SessionStart hook as tend's own experiment; do not build a briefing
   assembler.
 - **tilth** becomes the parsing substrate as well as the reader. Move the instruction block
   into `SKILL.md`. Expose the tree-sitter core as a library crate other crates in the
@@ -253,21 +253,21 @@ cut in the review or settled on the channel; reopening one needs new evidence in
 
 ## 6a. Boundaries settled between beds (2026-09-05, on the channel)
 
-- **weeder and tend2.** `weeder check` judges a diff and may block. `weeder scan` reads the tree,
+- **weeder and tend.** `weeder check` judges a diff and may block. `weeder scan` reads the tree,
   never blocks, and carries the repo-state hygiene rules: cited path or symbol missing, dead
-  exports, TODO age, dependency lag. tend2 keeps the hygiene loop pattern and doc-evidence
-  staleness. `tend2 gate` (are the touched claims still proven) and weeder (is the diff honest)
+  exports, TODO age, dependency lag. tend keeps the hygiene loop pattern and doc-evidence
+  staleness. `tend gate` (are the touched claims still proven) and weeder (is the diff honest)
   are different questions; both emit SARIF, `plotplot check` concatenates them.
-- **tend2 and copeca.** tend2 owns eval checks as claims: cases and thresholds in the loop,
+- **tend and copeca.** tend owns eval checks as claims: cases and thresholds in the loop,
   run by the verifier. copeca owns corpora, regression harnesses, and did-it-help measurement
-  over time, plus a one-way exporter into tend2's case-file shape. tend2 never depends on
+  over time, plus a one-way exporter into tend's case-file shape. tend never depends on
   copeca.
 - **friction.** Federated: contracts pins an OpenTelemetry GenAI profile (event names,
   attributes, one required path attribute, a fixture journal); each bed emits its own
-  domain's events; tend2 owns the reducer and the hot spots in `next`. No dashboard, no
+  domain's events; tend owns the reducer and the hot spots in `next`. No dashboard, no
   exporter.
-- **tend2 and pleach.** The Tried-handback requirement is FORMAT's grammar, travels in the
-  work order tend2 emits, is refused at close by tend2's verifier, and is validated in shape
+- **tend and pleach.** The Tried-handback requirement is FORMAT's grammar, travels in the
+  work order tend emits, is refused at close by tend's verifier, and is validated in shape
   by pleach's run loop through an additive plan-contract v1.3 field pleach owns.
 
 Settled 2026-10-26 and 2026-10-27, with the layers decision (`docs/decisions/2026-10-26-layers.md`):
@@ -299,28 +299,28 @@ anyone tested it. The order below is the correction.
 **The umbrella's open checks are the program.** A bed's builder is dispatched only for work that
 turns an open check on the umbrella map green (a fit check or a seam check), or for a defect in
 the first tier, one that loses work or kills a worker. Milestones inside a bed do not run ahead
-of the umbrella's checks; `tend2 next` on the umbrella names what the garden does next.
+of the umbrella's checks; `tend next` on the umbrella names what the garden does next.
 
 1. **The umbrella builds its own evidence first.** The per-bed fit scripts (`scripts/fit/<bed>.sh`
    composing `scripts/fit/lib.sh`), the seam tests on the contracts loop, and the proof run
-   (`scripts/fit/proof.sh`), conducted on this repository through tend2, pleach and umbel, one
+   (`scripts/fit/proof.sh`), conducted on this repository through tend, pleach and umbel, one
    node at a time. Until these exist the map cannot say which bed belongs, and nothing else is
    dispatched except tier one.
 2. **A seam gets its contract before either side moves.** One page under `contracts/` and one
    test both tools run in their own CI against the other's pinned version: the plan and delivery
-   between tend2 and pleach, the worker lifecycle and usage between pleach and umbel, hooks and
-   artifacts between weeder and the stem, the instruction file between tend2 and the stem, the
+   between tend and pleach, the worker lifecycle and usage between pleach and umbel, hooks and
+   artifacts between weeder and the stem, the instruction file between tend and the stem, the
    channel's gate and liveness between pollen and everyone. Kill criterion per seam: if a seam
    test has not caught one real drift in a season, it is a fixture and comes out.
 3. **Beds work down their fit checks, then tier one, then nothing.** Weeder's fourteen open,
-   pleach's eleven, tend2's seven, in the order the umbrella's map routes them; the first-tier
+   pleach's eleven, tend's seven, in the order the umbrella's map routes them; the first-tier
    defects (a worker killed, work lost, a record gone) run beside them. Second-tier (wrong) and
    third-tier (expensive) defects wait for a green fit loop on their tool.
 4. **The proof run is the wave's gate.** A wave ends when `scripts/fit/proof.sh` is green on the
    pinned season: a fixture repository planted, a plan conducted with a planted test deletion
    refused, receipts sealed, doctor live on a fresh clone. No wave ends on landings alone.
 5. **Measurement follows the record.** Usage reported per node (umbel), cost per verified claim
-   with cache reads priced apart (tend2), then the one question that decides the default profile:
+   with cache reads priced apart (tend), then the one question that decides the default profile:
    does a planted repository lower cost per correct answer. Withdrawn until a yardstick exists;
    revived the day one does.
 

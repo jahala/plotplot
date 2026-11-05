@@ -41,7 +41,7 @@ agent, and the tests the builder wrote all inherit the same misreading of the sa
 `AGENTS.md`. Three model reviews of one diff are one slice with three coats of paint. A
 slice is independent only if it differs in **mechanism** (code, not a model), **information
 source** (repo state, not the agent's claim), and **party** (a verifier that is not the
-builder, a human that is neither). tend2's separation of powers and pleach's requirement
+builder, a human that is neither). tend's separation of powers and pleach's requirement
 that the auditor run on a different provider are independence engineering. Everything in a
 tended repo that judges must be placed by asking which of the three it differs in.
 
@@ -73,7 +73,7 @@ stumbles is a place the documented process diverges from the real one. The agent
 of work-as-imagined. **STAMP**: safety is a control problem; each controller needs an
 accurate process model of what it controls. Hooks and verifiers are controllers; their
 process model is the repo's state. A verifier with a stale model stamps the wrong thing. This
-is why tend2 derives state from the file on every read and never stores it, and why keeping
+is why tend derives state from the file on every read and never stores it, and why keeping
 docs true to code is a safety property rather than tidiness. And **Perrow**: tight coupling
 plus interactive complexity produces accidents nobody caused. Files, exit codes, and one
 concern per tool are the architectural counter, which is why the Unix shape is a safety
@@ -89,7 +89,7 @@ rebuilds a fragment and discards it; what it tells you is the diff. So the repo 
 theory explicitly: intent and its why, decisions with the alternatives rejected, scope-outs,
 what was tried and failed, invariants, the shape of the system kept true. Not documentation
 as description. Theory as record, written at the moment of change by whoever changed the
-program, as a condition of the gate. tend2's Tried section and decisions are theory storage;
+program, as a condition of the gate. tend's Tried section and decisions are theory storage;
 a tended repo makes writing them a required output of work, not a courtesy.
 
 **Lehman.** Systems embedded in the world must keep changing as the world changes; complexity
@@ -194,7 +194,7 @@ a new source of failure.
 
 **Detectors are deterministic** and each detection shapes or reopens a loop rather than
 patching anything directly: docs whose anchors no longer resolve to code; tests whose CI
-history shows flakiness; dependencies past an age threshold; loops gone stale by tend2's own
+history shows flakiness; dependencies past an age threshold; loops gone stale by tend's own
 decay; friction hot spots from §4; coverage decline; the suppression pile growing; a
 conducted run gone quiet. Masuch's weekly `ai-update-docs` and `ai-fix-flaky-e2e-tests` are
 this idea; the difference is routing.
@@ -219,7 +219,7 @@ Where improvements come from, each with a deterministic trigger:
   sessions become candidate skills. Both are counted from hook events, never extracted by a
   model from transcripts, which is the mistake mull made.
 - **Measurements change casting.** The yardstick says which model and which tools for which
-  kind of work; tend2's casting loop already reads it.
+  kind of work; tend's casting loop already reads it.
 
 The governance that stops a self-improving system from improving itself into leniency is a
 **two-tier constitution**:
@@ -287,11 +287,11 @@ Profoundly, the vital choices are these, and each is a fence with a cow behind i
 
 ## 10. What this adds to the garden, concretely
 
-- A friction ledger, computed from hook events, feeding tend2's routing and shaping
-  simplification loops. Home: tend2, because it shapes loops. The single most important
+- A friction ledger, computed from hook events, feeding tend's routing and shaping
+  simplification loops. Home: tend, because it shapes loops. The single most important
   missing instrument.
-- Verifier identity and version in tend2's stamp format, additively.
-- A Tried entry as a machine-checked required output of every work order in pleach and tend2.
+- Verifier identity and version in tend's stamp format, additively.
+- A Tried entry as a machine-checked required output of every work order in pleach and tend.
 - A dependency-direction rule in weeder, using tilth's dependency analysis.
 - The judges lockfile and fetch-on-first-use wrapper in the stem, replacing any idea of
   committing binaries or installing globally.

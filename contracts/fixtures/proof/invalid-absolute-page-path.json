@@ -11,12 +11,12 @@
   "predicateType": "https://plotplot.ai/proof/v1",
   "predicate": {
     "check": {
-      "page": "/Users/someone/repo/docs/tend2/baselines.tend2.html",
+      "page": "/Users/someone/repo/docs/tend/baselines.tend.html",
       "id": "c5",
       "claimDigest": "sha256:abababababababababababababababababababababababababababababababab"
     },
     "verifier": {
-      "name": "tend2",
+      "name": "tend",
       "revision": "dbd7e444829c"
     },
     "runner": "bash {evidence}",

@@ -64,7 +64,7 @@ pub const GUARDED: [&str; 12] = [
     "/.codex/hooks.json",
     "/.github/workflows/plotplot-check.yml",
     "/.github/CODEOWNERS",
-    "/docs/tend2/",
+    "/docs/tend/",
 ];
 
 /// The fields that decide what a ruleset enforces, and the only ones compared.
@@ -1415,7 +1415,7 @@ mod tests {
                 "/.codex/hooks.json @example-owner",
                 "/.github/workflows/plotplot-check.yml @example-owner",
                 "/.github/CODEOWNERS @example-owner",
-                "/docs/tend2/ @example-owner",
+                "/docs/tend/ @example-owner",
                 "# plotplot:end",
             ]
         );

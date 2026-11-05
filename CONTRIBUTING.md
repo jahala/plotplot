@@ -22,8 +22,8 @@ pull request.
 
 - Small pull requests. Easier to review, easier to merge.
 - A test first. A bug fix carries a regression test; a feature carries at least one.
-- A loop. Planned work is a loop in `docs/tend2/` with its checks written before the code;
-  only `tend2 verify` marks a check passed. Unplanned work is an issue.
+- A loop. Planned work is a loop in `docs/tend/` with its checks written before the code;
+  only `tend verify` marks a check passed. Unplanned work is an issue.
 - Surgical edits. Leave surrounding code alone.
 - Commit bodies that say why. The log is the reasoning trail.
 

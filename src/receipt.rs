@@ -31,7 +31,7 @@ use crate::harness::{Payload, parse_payload};
 use crate::plant::gitconfig;
 use crate::{layout, sarif};
 
-/// The principal a session driven from a terminal has, in tend2's vocabulary.
+/// The principal a session driven from a terminal has, in tend's vocabulary.
 pub const PRINCIPAL_CLI: &str = "cli";
 
 /// `.plotplot/receipts/drafts/<session_id>.json`, the unsigned v0 draft.
@@ -218,10 +218,10 @@ pub const DIGEST_PREFIX: &str = "sha256: ";
 const GITHUB_HOST: &str = "github.com";
 
 /// Where the loops live, and so where a stamp can be added.
-const LOOPS_DIR: &str = "docs/tend2";
+const LOOPS_DIR: &str = "docs/tend";
 
 /// The suffix of a loop file, which is what tells one from a page beside it.
-const LOOP_SUFFIX: &str = ".tend2.html";
+const LOOP_SUFFIX: &str = ".tend.html";
 
 /// The judge whose SARIF a receipt carries, when the repository has it fetched.
 const WEEDER: &str = "weeder";
@@ -293,6 +293,8 @@ pub struct Producer {
 pub struct Verification {
     /// weeder's own log, digested and counted, or `null` when no pinned weeder answered.
     pub weeder: Option<WeederResult>,
+    /// tend's stamps. The key keeps the v1 predicate's name for the tool, `tend2`, because
+    /// receipts already sealed carry it; renaming it is a new predicate version.
     pub tend2: Vec<Stamp>,
     /// pleach's gates. Nothing in this binary knows them; a run under pleach is what fills
     /// this in, and what is read back here unchanged.
@@ -311,7 +313,7 @@ pub struct WeederResult {
     pub warn: usize,
 }
 
-/// One tend2 stamp this commit's diff added: which check, and the sha the verifier stamped.
+/// One tend stamp this commit's diff added: which check, and the sha the verifier stamped.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Stamp {
     pub check: String,
@@ -656,7 +658,7 @@ pub fn loop_name(path: &str) -> Option<&str> {
 
 /// Which check a stamped line is, counting checklist lines in the file it now sits in.
 ///
-/// tend2 addresses a check by its position in the loop, which is what `tend2 verify
+/// tend addresses a check by its position in the loop, which is what `tend verify
 /// --check <n>` takes, so `<loop>:c<n>` is the same address the verifier was called with.
 pub fn check_id(path: &str, line: &str, file: &str) -> Option<String> {
     let name = loop_name(path)?;
@@ -1737,9 +1739,9 @@ mod tests {
     #[test]
     fn a_stamp_is_an_added_ticked_line_in_a_loop_and_nothing_else() {
         let diff = concat!(
-            "diff --git a/docs/tend2/rules-block.tend2.html b/docs/tend2/rules-block.tend2.html\n",
-            "--- a/docs/tend2/rules-block.tend2.html\n",
-            "+++ b/docs/tend2/rules-block.tend2.html\n",
+            "diff --git a/docs/tend/rules-block.tend.html b/docs/tend/rules-block.tend.html\n",
+            "--- a/docs/tend/rules-block.tend.html\n",
+            "+++ b/docs/tend/rules-block.tend.html\n",
             "@@ -1,3 +1,3 @@\n",
             "-- [ ] (code) the third check · rules.sh three\n",
             "+- [x] (code) the third check · rules.sh three @9853abb · by cli\n",
@@ -1752,7 +1754,7 @@ mod tests {
         );
         let added = added_stamp_lines(diff);
         assert_eq!(added.len(), 1, "{added:?}");
-        assert_eq!(added[0].0, "docs/tend2/rules-block.tend2.html");
+        assert_eq!(added[0].0, "docs/tend/rules-block.tend.html");
         assert!(added[0].1.contains("the third check"));
     }
 
@@ -1777,7 +1779,7 @@ mod tests {
         );
         assert_eq!(
             check_id(
-                "docs/tend2/rules-block.tend2.html",
+                "docs/tend/rules-block.tend.html",
                 "- [x] (code) two · b.sh @1234abc",
                 file
             )
@@ -1785,14 +1787,14 @@ mod tests {
             Some("rules-block:c2")
         );
         assert_eq!(
-            check_id("docs/tend2/rules-block.tend2.html", "- [x] absent", file),
+            check_id("docs/tend/rules-block.tend.html", "- [x] absent", file),
             None
         );
         assert_eq!(
-            loop_name("docs/tend2/rules-block.tend2.html"),
+            loop_name("docs/tend/rules-block.tend.html"),
             Some("rules-block")
         );
-        assert_eq!(loop_name("docs/tend2/loop.css"), None);
+        assert_eq!(loop_name("docs/tend/loop.css"), None);
     }
 
     // ------------------------------------------------------------- against a real repository

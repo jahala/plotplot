@@ -17,7 +17,7 @@ differently. Written 2026-09-24 from the project notes this page replaces.
   assumed.
 - The stem (`src/`) is the one binary the owner installs: it plants beds into any harness, runs
   every planted gate as one SARIF log, verifies the lock, redacts, seals receipts.
-- The map (`docs/tend2/`) holds only fit loops for beds and the umbrella's own loops; a bed's
+- The map (`docs/tend/`) holds only fit loops for beds and the umbrella's own loops; a bed's
   module checks live on the bed's map.
 
 ## Decisions

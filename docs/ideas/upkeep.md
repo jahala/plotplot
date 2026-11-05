@@ -14,7 +14,7 @@ a missed one is a broken product in front of its users.
 
 upkeep owns turning decay into scheduled work across every shipped product. It does not detect
 dependency lag in one tree (weeder's `scan` already carries that rule, law §6a), fetch release
-notes and advisories (mull fetches them), plan the work (tend2) or run it (pleach).
+notes and advisories (mull fetches them), plan the work (tend) or run it (pleach).
 
 ## How it works
 

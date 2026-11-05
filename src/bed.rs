@@ -182,7 +182,7 @@ mod tests {
     fn beds_registered_for_selects_the_harness_and_the_event() {
         let beds = vec![
             bed("weeder", &[(Harness::Claude, &["PreToolUse:Bash", "Stop"])]),
-            bed("tend2", &[(Harness::Claude, &["SessionStart"])]),
+            bed("tend", &[(Harness::Claude, &["SessionStart"])]),
             bed(
                 "petals",
                 &[
@@ -201,7 +201,7 @@ mod tests {
 
         assert_eq!(names(Harness::Claude, "PreToolUse"), ["weeder", "petals"]);
         assert_eq!(names(Harness::Claude, "Stop"), ["weeder"]);
-        assert_eq!(names(Harness::Claude, "SessionStart"), ["tend2"]);
+        assert_eq!(names(Harness::Claude, "SessionStart"), ["tend"]);
         assert_eq!(names(Harness::Gemini, "BeforeTool"), ["petals"]);
         assert!(names(Harness::Gemini, "Stop").is_empty());
         assert!(names(Harness::Codex, "PreToolUse").is_empty());

@@ -51,7 +51,7 @@ older than a year are compacted to one line each.
 Metric: entries that passed their date with no action. The target is none.
 
 Kill criterion: if after product one nearly every entry duplicates a loop already on a map,
-almanac folds into tend2 as a due-date field, and the decision log moves with the gardener.
+almanac folds into tend as a due-date field, and the decision log moves with the gardener.
 
 ## Open questions
 

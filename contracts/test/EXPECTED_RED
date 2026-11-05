@@ -1,4 +1,4 @@
-# Tests whose red is recorded on docs/tend2/contracts.tend2.html and is the bed's to turn
+# Tests whose red is recorded on docs/tend/contracts.tend.html and is the bed's to turn
 # green. One per line: <test file> <check> <where the red is owed>. scripts/contracts-test.sh
 # runs these like every other test and reports them, but their red does not fail npm test.
 # Remove a line the day its test goes green; a line for a green test is a lie the runner
