@@ -325,7 +325,7 @@ When `/petals check` is invoked without a file argument, it checks for brand dri
 
 When `/petals check <file>` is invoked with a file argument, the agent audits the file against `.brand/` rules across up to five dimensions: color, typography, layout, surface, and voice. The audit follows progressive disclosure: each dimension only loads the `.brand/` file it needs.
 
-**Deterministic core first.** Run `bash scripts/check.sh <file>` before any agent pass — it covers the pure-math checks (palette hexes, contrast pairs, spacing scale, breakpoints, radius scale, easings, shadows, forbidden terms, terminology, product casing) in milliseconds with zero tokens, in the documented report format. The agent then adds what the script cannot do: the typography dimension (role classification needs context), tone, and dismissing any quoted-context voice hits the script's heuristic missed. The dimension sections below are the SPEC the script implements — consult them when interpreting findings or when the script is unavailable.
+**Deterministic core first.** Run `bash scripts/check.sh <file>` before any agent pass — it covers the pure-math checks (palette hexes, contrast pairs, spacing scale, breakpoints, radius scale, easings, shadows, font families loaded and declared, forbidden terms, terminology, product casing) in milliseconds with zero tokens, in the documented report format. The agent then adds what the script cannot do: typography roles (whether a heading or body element got the right face needs context), tone, and dismissing any quoted-context voice hits the script's heuristic missed. The dimension sections below are the SPEC the script implements — consult them when interpreting findings or when the script is unavailable.
 
 ### Book Pre-Pass (only for .brand/book.html)
 
@@ -375,7 +375,9 @@ If zero color violations: `PASS [color] All colors match the brand palette and p
 
 **Load**: `.brand/typography.md` (only this file). If `.brand/typography.md` does not exist, skip and report: `SKIP [typography] typography.md not found. Skipping typography audit.`
 
-**Process**:
+**Scripted part (`check.sh`)**: every family a file loads (a Google Fonts `family=`, an `@font-face`) and the first family of every `font-family`, `fontFamily` or font custom-property stack must be one of the "Font Families" table's families; anything else is an **error** naming the family and the line. Fallbacks after the first family are allowed. When a file loads fonts at all, a table family it never loads is a **warning**.
+
+**Agent part, roles**:
 
 1. Extract font families from `.brand/typography.md`: heading font and body font (from the "Font Families" table).
 2. Read the target file and scan for `font-family` declarations. In CSS, JSX/TSX, and other code files, look for patterns like:
