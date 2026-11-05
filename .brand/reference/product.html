@@ -1,17 +1,20 @@
 <!doctype html>
 <!--
-  reference · a bed page, built in the allotment-plan system. The example bed is weeder.
-  Copy it; change only the marked spots (search "swap:"): the bed's accent aliases in :root, its
-  mark and name in the header, the direction sign, the filled plot on the key plan, the hero, the
-  bed's own sections, and the footer's identity column and current pill. Everything else is the
-  family's. The inchworm's source is ../assets/inchworm.html.
+  reference · a bed page, as the owner settled it on 2026-11-05. The example bed is weeder.
+  Copy it; change only the marked spots (search "swap:"): the bed's aliases in :root, its mark
+  and name in the header, the direction sign, the hero and its product frame, the proof band,
+  the bed's own sections, and the footer's identity column and current pill. Everything else is
+  the family's. The inchworm's source is ../assets/inchworm.html.
 
-  Things a copy must take from the bed's own layer in products/<bed>/:
-  - the mark: inline products/<bed>/assets/<bed>-mark.svg in the header, its two inks as tokens
-    (growth green as --pp-primary so it brightens at night, the accent as the bed's bloom);
-  - the wordmark's face, when the bed's identity.md sets one (pollen's is the body face);
-  - voice and colours: check the page with `petals check <page> --product <bed>` so the bed's own
-    terms and colour rules are read, not only the umbrella's.
+  Things a copy must take from the bed's own layer and repository:
+  - the mark: its tiled file products/<bed>/assets/<bed>-mark.svg, inlined in the header with the
+    tile as --bed and the ink as --bed-on;
+  - the frame: the product's real output, never a mock. A command-line tool shows a terminal of a
+    real run; a tool whose output is a page shows a browser view of a real page (light and dark
+    screenshots, plus a phone-width one under 520). Say where it came from in the frame's title;
+  - the proof band: four numbers counted from the bed's repository, with its version, commit and
+    date beside them;
+  - voice and colours: check the page with `petals check <page> --product <bed>`.
   The page's :root carries the tokens it uses, valued as tokens.css; take new ones from there.
 -->
 <html lang="en">
@@ -32,11 +35,12 @@
     --pp-primary:#357E2C; --pp-primary-deep:#2C6B2A; --pp-leaf:#4A9E3F; --pp-forest:#214A2C;
     --pp-accent:#E89227; --pp-marigold:#F4B63A; --pp-amber-ink:#A86518;
     --pp-text:#3A2718; --pp-text-soft:#786148;
-    --pp-bg:#FAF5E9; --pp-bg-band:#F2EAD6; --pp-surface:#F5EEDD; --pp-border:#E2D8C0;
+    --pp-bg:#FAF5E9; --pp-bg-band:#F2EAD6; --pp-bg-artifact:#FCFAF2; --pp-surface:#F5EEDD; --pp-border:#E2D8C0;
     /* semantic */
     --pp-healthy:#46913C; --pp-caution:#B0741C; --pp-error:#BC4126; --pp-info:#3F7186; --pp-muted:#9A8C72;
     /* product blooms */
-    --pp-tilth:#F7D4B7; --pp-tend:#98D98D; --pp-petals:#CC6A37; --pp-pleach:#779C46; --pp-umbel:#545E05; --pp-copeca:#1F8A7B; --pp-pollen:#BD59D2; --pp-pollen-ink:#A844BC; --pp-weeder:#A37A6E; --pp-weeder-word:#8F675B;
+    --pp-mull:#76D4FF; --pp-glean:#0096B3; --pp-cultivate:#09636B; --pp-graft:#FEAA68; --pp-petals:#CC6A37;
+    --pp-tend:#98D98D; --pp-pleach:#779C46; --pp-umbel:#545E05; --pp-tilth:#F7D4B7; --pp-mycelium:#C9A18D; --pp-weeder:#A37A6E; --pp-well:#4D5972;
     /* soil-night terminal (fixed in both themes) */
     --pp-term-bg:#1C1610; --pp-term-surface:#262019; --pp-term-border:#403628;
     --pp-term-green:#84C56A; --pp-term-sun:#F2A93B; --pp-term-text:#F3ECD9;
@@ -59,17 +63,19 @@
     --pp-ease-petal:cubic-bezier(0.22,1,0.36,1);
 
     /* allotment layer: aliases of palette tokens, no new values */
-    /* swap: the bed. its bloom, its bloom as a word, and the sign ink that reads on the bloom
-       (--sign-light, cream, on dark blooms: pleach, weeder; --sign-dark, soil, on the rest) */
-    --bed:var(--pp-weeder); --bed-word:var(--pp-weeder-word); --bed-on:var(--sign-light);
     --sign-dark:var(--pp-term-bg);
     --sign-light:var(--pp-term-text);
+
+    --pp-weeder-word:#8F675B;
+    /* swap: the bed. its bloom, its bloom as a word (the bloom's ink where it has one, else --pp-text with
+       a bloom underline on the live word), and the sign ink that reads on the bloom (Product Accents) */
+    --bed:var(--pp-weeder); --bed-word:var(--pp-weeder-word); --bed-on:var(--sign-dark);
   }
   [data-theme="dark"]{
     --pp-primary:#84C56A; --pp-accent:#F2A93B; --pp-leaf:#9FD08A;
     --pp-text:#F3ECD9; --pp-text-soft:#C9BBA0;
     --pp-bg:#1C1610; --pp-bg-band:#211A12; --pp-surface:#262019; --pp-border:#403628;
-    --pp-pollen:#BD59D2; --pp-pollen-ink:#BD59D2;
+    --pp-cultivate:#1E6F77; --pp-umbel:#5F6A18; --pp-well:#58647E;
     --pp-weeder-word:#A37A6E;
     --pp-shadow-rest:0 1px 0 #403628, 0 12px 40px -16px rgba(8,6,4,0.6);
     --pp-shadow-lift:0 2px 4px rgba(8,6,4,0.3), 0 14px 32px rgba(8,6,4,0.45);
@@ -94,8 +100,6 @@
   .label{font-family:var(--pp-font-code);font-size:.7rem;font-weight:500;text-transform:uppercase;
     letter-spacing:.18em;color:var(--pp-text-soft)}
   h2.label{line-height:1.65;padding-top:var(--pp-space-4xs)}
-  .kicker{font-family:var(--pp-font-code);font-size:.74rem;font-weight:500;text-transform:uppercase;
-    letter-spacing:.2em;color:var(--bed-word)}
   .lede{font-size:1.15rem;line-height:1.55;color:var(--pp-text-soft)}
   .arrow{font-family:var(--pp-font-code);font-weight:500}
   /* the pictogram sprite's one stroke */
@@ -120,9 +124,9 @@
   .brand{display:inline-flex;align-items:center;gap:var(--pp-space-3xs);color:var(--pp-text)}
   .wordmark{font-family:var(--pp-font-heading);font-weight:600;font-size:1.4rem;letter-spacing:-.01em}
   .wmark{width:28px;height:28px;flex:none}
-  .w-plant{fill:none;stroke:var(--pp-primary);stroke-linecap:round}
-  .w-leaf{fill:var(--pp-primary)}
-  .w-shear{fill:none;stroke:var(--pp-weeder);stroke-linecap:round}
+  .w-tile{fill:var(--bed)}
+  .w-ink{stroke:var(--bed-on)}
+  .w-ink-fill{fill:var(--bed-on)}
   .nav{display:flex;align-items:center;gap:var(--pp-space-sm)}
   .nav a{font-family:var(--pp-font-code);font-size:.72rem;font-weight:500;text-transform:uppercase;
     letter-spacing:.16em;color:var(--pp-text-soft);transition:color .18s ease-out}
@@ -152,13 +156,12 @@
   .way.here{padding:var(--pp-space-2xs) var(--pp-space-md);border-left:1px solid color-mix(in srgb,var(--bed-on) 30%,transparent);border-right:1px solid color-mix(in srgb,var(--bed-on) 30%,transparent)}
   .way.next{justify-content:flex-end}
   .way .sep{opacity:.5}
-  .w-node{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--bed-on);display:inline-flex;align-items:center;justify-content:center;font-weight:700;letter-spacing:0}
   .w-plate{height:30px;min-width:30px;border-radius:var(--pp-radius-sm);border:1.5px solid var(--bed-on);display:inline-flex;align-items:center;justify-content:center;font-weight:700;letter-spacing:0;padding:0 var(--pp-space-4xs)}
   .pn{font-family:var(--pp-font-heading);font-weight:600;font-size:1.05rem;letter-spacing:0;text-transform:none}
   .big-pn{font-size:1.5rem;font-style:italic;font-variation-settings:"SOFT" 100,"WONK" 1}
 
-  /* ── hero: title, you are here, the pitch, the terminal ── */
-  .hero{position:relative}
+  /* ── hero: title beside the pitch, then the product frame ── */
+  .hero{position:relative;z-index:2}
   .hero .wrap{position:relative}
   /* guide lines: one even 96px rhythm across the full width, centred, fading from the top down to nothing */
   .hero::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
@@ -166,35 +169,17 @@
     background-size:96px 100%;background-position:center top;background-repeat:repeat-x;
     -webkit-mask-image:linear-gradient(to bottom,var(--pp-text),transparent);
     mask-image:linear-gradient(to bottom,var(--pp-text),transparent)}
-  .hero-grid{position:relative;z-index:1;padding-top:var(--pp-space-xl);padding-bottom:var(--pp-space-2xl);row-gap:var(--pp-space-xl);align-items:start}
-  .hero-title{grid-column:1 / span 9}
-  .hero-title .kicker{margin-bottom:var(--pp-space-sm)}
+  .hero-grid{position:relative;z-index:1;padding-top:var(--pp-space-xl);padding-bottom:0;row-gap:var(--pp-space-xl);align-items:start}
+  .hero-title{grid-column:1 / span 7;align-self:center}
   .hero h1{font-size:clamp(3.4rem,7.2vw,6.4rem);line-height:.95;font-weight:640;letter-spacing:-.02em;
     font-variation-settings:"SOFT" 20}
   .hero h1 em{font-weight:560;color:var(--bed-word);font-variation-settings:"SOFT" 100,"WONK" 1}
-  .hero-copy{grid-column:1 / span 5}
+  .hero-copy{grid-column:8 / span 5;align-self:start;padding-top:var(--pp-space-3xs)}
   .sig{font-family:var(--pp-font-heading);font-style:italic;font-size:1.25rem;margin-bottom:var(--pp-space-sm);
     display:flex;align-items:center;gap:var(--pp-space-2xs)}
   .sig::before{content:"";width:32px;height:2px;background:var(--bed);flex:none}
-  /* you are here: the garden in miniature, this bed lit */
-  .here-map{grid-column:10 / span 3;margin:0;justify-self:end;width:100%;max-width:240px}
-  .here-map a{display:block;color:var(--pp-text);border:1px solid var(--pp-border);border-radius:var(--pp-radius-lg);
-    background:var(--pp-surface);padding:var(--pp-space-xs);transition:border-color .2s ease-out,box-shadow .2s ease-out}
-  .here-map a:hover{border-color:var(--pp-text-soft);box-shadow:var(--pp-shadow-lift)}
-  .here-map svg{display:block;width:100%}
-  .here-map figcaption{display:flex;justify-content:space-between;gap:var(--pp-space-3xs);margin-top:var(--pp-space-2xs);padding-top:var(--pp-space-3xs);border-top:1px solid var(--pp-border)}
-  .here-map .label{letter-spacing:.2em}
-  .hm-stem{stroke:var(--pp-primary);stroke-width:3;stroke-linecap:round}
-  .hm-node{fill:var(--pp-surface);stroke:var(--pp-text);stroke-width:1.5}
-  .hm-l{font-family:var(--pp-font-code);font-size:11px;font-weight:700;text-anchor:middle;fill:var(--pp-text)}
-  .hm-slot{fill:none;stroke:var(--pp-text-soft);stroke-width:1.25;opacity:.6}
-  .hm-fal{fill:none;stroke:var(--pp-muted);stroke-dasharray:3 3}
-  .hm-here{fill:var(--bed)}
-  .hm-num{font-family:var(--pp-font-code);font-size:13px;font-weight:700;text-anchor:middle;fill:var(--bed-on)}
-  .hm-pin{fill:none;stroke:var(--pp-text);stroke-width:2}
-  .hm-pindot{fill:var(--pp-text)}
   /* the terminal: soil-night, fixed in both themes */
-  .hero-term{grid-column:6 / span 7}
+  .hero-term{grid-column:1 / -1}
   .term{background:var(--pp-term-bg);border:1px solid var(--pp-term-border);border-radius:var(--pp-radius-md);overflow:hidden}
   .hero-term .term{color:var(--pp-term-text);box-shadow:var(--pp-shadow-rest);font-family:var(--pp-font-code)}
   .term-bar{display:flex;align-items:center;gap:var(--pp-space-3xs);
@@ -224,7 +209,7 @@
   .content > h2{margin-bottom:var(--pp-space-md)}
   .body{font-size:1.1rem;color:var(--pp-text-soft);max-width:58ch}
   .body strong{color:var(--pp-text);font-weight:600}
-  /* status dots: umbrella colours, never a bed's bloom */
+  /* status dots: umbrella colours, never bramble */
   .dot{width:9px;height:9px;border-radius:var(--pp-radius-full);flex:none;display:inline-block}
   .dot.ok{background:var(--pp-healthy)}
   .dot.err{background:var(--pp-error)}
@@ -233,6 +218,8 @@
   /* what it refuses */
   .refuses{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--pp-space-xs) var(--pp-space-lg)}
   .refuses li{font-family:var(--pp-font-heading);font-size:1.4rem;line-height:1.25}
+  .refuses li{position:relative;padding-left:1.1em}
+  .refuses li::before{content:"*";position:absolute;left:0;top:.08em;font-family:var(--pp-font-heading);color:var(--bed-word)}
 
   /* faces */
   .faces{list-style:none;margin:0;padding:0}
@@ -245,13 +232,35 @@
   .face .cmd span{font-weight:400;color:var(--pp-text-soft)}
   .face .what{color:var(--pp-text-soft);max-width:52ch}
 
-  /* exit codes */
-  .exits{border-collapse:collapse;width:100%;max-width:640px}
-  .exits td{padding-top:var(--pp-space-xs);padding-bottom:var(--pp-space-xs);border-bottom:1px solid var(--pp-border);vertical-align:baseline}
-  .exits tr:first-child td{padding-top:0}
-  .exits .code{width:5rem;font-family:var(--pp-font-code);font-weight:700;font-size:1.3rem;white-space:nowrap}
-  .exits .code .dot{margin-right:var(--pp-space-2xs);position:relative;top:-2px}
-  .exits .mean{color:var(--pp-text-soft)}
+  /* proof band: forest under the frame's lower edge, the map's own numbers as sign numerals */
+  .proofband{position:relative;z-index:1;background:var(--pp-forest);color:var(--pp-term-text);
+    margin-top:calc(-1 * var(--pp-space-3xl));padding-top:calc(var(--pp-space-3xl) + var(--pp-space-xl));padding-bottom:var(--pp-space-xl)}
+  .proofband .label{color:var(--pp-term-text);opacity:.78}
+  .pb-at{opacity:.7}
+  .figures{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:var(--pp-space-sm) 0 0;border-top:1px solid rgba(243,236,217,.18)}
+  .figures div{display:flex;flex-direction:column-reverse;justify-content:flex-end;gap:var(--pp-space-3xs);
+    padding:var(--pp-space-sm) var(--pp-space-sm) 0;border-left:1px solid rgba(243,236,217,.18)}
+  .figures div:first-child{border-left:0;padding-left:0}
+  .figures dd{margin:0;font-family:var(--pp-font-heading);font-weight:600;font-size:clamp(3rem,6.4vw,5.4rem);line-height:.95;
+    letter-spacing:-.02em;font-variant-numeric:lining-nums tabular-nums}
+  .figures div:nth-child(3) dd{color:var(--pp-term-green)}
+  .figures dt{font-family:var(--pp-font-code);font-size:.68rem;font-weight:500;text-transform:uppercase;letter-spacing:.16em;opacity:.78}
+
+  .sec.first{border-top:0}
+
+  /* signs: a row of tiles, hairline seams */
+  .signs{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+    border:1px solid var(--pp-border);border-radius:var(--pp-radius-md);overflow:hidden}
+  .signs li{background:var(--pp-surface);outline:1px solid var(--pp-border);padding:var(--pp-space-sm);display:flex;flex-direction:column;gap:var(--pp-space-3xs)}
+  .signs b{font-family:var(--pp-font-heading);font-weight:560;font-size:1.45rem;line-height:1.15}
+  .signs li > span:last-child{color:var(--pp-text-soft);font-size:.95rem;line-height:1.45}
+  .sg-n{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:var(--pp-radius-sm);
+    background:var(--bed);color:var(--bed-on);font-family:var(--pp-font-code);font-weight:700;font-size:.82rem;margin-bottom:var(--pp-space-3xs)}
+  .signs.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .states li{border-top:6px solid var(--st)}
+  .st-dot{width:14px;height:14px;border-radius:var(--pp-radius-full);background:var(--st);margin-bottom:var(--pp-space-3xs)}
+  .st-done{--st:var(--pp-healthy)} .st-fail{--st:var(--pp-error)} .st-needs{--st:var(--pp-caution)} .st-open{--st:var(--pp-muted)}
+
   .after{margin-top:var(--pp-space-md);font-family:var(--pp-font-heading);font-style:italic;font-size:1.6rem;line-height:1.2}
 
   /* allowances */
@@ -296,7 +305,7 @@
   .gf-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:var(--pp-space-xl)}
   .gf-soft{margin-top:var(--pp-space-2xs);opacity:.78;font-size:.95rem;max-width:42ch}
   .gf-garden{display:flex;flex-wrap:wrap;gap:var(--pp-space-3xs)}
-  .gf-garden a{display:inline-flex;align-items:center;gap:var(--pp-space-4xs);
+  .gf-garden a,.gf-garden > span{display:inline-flex;align-items:center;gap:var(--pp-space-4xs);
     font-family:var(--pp-font-code);font-size:.82rem;color:var(--pp-term-text);
     padding:var(--pp-space-4xs) var(--pp-space-2xs);
     border-radius:var(--pp-radius-full);background:rgba(243,236,217,.07)}
@@ -314,25 +323,24 @@
   .js .hero .rise{transform:translateY(30px);transition:opacity .8s var(--pp-ease-petal),transform .8s var(--pp-ease-petal)}
   .js .rise.in{opacity:1;transform:none}
   /* this bed blooms in on the map */
-  .js .hm-here,.js .hm-num{transform-box:fill-box;transform-origin:center;animation:bloom .7s var(--pp-ease-petal) .3s both}
   @keyframes bloom{from{opacity:0;transform:scale(.6) rotate(-14deg)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion: reduce){
     html{scroll-behavior:auto}
     .js .rise{opacity:1!important;transform:none!important;transition:none!important}
-    .js .hm-here,.js .hm-num{animation:none!important}
-    .inchworm{display:none}
+      .inchworm{display:none}
   }
 
   /* ── breakpoints: the brand's two ── */
   @media (max-width:880px){
     html{font-size:17px}
-    .margin,.content,.hero-title,.hero-copy,.hero-term,.here-map{grid-column:1 / -1}
+    .margin,.content,.hero-title,.hero-copy,.hero-term{grid-column:1 / -1}
     .waysign .wrap{grid-template-columns:1fr 1fr}
     .way.here{grid-column:1 / -1;grid-row:1;padding-left:0;padding-right:0;
       border:0;border-bottom:1px solid color-mix(in srgb,var(--bed-on) 30%,transparent)}
-    .here-map{justify-self:start;max-width:280px;grid-row:3}
-    .hero-term{grid-row:4}
     .sec{row-gap:var(--pp-space-sm)}
+    .figures{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .figures div:nth-child(3){border-left:0;padding-left:0}
+    .signs,.signs.three{grid-template-columns:1fr}
     .gf-grid{grid-template-columns:1fr;gap:var(--pp-space-lg)}
   }
   @media (max-width:520px){
@@ -341,8 +349,7 @@
     .nav{gap:var(--pp-space-xs)}
     .nav .lbl,.way .sub{display:none}
     .way{letter-spacing:.1em}
-    .here-map{max-width:220px}
-    .term pre{padding:var(--pp-space-xs);font-size:.64rem;overflow-wrap:anywhere}
+      .term pre{padding:var(--pp-space-xs);font-size:.64rem;overflow-wrap:anywhere}
     .hero-term pre{font-size:.7rem}
     .refuses{grid-template-columns:1fr}
     .refuses li{font-size:1.25rem}
@@ -350,20 +357,25 @@
     .face .what{grid-column:2}
     .allow-list li{grid-template-columns:1fr}
   }
-  /* Protest Riot has one weight and no italic: every heading-face element uses it as drawn, never faked (typography.md) */
+  /* Protest Riot has one weight and no italic, so every heading-face element uses it as drawn, never faked */
   html{font-synthesis:none}
-  .after,
   .hero h1,
+  .big-pn,
+  .figures dd,
   .hero h1 em,
+  .lf-step,
+  .pains b,
   .pn,
-  .refuses li,
   .sig,
+  .signs b,
   .sit b,
   .wordmark,
   h1,
   h2,
-  h3,
   h4{font-weight:400!important;font-style:normal!important;font-variation-settings:normal!important;letter-spacing:0!important}
+  /* the script's loops need room between lines */
+  .hero h1{line-height:1.1!important}
+  h2{line-height:1.25!important}
 </style>
 </head>
 <body id="top">
@@ -378,16 +390,20 @@
 </svg>
 
 <!-- swap: the bed's mark and wordmark in .brand, and its own section links in .nav -->
+<!-- swap: the bed's tiled mark and wordmark in .brand, and its own section links in .nav -->
 <header class="site">
   <div class="wrap">
     <a class="brand" href="#top" aria-label="weeder home">
       <svg class="wmark" viewBox="0 0 24 24" aria-hidden="true">
-        <path class="w-plant" stroke-width="2" d="M7.5 22 C7.3 16.5 7.4 9.5 7.8 3"/>
-        <path class="w-leaf" d="M7.4 20.2 C4.9 19.9 3.1 18.3 2.7 15.9 C5.3 16 7.1 17.7 7.4 20.2 Z"/>
-        <path class="w-leaf" d="M7.7 7.6 C10.2 7.4 12 5.8 12.4 3.4 C9.8 3.5 8 5.1 7.7 7.6 Z"/>
-        <path class="w-shear" stroke-width="2" d="M10.2 12 L16.8 17.8 M10.2 18 L16.8 12.2"/>
-        <circle class="w-shear" stroke-width="2" cx="18.3" cy="19.1" r="1.9"/>
-        <circle class="w-shear" stroke-width="2" cx="18.3" cy="10.9" r="1.9"/>
+        <rect class="w-tile" width="24" height="24" rx="5.5"/>
+        <g transform="translate(3.36 3.36) scale(0.72)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path class="w-ink" stroke-width="2" d="M7.5 22 C7.3 16.5 7.4 9.5 7.8 3"/>
+          <path class="w-ink-fill" d="M7.4 20.2 C4.9 19.9 3.1 18.3 2.7 15.9 C5.3 16 7.1 17.7 7.4 20.2 Z"/>
+          <path class="w-ink-fill" d="M7.7 7.6 C10.2 7.4 12 5.8 12.4 3.4 C9.8 3.5 8 5.1 7.7 7.6 Z"/>
+          <path class="w-ink" stroke-width="2" d="M10.2 12 L16.8 17.8 M10.2 18 L16.8 12.2"/>
+          <circle class="w-ink" stroke-width="2" cx="18.3" cy="19.1" r="1.9"/>
+          <circle class="w-ink" stroke-width="2" cx="18.3" cy="10.9" r="1.9"/>
+        </g>
       </svg>
       <span class="wordmark">weeder</span>
     </a>
@@ -413,43 +429,23 @@
 </header>
 
 <!-- swap: the direction sign. back to the garden, this bed (row letter and name, plot number, name), the next bed along the plan -->
+<!-- swap: the direction sign. back to the garden; this bed (its row or group, plot number, name); the next bed along the plan -->
 <nav class="waysign" aria-label="where weeder sits in the garden">
   <div class="wrap">
     <a class="way back" href="https://plotplot.ai"><span class="big" aria-hidden="true">←</span><b class="pn">plotplot</b> <span class="sub"><span class="sep">·</span> the garden</span></a>
-    <span class="way here" aria-current="page"><span class="w-node" aria-hidden="true">D</span>judge <span class="sep">/</span> <span class="w-plate">08</span><b class="pn big-pn">weeder</b></span>
-    <a class="way next" href="https://jahala.github.io/copeca/">07 <b class="pn">copeca</b> <span class="sub"><span class="sep">·</span> the yardstick</span><span class="big" aria-hidden="true">→</span></a>
+    <span class="way here" aria-current="page">the shed <span class="sep">/</span> <span class="w-plate">11</span><b class="pn big-pn">weeder</b></span>
+    <span class="way next">12 <b class="pn">well</b> <span class="sub"><span class="sep">·</span> the one door</span></span>
   </div>
 </nav>
 
 <main>
+  <!-- swap: the hero. the title (one live word in <em>), the signature line, the lede (its first sentence says what the bed is), the two actions, and the product frame: a terminal of a real run here; a browser view where the product is a page -->
   <section class="hero" aria-labelledby="hero-title">
     <div class="wrap">
       <div class="hero-grid g12">
         <div class="hero-title rise">
-          <p class="kicker">the judge of the diff</p>
           <h1 id="hero-title">Tests still mean what they <em>meant</em>.</h1>
         </div>
-
-        <!-- swap: the key plan. move .hm-here and .hm-num to this bed's plot; slots are signed beds, fallow is fallow.
-             the pin sits in the next plot along the row; for a bed at a row's end, inside its own plot beside the numeral -->
-        <figure class="here-map rise">
-          <a href="https://plotplot.ai/#garden" aria-label="You are here: row D, bed 08 weeder. See the whole garden">
-            <svg viewBox="0 0 200 196" aria-hidden="true">
-              <path class="hm-stem" d="M14 6 V190"/>
-              <g><circle class="hm-node" cx="14" cy="26" r="10"/><text class="hm-l" x="14" y="30">A</text></g>
-              <g><circle class="hm-node" cx="14" cy="72" r="10"/><text class="hm-l" x="14" y="76">B</text></g>
-              <g><circle class="hm-node" cx="14" cy="118" r="10"/><text class="hm-l" x="14" y="122">C</text></g>
-              <g><circle class="hm-node" cx="14" cy="164" r="10"/><text class="hm-l" x="14" y="168">D</text></g>
-              <rect class="hm-slot" x="34" y="8"   width="50" height="36" rx="5"/><rect class="hm-fal" x="90" y="8"   width="50" height="36" rx="5"/><rect class="hm-fal" x="146" y="8"   width="50" height="36" rx="5"/>
-              <rect class="hm-slot" x="34" y="54"  width="50" height="36" rx="5"/><rect class="hm-slot" x="90" y="54"  width="50" height="36" rx="5"/><rect class="hm-fal" x="146" y="54"  width="50" height="36" rx="5"/>
-              <rect class="hm-slot" x="34" y="100" width="50" height="36" rx="5"/><rect class="hm-slot" x="90" y="100" width="50" height="36" rx="5"/><rect class="hm-slot" x="146" y="100" width="50" height="36" rx="5"/>
-              <rect class="hm-slot" x="34" y="146" width="50" height="36" rx="5"/><rect class="hm-here" x="90" y="146" width="50" height="36" rx="5"/><rect class="hm-fal" x="146" y="146" width="50" height="36" rx="5"/>
-              <text class="hm-num" x="115" y="169">08</text>
-              <circle class="hm-pin" cx="171" cy="164" r="9"/><circle class="hm-pindot" cx="171" cy="164" r="3.5"/>
-            </svg>
-            <figcaption><span class="label">you are here</span><span class="label" aria-hidden="true">↗</span></figcaption>
-          </a>
-        </figure>
 
         <div class="hero-copy rise">
           <p class="sig">pulled before it takes root.</p>
@@ -462,22 +458,47 @@
 
         <figure class="hero-term rise" style="margin:0">
           <div class="term">
-            <div class="term-bar"><span class="tdot e"></span><span class="tdot c"></span><span class="tdot k"></span><span class="term-title">pre-commit · zsh</span></div>
+            <div class="term-bar"><span class="tdot e"></span><span class="tdot c"></span><span class="tdot k"></span><span class="term-title">pre-commit · exit 2, the commit does not happen</span></div>
 <pre class="term-body"><span class="t-prompt">$</span> weeder check
-<span class="t-err">error</span>  <span class="t-rule">G1</span>  <span class="t-path">src/parser.ts:2</span>  a merge conflict marker (&lt;&lt;&lt;&lt;&lt;&lt;&lt;) was added.
-<span class="t-err">error</span>  <span class="t-rule">G1</span>  <span class="t-path">src/parser.ts:4</span>  a merge conflict marker (=======) was added.
-<span class="t-err">error</span>  <span class="t-rule">G1</span>  <span class="t-path">src/parser.ts:6</span>  a merge conflict marker (&gt;&gt;&gt;&gt;&gt;&gt;&gt;) was added.
+<span class="t-err">error</span>  <span class="t-rule">G1</span>  <span class="t-path">src/parser.ts:1</span>  a merge conflict marker (&lt;&lt;&lt;&lt;&lt;&lt;&lt;) was added.
+       <span class="t-dim">why</span>   the file carries both sides of a merge nobody finished, so it does not
+             parse and does not run.
+       <span class="t-dim">next</span>  finish the merge, delete the markers, and stage the file again, or write
+             why they stay in a `Weeder-allow: G1` trailer.
+<span class="t-err">error</span>  <span class="t-rule">G1</span>  <span class="t-path">src/parser.ts:3</span>  a merge conflict marker (=======) was added.
+       <span class="t-dim">why</span>   the file carries both sides of a merge nobody finished, so it does not
+             parse and does not run.
+       <span class="t-dim">next</span>  finish the merge, delete the markers, and stage the file again, or write
+             why they stay in a `Weeder-allow: G1` trailer.
+<span class="t-err">error</span>  <span class="t-rule">G1</span>  <span class="t-path">src/parser.ts:5</span>  a merge conflict marker (&gt;&gt;&gt;&gt;&gt;&gt;&gt;) was added.
+       <span class="t-dim">why</span>   the file carries both sides of a merge nobody finished, so it does not
+             parse and does not run.
+       <span class="t-dim">next</span>  finish the merge, delete the markers, and stage the file again, or write
+             why they stay in a `Weeder-allow: G1` trailer.
 <span class="t-dim">3 errors, 0 warnings, 0 notes</span>
 </pre>
           </div>
-          <figcaption class="caption"><span class="ldot err" aria-hidden="true"></span><b>Exit 2.</b> The commit does not happen.</figcaption>
         </figure>
       </div>
     </div>
   </section>
 
   <!-- swap: from here to the footer, the bed's own sections, in the index's grammar: a label in the margin, content on the right -->
-  <section class="wrap" id="why" aria-labelledby="why-title"><div class="sec g12">
+  <!-- swap: the proof band. four numbers counted from the bed's repository, and the version, commit and date they were counted at -->
+  <section class="proofband" aria-labelledby="proof-title">
+    <div class="wrap">
+      <h2 class="label" id="proof-title">weeder 0.3.0, as it ships <span class="pb-at">· commit 24df33c · 26 oct 2026</span></h2>
+      <dl class="figures">
+        <div><dt>rules</dt><dd>27</dd></div>
+        <div><dt>tests</dt><dd>442</dd></div>
+        <div><dt>block the commit</dt><dd>12</dd></div>
+        <div><dt>models in the loop</dt><dd>0</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- swap: from here to the footer, the bed's own sections, in the index's grammar: a label in the margin, content on the right. Lists take the asterisk (.refuses); states and limits take sign tiles (.signs) -->
+  <section class="wrap" id="why" aria-labelledby="why-title"><div class="sec first g12">
     <p class="label margin">why</p>
     <div class="content rise">
       <h2 id="why-title">The builder is the worst judge of the build.</h2>
@@ -515,11 +536,11 @@
   <section class="wrap" aria-labelledby="exit-title"><div class="sec tight g12">
     <h2 class="label margin" id="exit-title">exit codes</h2>
     <div class="content rise">
-      <table class="exits">
-        <tr><td class="code"><span class="dot ok" aria-hidden="true"></span>0</td><td class="mean">clean, or warnings only</td></tr>
-        <tr><td class="code"><span class="dot err" aria-hidden="true"></span>2</td><td class="mean">at least one block-level finding</td></tr>
-        <tr><td class="code"><span class="dot cau" aria-hidden="true"></span>3</td><td class="mean">weeder could not run, and the message says why</td></tr>
-      </table>
+      <ul class="signs states three">
+        <li class="st-done"><span class="st-dot" aria-hidden="true"></span><b>exit 0</b><span>clean, or warnings only</span></li>
+        <li class="st-fail"><span class="st-dot" aria-hidden="true"></span><b>exit 2</b><span>at least one block-level finding</span></li>
+        <li class="st-needs"><span class="st-dot" aria-hidden="true"></span><b>exit 3</b><span>weeder could not run, and the message says why</span></li>
+      </ul>
       <p class="after">Exit 3 is a refusal, not a pass.</p>
     </div>
   </div></section>
@@ -538,7 +559,7 @@
   <section class="wrap" id="install" aria-labelledby="install-title"><div class="sec install g12">
     <div class="content rise">
       <h2 id="install-title">Install</h2>
-      <p class="body">Release binaries for linux and macos on x86_64 and aarch64, with a SHA-256 beside each.</p>
+      <p class="body">Release binaries for linux and macos on x86_64 and aarch64, and for windows on x86_64, with a SHA-256 beside each.</p>
       <div class="term">
 <pre><span class="t-dim">target=</span>aarch64-apple-darwin
 <span class="t-dim">base=</span>https://github.com/jahala/weeder/releases/latest/download
@@ -554,8 +575,8 @@
   <section class="wrap" aria-labelledby="sits-title"><div class="sec g12">
     <h2 class="label margin" id="sits-title">where it sits</h2>
     <ul class="sits content rise">
-      <li><a class="sit" href="https://jahala.github.io/pleach/"><span class="plate" style="--bloom:var(--pp-pleach);--on:var(--sign-light)">05</span><span><b>pleach gates every node on weeder</b><span class="label">C run · the conductor</span></span></a></li>
-      <li><a class="sit" href="https://jahala.github.io/tend/"><span class="plate soon" style="--bloom:var(--pp-tend)">01</span><span><b>tend runs it in its loops</b><span class="label">A plan · feature mapping</span></span></a></li>
+      <li><a class="sit" href="https://jahala.github.io/pleach/"><span class="plate" style="--bloom:var(--pp-pleach);--on:var(--sign-dark)">07</span><span><b>pleach gates every node on weeder</b><span class="label">C build · the conductor</span></span></a></li>
+      <li><div class="sit"><span class="plate soon" style="--bloom:var(--pp-tend)">06</span><span><b>tend runs it in its loops</b><span class="label">C build · plan and verify</span></span></div></li>
       <li><div class="sit"><span></span><span><b>a pre-commit hook</b><span class="label">weeder guard</span></span></div></li>
       <li><div class="sit"><span></span><span><b>a check on the pull request</b><span class="label">weeder check · SARIF 2.1.0</span></span></div></li>
     </ul>
@@ -591,14 +612,18 @@
       <div class="gf-col">
         <h4>the plotplot garden</h4>
         <nav class="gf-garden" aria-label="the garden">
-          <a href="https://jahala.github.io/tilth/"  style="--bloom:var(--pp-tilth)"><span class="gf-dot"></span>tilth</a>
-          <a href="https://jahala.github.io/tend/"   style="--bloom:var(--pp-tend)"><span class="gf-dot"></span>tend</a>
-          <a href="https://jahala.github.io/petals/" style="--bloom:var(--pp-petals)"><span class="gf-dot"></span>petals</a>
+          <span style="--bloom:var(--pp-mull)"><span class="gf-dot"></span>mull</span>
+          <span style="--bloom:var(--pp-glean)"><span class="gf-dot"></span>glean</span>
+          <span style="--bloom:var(--pp-cultivate)"><span class="gf-dot"></span>cultivate</span>
+          <span style="--bloom:var(--pp-graft)"><span class="gf-dot"></span>graft</span>
+          <span style="--bloom:var(--pp-petals)"><span class="gf-dot"></span>petals</span>
+          <span style="--bloom:var(--pp-tend)"><span class="gf-dot"></span>tend</span>
           <a href="https://jahala.github.io/pleach/" style="--bloom:var(--pp-pleach)"><span class="gf-dot"></span>pleach</a>
-          <a href="https://jahala.github.io/umbel/"  style="--bloom:var(--pp-umbel)"><span class="gf-dot"></span>umbel</a>
-          <a href="https://jahala.github.io/copeca/" style="--bloom:var(--pp-copeca)"><span class="gf-dot"></span>copeca</a>
-          <a href="https://jahala.github.io/pollen/" style="--bloom:var(--pp-pollen)"><span class="gf-dot"></span>pollen</a>
-          <a href="https://jahala.github.io/weeder/" style="--bloom:var(--pp-weeder)" class="is-current" aria-current="page"><span class="gf-dot"></span>weeder</a>
+          <a href="https://jahala.github.io/umbel/" style="--bloom:var(--pp-umbel)"><span class="gf-dot"></span>umbel</a>
+          <a href="https://jahala.github.io/tilth/" style="--bloom:var(--pp-tilth)"><span class="gf-dot"></span>tilth</a>
+          <span style="--bloom:var(--pp-mycelium)"><span class="gf-dot"></span>mycelium</span>
+          <a href="#top" style="--bloom:var(--pp-weeder)" class="is-current" aria-current="page"><span class="gf-dot"></span>weeder</a>
+          <span style="--bloom:var(--pp-well)"><span class="gf-dot"></span>well</span>
         </nav>
         <p class="gf-soft">small, sharp tools for building with agents.</p>
       </div>
