@@ -52,7 +52,7 @@ New breakpoints are off-brand. Adapt within these two.
 
 ## Page structure
 
-The umbrella page, in order: header (with the inchworm on its bottom line) · hero (copy beside the site plan) · motto rule · the index of beds by row · the garden film · why a garden · garden footer. A bed page, in order: header · direction sign · hero (title, lede, actions beside a real terminal, the key plan) · the bed's own sections · garden footer with the plotplot band. `reference/landing.html` and `reference/product.html` are these structures built.
+The umbrella page, in order: header (with the inchworm on its bottom line) · hero (copy beside the site plan) · motto rule · the index of beds by row · the garden film · why a garden · garden footer. A bed page, in order: header · direction sign · hero (title beside the lede and actions, then the product frame full width) · proof band · the bed's own sections · garden footer with the plotplot band. `reference/landing.html` and `reference/product.html` are these structures built.
 
 ## Guide lines
 

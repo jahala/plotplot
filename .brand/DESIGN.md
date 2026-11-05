@@ -73,7 +73,7 @@ Illustration is a playful garden: characterful botanical line-art, plotted beds,
 
 Two illustrations are the family's own and are shared, never redrawn:
 
-- **The site plan** is the umbrella page's hero: the stem, the four rows, a sign per bed, fallow plots, the shed and the compost heap, the gate. A bed page shows the same plan small, as a "you are here" key plan with its own plot filled.
+- **The site plan** is the umbrella page's hero: the stem, the four rows, a sign per bed, fallow plots, the shed and the compost heap, the gate. A bed page names its place in the garden in its direction sign instead of a small plan.
 - **The garden film** is the one moving illustration: a printed (risograph) garden in section that grows from seed to bloom and returns to the soil, a 24-second seamless loop. It prints straight onto the page, with no paper of its own, and its soil fades into the section that follows. Its source is `assets/garden-film/`.
 
 ## 9. Agent Prompt Guide
