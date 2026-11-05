@@ -64,6 +64,6 @@ Rules:
 ## Applying in frameworks
 
 The brand wins over framework defaults. Mirror tokens as CSS custom
-properties; extend Tailwind's theme (`borderRadius`, `boxShadow`,
+properties; extend a CSS framework's theme (`borderRadius`, `boxShadow`,
 `transitionTimingFunction`) instead of using stock utilities; override
 component-library theme variables once at the theme layer.

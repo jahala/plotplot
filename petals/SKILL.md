@@ -15,7 +15,7 @@ description: >-
 ## Auto-Trigger Conditions
 
 This skill activates automatically when an agent:
-1. Generates UI code (HTML, CSS, React, Vue, Svelte, Tailwind, etc.)
+1. Generates UI code (HTML, CSS, React, Vue, Svelte, utility-CSS frameworks, etc.)
 2. Writes copy (headlines, CTAs, marketing text, microcopy, error messages)
 3. Builds components, layouts, or landing pages
 4. References brand assets (logos, color palettes, typography)
@@ -34,7 +34,7 @@ These are non-negotiable. Violating any is a brand error.
 2. **Typography hierarchy** — Heading and body fonts must match `.brand/typography.md` exactly (family, weight, size). No font substitutions.
 3. **Logo from assets** — Never invent, approximate, or text-describe a logo. Use files from `.brand/assets/` or skip the logo.
 4. **Voice rules** — Generated copy must not contain forbidden terms listed in `.brand/voice.md`. Follow tone, grammar, and vocabulary rules.
-5. **Conflict: brand wins** — When brand rules conflict with framework defaults, the brand rules win. Override Tailwind config, CSS resets, and component library defaults to match `.brand/`.
+5. **Conflict: brand wins** — When brand rules conflict with framework defaults, the brand rules win. Override CSS-framework config, CSS resets, and component library defaults to match `.brand/`.
 
 ## Where petals lives
 
@@ -82,7 +82,7 @@ A brand may be one entity (a flat `.brand/` — the zero-config default) or a fa
 
 - **Umbrella**: the shared truth — palette, typography, layout, surface, voice, the organization's identity. Lives at `.brand/*.md`.
 - **Product layers**: `.brand/products/<product>/` — deltas only (the product's accent claim, mark, tagline, product terminology). An absent file inherits the umbrella entirely. Never copy umbrella values down.
-- **Resolution**: every read resolves umbrella ⊕ product. Product context comes from `--product`, else `.petalsrc`'s `product:` field, else the single directory under `products/`, else flat. Progressive disclosure holds: at most two files per dimension.
+- **Resolution**: every read resolves umbrella ⊕ product. Product context comes from `--product` (`--product -` says there is none), else `.petalsrc`'s `product:` field, else the single directory under `products/`, else flat. Progressive disclosure holds: at most two files per dimension.
 - **Cross-product accents**: each product's accent (umbrella Product Accents table) marks THAT product. Literal use of another product's accent in your product's UI is a warning, by name. Off-palette colors near a product accent are suggested with the owner named.
 - The book, tokens, and check all operate on the RESOLVED brand; the book names each value's owning layer.
 
@@ -99,6 +99,7 @@ A brand may be one entity (a flat `.brand/` — the zero-config default) or a fa
 | `/petals update` | Sync `.brand/` with latest from central, preserving project overrides |
 | `/petals logo [variant]` | Return the correct logo asset path for the requested variant |
 | `/petals book` | Render `.brand/` as a single self-contained brand-book HTML for human review and sharing |
+| `/petals review <page> [--note <text>]...` | Show pages to the owner in their own browser: an index in the brand, a local server, the stop command. `--stop` ends it and leaves nothing behind |
 
 ## Reference Workflow
 
@@ -596,6 +597,14 @@ When `/petals logo` is invoked, the agent hands out the logo *with its rules* �
 3. **Return** the asset path AND print the "Logo Usage" rules from `.brand/identity.md` (minimum size, clear space, exact fills, the never-list).
 4. **When placing the logo in generated UI**: copy the asset file or inline its exact markup — never redraw, approximate, or restyle it. The color audit treats a logo with altered fills as an **error** (it is not a palette question; it is the mark).
 
+## Recipes (things done rarely, so they stay instructions)
+
+**A product frame.** Run the real command under a time limit with no terminal attached (`perl -e 'alarm 20; exec @ARGV' <command>`), in its human-readable format, and paste what it printed; never type a transcript. For a product that is a page, screenshot the real page in light and dark at desktop width and at phone width (under 520px). Title the frame with what ran, or "preview" while the product is still being built.
+
+**A bed page.** Copy the brand's `.brand/reference/product.html` and change only its `swap:` spots: the bed's aliases in `:root` from its row in `colors.md` (its bloom; its word ink, or text with a bloom underline when it has none; the plate text ink or paper), its tiled mark, its place on the site plan in the direction sign, the hero and its frame, the proof band (four numbers counted from the repository at a named version, commit and date), its own sections, and the footer's identity column and current pill. Then run `petals check <page> --product <bed>`.
+
+**Trying a heading face.** Load the face on a draft page and look. When the face has one weight and no italic, add `html{font-synthesis:none}` (`bash scripts/fix-typography.sh <page>` does it) and set its own weight, or the browser fakes bold and italic; the check reports any rule that asks a face for what it lacks.
+
 ## Guardrails (edit-time and merge-time)
 
 The SKILL auto-trigger covers generation time. Two more lines of defense, both optional recipes a project can adopt:
@@ -635,6 +644,10 @@ bash scripts/check.sh "$1" 2>/dev/null | grep -E 'ERROR|WARNING' || true
 
 The deterministic engine is exact and gates the merge; the agent pass covers typography and tone and advises. No tokens are spent unless the cheap gate passes.
 
+**Merge-time, `petals gate`.** `petals/bin/petals gate [--base <ref>] [--format sarif|text]` is the single entry point for hosts that run one command and read one result. It finds the UI files a change touches (`--base <ref>` judges `<ref>...HEAD`; without it, the working tree against HEAD, untracked files included), runs `check.sh` on each, and writes one SARIF 2.1.0 log. Any error-level result makes the exit status 1. The gate reads `.petalsrc` and `.brand/` as the base carries them, never the change's copy, so a change cannot loosen its own rules. A `gate:` section with an `exclude:` list of globs in `.petalsrc` skips paths. With no brand at the base or in the working tree it exits 3 and prints nothing on stdout. A finding is allowed through on the record with a `Petals-allow: <rule> <reason>` trailer, in the commit being prepared (`--message-file`, which a commit-msg hook passes) or in any commit of the change: it stays in the log as a note whose SARIF suppression carries the reason. `--strict` reports it at its own level again. A trailer without a reason allows nothing.
+
+**Commit-time, `petals guard <hook>`.** The stem's planted git hooks call `petals guard pre-commit`, which judges the index (what will be committed, not the working tree), and `petals guard commit-msg <message-file>`, which judges it again with that message's `Petals-allow:` trailers. Exit 0 lets the commit through; otherwise each blocking finding is printed on stderr and the commit is refused. Other hooks pass through. A planted repository gets `petals` from a release: one tarball whose only member is a self-contained `petals` that unpacks its files into `${XDG_CACHE_HOME:-~/.cache}/petals/<content sha>/` on first run (one copy per version; safe to delete). `bash scripts/build-release.sh <dir>` builds it, byte-identical for one commit, with its sha256.
+
 ## .petalsrc Format
 
 `.petalsrc` is a YAML file at the project root. It records the brand source, current version, and project-level overrides.
@@ -658,6 +671,18 @@ brand:
     # Example: track but don't override the body font (inherits from central)
     # typography.body: null
 ```
+
+### Stages: mockups and production
+
+A file is production unless `.petalsrc` declares its path a mockup:
+
+```yaml
+stages:
+  mockup:
+    - docs/designs/**
+```
+
+Content-truth findings (placeholder copy, 555 numbers, `example.com` addresses, John or Jane Doe, `href="#"`) are **errors** in production and **notes** in a mockup, where believable filler is how a design gets judged. Brand rules are the same in both stages. `check.sh --stage mockup|production` overrides the configured stage. Text inside `<pre>`, inline `<code>` and comments is not copy, and in a markdown file neither are fenced code blocks or inline code: no rule judges quoted output.
 
 ### Override key conventions
 

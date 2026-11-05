@@ -4,7 +4,7 @@
 # When a rule asks a face for a weight or style it does not have (check.sh
 # reports "has no weight" or "has no italic"), the browser synthesises one,
 # and the glyphs look smeared. `html{font-synthesis:none}` stops that for the
-# whole page, so nobody has to hand-collect selectors (issue #9).
+# whole page, so nobody has to hand-collect selectors.
 #
 # Usage: fix-typography.sh <file>
 #   An .html/.htm page gets the rule as the first line of its first <style>

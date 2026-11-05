@@ -122,7 +122,7 @@ parse_overrides() {
   done < "$file"
 
   # Output pairs, one per line
-  for pair in "${override_pairs[@]}"; do
+  for pair in ${override_pairs[@]+"${override_pairs[@]}"}; do
     echo "$pair"
   done
 }
