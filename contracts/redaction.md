@@ -1,7 +1,9 @@
 # redaction: a secret never reaches disk, because scrubbing runs at the point of writing
 
-Status: contract, 2026-09-15 (jahala/plotplot 52). One page and one fixture table that the stem
-implements once and every bed calls before it writes agent-produced text anywhere.
+Status: contract, 2026-09-15 (jahala/plotplot 52); amended 2026-11-06. One page and one fixture table
+that every bed implements before it writes agent-produced text anywhere, in its own process and proven
+against the fixture table, so each bed keeps full value alone (docs/building-the-garden.md, principle 4).
+The stem's `plotplot redact` is one implementation of it. A bed does not call the stem at run time.
 
 ## Why at the point of writing
 
