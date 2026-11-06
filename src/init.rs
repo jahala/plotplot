@@ -310,14 +310,22 @@ pub fn repository_manifest(name: &str) -> String {
 /// Hosted runners only: a runner registered on a public repository lets a pull request from
 /// a fork run its own code on that machine (jahala/plotplot issue 7).
 pub fn workflow(own_stem: bool) -> String {
-    // The umbrella is the stem's own repository, and its gate builds the stem from the very
-    // checkout it judges; every other repository takes the stem from the umbrella, which
-    // needs the umbrella reachable from a hosted runner: public, or a release to name here.
+    // The stem is always installed from the umbrella, never built from the pull request's
+    // checkout, and in the runner's temporary directory, so no file the pull request carries
+    // (a rust-toolchain.toml can name a toolchain on disk) chooses what builds it. The
+    // umbrella's own gate takes the stem its base branch holds; every other repository takes
+    // the umbrella's default branch, which a hosted runner reaches while the umbrella is
+    // public.
+    let repository = env!("CARGO_PKG_REPOSITORY");
     let plant = if own_stem {
         [
-            "      - name: plant the stem",
-            "        # This repository is the stem's own, so the gate builds it from the checkout.",
-            "        run: cargo install --locked --path .",
+            "      - name: plant the stem".to_owned(),
+            "        # This repository is the stem's own, so the gate builds the stem its base branch".to_owned(),
+            "        # holds, never the pull request's.".to_owned(),
+            "        working-directory: ${{ runner.temp }}".to_owned(),
+            "        env:".to_owned(),
+            "          BASE_SHA: ${{ github.event.pull_request.base.sha }}".to_owned(),
+            format!("        run: cargo install --locked --git {repository} --rev \"$BASE_SHA\" plotplot"),
         ]
         .join("\n")
     } else {
@@ -326,16 +334,21 @@ pub fn workflow(own_stem: bool) -> String {
             "        # plotplot has no release yet, so this builds it from the umbrella's default".to_owned(),
             "        # branch, which a hosted runner reaches only while the umbrella is public. Name".to_owned(),
             "        # a tag here once a season is tagged.".to_owned(),
-            format!(
-                "        run: cargo install --locked --git {} plotplot",
-                env!("CARGO_PKG_REPOSITORY")
-            ),
+            "        working-directory: ${{ runner.temp }}".to_owned(),
+            format!("        run: cargo install --locked --git {repository} plotplot"),
         ]
         .join("\n")
     };
     format!(
         "\
 # Written by plotplot init: the gate every pull request passes.
+#
+# Runs on pull_request_target, so the workflow that judges a pull request is the base
+# branch's copy of this file, and a pull request that edits it is judged by the gate it
+# edits. Nothing the pull request carries is executed: its tree is checked out as data, the
+# stem comes from the umbrella, and the judges come from the base branch's garden.lock. The
+# first pull request that brings this file cannot run it, because the base branch does not
+# have it yet; that one is merged by the repository's operator after review.
 #
 # Runs on GitHub's hosted runners and nothing else. A runner of your own, registered on a
 # public repository, lets a pull request from a fork run its own code on that machine
@@ -344,7 +357,7 @@ pub fn workflow(own_stem: bool) -> String {
 name: plotplot check
 
 on:
-  pull_request:
+  pull_request_target:
 
 permissions:
   contents: read
@@ -356,10 +369,13 @@ jobs:
     name: {check}
     runs-on: ubuntu-latest
     steps:
+      # The pull request's merge commit, as data only, with no credential left behind.
       - uses: actions/checkout@v5
         with:
+          ref: refs/pull/${{{{ github.event.pull_request.number }}}}/merge
           # A gate that judges a diff needs the base of the pull request, not one commit.
           fetch-depth: 0
+          persist-credentials: false
 
 {plant}
 
@@ -369,10 +385,9 @@ jobs:
         # base rather than the base branch's tip, because a tip that moved on since would put
         # its own new commits, reversed, into the range.
         env:
-          BASE_REF: ${{{{ github.base_ref }}}}
+          BASE_SHA: ${{{{ github.event.pull_request.base.sha }}}}
         run: |
-          git fetch --no-tags origin \"+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF\"
-          base=\"$(git merge-base \"origin/$BASE_REF\" HEAD)\"
+          base=\"$(git merge-base \"$BASE_SHA\" HEAD)\"
           echo \"base=$base\" >> \"$GITHUB_OUTPUT\"
 
       - name: resolve the judges the base pins
@@ -1172,7 +1187,14 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
     #[test]
     fn the_workflow_runs_the_strict_check_on_a_pull_request_and_on_a_hosted_runner() {
         let workflow = workflow(false);
-        assert!(workflow.contains("on:\n  pull_request:\n"), "{workflow}");
+        // pull_request_target runs the base branch's copy of this file, so a pull request
+        // that edits the gate is still judged by the gate it edits (jahala/stem-prt-scratch,
+        // recorded on the stem loop). pull_request would run the pull request's own copy.
+        assert!(
+            workflow.contains("on:\n  pull_request_target:\n"),
+            "{workflow}"
+        );
+        assert!(!workflow.contains("\n  pull_request:\n"), "{workflow}");
         assert!(workflow.contains("runs-on: ubuntu-latest"), "{workflow}");
         assert!(!workflow.contains("self-hosted"), "{workflow}");
         assert_eq!(
@@ -1185,22 +1207,17 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
     #[test]
     fn the_workflow_judges_the_range_from_where_the_pull_request_left_its_base() {
         for text in [workflow(false), workflow(true)] {
-            // The base branch's name reaches the shell through the environment, never
-            // spliced into the script.
+            // The base commit reaches the shell from the event, through the environment,
+            // never spliced into the script; checkout already fetched every branch.
             assert!(
-                text.contains("          BASE_REF: ${{ github.base_ref }}\n"),
+                text.contains("          BASE_SHA: ${{ github.event.pull_request.base.sha }}\n"),
                 "{text}"
             );
-            assert!(
-                text.contains(
-                    "git fetch --no-tags origin \"+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF\""
-                ),
-                "{text}"
-            );
+            assert!(!text.contains("git fetch"), "{text}");
             // An assignment, so a merge base git cannot find stops the step under bash -e
             // rather than handing the stem an empty ref.
             assert!(
-                text.contains("          base=\"$(git merge-base \"origin/$BASE_REF\" HEAD)\"\n"),
+                text.contains("          base=\"$(git merge-base \"$BASE_SHA\" HEAD)\"\n"),
                 "{text}"
             );
             assert!(
@@ -1249,10 +1266,46 @@ sha256 = \"11a1cdbb1f2a4d2ff53f3f0d2ae0ff9d1a2c4f81ec4d5ba9b30f5a4c9e17d2b6\"
     }
 
     #[test]
-    fn the_stems_own_repository_builds_the_stem_from_its_checkout() {
+    fn the_workflow_never_runs_the_pull_requests_code() {
+        for text in [workflow(false), workflow(true)] {
+            // The pull request's merge commit is checked out as data, with no credential
+            // left behind for anything that runs after.
+            assert!(
+                text.contains(
+                    "          ref: refs/pull/${{ github.event.pull_request.number }}/merge\n"
+                ),
+                "{text}"
+            );
+            assert!(
+                text.contains("          persist-credentials: false\n"),
+                "{text}"
+            );
+            // Nothing builds or reads a toolchain from the pull request's tree: no build of
+            // the checkout, no `rustup toolchain install` reading its rust-toolchain.toml,
+            // and the stem is installed in the runner's own temporary directory.
+            assert!(!text.contains("--path ."), "{text}");
+            assert!(!text.contains("rustup"), "{text}");
+            let plant = text
+                .split("      - name: plant the stem\n")
+                .nth(1)
+                .and_then(|rest| rest.split("\n\n").next())
+                .unwrap_or_else(|| panic!("no plant step: {text}"));
+            assert!(
+                plant.contains("        working-directory: ${{ runner.temp }}\n"),
+                "{plant}"
+            );
+        }
+    }
+
+    #[test]
+    fn the_stems_own_repository_builds_the_stem_its_base_branch_holds() {
         let own = workflow(true);
-        assert!(own.contains("cargo install --locked --path ."), "{own}");
-        assert!(!own.contains("--git"), "{own}");
+        assert!(
+            own.contains(
+                "        run: cargo install --locked --git https://github.com/jahala/plotplot --rev \"$BASE_SHA\" plotplot\n"
+            ),
+            "{own}"
+        );
         let other = workflow(false);
         assert!(
             other.contains(

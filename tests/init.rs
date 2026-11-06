@@ -601,6 +601,21 @@ fn a_manifest_the_repository_already_has_is_left_alone() {
 // --------------------------------------------------------------- 8. the PR workflow
 
 #[test]
+fn this_repositorys_own_gate_is_the_one_init_writes_for_the_stems_repository() {
+    // The umbrella's workflow is what `init` writes for the stem's own repository, with the
+    // brand's checks after it; a gate edited by hand here would drift from the one every
+    // planted repository gets.
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(".github/workflows/plotplot-check.yml");
+    let own = read(&path);
+    let written = plotplot::init::workflow(true);
+    assert!(
+        own.starts_with(&written),
+        "{} does not begin with what plotplot init writes for the stem's own repository",
+        path.display()
+    );
+}
+
+#[test]
 fn the_pull_request_workflow_runs_the_strict_check_on_a_hosted_runner() {
     let (_tmp, root, _template, _home) = planted();
 

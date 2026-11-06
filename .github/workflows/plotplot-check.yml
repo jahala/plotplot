@@ -1,5 +1,12 @@
 # Written by plotplot init: the gate every pull request passes.
 #
+# Runs on pull_request_target, so the workflow that judges a pull request is the base
+# branch's copy of this file, and a pull request that edits it is judged by the gate it
+# edits. Nothing the pull request carries is executed: its tree is checked out as data, the
+# stem comes from the umbrella, and the judges come from the base branch's garden.lock. The
+# first pull request that brings this file cannot run it, because the base branch does not
+# have it yet; that one is merged by the repository's operator after review.
+#
 # Runs on GitHub's hosted runners and nothing else. A runner of your own, registered on a
 # public repository, lets a pull request from a fork run its own code on that machine
 # (jahala/plotplot issue 7).
@@ -7,7 +14,7 @@
 name: plotplot check
 
 on:
-  pull_request:
+  pull_request_target:
 
 permissions:
   contents: read
@@ -19,17 +26,21 @@ jobs:
     name: garden
     runs-on: ubuntu-latest
     steps:
+      # The pull request's merge commit, as data only, with no credential left behind.
       - uses: actions/checkout@v5
         with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
           # A gate that judges a diff needs the base of the pull request, not one commit.
           fetch-depth: 0
-
-      - name: Rust toolchain from rust-toolchain.toml
-        run: rustup toolchain install
+          persist-credentials: false
 
       - name: plant the stem
-        # This repository is the stem's own, so the gate builds it from the checkout.
-        run: cargo install --locked --path .
+        # This repository is the stem's own, so the gate builds the stem its base branch
+        # holds, never the pull request's.
+        working-directory: ${{ runner.temp }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: cargo install --locked --git https://github.com/jahala/plotplot --rev "$BASE_SHA" plotplot
 
       - name: the pull request's range
         id: range
@@ -37,10 +48,9 @@ jobs:
         # base rather than the base branch's tip, because a tip that moved on since would put
         # its own new commits, reversed, into the range.
         env:
-          BASE_REF: ${{ github.base_ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          git fetch --no-tags origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
-          base="$(git merge-base "origin/$BASE_REF" HEAD)"
+          base="$(git merge-base "$BASE_SHA" HEAD)"
           echo "base=$base" >> "$GITHUB_OUTPUT"
 
       - name: resolve the judges the base pins
@@ -54,14 +64,21 @@ jobs:
           BASE: ${{ steps.range.outputs.base }}
         run: plotplot check --strict --base "$BASE"
 
+      - name: the base branch's own scripts, for the checks below
+        # The brand's checks read the pull request's tree with the base branch's copies of
+        # petals' scripts, so nothing the pull request carries is executed.
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA"
+
       - name: petals is petals' own, unedited
         # petals/ is vendored with petals' vendor.sh and stamped in petals/VERSION; take a release by running it again.
-        run: bash petals/scripts/vendor.sh --check .
+        run: bash "$RUNNER_TEMP/base/petals/scripts/vendor.sh" --check .
 
       - name: the tokens match the brand's markdown
         # tokens.css and tokens.json are derived from .brand/*.md; regenerate with petals/scripts/export-tokens.sh.
-        run: bash petals/scripts/export-tokens.sh .brand --check
+        run: bash "$RUNNER_TEMP/base/petals/scripts/export-tokens.sh" .brand --check
 
       - name: the marks hold their rules
         # One grid, two inks, night files derived from paper (.brand/DESIGN.md, section 7).
-        run: python3 petals/scripts/marks.py --check --brand .brand
+        run: python3 "$RUNNER_TEMP/base/petals/scripts/marks.py" --check --brand .brand
