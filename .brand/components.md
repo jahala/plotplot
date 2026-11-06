@@ -245,7 +245,7 @@ Copy this verbatim and change only the three marked spots: the **identity** colu
 @media (max-width: 880px) { .gf-grid { grid-template-columns: 1fr; gap: var(--pp-space-lg); } }
 ```
 
-**Counting visits.** A bed page counts one cookieless page view with the inline script just before `</body>` in `reference/product.html`, copied as it is: the same public ingest key on every bed page, since the path tells the beds apart. It sends nothing under Do Not Track or Global Privacy Control and stores nothing on the device. The footer line "counted without cookies, in the EU" goes with the script, so a page that drops one drops both.
+**Counting visits.** A bed page counts one cookieless page view with the inline script just before `</body>` in `reference/product.html`, copied as it is except its key: each bed page sends to its own project, `gh-<bed>`, through the one intake host e.plotplot.ai, and plotplot-design makes the project before the page launches. The key is a public ingest key, safe in page source. It sends nothing under Do Not Track or Global Privacy Control and stores nothing on the device. The footer line "counted without cookies, in the EU" goes with the script, so a page that drops one drops both.
 
 ## Applying in frameworks
 
