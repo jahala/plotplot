@@ -34,10 +34,10 @@ Off-scale values are flagged with the closest valid step.
 
 ## Breakpoints
 
-| Breakpoint | What changes |
-|------------|--------------|
-| 880px | Multi-column grids stack to one column; base font 17px |
-| 520px | Dense strips stack; base font 16px |
+| Token | Breakpoint | What changes |
+|-------|------------|--------------|
+| breakpoint-stack | 880px | Multi-column grids stack to one column; base font 17px |
+| breakpoint-dense | 520px | Dense strips stack; base font 16px |
 
 New breakpoints are off-brand. Adapt within these two.
 
