@@ -115,6 +115,11 @@ range, the judges are the base's (section 7).
    file is left alone. `.plotplot/` is wholly machine-written and never committed, because a
    pull request that could commit under `.plotplot/bin/` could choose its own judge. State a
    bed must commit gets a home of its own outside it, named for what it holds (issue 18).
+   Write the stem's region of `weeder.toml`, naming the pull request gate under
+   `[guardrails] paths`, so weeder stops a commit that edits the gate unless a
+   `Weeder-allow` trailer gives the reason. When the planter's own `[guardrails]` table
+   already names the gate there is nothing to write; when it names other paths, `init` stops
+   and says which line to add, since TOML allows the table once.
 7. Write or update the garden block in `AGENTS.md` (ten lines: what is planted, the season,
    orient, gates, help, that a fresh clone or worktree runs `plotplot init` before its first
    commit, that hard limits are enforced at the boundary). Nothing else in the file is

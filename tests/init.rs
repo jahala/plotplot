@@ -633,6 +633,100 @@ fn the_pull_request_workflow_runs_the_strict_check_on_a_hosted_runner() {
     assert!(workflow.contains("runs-on: ubuntu-latest"), "{workflow}");
 }
 
+// ------------------------------------------------- the gate at weeder's constitution tier
+
+const GATE: &str = ".github/workflows/plotplot-check.yml";
+
+/// The `[guardrails] paths` a planted weeder.toml declares.
+fn guardrail_paths(root: &Path) -> Vec<String> {
+    let text = read(&root.join("weeder.toml"));
+    let table: toml::Table = text
+        .parse()
+        .unwrap_or_else(|e| panic!("weeder.toml: {e}\n{text}"));
+    table
+        .get("guardrails")
+        .and_then(|guardrails| guardrails.get("paths"))
+        .and_then(toml::Value::as_array)
+        .map(|paths| {
+            paths
+                .iter()
+                .filter_map(toml::Value::as_str)
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+fn plant_with(root: &Path, home: &Path, template: &Path) -> std::process::Output {
+    init(
+        root,
+        home,
+        &[
+            "--harness",
+            "gemini,codex",
+            "--lock",
+            &template.display().to_string(),
+        ],
+    )
+}
+
+#[test]
+fn planting_holds_the_gate_at_weeders_constitution_tier() {
+    // weeder stops a commit that changes a path its config names under [guardrails], unless
+    // a Weeder-allow trailer gives the reason, so an edit to the gate is refused at the
+    // commit where it is made.
+    let (_tmp, root, _template, _home) = planted();
+    let text = read(&root.join("weeder.toml"));
+    assert!(text.contains("# plotplot:begin\n"), "{text}");
+    assert_eq!(guardrail_paths(&root), [GATE]);
+}
+
+#[test]
+fn the_planters_own_weeder_settings_stay_beside_the_region() {
+    let (tmp, root, template) = fixture();
+    let home = tmp.path().join("home");
+    let own = "# the planter's\n[guard]\nprotected = [\"main\"]\n";
+    write(&root.join("weeder.toml"), own);
+
+    let output = plant_with(&root, &home, &template);
+    assert!(output.status.success(), "{output:?}");
+
+    let text = read(&root.join("weeder.toml"));
+    assert!(text.starts_with(own), "{text}");
+    assert_eq!(guardrail_paths(&root), [GATE]);
+    let table: toml::Table = text.parse().expect("weeder.toml stays TOML");
+    assert_eq!(table["guard"]["protected"][0].as_str(), Some("main"));
+}
+
+#[test]
+fn a_planters_own_guardrails_that_name_the_gate_are_left_alone() {
+    let (tmp, root, template) = fixture();
+    let home = tmp.path().join("home");
+    let own = format!("[guardrails]\npaths = [\"{GATE}\", \"deploy.sh\"]\n");
+    write(&root.join("weeder.toml"), &own);
+
+    let output = plant_with(&root, &home, &template);
+    assert!(output.status.success(), "{output:?}");
+    assert_eq!(read(&root.join("weeder.toml")), own);
+}
+
+#[test]
+fn a_planters_own_guardrails_without_the_gate_stop_the_planting_and_say_what_to_add() {
+    // Two [guardrails] tables are not TOML, and the planter's table is the planter's: the
+    // stem names the line to add rather than editing it.
+    let (tmp, root, template) = fixture();
+    let home = tmp.path().join("home");
+    let own = "[guardrails]\npaths = [\"deploy.sh\"]\n";
+    write(&root.join("weeder.toml"), own);
+
+    let output = plant_with(&root, &home, &template);
+    assert!(!output.status.success(), "{output:?}");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("weeder.toml"), "{stderr}");
+    assert!(stderr.contains(GATE), "{stderr}");
+    assert_eq!(read(&root.join("weeder.toml")), own);
+}
+
 // --------------------------------------------------------- the ignores, and a clone
 
 #[test]

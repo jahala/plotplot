@@ -24,7 +24,7 @@ use crate::error::{Error, Result};
 use crate::fetch::Https;
 use crate::harness::Harness;
 use crate::lock::{self, JudgeState, Lock};
-use crate::plant::{garden_block, gitconfig, githooks, gitignore};
+use crate::plant::{garden_block, gitconfig, githooks, gitignore, weeder_toml};
 use crate::platform::{self, Gh, GhCli, Unapplied, Unreachable};
 use crate::{install, layout, manifest};
 
@@ -663,6 +663,7 @@ fn plant(
     write_git_hooks(root, &beds, &mut planted)?;
     write_git_config(root, &mut planted)?;
     write_gitignore(root, &mut planted)?;
+    write_weeder_guardrails(root, &mut planted)?;
 
     // 7. The garden block, and the repository's own manifest.
     write_garden_block(root, &lock, &beds, &mut planted)?;
@@ -795,6 +796,23 @@ fn write_git_config(root: &Path, planted: &mut Planted) -> Result<()> {
         gitconfig::Receipts::AlreadyHere
         | gitconfig::Receipts::NoneOnRemote
         | gitconfig::Receipts::NoOrigin => {}
+    }
+    Ok(())
+}
+
+/// The pull request gate held at weeder's constitution tier, in the stem's region of
+/// `weeder.toml`, and every other line of that file left alone.
+fn write_weeder_guardrails(root: &Path, planted: &mut Planted) -> Result<()> {
+    let path = root.join(layout::WEEDER_TOML);
+    let existing = match std::fs::read_to_string(&path) {
+        Ok(existing) => existing,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
+        Err(source) => return Err(Error::Io { path, source }),
+    };
+    if let Some(text) = weeder_toml::planted(&existing, WORKFLOW)?
+        && write_if_changed(&path, text.as_bytes())?
+    {
+        planted.changed.push(layout::WEEDER_TOML.to_owned());
     }
     Ok(())
 }

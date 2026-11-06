@@ -13,3 +13,4 @@ pub mod gitconfig;
 pub mod githooks;
 pub mod gitignore;
 pub mod region;
+pub mod weeder_toml;
