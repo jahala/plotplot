@@ -41,6 +41,8 @@ pub enum Error {
     Codeowners { problem: String },
     /// A `.gitignore` whose plotplot markers do not make one replaceable region.
     Gitignore { problem: String },
+    /// A `weeder.toml` the stem cannot plant the pull request gate into.
+    WeederConfig { problem: String },
     /// A url that did not give up its bytes: a status outside 2xx, or a transport that
     /// failed before any status arrived.
     Fetch { url: String, problem: String },
@@ -83,7 +85,8 @@ impl fmt::Display for Error {
             Error::Harness { problem }
             | Error::Agents { problem }
             | Error::Codeowners { problem }
-            | Error::Gitignore { problem } => write!(f, "{problem}"),
+            | Error::Gitignore { problem }
+            | Error::WeederConfig { problem } => write!(f, "{problem}"),
             Error::Git { command, stderr } => write!(f, "{command}: {stderr}"),
             Error::Fetch { url, problem } => write!(f, "{url}: {problem}"),
             Error::Checksum {
@@ -113,6 +116,7 @@ impl std::error::Error for Error {
             | Error::Agents { .. }
             | Error::Codeowners { .. }
             | Error::Gitignore { .. }
+            | Error::WeederConfig { .. }
             | Error::Fetch { .. }
             | Error::Checksum { .. }
             | Error::Archive { .. }

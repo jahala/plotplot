@@ -24,6 +24,8 @@ pub const GARDEN_JSON: &str = "garden.json";
 pub const CODEOWNERS: &str = ".github/CODEOWNERS";
 /// What git leaves out of view; `init` writes the stem's region of it.
 pub const GITIGNORE: &str = ".gitignore";
+/// weeder's own configuration; `init` writes the stem's region of it.
+pub const WEEDER_TOML: &str = "weeder.toml";
 
 /// `garden.lock`, the pinned judges. Committed.
 pub fn garden_lock(root: &Path) -> PathBuf {

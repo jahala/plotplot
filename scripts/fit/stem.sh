@@ -1068,7 +1068,29 @@ check_check() {
     || { cat "$tmp/empty.json" >&2; fail "the empty range's log does not carry the stem's one empty-range note"; }
   ok "empty range: exit 0, and the log says $(jq -r '.runs[] | .results[]? | select(.ruleId == "plotplot/empty-range") | .message.text' "$tmp/empty.json")"
 
-  # 5. And with the judge gone, the answer is missing rather than permissive.
+  # 5. The pull request gate held at weeder's constitution tier, as init plants it: a base
+  #    whose weeder.toml names the workflow under [guardrails] paths, and a range that edits
+  #    the workflow, blocks with C3.
+  mkdir -p "$repo/.github/workflows"
+  printf '%s\n' "name: plotplot check" "on:" "  pull_request_target:" > "$repo/.github/workflows/plotplot-check.yml"
+  printf '%s\n' "[guardrails]" "paths = [\".github/workflows/plotplot-check.yml\"]" > "$repo/weeder.toml"
+  git -C "$repo" add .github/workflows/plotplot-check.yml weeder.toml \
+    || fail "could not stage the gate and its guardrail"
+  git -C "$repo" commit -qm "the gate, held as a guardrail" || fail "could not commit the gate"
+  local guarded
+  guarded="$(git -C "$repo" rev-parse HEAD)" || fail "the fixture has no guarded commit"
+  printf '%s\n' "name: plotplot check" "on:" "  pull_request:" > "$repo/.github/workflows/plotplot-check.yml"
+  git -C "$repo" commit -qam "the gate, edited" || fail "could not commit the edited gate"
+  ( cd "$repo" && "$STEM" check --strict --base "$guarded" ) >"$tmp/gate.json" 2>"$tmp/gate.err"
+  status=$?
+  [ "$status" -eq 2 ] \
+    || { cat "$tmp/gate.json" "$tmp/gate.err" >&2; \
+         fail "plotplot check --strict --base exited $status over a range that edits the guarded gate, not 2"; }
+  [ "$(log_rule_blocks "$tmp/gate.json" C3)" -ge 1 ] \
+    || { cat "$tmp/gate.json" >&2; fail "the range that edits the guarded gate carries no block-level C3"; }
+  ok "edited gate under [guardrails] paths: exit 2, C3 at error in $CHECK_JUDGE's run"
+
+  # 6. And with the judge gone, the answer is missing rather than permissive.
   mv "$repo/.plotplot/bin/$CHECK_JUDGE" "$tmp/$CHECK_JUDGE.withdrawn" \
     || fail "could not take the judge out of the fixture"
   ( cd "$repo" && "$STEM" check ) >"$tmp/gone.json" 2>"$tmp/gone.err"
