@@ -263,29 +263,6 @@ need_tag() {
 # the garden footer
 # ---------------------------------------------------------------------------------------
 
-# The first element of an HTML file that opens with the given tag and class, through its
-# closing tag, on the lines it spans.
-html_block() {
-  local file="$1" opening="$2" closing="$3"
-  awk -v opening="$opening" -v closing="$closing" \
-    'index($0, opening) { on = 1 } on { print } on && index($0, closing) { exit }' "$file"
-}
-
-# The pills of a garden row read on stdin, one to a line: the bed's name, then " current" on
-# the pill the page marks as its own.
-garden_pills() {
-  local anchor name
-  tr '\n' ' ' \
-    | grep -oE '<a [^>]*>([^<]|<span[^>]*>[^<]*</span>)*</a>' \
-    | while IFS= read -r anchor; do
-        name="$(echo "$anchor" | sed -e 's/<[^>]*>//g' -e 's/^ *//' -e 's/ *$//')"
-        case "$anchor" in
-          *'class="is-current"'*|*'class="'*' is-current"'*|*'class="is-current '*) echo "$name current" ;;
-          *) echo "$name" ;;
-        esac
-      done
-}
-
 # ---------------------------------------------------------------------------------------
 # F1 manifest
 # ---------------------------------------------------------------------------------------
@@ -454,7 +431,7 @@ check_f3() {
   # No other garden tool on the PATH it runs with: every bed of the umbrella's garden row, and
   # the stem, looked up on that PATH, and only weeder found, in the artifact.
   local beds bed where others=""
-  beds="$(html_block "$ROOT/.brand/components.md" '<nav class="gf-garden"' '</nav>' | garden_pills | awk '$1 != "'"$BED"'" {print $1}')"
+  beds="$(fit_html_block "$ROOT/.brand/components.md" '<nav class="gf-garden"' '</nav>' | fit_garden_pills | awk '$1 != "'"$BED"'" {print $1}')"
   if [ -z "$beds" ]; then
     not_ok "$claim: .brand/components.md's reference garden row names no other bed, so there is nothing to keep off the PATH"
     return
@@ -716,7 +693,7 @@ check_f6() {
   esac
 
   local reference="$ROOT/.brand/components.md" footer="$RUN_DIR/f6/footer.html"
-  html_block "$page" '<footer class="gf"' '</footer>' > "$footer"
+  fit_html_block "$page" '<footer class="gf"' '</footer>' > "$footer"
   if [ ! -s "$footer" ]; then
     not_ok "$claim: index.html at $TAG carries no garden footer (<footer class=\"gf\">)"
     return
@@ -724,7 +701,7 @@ check_f6() {
 
   # The plotplot band: the reference's band, and its link home.
   local home
-  home="$(html_block "$reference" '<div class="gf-plot"' '</div>' | grep -o 'class="gf-plotbrand" href="[^"]*"' | head -1)"
+  home="$(fit_html_block "$reference" '<div class="gf-plot"' '</div>' | grep -o 'class="gf-plotbrand" href="[^"]*"' | head -1)"
   if [ -z "$home" ]; then
     not_ok "$claim: .brand/components.md's reference footer carries no plotplot band to check against"
   elif grep -q '<div class="gf-plot"' "$footer" && grep -qF "$home" "$footer"; then
@@ -735,8 +712,8 @@ check_f6() {
 
   # The garden row: the same beds as the reference's, and weeder's pill the one current.
   local want got current
-  want="$(html_block "$reference" '<nav class="gf-garden"' '</nav>' | garden_pills | awk '{print $1}' | LC_ALL=C sort)"
-  got="$(html_block "$footer" '<nav class="gf-garden"' '</nav>' | garden_pills)"
+  want="$(fit_html_block "$reference" '<nav class="gf-garden"' '</nav>' | fit_garden_pills | awk '{print $1}' | LC_ALL=C sort)"
+  got="$(fit_html_block "$footer" '<nav class="gf-garden"' '</nav>' | fit_garden_pills)"
   current="$(echo "$got" | awk '$2 == "current" {print $1}' | tr '\n' ' ' | sed 's/ $//')"
   got="$(echo "$got" | awk 'NF {print $1}' | LC_ALL=C sort)"
   if [ -z "$want" ]; then

@@ -256,6 +256,30 @@ fit_discard_scratch() {
 }
 
 # Allow direct invocation: scripts/fit/lib.sh run <lockfile> <judge> <platform> <bin-name> -- <args...>
+# The first element of an HTML file that opens with the given tag and class, through its
+# closing tag, on the lines it spans.
+fit_html_block() {
+  local file="$1" opening="$2" closing="$3"
+  awk -v opening="$opening" -v closing="$closing" \
+    'index($0, opening) { on = 1 } on { print } on && index($0, closing) { exit }' "$file"
+}
+
+# The pills of a garden row read on stdin, one to a line: the bed's name, then " current" on
+# the pill the page marks as its own. A pill is any element carrying a bloom: a linked bed is
+# an <a>, and a bed with no page yet is a <span>, so both are read.
+fit_garden_pills() {
+  local anchor name
+  tr '\n' ' ' \
+    | grep -oE '<(a|span) [^>]*--bloom[^>]*>([^<]|<span[^>]*>[^<]*</span>)*</(a|span)>' \
+    | while IFS= read -r anchor; do
+        name="$(echo "$anchor" | sed -e 's/<[^>]*>//g' -e 's/^ *//' -e 's/ *$//')"
+        case "$anchor" in
+          *'class="is-current"'*|*'class="'*' is-current"'*|*'class="is-current '*) echo "$name current" ;;
+          *) echo "$name" ;;
+        esac
+      done
+}
+
 if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
   cmd="${1:-}"
   case "$cmd" in
