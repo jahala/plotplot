@@ -1,0 +1,5 @@
+# plotplot:begin
+# Written by plotplot init: the pull request gate is held where the constitution is.
+[guardrails]
+paths = [".github/workflows/plotplot-check.yml"]
+# plotplot:end

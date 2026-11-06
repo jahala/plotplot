@@ -87,11 +87,12 @@ and umbel by the recipes in `docs/engineering.md`.
 <!-- plotplot:begin -->
 ## plotplot: what is planted here
 
-Planted: weeder 0.2.1.
+Planted: weeder 0.2.4.
 Season: 2026.09.
 
 - Orient first: `tend next docs/tend` says what is next, what is running, and what went stale.
 - Gates: `plotplot check` runs every planted gate and returns one SARIF log.
 - Help: `plotplot doctor` says whether the law is live, and what is missing when it is not.
+- In a fresh clone or worktree, run `plotplot init` before the first commit: until then the hooks do not run there, or refuse.
 - The hard limits are enforced at the boundary: `--no-verify` is refused, and `garden.lock` and `.githooks/` are the stem's to write.
 <!-- plotplot:end -->

@@ -11,6 +11,10 @@ refs=$(cat; printf x)
 refs=${refs%x}
 
 # The first guard that refuses ends the pre-push, with its own status.
+if [ ! -x "$root/.plotplot/bin/weeder" ]; then
+	echo "plotplot: weeder, a judge pre-push calls, is not placed in this checkout; run \`plotplot lock verify\` here, then try again" >&2
+	exit 1
+fi
 printf '%s' "$refs" | "$root/.plotplot/bin/weeder" guard pre-push "$@" || exit $?
 
 exit 0
