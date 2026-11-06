@@ -153,6 +153,10 @@
         "about": {
           "type": "string",
           "minLength": 1
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
@@ -434,6 +438,49 @@
                     "below confidence",
                     "no label fits"
                   ]
+                }
+              }
+            }
+          ]
+        },
+        "category": {
+          "description": "How the need weighs on the person now: headache (it hurts or blocks them now), convenience (it works, but it's slow or tedious) or wish (something that isn't possible yet). Judged, with its measured rates in rules.category; a hint to group and read needs, never to rank by alone. A need whose judge chose none is not labelled, and says so.",
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "label",
+                "confidence"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "label": {
+                  "enum": [
+                    "headache",
+                    "convenience",
+                    "wish"
+                  ]
+                },
+                "confidence": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "label",
+                "why"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "label": {
+                  "const": null
+                },
+                "why": {
+                  "const": "no label fits"
                 }
               }
             }
