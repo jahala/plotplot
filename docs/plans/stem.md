@@ -169,11 +169,22 @@ placed judge is not the one it pins (the digest record, the clone's commit, the 
 does not run and counts as a gate that could not run. A tree that carries tracked files under
 `.plotplot/`, which only the stem writes, is not judged at all, and the run exits 3.
 
-The workflow `init` writes computes the merge base of the pull request's base branch and
-`HEAD`, fetched first, then runs `plotplot lock verify --base` and `plotplot check --strict
---base` with it. The merge base rather than the branch's
-tip: a tip that moved on since GitHub built the merge commit would put its own new commits,
-reversed, into the range.
+The workflow `init` writes runs on `pull_request_target`, so the workflow that judges a pull
+request is the base branch's copy, and a pull request that edits the gate is judged by the
+gate it edits (proved in jahala/stem-prt-scratch, recorded on the stem loop). Nothing the pull
+request carries is executed: its merge commit is checked out as data with
+`persist-credentials: false`; the stem is installed from the umbrella in the runner's
+temporary directory, at the base commit for the umbrella itself, so no file of the pull
+request's chooses the toolchain; the judges come from `lock verify --base`. The job computes
+the merge base of the event's base commit and `HEAD`, then runs `plotplot lock verify --base`
+and `plotplot check --strict --base` with it. The merge base rather than the branch's tip: a
+tip that moved on since GitHub built the merge commit would put its own new commits, reversed,
+into the range.
+
+The first pull request that brings this workflow to a repository cannot run it, because
+`pull_request_target` reads the base branch's workflow, which does not have it yet. That one
+pull request is merged by the repository's operator after review (ruled by the umbrella agent
+as operator, 2026-11-06); from then on every pull request is judged by it.
 
 ## 8. Context cost
 
