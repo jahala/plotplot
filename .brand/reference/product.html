@@ -667,7 +667,7 @@
 
     </div>
     <div class="gf-bottom">
-      <span>© 2026 · a plotplot garden tool · MIT</span>
+      <span>© 2026 · a plotplot garden tool · MIT · counted without cookies, in the EU</span>
       <span>pulled before it takes root.</span>
     </div>
   </div>
@@ -746,6 +746,24 @@
     if(rear>W+30){phase='away';tp=0;wait=3000+Math.random()*4000;}
     requestAnimationFrame(frame);}
   requestAnimationFrame(frame);
+})();
+</script>
+<script>
+/* one cookieless page view for the plotplot garden, counted by cfanalytics in the EU.
+   no cookies, no storage, no library; nothing is sent under Do Not Track or Global Privacy Control. */
+(function(){
+  if (navigator.doNotTrack === '1' || navigator.globalPrivacyControl === true) return;
+  var t = 'cfa_pk_giKW9ROJWXTBF4bKru_LnnDspyoLj2M3Ceq5OK1fsGA', r = document.referrer, d = '$direct';
+  try { if (r) d = new URL(r).host; } catch (e) {}
+  var now = new Date().toISOString();
+  var p = { token: t, distinct_id: '$posthog_cookieless', $cookieless_mode: true, $lib: 'web',
+    $current_url: location.href, $host: location.host, $pathname: location.pathname, title: document.title,
+    $referrer: r || '$direct', $referring_domain: d, $raw_user_agent: navigator.userAgent.slice(0, 1000),
+    $timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, $browser_language: navigator.language,
+    $screen_width: screen.width, $screen_height: screen.height, $viewport_width: innerWidth, $viewport_height: innerHeight };
+  fetch('https://e.plotplot.ai/i/v0/e/', { method: 'POST', keepalive: true,
+    body: JSON.stringify({ api_key: t, batch: [{ event: '$pageview', properties: p, timestamp: now }], sent_at: now }) })
+    .catch(function(){});
 })();
 </script>
 </body>

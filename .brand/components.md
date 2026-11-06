@@ -195,7 +195,7 @@ Copy this verbatim and change only the three marked spots: the **identity** colu
 
     </div>
     <div class="gf-bottom">
-      <span>© 2026 · a plotplot garden tool · MIT</span>
+      <span>© 2026 · a plotplot garden tool · MIT · counted without cookies, in the EU</span>
       <span>one binary, the subscription you already pay for.</span>
     </div>
   </div>
@@ -244,6 +244,8 @@ Copy this verbatim and change only the three marked spots: the **identity** colu
                color: var(--pp-term-text); opacity: .72; }
 @media (max-width: 880px) { .gf-grid { grid-template-columns: 1fr; gap: var(--pp-space-lg); } }
 ```
+
+**Counting visits.** A bed page counts one cookieless page view with the inline script just before `</body>` in `reference/product.html`, copied as it is: the same public ingest key on every bed page, since the path tells the beds apart. It sends nothing under Do Not Track or Global Privacy Control and stores nothing on the device. The footer line "counted without cookies, in the EU" goes with the script, so a page that drops one drops both.
 
 ## Applying in frameworks
 
