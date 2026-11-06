@@ -47,7 +47,7 @@ One idea, used everywhere: **things unfold**. Elements rise and settle like leav
 |-------|-------|-------|
 | ease-petal | `cubic-bezier(0.22, 1, 0.36, 1)` | The only entrance/settle ease |
 | dur-unfold | 0.8s | Section and card entrances (rise 30px + fade) |
-| dur-micro | 0.15–0.3s | Hovers, color shifts, link underlines |
+| dur-micro | 180ms | Hovers, color shifts, link underlines; anything from 0.15 to 0.3s reads as the same speed |
 | stagger-step | 0.1s | Sibling delay inside a group: leaves along a stem |
 | bloom | scale(0.6) rotate(−14°) → 1 / 0° over 0.55–0.7s | Marks, glyphs, pins: used once per element, on arrival |
 
@@ -79,7 +79,7 @@ Rules:
 
 The family's pages are built from these pieces. `reference/landing.html` (the umbrella page) and `reference/product.html` (a bed page, weeder) are the pieces assembled; start from one, change only its marked `swap:` spots, and keep these values. Class names below are the reference pages' own.
 
-**Sign ink.** A sign keeps its bloom in both themes, so the numeral on it uses a fixed ink: `--sign-dark` (soil, `--pp-term-bg`) on the light blooms (tend, tilth, petals, umbel, pollen, copeca) and `--sign-light` (cream, `--pp-term-text`) on the dark ones (pleach, weeder). Each sign sets `--bloom` and `--on`. A bed page sets its own three aliases once in `:root`: `--bed` (its bloom), `--bed-word` (its bloom as a word: the bloom where it reads, else its ink variant, e.g. `--pp-weeder-word`, `--pp-pollen-ink`, `--pp-amber-ink`) and `--bed-on` (its sign ink).
+**Sign ink.** A sign keeps its bloom in both themes, so the numeral on it uses a fixed ink: `--sign-dark` (soil, `--pp-term-bg`) on the light blooms and `--sign-light` (cream, `--pp-term-text`) on the dark ones, as each bloom's "Plate text" column in `colors.md` says (ink is soil, paper is cream). Each sign sets `--bloom` and `--on`. A bed page sets its own three aliases once in `:root`: `--bed` (its bloom), `--bed-word` (its bloom as a word: the bloom where it reads, else its ink variant, e.g. `--pp-weeder-word`, `--pp-pollen-ink`, `--pp-amber-ink`) and `--bed-on` (its sign ink).
 
 | Component | Convention |
 |---|---|
@@ -170,15 +170,18 @@ Copy this verbatim and change only the three marked spots: the **identity** colu
           <span style="--bloom:var(--pp-glean)"><span class="gf-dot"></span>glean</span>
           <span style="--bloom:var(--pp-cultivate)"><span class="gf-dot"></span>cultivate</span>
           <span style="--bloom:var(--pp-graft)"><span class="gf-dot"></span>graft</span>
-          <span style="--bloom:var(--pp-petals)"><span class="gf-dot"></span>petals</span>
+          <a href="https://jahala.github.io/petals/" style="--bloom:var(--pp-petals)"><span class="gf-dot"></span>petals</a>
           <span style="--bloom:var(--pp-tend)"><span class="gf-dot"></span>tend</span>
           <a href="https://jahala.github.io/pleach/" style="--bloom:var(--pp-pleach)"><span class="gf-dot"></span>pleach</a>
           <a href="https://jahala.github.io/umbel/" style="--bloom:var(--pp-umbel)" class="is-current"><span class="gf-dot"></span>umbel</a>
+          <span style="--bloom:var(--pp-pollen)"><span class="gf-dot"></span>pollen</span>
           <a href="https://jahala.github.io/tilth/" style="--bloom:var(--pp-tilth)"><span class="gf-dot"></span>tilth</a>
           <a href="https://jahala.github.io/mycelium/" style="--bloom:var(--pp-mycelium)"><span class="gf-dot"></span>mycelium</a>
           <a href="https://jahala.github.io/weeder/" style="--bloom:var(--pp-weeder)"><span class="gf-dot"></span>weeder</a>
-          <span style="--bloom:var(--pp-well)"><span class="gf-dot"></span>well</span>
-          <span style="--bloom:var(--pp-coldframe)"><span class="gf-dot"></span>coldframe</span>
+          <a href="https://jahala.github.io/copeca/" style="--bloom:var(--pp-copeca)"><span class="gf-dot"></span>copeca</a>
+          <span style="--bloom:var(--pp-hedge)"><span class="gf-dot"></span>hedge</span>
+          <a href="https://jahala.github.io/well/" style="--bloom:var(--pp-well)"><span class="gf-dot"></span>well</a>
+          <a href="https://jahala.github.io/coldframe/" style="--bloom:var(--pp-coldframe)"><span class="gf-dot"></span>coldframe</a>
         </nav>
         <p class="gf-soft">small, sharp tools for building with agents.</p>
       </div>

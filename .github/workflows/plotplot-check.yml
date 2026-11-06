@@ -58,6 +58,10 @@ jobs:
         # petals/ is vendored with petals' vendor.sh and stamped in petals/VERSION; take a release by running it again.
         run: bash petals/scripts/vendor.sh --check .
 
+      - name: the tokens match the brand's markdown
+        # tokens.css and tokens.json are derived from .brand/*.md; regenerate with petals/scripts/export-tokens.sh.
+        run: bash petals/scripts/export-tokens.sh .brand --check
+
       - name: the marks hold their rules
         # One grid, two inks, night files derived from paper (.brand/DESIGN.md, section 7).
         run: python3 petals/scripts/marks.py --check --brand .brand

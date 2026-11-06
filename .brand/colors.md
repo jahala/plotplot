@@ -65,6 +65,7 @@ colour already. `/petals check` warns when one product's accent appears in anoth
 | the shed | wood and iron | mycelium | #C9A18D | same | ink | messages between agents |
 | the shed | wood and iron | weeder | #A37A6E | same | ink | the judge of the diff |
 | the shed | wood and iron | stake | #774F4C | #835A57 | paper | docs that stay true, planned |
+| the shed | wood and iron | copeca | #219282 | same | ink | agent work, measured |
 | the boundary | stone | hedge | #C9C7E7 | same | ink | hard limits and the owner's queue, being built |
 | the boundary | stone | well | #4D5972 | #58647E | paper | the one door for paid calls |
 | the seasons | weather | gardener | #C7C784 | same | ink | what runs next, planned |
@@ -72,7 +73,7 @@ colour already. `/petals check` warns when one product's accent appears in anoth
 | the seasons | weather | coldframe | #4E5A48 | #5A6853 | paper | tests and CI on the owner's machines, planned |
 | the seasons | weather | upkeep | #6E520D | #7D6021 | paper | keeping products alive, planned |
 
-copeca left the garden on 2026-10-26 and keeps juniper `#1F8A7B` on its public page.
+Plate text names the fixed ink a sign's numeral and name use on the bloom: **ink** is soil (`--pp-term-bg`), **paper** is cream (`--pp-term-text`). It follows contrast, so every name stays legible: ink where ink reaches 4.5:1 on the bloom, else paper.
 
 Every pair of blooms is at least 12.9 apart in ΔE00 in both themes, and 12 or more from growth green,
 marigold, ink and paper. No bloom moves more than 5.1 between paper and soil-night, so each tool keeps
@@ -305,8 +306,7 @@ Dark mode is "soil at night," not a harsh developer theme. Embedded terminal pan
   --pp-almanac: #A19251;
   --pp-coldframe: #4E5A48;
   --pp-upkeep: #6E520D;
-  /* copeca left the garden on 2026-10-26; its public page keeps juniper */
-  --pp-copeca: #1F8A7B;
+  --pp-copeca: #219282;
 
   /* the bloom as a word on paper (4.5:1) */
   --pp-pollen-ink: #A844BC;
@@ -330,6 +330,7 @@ Dark mode is "soil at night," not a harsh developer theme. Embedded terminal pan
   --pp-bg:        #1C1610;
   --pp-surface:   #262019;
   --pp-border:    #403628;
+  --pp-bg-band:   #211A12;
   --pp-cultivate: #1E6F77;
   --pp-trellis: #AA422C;
   --pp-umbel: #5F6A18;

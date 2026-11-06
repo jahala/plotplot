@@ -266,7 +266,7 @@
   .gf-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:var(--pp-space-xl)}
   .gf-soft{margin-top:var(--pp-space-2xs);opacity:.78;font-size:.95rem;max-width:42ch}
   .gf-garden{display:flex;flex-wrap:wrap;gap:var(--pp-space-3xs)}
-  .gf-garden a{display:inline-flex;align-items:center;gap:var(--pp-space-4xs);
+  .gf-garden a,.gf-garden > span{display:inline-flex;align-items:center;gap:var(--pp-space-4xs);
     font-family:var(--pp-font-code);font-size:.82rem;color:var(--pp-term-text);
     padding:var(--pp-space-4xs) var(--pp-space-2xs);
     border-radius:var(--pp-radius-full);background:rgba(243,236,217,.07)}
@@ -622,14 +622,22 @@
       <div class="gf-col">
         <h4>the garden</h4>
         <nav class="gf-garden" aria-label="the garden">
-          <a href="https://jahala.github.io/tilth/"  style="--bloom:var(--pp-tilth)"><span class="gf-dot"></span>tilth</a>
-          <a href="https://jahala.github.io/tend/"   style="--bloom:var(--pp-tend)"><span class="gf-dot"></span>tend</a>
+          <span style="--bloom:var(--pp-mull)"><span class="gf-dot"></span>mull</span>
+          <span style="--bloom:var(--pp-glean)"><span class="gf-dot"></span>glean</span>
+          <span style="--bloom:var(--pp-cultivate)"><span class="gf-dot"></span>cultivate</span>
+          <span style="--bloom:var(--pp-graft)"><span class="gf-dot"></span>graft</span>
           <a href="https://jahala.github.io/petals/" style="--bloom:var(--pp-petals)"><span class="gf-dot"></span>petals</a>
+          <span style="--bloom:var(--pp-tend)"><span class="gf-dot"></span>tend</span>
           <a href="https://jahala.github.io/pleach/" style="--bloom:var(--pp-pleach)"><span class="gf-dot"></span>pleach</a>
-          <a href="https://jahala.github.io/umbel/"  style="--bloom:var(--pp-umbel)"><span class="gf-dot"></span>umbel</a>
+          <a href="https://jahala.github.io/umbel/" style="--bloom:var(--pp-umbel)"><span class="gf-dot"></span>umbel</a>
+          <span style="--bloom:var(--pp-pollen)"><span class="gf-dot"></span>pollen</span>
+          <a href="https://jahala.github.io/tilth/" style="--bloom:var(--pp-tilth)"><span class="gf-dot"></span>tilth</a>
+          <a href="https://jahala.github.io/mycelium/" style="--bloom:var(--pp-mycelium)"><span class="gf-dot"></span>mycelium</a>
+          <a href="https://jahala.github.io/weeder/" style="--bloom:var(--pp-weeder)"><span class="gf-dot"></span>weeder</a>
           <a href="https://jahala.github.io/copeca/" style="--bloom:var(--pp-copeca)"><span class="gf-dot"></span>copeca</a>
-          <a href="https://jahala.github.io/pollen/" style="--bloom:var(--pp-pollen)"><span class="gf-dot"></span>pollen</a>
-          <a href="https://jahala.github.io/weeder/"                      style="--bloom:var(--pp-weeder)"><span class="gf-dot"></span>weeder</a>
+          <span style="--bloom:var(--pp-hedge)"><span class="gf-dot"></span>hedge</span>
+          <a href="https://jahala.github.io/well/" style="--bloom:var(--pp-well)"><span class="gf-dot"></span>well</a>
+          <a href="https://jahala.github.io/coldframe/" style="--bloom:var(--pp-coldframe)"><span class="gf-dot"></span>coldframe</a>
         </nav>
         <p class="gf-soft">small, sharp tools for building with agents.</p>
       </div>
