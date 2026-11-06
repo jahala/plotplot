@@ -67,6 +67,7 @@ declare_negative "$fixdir/invalid-member-not-raw-item.json" "a member that is no
 declare_negative "$fixdir/invalid-noise-unknown-field.json" "a noise check with a field the contract does not name"
 declare_negative "$fixdir/invalid-statement-unknown-field.json" "a need statement with a field the contract does not name"
 declare_negative "$fixdir/invalid-about-value.json" "a need whose about is neither product nor project"
+declare_negative "$fixdir/invalid-category-value.json" "a need whose category is not headache, convenience or wish"
 declare_negative "$fixdir/invalid-resolution-guess.json" "a need with no resolution label that still carries the judge's guess"
 declare_negative "$fixdir/invalid-resolution-below-floor.json" "a resolution label under the 0.8 confidence floor"
 

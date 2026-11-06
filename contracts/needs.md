@@ -16,12 +16,12 @@ needs.
 
 | Field | Required | Meaning |
 |---|---|---|
-| `format` | yes | `cultivate-needs/1`; a change of meaning is a new version, never an edit. Version 1 gained the state `unknown` on 2026-10-26, agreed with the umbrella before any reader depended on the three states alone, and the optional `noise`, a need's optional `statement` and the noise check's `top` on 2026-10-30, and a need's optional `sources` and `resolution` on 2026-11-04, and a need's optional `about` on 2026-11-05 |
+| `format` | yes | `cultivate-needs/1`; a change of meaning is a new version, never an edit. Version 1 gained the state `unknown` on 2026-10-26, agreed with the umbrella before any reader depended on the three states alone, and the optional `noise`, a need's optional `statement` and the noise check's `top` on 2026-10-30, and a need's optional `sources` and `resolution` on 2026-11-04, and a need's optional `about` on 2026-11-05, and a need's optional `category` on 2026-11-06 |
 | `product` | yes | the product the needs are about, by name |
 | `run` | yes | `at` (the run's date), `previous` (the run it is compared with, or null), and `window` (`from`, `to`), the period the window counts cover |
 | `scope` | yes | the channels read, each with how many raw items it gave, so a reader knows what was searched |
 | `features` | no | where the feature tags came from (graft's pages, or a product's areas file) |
-| `rules` | yes | every threshold the numbers used: the merge cut, the quiet period, the movement rule, the warning rule, `resolution`, the question and floor behind each need's `resolution`, when needs carry one, and `about`, the rule that marks a need as about the project, with the labels it reads, when needs carry one |
+| `rules` | yes | every threshold the numbers used: the merge cut, the quiet period, the movement rule, the warning rule, `resolution`, the question and floor behind each need's `resolution`, when needs carry one, `about`, the rule that marks a need as about the project, with the labels it reads, when needs carry one, and `category`, the question behind each need's `category` and how often it was right, when needs carry one |
 | `judge` | yes | the judge model and question set behind every judged field |
 | `noise` | no | the build's noise check: `codebook` (where the rules for a need live), `sample` and `seed` (the needs drawn at random and graded), `clean` (how many the grader called a need), `share`, `bar` (fixed before the check), `top` (`sample`, `clean` and `bar` for the needs with the most people, graded too because tools read the top first), `fit` (share at least bar, and the top's clean count at least its bar), `grader` (a person, or a fresh agent reading blind) and `at` |
 | `needs` | yes | the needs, each as below |
@@ -39,6 +39,7 @@ Each need holds:
 | `features` | yes | the features it is about, from the feature list; `confident` is true only at a judge confidence of 0.9 or more |
 | `sources` | no | `count` and `names`: the independent sources the need's member posts come from, counted by code, so a reader can tell a need several sources back from one a single source shows; a person on two sources counts as two, since authors are hashed per site |
 | `resolution` | no | what kind of answer the person asks for, judged from the statement and the lead post, never from what the product can do: `label` is `change` (the product should do something new or different), `guidance` (how to do something, or what to do), `repair` (something should work and does not) or `outside` (no product in the job would do it), with the judge's `confidence`, at least 0.8. Under that floor, or when no label fits, `label` is null and `why` says which (`below confidence`, `no label fits`), never a guess. Whether a change is a new ability or an option on a feature is graft's to tell, against the features. The floor holds back most repairs, so a null label says nothing about the need's kind |
+| `category` | no | how the need weighs on the person now, in the owner's words: `headache` (it hurts or blocks them now), `convenience` (it works, but it's slow or tedious) or `wish` (something that isn't possible yet), with the judge's `confidence`; a need whose judge chose none has `label` null and `why` "no label fits". Judged, and a hint: measured once on 80 needs blind-labelled by two readers from different providers, it agreed on 72.5% (kappa 0.540); precision headache 75%, convenience 94%, wish 65%, and most errors are a convenience read as a wish. Group and read needs by it; never rank by it alone. `rules.category` names the question and the rates |
 | `members` | yes | the raw items merged into it: `item` (raw item id), `url` when public, `said_at`, `lead`, and `same`, the judge's probability that it asks the same as the lead (null for the lead) |
 | `first_seen`, `last_seen` | yes | the earliest and latest moment any person engaged with the need, in what was read |
 | `people` | yes | distinct people by role, below |
@@ -93,9 +94,6 @@ status is `unknown`. Words are compared without regard to case, because sources 
   true. A document without `noise` has not been checked, and says nothing about how clean it is.
 - **Signals show their rule.** A judged signal appears only after its judgement passed a
   blind-graded bar, and names it.
-- **No category yet.** How a need weighs on the person (headache, convenience or wish) was measured on
-  2026-11-06 and is not in the format: the judge's labels moved with the question's wording more than its bar
-  allows. A reader does not infer it from `kind` or `resolution` (cultivate `docs/research/validation-category-2026-11-06.md`).
 
 ## Lifetime
 
