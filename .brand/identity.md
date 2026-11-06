@@ -8,7 +8,7 @@
 | Vision | Building with AI that feels less like a gold rush and more like tending a garden: calm, crafted, and cumulative. |
 | Audience | Everyone building with AI: agent builders, AI engineers, and developers who live in the terminal. |
 | Founded | 2026 |
-| Brand Version | v1.12.0 |
+| Brand Version | v1.13.0 |
 
 ## Brand Story
 
@@ -22,4 +22,4 @@ They are files and skills, not dashboards and servers. Local-first, legible, and
 
 plotplot.ai is the organization, the garden. Each tool carries the shared family brand (palette, type, layout, surface, voice) plus its own product layer at `.brand/products/<product>/`: one accent from the Product Accents table, its own mark, tagline, and terminology. Deltas only; everything absent inherits from this umbrella.
 
-Today's beds follow a product's path, in four rows, beside three groups every row uses (`docs/decisions/2026-10-26-layers.md`). **find:** mull (reading the world), glean (finding what to grow), cultivate (people, jobs, outcomes). **shape:** graft (features and flows), petals (brand and design), trellis (architecture, planned). **build:** tend (plan and verify), pleach (the conductor), umbel (orchestration). **ship:** transplant, pollen (marketing) and harvest, all planned. **the shed:** tilth (code intelligence), mycelium (peer messaging), weeder (the judge), copeca (agent work, measured), stake (planned). **the boundary:** hedge (hard limits and the owner's queue), well (the one door for paid calls). **the seasons:** the gardener, almanac, coldframe (tests and CI on the owner's machines) and upkeep, planned.
+Today's beds follow a product's path, in four rows, beside three groups every row uses (`docs/decisions/2026-10-26-layers.md`). **find:** mull (reading the world), glean (finding what to grow), cultivate (people, jobs, outcomes). **shape:** graft (features and flows), petals (brand and design), trellis (architecture, planned). **build:** tend (plan and verify), pleach (the conductor), umbel (orchestration). **ship:** transplant, pollen (marketing) and harvest, all planned. **the shed:** tilth (code intelligence), mycelium (peer messaging), weeder (the judge), copeca (agent work, measured), stake (planned). **the boundary:** hedge (hard limits and the owner's queue), coldframe (tests and CI on the owner's machines), well (the one door for paid calls). **the seasons:** the gardener, almanac and upkeep, planned.
