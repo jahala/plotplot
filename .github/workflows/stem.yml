@@ -42,7 +42,7 @@ jobs:
         # master's run, the commit after it lands.
         os: ${{ github.event_name == 'push' && fromJSON('["ubuntu-latest", "macos-latest"]') || fromJSON('["ubuntu-latest"]') }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Rust toolchain from rust-toolchain.toml
         run: rustup toolchain install
