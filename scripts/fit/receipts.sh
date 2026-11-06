@@ -47,9 +47,16 @@ SCRATCH_DIRS=()
 # stem.sh dispatches on $1 the moment it is read, so it cannot be sourced by another script)
 # ---------------------------------------------------------------------------------------
 
+# One TAP line per claim an assertion just held, in the shape tend's verifier counts:
+# `ok - ` here, `not ok - ` from fail. Progress and context stay indented notes.
 fail() {
+  echo "not ok - $*"
   echo "receipts.sh: $*" >&2
   exit 1
+}
+
+ok() {
+  echo "ok - $*"
 }
 
 note() {
@@ -249,7 +256,7 @@ check_seal() {
   status=$?
   [ "$status" -eq 0 ] \
     || { cat "$tmp/first.out" "$tmp/first.err" >&2; fail "plotplot receipt seal exited $status, not 0"; }
-  note "seal said: $(cat "$tmp/first.out")"
+  ok "seal said: $(cat "$tmp/first.out")"
 
   read_note "$repo" HEAD "$tmp/note.txt"
   statement_of "$tmp/note.txt" "$tmp/statement.json"
@@ -269,7 +276,7 @@ check_seal() {
     || fail "the subject's gitTree is $subject_tree, git says $tree"
   [ "$subject_name" = "github.com/jahala/fixture" ] \
     || fail "the subject is named \"$subject_name\", not the origin's canonical url"
-  note "subject: $subject_name, gitCommit and gitTree as git recomputes them"
+  ok "subject: $subject_name, gitCommit and gitTree as git recomputes them"
 
   # 3. The statement is in-toto's, and the predicate is the garden's.
   [ "$(jq -r '._type' "$tmp/statement.json")" = "https://in-toto.io/Statement/v1" ] \
@@ -285,7 +292,7 @@ check_seal() {
   actual="$(fit_sha256 "$tmp/statement.json")" || fail "could not hash the statement"
   [ "$claimed" = "$actual" ] \
     || fail "the note claims sha256 $claimed, shasum makes the statement $actual"
-  note "sha256: $claimed, over the $(wc -c <"$tmp/statement.json" | tr -d ' ') bytes above the last line"
+  ok "sha256: $claimed, over the $(wc -c <"$tmp/statement.json" | tr -d ' ') bytes above the last line"
 
   # 5. The draft was folded in, and put away so it is never folded twice.
   [ "$(jq -r '.predicate.sessions[0]' "$tmp/statement.json")" = "$SESSION" ] \
@@ -296,7 +303,7 @@ check_seal() {
     || fail "the folded draft is still waiting under drafts/"
   [ -f "$repo/.plotplot/receipts/sealed/$commit/$SESSION.json" ] \
     || fail "the folded draft was not put away under sealed/$commit/"
-  note "the draft was folded in and moved to .plotplot/receipts/sealed/$commit/"
+  ok "the draft was folded in and moved to .plotplot/receipts/sealed/$commit/"
 
   # 6. And a second seal changes nothing, and says so.
   ( cd "$repo" && "$STEM" receipt seal ) >"$tmp/second.out" 2>"$tmp/second.err"
@@ -308,7 +315,7 @@ check_seal() {
   read_note "$repo" HEAD "$tmp/note-again.txt"
   cmp -s "$tmp/note.txt" "$tmp/note-again.txt" \
     || { diff "$tmp/note.txt" "$tmp/note-again.txt" >&2; fail "the second seal rewrote the note"; }
-  note "second seal: $(cat "$tmp/second.out"), and the note byte for byte as it was"
+  ok "second seal: $(cat "$tmp/second.out"), and the note byte for byte as it was"
 
   echo "receipts.sh seal: pass"
 }
@@ -343,7 +350,7 @@ check_verify() {
     || { cat "$tmp/gap.out" "$tmp/gap.err" >&2; fail "verify over a range with a gap exited $status, not 3"; }
   grep -q "^$short no receipt$" "$tmp/gap.out" \
     || { cat "$tmp/gap.out" >&2; fail "verify did not name $short as the commit with no receipt"; }
-  note "a range with a gap: exit 3, naming $short"
+  ok "a range with a gap: exit 3, naming $short"
 
   # 2. Seal the other, and the same range passes.
   ( cd "$repo" && "$STEM" receipt seal --commit 'HEAD~1' ) >"$tmp/seal-prev.out" 2>&1 \
@@ -354,7 +361,7 @@ check_verify() {
     || { cat "$tmp/full.out" "$tmp/full.err" >&2; fail "verify over a fully sealed range exited $status, not 0"; }
   [ "$(grep -c ' receipt ok$' "$tmp/full.out")" = "2" ] \
     || { cat "$tmp/full.out" >&2; fail "verify did not pass both commits of the range"; }
-  note "every commit sealed: exit 0, two receipts ok"
+  ok "every commit sealed: exit 0, two receipts ok"
 
   # 3. A signature is not this version's claim, and verify says so rather than passing.
   ( cd "$repo" && "$STEM" receipt verify HEAD --require-signed ) >"$tmp/signed.out" 2>&1
@@ -363,7 +370,7 @@ check_verify() {
     || { cat "$tmp/signed.out" >&2; fail "verify --require-signed exited $status, not 3"; }
   grep -q 'unsigned (v0)' "$tmp/signed.out" \
     || { cat "$tmp/signed.out" >&2; fail "verify --require-signed did not say the receipt is unsigned"; }
-  note "--require-signed: exit 3, unsigned (v0)"
+  ok "--require-signed: exit 3, unsigned (v0)"
 
   # 4. Plant the fixture; a receipt travels by name, never by refspec.
   digest="$(place_judge "$repo")" || fail "could not place the judge in the fixture"
@@ -378,7 +385,7 @@ check_verify() {
       | grep -q "$RECEIPTS_REF"; then
     fail "init set a refspec for $RECEIPTS_REF; the ref travels by name, never by refspec"
   fi
-  note "init planted the fixture and set no refspec: the receipts ref travels when asked"
+  ok "init planted the fixture and set no refspec: the receipts ref travels when asked"
 
   # 5. A fresh clone, which starts with git's own refspec and so without the receipts.
   git clone -q "$repo" "$clone" || fail "could not clone the fixture"
@@ -394,7 +401,7 @@ check_verify() {
   if git -C "$clone" show-ref --verify --quiet "$RECEIPTS_REF"; then
     fail "the clone fetched $RECEIPTS_REF before anything asked it to, so this check would prove nothing"
   fi
-  note "before init: a fetch brings the branch and not the receipts"
+  ok "before init: a fetch brings the branch and not the receipts"
 
   # 6. Planted, init asks origin for the receipts by name, and they verify in the clone.
   digest="$(place_judge "$clone")" || fail "could not place the judge in the clone"
@@ -418,7 +425,7 @@ check_verify() {
   status=$?
   [ "$status" -eq 0 ] \
     || { cat "$tmp/clone-verify.out" >&2; fail "verify in the clone exited $status, not 0"; }
-  note "after init: the fetch brought $RECEIPTS_REF, byte for byte, and it verifies in the clone"
+  ok "after init: the fetch brought $RECEIPTS_REF, byte for byte, and it verifies in the clone"
 
   echo "receipts.sh verify: pass"
 }

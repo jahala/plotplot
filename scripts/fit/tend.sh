@@ -29,7 +29,8 @@
 #                               plotplot band and the garden row of .brand/components.md with
 #                               tend's pill current
 #
-# One line per assertion: `ok`, `not ok` or `unevaluable`, then the claim and what was seen.
+# One line per assertion: `ok - `, `not ok - ` or `unevaluable`, then the claim and what was seen.
+# `ok - ` is the TAP shape tend's verifier counts as a test; a bare `ok` it does not count.
 # Exit 0 when every assertion passed, 1 on any failure, 3 when none failed but a claim could not
 # be evaluated on this machine (the reason goes to stderr). A claim that cannot be proven
 # standalone is unevaluable, never passed.
@@ -66,11 +67,11 @@ CHARS_PER_TOKEN=4
 # ---------------------------------------------------------------------------------------
 
 ok() {
-  echo "ok $*"
+  echo "ok - $*"
 }
 
 not_ok() {
-  echo "not ok $*"
+  echo "not ok - $*"
   STATUS=1
 }
 

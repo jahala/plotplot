@@ -74,13 +74,13 @@ INSTALLED=""
 # One TAP line per claim an assertion just held, so a verifier counts what ran: `ok` here,
 # `not ok` from fail. Progress and context stay indented notes, which TAP readers skip.
 fail() {
-  echo "not ok $*"
+  echo "not ok - $*"
   echo "stem.sh: $*" >&2
   exit 1
 }
 
 ok() {
-  echo "ok $*"
+  echo "ok - $*"
 }
 
 note() {
