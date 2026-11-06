@@ -3,7 +3,8 @@
   reference · a bed page, as the owner settled it on 2026-11-05. The example bed is weeder.
   Copy it; change only the marked spots (search "swap:"): the bed's aliases in :root, its mark
   and name in the header, the direction sign, the hero and its product frame, the proof band,
-  the bed's own sections, and the footer's identity column and current pill. Everything else is
+  the bed's own sections, the footer's identity column and current pill, and the counter's project
+  key. Everything else is
   the family's. The inchworm's source is ../assets/inchworm.html.
 
   Things a copy must take from the bed's own layer and repository:
@@ -753,7 +754,8 @@
    no cookies, no storage, no library; nothing is sent under Do Not Track or Global Privacy Control. */
 (function(){
   if (navigator.doNotTrack === '1' || navigator.globalPrivacyControl === true) return;
-  var t = 'cfa_pk_giKW9ROJWXTBF4bKru_LnnDspyoLj2M3Ceq5OK1fsGA', r = document.referrer, d = '$direct';
+  /* swap: the bed's own gh-<bed> project token; plotplot-design makes the project */
+  var t = 'cfa_pk_<the bed>', r = document.referrer, d = '$direct';
   try { if (r) d = new URL(r).host; } catch (e) {}
   var now = new Date().toISOString();
   var p = { token: t, distinct_id: '$posthog_cookieless', $cookieless_mode: true, $lib: 'web',
