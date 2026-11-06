@@ -36,6 +36,10 @@ pub const MINIMAL_BEDS: [&str; 1] = ["weeder"];
 /// Where the pull request gate lives.
 pub const WORKFLOW: &str = ".github/workflows/plotplot-check.yml";
 
+/// The last line of the gate `init` writes. The steps below it are the repository's own, in
+/// the same required job, and a second planting keeps them.
+pub const WORKFLOW_END: &str = "      # plotplot:end\n";
+
 /// What `init` prints when a run changed nothing.
 pub const NOTHING: &str = "nothing to do";
 
@@ -350,6 +354,9 @@ pub fn workflow(own_stem: bool) -> String {
 # first pull request that brings this file cannot run it, because the base branch does not
 # have it yet; that one is merged by the repository's operator after review.
 #
+# Steps below the plotplot:end line at the bottom are this repository's own: they run in the
+# same required job, and plotplot init keeps them when it writes this file again.
+#
 # Runs on GitHub's hosted runners and nothing else. A runner of your own, registered on a
 # public repository, lets a pull request from a fork run its own code on that machine
 # (jahala/plotplot issue 7).
@@ -400,7 +407,8 @@ jobs:
         env:
           BASE: ${{{{ steps.range.outputs.base }}}}
         run: plotplot check --strict --base \"$BASE\"
-",
+
+{WORKFLOW_END}",
         check = platform::REQUIRED_CHECK,
     )
 }
@@ -670,10 +678,7 @@ fn plant(
     write_own_manifest(root, &mut planted)?;
 
     // 8. The gate every pull request passes.
-    let workflow_path = root.join(WORKFLOW);
-    if write_if_changed(&workflow_path, workflow(is_stems_own(root)?).as_bytes())? {
-        planted.changed.push(WORKFLOW.to_owned());
-    }
+    write_workflow(root, is_stems_own(root)?, &mut planted)?;
 
     Ok(planted)
 }
@@ -813,6 +818,25 @@ fn write_weeder_guardrails(root: &Path, planted: &mut Planted) -> Result<()> {
         && write_if_changed(&path, text.as_bytes())?
     {
         planted.changed.push(layout::WEEDER_TOML.to_owned());
+    }
+    Ok(())
+}
+
+/// The gate every pull request passes, and every step the repository keeps below its end
+/// marker left as it is.
+fn write_workflow(root: &Path, own_stem: bool, planted: &mut Planted) -> Result<()> {
+    let path = root.join(WORKFLOW);
+    let existing = match std::fs::read_to_string(&path) {
+        Ok(existing) => existing,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
+        Err(source) => return Err(Error::Io { path, source }),
+    };
+    let own_steps = existing
+        .split_once(WORKFLOW_END)
+        .map_or("", |(_, below)| below);
+    let text = format!("{}{own_steps}", workflow(own_stem));
+    if write_if_changed(&path, text.as_bytes())? {
+        planted.changed.push(WORKFLOW.to_owned());
     }
     Ok(())
 }

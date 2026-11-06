@@ -601,6 +601,34 @@ fn a_manifest_the_repository_already_has_is_left_alone() {
 // --------------------------------------------------------------- 8. the PR workflow
 
 #[test]
+fn a_planters_own_steps_below_the_gate_survive_a_second_planting() {
+    // The gate is the stem's down to its end marker; the steps below it are the
+    // repository's, the way the umbrella adds its brand checks to the same required job.
+    let (_tmp, root, template, home) = planted();
+    let path = root.join(".github/workflows/plotplot-check.yml");
+    let written = read(&path);
+    assert!(
+        written.ends_with("      # plotplot:end\n"),
+        "the gate ends at its marker: {written}"
+    );
+    let own = "\n      - name: the planter's own check\n        run: echo mine\n";
+    write(&path, &format!("{written}{own}"));
+
+    let output = init(
+        &root,
+        &home,
+        &[
+            "--harness",
+            "gemini,codex",
+            "--lock",
+            &template.display().to_string(),
+        ],
+    );
+    assert!(output.status.success(), "{output:?}");
+    assert_eq!(read(&path), format!("{written}{own}"));
+}
+
+#[test]
 fn this_repositorys_own_gate_is_the_one_init_writes_for_the_stems_repository() {
     // The umbrella's workflow is what `init` writes for the stem's own repository, with the
     // brand's checks after it; a gate edited by hand here would drift from the one every

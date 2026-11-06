@@ -191,6 +191,10 @@ The first pull request that brings this workflow to a repository cannot run it, 
 pull request is merged by the repository's operator after review (ruled by the umbrella agent
 as operator, 2026-11-06); from then on every pull request is judged by it.
 
+The gate ends at a `# plotplot:end` line. Steps a repository adds below it run in the same
+required job, and `init` keeps them when it writes the file again; this repository's brand
+checks live there.
+
 ## 8. Context cost
 
 The stem adds one description line for its own skill (under 160 characters) and the garden
