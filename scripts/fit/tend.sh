@@ -571,8 +571,10 @@ check_f3() {
   fi
   out="$(run_clean "$CLONE" "$cli" --version 2>&1)"
   status=$?
+  # The version is the first word of the first line, after the cli's own name when it
+  # prints one: "1.0.0", "tend 1.0.0" and "1.0.0 · 04e23ba · 2026-11-05" all say 1.0.0.
   case "$status:$(echo "$out" | head -1)" in
-    "0:$version"|"0:$cli $version") ok "$claim: \"$cli --version\" from the clone's build says \"$(echo "$out" | head -1)\", the manifest's version" ;;
+    "0:$version"|"0:$version "*|"0:$cli $version"|"0:$cli $version "*) ok "$claim: \"$cli --version\" from the clone's build says \"$(echo "$out" | head -1)\", the manifest's version" ;;
     *) not_ok "$claim: \"$cli --version\" exited $status saying \"$out\", not the manifest's $version" ;;
   esac
 }
