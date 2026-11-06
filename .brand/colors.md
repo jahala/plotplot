@@ -67,10 +67,10 @@ colour already. `/petals check` warns when one product's accent appears in anoth
 | the shed | wood and iron | stake | #774F4C | #835A57 | paper | docs that stay true, planned |
 | the shed | wood and iron | copeca | #219282 | same | ink | agent work, measured |
 | the boundary | stone | hedge | #C9C7E7 | same | ink | hard limits and the owner's queue, being built |
+| the boundary | stone | coldframe | #8882A1 | same | ink | tests and CI on the owner's machines, being built |
 | the boundary | stone | well | #4D5972 | #58647E | paper | the one door for paid calls |
 | the seasons | weather | gardener | #C7C784 | same | ink | what runs next, planned |
 | the seasons | weather | almanac | #A19251 | same | ink | what is due, planned |
-| the seasons | weather | coldframe | #4E5A48 | #5A6853 | paper | tests and CI on the owner's machines, planned |
 | the seasons | weather | upkeep | #6E520D | #7D6021 | paper | keeping products alive, planned |
 
 Plate text names the fixed ink a sign's numeral and name use on the bloom: **ink** is soil (`--pp-term-bg`), **paper** is cream (`--pp-term-text`). It follows contrast, so every name stays legible: ink where ink reaches 4.5:1 on the bloom, else paper.
@@ -170,10 +170,16 @@ Color is only on-brand when it is legible. Classes: **reading** ≥ 4.5:1 (body,
 | Stake-night #835A57 on Night #1C1610 | 3.0 | labels |
 | Night-text #F3ECD9 on Stake #774F4C | 5.9 | reading |
 | Night-text #F3ECD9 on Stake-night #835A57 | 5.0 | reading |
+| Copeca #219282 on Paper #FAF5E9 | 3.5 | labels |
+| Copeca #219282 on Night #1C1610 | 4.7 | labels |
+| Night #1C1610 on Copeca #219282 | 4.7 | reading |
 | Hedge #C9C7E7 on Paper #FAF5E9 | 1.5 | decorative |
 | Hedge #C9C7E7 on Night #1C1610 | 10.9 | labels |
 | Night #1C1610 on Hedge #C9C7E7 | 10.9 | reading |
 | Night #1C1610 on Hedge #C9C7E7 | 10.9 | reading |
+| Coldframe #8882A1 on Paper #FAF5E9 | 3.4 | labels |
+| Coldframe #8882A1 on Night #1C1610 | 4.9 | labels |
+| Night #1C1610 on Coldframe #8882A1 | 4.9 | reading |
 | Well #4D5972 on Paper #FAF5E9 | 6.5 | labels |
 | Well-night #58647E on Night #1C1610 | 3.0 | labels |
 | Night-text #F3ECD9 on Well #4D5972 | 6.0 | reading |
@@ -186,10 +192,6 @@ Color is only on-brand when it is legible. Classes: **reading** ≥ 4.5:1 (body,
 | Almanac #A19251 on Night #1C1610 | 5.8 | labels |
 | Night #1C1610 on Almanac #A19251 | 5.8 | reading |
 | Night #1C1610 on Almanac #A19251 | 5.8 | reading |
-| Coldframe #4E5A48 on Paper #FAF5E9 | 6.7 | labels |
-| Coldframe-night #5A6853 on Night #1C1610 | 3.0 | labels |
-| Night-text #F3ECD9 on Coldframe #4E5A48 | 6.2 | reading |
-| Night-text #F3ECD9 on Coldframe-night #5A6853 | 5.0 | reading |
 | Upkeep #6E520D on Paper #FAF5E9 | 6.7 | labels |
 | Upkeep-night #7D6021 on Night #1C1610 | 3.0 | labels |
 | Night-text #F3ECD9 on Upkeep #6E520D | 6.2 | reading |
@@ -298,15 +300,15 @@ Dark mode is "soil at night," not a harsh developer theme. Embedded terminal pan
   --pp-mycelium: #C9A18D;
   --pp-weeder: #A37A6E;
   --pp-stake: #774F4C;
+  --pp-copeca: #219282;
   /* the boundary: stone */
   --pp-hedge: #C9C7E7;
+  --pp-coldframe: #8882A1;
   --pp-well: #4D5972;
   /* the seasons: weather */
   --pp-gardener: #C7C784;
   --pp-almanac: #A19251;
-  --pp-coldframe: #4E5A48;
   --pp-upkeep: #6E520D;
-  --pp-copeca: #219282;
 
   /* the bloom as a word on paper (4.5:1) */
   --pp-pollen-ink: #A844BC;
@@ -337,7 +339,6 @@ Dark mode is "soil at night," not a harsh developer theme. Embedded terminal pan
   --pp-harvest: #8A3EBF;
   --pp-stake: #835A57;
   --pp-well: #58647E;
-  --pp-coldframe: #5A6853;
   --pp-upkeep: #7D6021;
   --pp-pollen-ink: #BD59D2;
   --pp-weeder-word: #A37A6E;
