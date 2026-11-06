@@ -7,6 +7,10 @@ root=$(git rev-parse --show-toplevel)
 cd "$root"
 
 # The first guard that refuses ends the pre-rebase, with its own status.
+if [ ! -x "$root/.plotplot/bin/weeder" ]; then
+	echo "plotplot: weeder, a judge pre-rebase calls, is not placed in this checkout; run \`plotplot lock verify\` here, then try again" >&2
+	exit 1
+fi
 "$root/.plotplot/bin/weeder" guard pre-rebase "$@" || exit $?
 
 exit 0
