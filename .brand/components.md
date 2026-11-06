@@ -31,7 +31,7 @@ Border color defaults to `#E2D8C0` on paper surfaces and `#403628` inside termin
 
 ## Shadow Recipes
 
-Shadows are always ink-tinted: `rgba(58, 39, 24, …)`, never pure black and never blue-gray. On soil-night they are soil-tinted, `rgba(8, 6, 4, …)`, the dark values in `tokens.css`, because an ink-brown shadow vanishes on soil. Two layers: a close contact shadow plus a soft ambient one.
+Shadows are always ink-tinted: `rgba(58, 39, 24, …)`, never pure black and never blue-gray. On soil-night they are soil-tinted, `rgba(8, 6, 4, …)`, because an ink-brown shadow vanishes on soil. `tokens.css` carries no dark shadow yet (petals issue 22), so the reference pages set them in their dark block. Two layers: a close contact shadow plus a soft ambient one.
 
 | Token | Value | Usage |
 |-------|-------|-------|
