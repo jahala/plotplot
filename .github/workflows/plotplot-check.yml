@@ -7,6 +7,9 @@
 # first pull request that brings this file cannot run it, because the base branch does not
 # have it yet; that one is merged by the repository's operator after review.
 #
+# Steps below the plotplot:end line at the bottom are this repository's own: they run in the
+# same required job, and plotplot init keeps them when it writes this file again.
+#
 # Runs on GitHub's hosted runners and nothing else. A runner of your own, registered on a
 # public repository, lets a pull request from a fork run its own code on that machine
 # (jahala/plotplot issue 7).
@@ -63,6 +66,8 @@ jobs:
         env:
           BASE: ${{ steps.range.outputs.base }}
         run: plotplot check --strict --base "$BASE"
+
+      # plotplot:end
 
       - name: the base branch's own scripts, for the checks below
         # The brand's checks read the pull request's tree with the base branch's copies of
