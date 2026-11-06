@@ -93,6 +93,9 @@ status is `unknown`. Words are compared without regard to case, because sources 
   true. A document without `noise` has not been checked, and says nothing about how clean it is.
 - **Signals show their rule.** A judged signal appears only after its judgement passed a
   blind-graded bar, and names it.
+- **No category yet.** How a need weighs on the person (headache, convenience or wish) was measured on
+  2026-11-06 and is not in the format: the judge's labels moved with the question's wording more than its bar
+  allows. A reader does not infer it from `kind` or `resolution` (cultivate `docs/research/validation-category-2026-11-06.md`).
 
 ## Lifetime
 
