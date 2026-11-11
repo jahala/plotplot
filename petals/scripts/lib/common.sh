@@ -69,3 +69,19 @@ brand_prefix() {
       print list
     }' "$colors"
 }
+
+# Whether a brand has a dark theme: a [data-theme="dark"] CSS block inside
+# one of colors.md's code fences, the block export-tokens.sh derives the dark
+# tokens from. Returns 0 when it has one, 1 when it has none or colors.md is
+# missing. A brand's night values (the Shadow Recipes Night column) count
+# only when it has one; every script asks here.
+brand_has_dark() {
+  [[ -f "$1" ]] || return 1
+  awk '
+    /^[ \t]*```/ { infence = !infence; next }
+    infence { text = text $0 "\n" }
+    END {
+      gsub(/\/\*([^*]|\*+[^*\/])*\*+\//, "", text)
+      exit (text ~ /(^|[;{}\n])[ \t\n]*\[data-theme[ ]*=[ ]*\042dark\042\][ \t\n]*\{/) ? 0 : 1
+    }' "$1"
+}

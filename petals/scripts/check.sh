@@ -2,14 +2,17 @@
 # petals/scripts/check.sh — the deterministic core of /petals check.
 #
 # Covers the pure-math dimensions without an agent in the loop:
-#   color    — hex literals vs the palette (data-URI/base64/url() excluded),
-#              nearest palette match by RGB distance; contrast ratios for
+#   color    — colour literals vs the palette: hex, oklch(), oklab(), rgb()
+#              and hsl(), a colour outside sRGB reported as such (data-URI/
+#              base64/url() excluded), nearest palette match by RGB distance;
+#              contrast ratios for
 #              same-rule color/background pairs (one-level var() resolution):
 #              < 3.0 error, 3.0–4.5 warning (verify the pair class), >= 4.5 pass
 #   layout   — padding/margin/gap px vs the spacing scale (multiples rule),
 #              @media widths vs the documented breakpoints
 #   surface  — border-radius vs the radius scale, overshoot cubic-beziers,
-#              un-tinted (pure black) shadows
+#              un-tinted (pure black) shadows, box-shadows vs the Shadow
+#              Recipes (in a dark theme, the recipes' Night values)
 #   voice    — forbidden terms (with replacements), unambiguous banned
 #              terminology phrases, capitalized product names
 #
@@ -144,10 +147,39 @@ TERMS=$(awk -F'|' '/^## Terminology/{f=1} /^## /{if(f&&$0!~/Terminology/)f=0} f 
 # A spacing value equal to one is a hairline seam, not off-scale.
 STROKES=$(awk -F'|' '/^## Border Strokes/{f=1;next} /^## /{f=0} f && NF>=4 && $2!~/Token|---/ { if(match($3, /[0-9.]+px/)){ v=substr($3, RSTART, RLENGTH-2); if(v ~ /^[0-9]+$/) printf "%s ", v } }' "$BRAND/components.md" 2>/dev/null)
 
-# Every stroke width (decimals too) and the shadow recipes, for the surface
-# audit of borders, outlines and box-shadows.
+# Every stroke width (decimals too), for the surface audit of borders and
+# outlines.
 STROKEW=$(awk -F'|' '/^## Border Strokes/{f=1;next} /^## /{f=0} f && NF>=4 && $2!~/Token|---/ { if(match($3, /[0-9.]+px/)) printf "%s ", substr($3, RSTART, RLENGTH-2) }' "$BRAND/components.md" 2>/dev/null)
-SHADOWS=$(awk -F'|' '/^## Shadow Recipes/{f=1;next} /^## /{f=0} f && NF>=4 && $2!~/Token|---/ { v=$3; gsub(/`/, "", v); gsub(/^ +| +$/, "", v); if(v!="") print v }' "$BRAND/components.md" 2>/dev/null | tr '\n' '\036')
+# Shadow recipes: "token|value|night" rows of components.md's Shadow Recipes
+# tables, newline -> \036, the columns found by their headers (Token or
+# Name, Value, Night) as export-tokens.sh finds them. The night value, from
+# the optional Night column, is read only for a brand with a dark theme
+# (brand_has_dark in lib/common.sh); otherwise it stays empty, and no night
+# rule applies. A night cell in prose is skipped, as export-tokens.sh skips
+# it (as_shadow there; the night-shadows spec compares the two).
+SHADOW_NIGHT=0
+if brand_has_dark "$BRAND/colors.md"; then SHADOW_NIGHT=1; fi
+SHADOWS=$(awk -F'|' -v night="$SHADOW_NIGHT" '
+  function cell(c,   v){ v=(c ? $c : ""); gsub(/`/, "", v); gsub(/^[ \t]+|[ \t]+$/, "", v); return v }
+  function isshadow(v,   r){ r=v; gsub(/rgba?\([ 0-9.,%\/]+\)/, "", r); gsub(/#[0-9A-Fa-f]+/, "", r); gsub(/inset|px|rem|em/, "", r); return r ~ /^[0-9., -]+$/ && r ~ /[0-9]/ }
+  /^## Shadow Recipes/{ f=1; hdr=0; next }
+  /^## /{ f=0 }
+  f && !/^[ \t]*\|/{ hdr=0; next }
+  f && !hdr { tc=0; vc=0; nc=0; for(c=2;c<NF;c++){ h=tolower(cell(c)); if(h=="token" || h=="name") tc=c; else if(h=="value") vc=c; else if(h=="night") nc=c }; hdr=1; next }
+  f && vc && $0 !~ /^[ \t]*\|[ \t:|-]+$/ { v=cell(vc); if(v!="") nv=(night ? cell(nc) : ""); print cell(tc) "|" v "|" (isshadow(nv) ? nv : "") }' "$BRAND/components.md" 2>/dev/null | tr '\n' '\036')
+# Shadow tints: the colours components.md's Shadow Recipes section names, as
+# hex, the Night column's among them. A shadow may use one even when
+# colors.md does not hold it (a night tint, say); the section writes them as
+# #RRGGBB or rgb triples with the alpha left open, rgba(R, G, B, ...).
+SHADOWTINTS=$(awk '/^## Shadow Recipes/{f=1;next} /^## /{f=0} f {
+  s=$0
+  while(match(s, /#[0-9a-fA-F]{6}|rgba?\([ ]*[0-9]+[ ]*,[ ]*[0-9]+[ ]*,[ ]*[0-9]+/)){
+    t=substr(s, RSTART, RLENGTH); s=substr(s, RSTART+RLENGTH)
+    if(t ~ /^#/){ print toupper(t); continue }
+    sub(/^[^(]*\(/, "", t); split(t, ch, /[ ]*,[ ]*/)
+    if(ch[1]<=255 && ch[2]<=255 && ch[3]<=255) printf "#%02X%02X%02X\n", ch[1], ch[2], ch[3]
+  }
+}' "$BRAND/components.md" 2>/dev/null | sort -u | tr '\n' ' ')
 
 # Em dashes: judged only when voice.md bans them
 EMBAN=0
@@ -218,8 +250,10 @@ THEMEVARS=$(awk '
     }
   }
   function decls(a, d,   j, dark, nm, v){
-    if(!match(a, /--[A-Za-z0-9-]+[ \t\n]*:[ \t\n]*#[0-9a-fA-F]+/)) return
-    a=substr(a, RSTART, RLENGTH); nm=a; sub(/[ \t\n]*:.*/, "", nm); v=a; sub(/.*:[ \t\n]*/, "", v)
+    if(!match(a, /--[A-Za-z0-9-]+[ \t\n]*:[ \t\n]*(#[0-9a-fA-F]+|[A-Za-z]+\([^()]*\))/)) return
+    a=substr(a, RSTART, RLENGTH); nm=a; sub(/[ \t\n]*:.*/, "", nm); v=a; sub(/^[^:]*:[ \t\n]*/, "", v)
+    if(v !~ /^#/ && tolower(v) !~ /^(rgba?|hsla?|oklch|oklab)\(/) return
+    gsub(/[ \t\n]+/, " ", v)
     dark=0
     for(j=1;j<=d;j++) if(sel[j] ~ /data-theme[ ]*=[ ]*["\047]?(dark|night)|\.dark([^a-z-]|$)|prefers-color-scheme[ ]*:[ ]*dark/) dark=1
     print (dark ? "D" : "L") "|" nm "|" v
@@ -268,7 +302,7 @@ if [ -z "$STAGE" ]; then
 fi
 
 awk -v palette="$PALETTE" -v radii="$RADII" -v bps="$BREAKPOINTS" \
-    -v unit="$SPACE_UNIT" -v forbidden="$FORBIDDEN" -v docpairs="$DOCPAIRS" -v accents="$ACCENTS" -v product="$PRODUCT" -v terms="$TERMS" -v pnames="$PRODUCT_NAMES" -v sarif="$([ "$FORMAT" = sarif ] && echo 1 || echo 0)" -v uri="$URI" -v fonts="$FONTS" -v markup="$MARKUP" -v md="$MDFILE" -v strokes="$STROKES" -v emban="$EMBAN" -v faces="$FACES" -v cssfile="$CSSFILE" -v garden="$GARDEN" -v stage="$STAGE" -v contracts="$CONTRACTS" -v hascontracts="$HAS_CONTRACTS" -v themevars="$THEMEVARS" -v strokew="$STROKEW" -v shadows="$SHADOWS" '
+    -v unit="$SPACE_UNIT" -v forbidden="$FORBIDDEN" -v docpairs="$DOCPAIRS" -v accents="$ACCENTS" -v product="$PRODUCT" -v terms="$TERMS" -v pnames="$PRODUCT_NAMES" -v sarif="$([ "$FORMAT" = sarif ] && echo 1 || echo 0)" -v uri="$URI" -v fonts="$FONTS" -v markup="$MARKUP" -v md="$MDFILE" -v strokes="$STROKES" -v emban="$EMBAN" -v faces="$FACES" -v cssfile="$CSSFILE" -v garden="$GARDEN" -v stage="$STAGE" -v contracts="$CONTRACTS" -v hascontracts="$HAS_CONTRACTS" -v themevars="$THEMEVARS" -v strokew="$STROKEW" -v shadows="$SHADOWS" -v shadowtints="$SHADOWTINTS" '
 function hexval(c,   i){ return index("0123456789ABCDEF", toupper(c)) - 1 }
 function h2(s){ return hexval(substr(s,1,1))*16 + hexval(substr(s,2,1)) }
 function expand(h){ if(length(h)==4) return "#" substr(h,2,1) substr(h,2,1) substr(h,3,1) substr(h,3,1) substr(h,4,1) substr(h,4,1); return h }
@@ -278,6 +312,141 @@ function lum(h,   a){ rgb(h,a); return 0.2126*chan(a[1]) + 0.7152*chan(a[2]) + 0
 function ratio(f,b,   lf,lb,hi,lo){ lf=lum(f); lb=lum(b); hi=(lf>lb?lf:lb); lo=(lf>lb?lb:lf); return (hi+0.05)/(lo+0.05) }
 function nearest(h,   a,b,i,d,best,bd){ rgb(h,a); bd=1e9; for(i=1;i<=np;i++){ rgb(pal[i],b); d=(a[1]-b[1])^2+(a[2]-b[2])^2+(a[3]-b[3])^2; if(d<bd){bd=d;best=pal[i]} } return best }
 function nearname(h,   n){ n=nearest(h); return (n in accent_owner) ? n " (" accent_owner[n] "\047s product accent)" : n }
+
+# ── colour notations: oklch(), oklab(), rgb()/rgba(), hsl()/hsla() ──
+# cfn reads one colour function, written whole as "name(...)", and returns
+# "#RRGGBB"; "!" when the colour lies outside sRGB, never moved into it; or ""
+# when it is not a literal (var(), calc(), relative syntax, a bad argument).
+# calpha keeps the alpha it read, 1 when none is written. One converter per
+# notation. The OKLab and gamma arithmetic is new-brand.py\047s, and
+# tests/colour-notations.spec.sh compares the two on a sweep.
+function cfn(s,   nm, body){
+  nm=tolower(s); sub(/\(.*/, "", nm)
+  body=s; sub(/^[^(]*\(/, "", body); sub(/\)$/, "", body)
+  cbad=0; calpha=1
+  if(nm=="rgb" || nm=="rgba") return fromrgb(body)
+  if(nm=="hsl" || nm=="hsla") return fromhsl(body)
+  if(nm=="oklab") return fromoklab(body)
+  if(nm=="oklch") return fromoklch(body)
+  return ""
+}
+# Splits a function body into its n channels, cp[1..n], and reads calpha.
+# legacy allows the comma syntax rgb() and hsl() still have. 0 when malformed.
+function cparts(body, n, legacy,   m, k, al){
+  al=""; gsub(/^[ \t\n]+|[ \t\n]+$/, "", body)
+  if(index(body, ",")){
+    if(!legacy || index(body, "/")) return 0
+    m=split(body, cp, /[ \t\n]*,[ \t\n]*/)
+    if(m==n+1){ al=cp[m]; m=n }
+  } else {
+    k=index(body, "/")
+    if(k){ al=substr(body, k+1); body=substr(body, 1, k-1); gsub(/^[ \t\n]+|[ \t\n]+$/, "", al); sub(/[ \t\n]+$/, "", body) }
+    m=split(body, cp, /[ \t\n]+/)
+  }
+  if(m!=n) return 0
+  if(al!=""){ calpha=cnum(al, 1); if(calpha<0) calpha=0; if(calpha>1) calpha=1 }
+  return !cbad
+}
+# A number or a percentage; full is what 100% stands for. none is 0.
+function cnum(tok, full){
+  if(tok=="none") return 0
+  if(tok ~ /^[+-]?([0-9]+\.?[0-9]*|\.[0-9]+)([eE][+-]?[0-9]+)?%$/) return substr(tok, 1, length(tok)-1) / 100 * full
+  if(tok ~ /^[+-]?([0-9]+\.?[0-9]*|\.[0-9]+)([eE][+-]?[0-9]+)?$/) return tok + 0
+  cbad=1; return 0
+}
+# A hue in degrees, from a bare number or deg, rad, grad or turn.
+function cangle(tok,   u, v){
+  if(tok=="none") return 0
+  u="deg"; v=tok
+  if(match(tok, /(deg|rad|grad|turn)$/)){ u=substr(tok, RSTART); v=substr(tok, 1, RSTART-1) }
+  if(v !~ /^[+-]?([0-9]+\.?[0-9]*|\.[0-9]+)([eE][+-]?[0-9]+)?$/){ cbad=1; return 0 }
+  v+=0
+  if(u=="rad") return v * (180 / atan2(0, -1))
+  if(u=="grad") return v * 0.9
+  if(u=="turn") return v * 360
+  return v
+}
+# A gamma-encoded channel, 0 to 1, as a byte (new-brand.py rounds the same way).
+function cbyte(c){ c=int(c * 255 + 0.5); return (c > 255) ? 255 : (c < 0 ? 0 : c) }
+function fromrgb(body,   i, v, out){
+  if(!cparts(body, 3, 1)) return ""
+  out=0
+  for(i=1;i<=3;i++){ v=cnum(cp[i], 255); if(v<0 || v>255) out=1; cc[i]=int(v + 0.5) }
+  if(cbad) return ""
+  if(out) return "!"
+  return sprintf("#%02X%02X%02X", cc[1], cc[2], cc[3])
+}
+# CSS Color 4\047s hsl-to-rgb. It works in percent, where whole-number inputs
+# stay exact, so a channel that lands on a half rounds up as browsers do
+# (hsl(0 80% 50%) is rgb(230, 26, 26)); the spec checks it against exact
+# rational arithmetic.
+function fromhsl(body,   h, s, l, a, i, k, v){
+  if(!cparts(body, 3, 1)) return ""
+  h=cangle(cp[1]); s=cnum(cp[2], 100); l=cnum(cp[3], 100)
+  if(cbad) return ""
+  if(s<0 || s>100 || l<0 || l>100) return "!"
+  h=h % 360; if(h<0) h+=360
+  a=s * (l < 100-l ? l : 100-l) / 100
+  split("0 8 4", hn, " ")
+  for(i=1;i<=3;i++){
+    k=(hn[i] + h/30) % 12
+    v=k-3; if(9-k < v) v=9-k; if(v>1) v=1; if(v<-1) v=-1
+    cc[i]=int((l - a*v) * 255 / 100 + 0.5)
+  }
+  return sprintf("#%02X%02X%02X", cc[1], cc[2], cc[3])
+}
+# OKLab to "#RRGGBB" through linear sRGB: new-brand.py\047s oklab_to_linear,
+# in_gamut and to_gamma. A colour outside sRGB is "!".
+function oklabhex(L, a, b,   l_, m_, s_, l, m, s, i){
+  l_ = L + 0.3963377774 * a + 0.2158037573 * b
+  m_ = L - 0.1055613458 * a - 0.0638541728 * b
+  s_ = L - 0.0894841775 * a - 1.2914855480 * b
+  l = l_*l_*l_; m = m_*m_*m_; s = s_*s_*s_
+  cc[1] = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s
+  cc[2] = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s
+  cc[3] = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s
+  for(i=1;i<=3;i++){
+    if(cc[i] < -1e-7 || cc[i] > 1 + 1e-7) return "!"
+    cc[i] = (cc[i] < 0) ? 0 : (cc[i] > 1 ? 1 : cc[i])
+    cc[i] = (cc[i] <= 0.0031308) ? 12.92 * cc[i] : 1.055 * cc[i] ^ (1 / 2.4) - 0.055
+  }
+  return sprintf("#%02X%02X%02X", cbyte(cc[1]), cbyte(cc[2]), cbyte(cc[3]))
+}
+function fromoklab(body,   L, a, b){
+  if(!cparts(body, 3, 0)) return ""
+  L=cnum(cp[1], 1); a=cnum(cp[2], 0.4); b=cnum(cp[3], 0.4)
+  if(cbad) return ""
+  L=(L < 0) ? 0 : (L > 1 ? 1 : L)
+  return oklabhex(L, a, b)
+}
+function fromoklch(body,   L, C, h, rad){
+  if(!cparts(body, 3, 0)) return ""
+  L=cnum(cp[1], 1); C=cnum(cp[2], 0.4); h=cangle(cp[3])
+  if(cbad) return ""
+  L=(L < 0) ? 0 : (L > 1 ? 1 : L); if(C < 0) C=0
+  rad=h * (atan2(0, -1) / 180)
+  return oklabhex(L, C * cos(rad), C * sin(rad))
+}
+# A colour value as the opaque hex contrast needs, else "": a translucent
+# colour takes its look from whatever lies behind it, which the check cannot see.
+function opaque(v,   hx){
+  if(!match(v, /^[A-Za-z]+\([^()]*\)/)) return ""
+  hx=cfn(substr(v, 1, RLENGTH))
+  return (hx ~ /^#/ && calpha >= 1) ? hx : ""
+}
+# One colour literal against the palette. shown is the text as written; hx
+# is its hex, "!" outside sRGB, "" when it is not a literal. pre is the line
+# up to the literal: in a shadow declaration a Shadow Recipes tint is on-brand.
+function judgecolour(shown, hx, pre,   found, i){
+  if(hx=="") return
+  if(hx=="!"){ err("color", "line " NR ": " shown " is outside sRGB, so it is not in the palette (every palette colour is an sRGB hex). Use a palette colour."); return }
+  found=0
+  for(i=1;i<=np;i++) if(pal[i]==hx){ found=1; break }
+  if(!found && (hx in tint_ok)){ sub(/.*[;{\042]/, "", pre); if(tolower(pre) ~ /shadow[a-z0-9-]*[ \t]*:/) found=1 }
+  if(!found) err("color", "line " NR ": " shown (shown ~ /^#/ ? "" : " (" hx ")") " is not in the palette. Did you mean " nearname(hx) "?")
+  else if(product!="" && (hx in accent_owner) && accent_owner[hx]!=product)
+    warn("color", "line " NR ": " hx " is " accent_owner[hx] "\047s product accent. Product accents mark products, not " product " UI (products/" product "/colors.md).")
+}
 function err(dim,msg){ if(sarif) keep("error", dim, msg); else printf "ERROR [%s] %s\n", dim, msg; e[dim]++ }
 function warn(dim,msg){ if(sarif) keep("warning", dim, msg); else printf "WARNING [%s] %s\n", dim, msg; w[dim]++ }
 function note(dim,msg){ if(sarif) keep("note", dim, msg); else printf "NOTE [%s] %s\n", dim, msg; notecount[dim]++ }
@@ -612,12 +781,20 @@ iscopy {
 
 BEGIN{
   nstw=split(strokew, sw, " "); for(i=1;i<=nstw;i++) strokew_ok[sw[i]+0]=1
+  ntint=split(shadowtints, tints, " "); for(i=1;i<=ntint;i++) tint_ok[tints[i]]=1
+  # every recipe, light or night, is a documented shadow; a light recipe
+  # whose row has a night value is the light half of that row (nightof)
   nshadow=split(shadows, shr, "\036")
-  for(i=1;i<=nshadow;i++){ if(shr[i]=="") continue; v=tolower(shr[i]); gsub(/[ \t]/, "", v); shadow_ok[v]=1; gsub(/rgba\(58,39,24,/, "rgba(8,6,4,", v); shadow_ok[v]=1 }
+  for(i=1;i<=nshadow;i++){
+    if(split(shr[i], sr, "|")<3) continue
+    v=tolower(sr[2]); gsub(/[ \t]/, "", v); nv=tolower(sr[3]); gsub(/[ \t]/, "", nv)
+    shadow_ok[v]=1
+    if(nv!=""){ shadow_ok[nv]=1; night_ok[nv]=1; nightof[v]=sr[3]; nightname[v]=sr[1] }
+  }
   ntv=split(themevars, tvrows, "\036")
   for(i=1;i<=ntv;i++){
     if(split(tvrows[i], tv, "|")<3) continue
-    if(tv[1]=="D"){ dvars[tv[2]]=toupper(expand(tv[3])); hasdark=1 } else lvars[tv[2]]=toupper(expand(tv[3]))
+    if(tv[1]=="D"){ dvars[tv[2]]=resolve(tv[3]); hasdark=1 } else lvars[tv[2]]=resolve(tv[3])
   }
   nfaces=split(faces, facerows, "\036")
   for(i=1;i<=nfaces;i++){
@@ -654,6 +831,26 @@ BEGIN{
 
 {
   line=$0
+  # In a markup page a <script> block is program data, not styling: its
+  # colours (a canvas gradient stop, a fillStyle string) and object literals
+  # are not judged by the CSS rules below (issue #74). A file that is all
+  # script (.tsx, .js) is not markup and stays judged.
+  if(markup){
+    sl=""
+    while(line!=""){
+      if(inscript){
+        k=index(line, "</script>")
+        if(k==0){ line=""; break }
+        line=substr(line, k+9); inscript=0
+      } else if(match(line, /<script[ >][^>]*>|<script>/)){
+        sl=sl substr(line, 1, RSTART-1); line=substr(line, RSTART+RLENGTH); inscript=1
+      } else { sl=sl line; line="" }
+    }
+    line=sl
+  }
+  # the theme the line opens in, then the line read into it
+  ldepth=thdepth; ldark=thdark; lacc=thacc
+  darkafter(line, 1)
   # ── collect custom properties (one-level var resolution) ──
   tmp=line
   while(match(tmp, /--[A-Za-z0-9-]+:[ ]*#[0-9a-fA-F]{3,6}/)){
@@ -662,8 +859,14 @@ BEGIN{
     vars[dkv[1]] = toupper(expand(dkv[2]))
     tmp=substr(tmp, RSTART+RLENGTH)
   }
+  tmp=line
+  while(match(tmp, /--[A-Za-z0-9-]+:[ ]*[A-Za-z]+\([^()]*\)/)){
+    cvn=substr(tmp, RSTART, RLENGTH); tmp=substr(tmp, RSTART+RLENGTH)
+    cvv=cvn; sub(/^[^:]*:[ ]*/, "", cvv); sub(/:.*/, "", cvn)
+    if(tolower(cvv) ~ /^(rgba?|hsla?|oklch|oklab)\(/) vars[cvn]=resolve(cvv)
+  }
 
-  # ── color: hex literals vs palette (with exclusions) ──
+  # ── color: hex and colour-function literals vs palette (with exclusions) ──
   clean=line
   # attribute values that name things, never colours
   gsub(/(href|xlink:href|id|class|src|srcset|name|for|action|alt|title|content|value|placeholder|aria-[a-z-]+|data-[a-z-]+)[ ]*=[ ]*("[^"]*"|\047[^\047]*\047)/, "", clean)
@@ -679,15 +882,20 @@ BEGIN{
   gsub(/url\([^)]*\)/, "", clean)
   gsub(/data:[^"'\''() ]*/, "", clean)
   gsub(/--[A-Za-z0-9-]+:[ ]*#[0-9a-fA-F]+/, "", clean)  # var defs already palette-checked as literals below would dup
-  tmp=clean
+  tmp=clean; seen=0
   while(match(tmp, /#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}[^0-9a-fA-F]/)){
-    hx=substr(tmp, RSTART, RLENGTH); sub(/[^0-9a-fA-F#]$/, "", hx)
-    uhx=toupper(expand(hx)); found=0
-    for(i=1;i<=np;i++) if(pal[i]==uhx){found=1;break}
-    if(!found) err("color", "line " NR ": " hx " is not in the palette. Did you mean " nearname(uhx) "?")
-    else if(product!="" && (uhx in accent_owner) && accent_owner[uhx]!=product)
-      warn("color", "line " NR ": " uhx " is " accent_owner[uhx] "\047s product accent. Product accents mark products, not " product " UI (products/" product "/colors.md).")
-    tmp=substr(tmp, RSTART+RLENGTH)
+    hx=substr(tmp, RSTART, RLENGTH); sub(/[^0-9a-fA-F#]$/, "", hx); hpre=substr(clean, 1, seen+RSTART-1)
+    seen+=RSTART+RLENGTH-1; tmp=substr(tmp, RSTART+RLENGTH)
+    judgecolour(hx, toupper(expand(hx)), hpre)
+  }
+  # colour functions, custom property values among them; one with var() or
+  # calc() inside holds a parenthesis, so it never matches and is not judged
+  tmp=clean; seen=0
+  while(match(tolower(tmp), /(^|[^a-z0-9_-])(rgba?|hsla?|oklch|oklab)\([^()]*\)/)){
+    fx=substr(tmp, RSTART, RLENGTH); fpre=substr(clean, 1, seen+RSTART-1)
+    seen+=RSTART+RLENGTH-1; tmp=substr(tmp, RSTART+RLENGTH)
+    sub(/^[^A-Za-z]/, "", fx)
+    judgecolour(fx, cfn(fx), fpre)
   }
   # var definitions are also brand values — check them too
   tmp=line
@@ -702,30 +910,17 @@ BEGIN{
   # ── JSX inline style contrast ──
   if(line ~ /style[ ]*=[ ]*\{\{/ && line !~ /\/\*.*\*\// && line !~ /<!-- /){
     jsxfg=""; jsxbg=""
-    if(match(line, /color:[ ]*"#[0-9a-fA-F]{3,6}"/)){
+    if(match(line, /color:[ ]*"(#[0-9a-fA-F]{3,6}|[A-Za-z]+\([^()\042]*\))"/)){
       c=substr(line, RSTART, RLENGTH)
       gsub(/color:[ ]*"/, "", c); gsub(/"/, "", c)
-      jsxfg=toupper(expand(c))
+      if(c ~ /^#/ || tolower(c) ~ /^(rgba?|hsla?|oklch|oklab)\(/) jsxfg=resolve(c)
     }
-    if(match(line, /background(Color)?:[ ]*"#[0-9a-fA-F]{3,6}"/)){
+    if(match(line, /background(Color)?:[ ]*"(#[0-9a-fA-F]{3,6}|[A-Za-z]+\([^()\042]*\))"/)){
       c=substr(line, RSTART, RLENGTH)
       sub(/background(Color)?:[ ]*"/, "", c); gsub(/"/, "", c)
-      jsxbg=toupper(expand(c))
+      if(c ~ /^#/ || tolower(c) ~ /^(rgba?|hsla?|oklch|oklab)\(/) jsxbg=resolve(c)
     }
-    if(jsxfg!="" && jsxbg!=""){
-      r=ratio(jsxfg,jsxbg)
-      key=jsxfg "|" jsxbg; cls=(key in docclass) ? docclass[key] : ((jsxbg "|" jsxfg) in docclass ? docclass[jsxbg "|" jsxfg] : "")
-      if(cls ~ /decorative/)
-        err("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1, a documented decorative-only pair (colors.md Contrast Pairings): never words.")
-      else if(cls ~ /label|display/){
-        if(r<3.0) err("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1, below the 3.0:1 labels minimum (colors.md Contrast Pairings).")
-      }
-      else if(cls ~ /reading/){
-        if(r<4.5) err("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1, below the 4.5:1 reading minimum (colors.md Contrast Pairings).")
-      }
-      else if(r<3.0) err("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1, below the 3.0:1 labels minimum (colors.md Contrast Pairings).")
-      else if(r<4.5) warn("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1, labels & display only; verify the pair class for reading copy (4.5:1).")
-    }
+    judgepair(jsxfg, jsxbg, NR, "")
   }
   # ── rule-block accumulation for contrast ──
   if(line ~ /{/ && blockstart==0){ blockstart=NR; block="" }
@@ -827,7 +1022,8 @@ BEGIN{
   }
   # a box-shadow is a token, none, or a documented recipe
   if(nshadow>0 && match(line, /box-shadow[ ]*:[ ]*[^;}]*/)){
-    sv=substr(line, RSTART, RLENGTH); sub(/^[^:]*:[ ]*/, "", sv); gsub(/!important/, "", sv)
+    sv=substr(line, RSTART, RLENGTH); sdark=darkafter(substr(line, 1, RSTART-1), 0)
+    sub(/^[^:]*:[ ]*/, "", sv); gsub(/!important/, "", sv)
     nsv=tolower(sv); gsub(/[ \t]/, "", nsv)
     # an inset ring with no offset and no blur is a stroke drawn without
     # moving layout: judge its width as a stroke, not as a shadow
@@ -838,6 +1034,9 @@ BEGIN{
     }
     if(nsv!="" && nsv!="none" && nsv !~ /^var\(/ && nsv !~ /^(inherit|initial|unset)$/ && nsv !~ /rgba\(0,0,0|#000([^0-9a-f]|$)/ && !(nsv in shadow_ok))
       warn("surface", "line " NR ": box-shadow matches no shadow recipe. Use a shadow token or a recipe from components.md Shadow Recipes.")
+    # in a dark theme, a recipe with a night value is held to that value
+    else if(sdark && (nsv in nightof) && !(nsv in night_ok))
+      warn("surface", "line " NR ": box-shadow in the dark theme is " (nightname[nsv]!="" ? nightname[nsv] "\047s" : "a") " light recipe. Its night recipe is " nightof[nsv] " (components.md Shadow Recipes, Night).")
   }
   # ── voice: forbidden terms, terminology, product casing ──
   if(iscopy){
@@ -883,10 +1082,29 @@ function judgepair(fg, bg, ln, tag,   r, key, cls, pre){
   else if(r<4.5) warn("color", pre ", labels & display only; verify the pair class for reading copy (4.5:1)." tag)
 }
 
+# The theme at the end of text s, read on from the start of the current line
+# (ldepth, ldark, lacc): 1 inside a block whose selector, or an enclosing
+# one, marks a dark theme, the markers THEMEVARS reads. thdark is the depth
+# that block opened at, 0 outside any. With keep set, the state after s is
+# carried to the next line.
+function darkafter(s, keep,   t, n, i, tk, d, dd, acc){
+  gsub(/\/\*([^*]|\*+[^*\/])*\*+\//, "", s)
+  t=s; gsub(/[{};]/, "\034&\034", t); n=split(t, tk, "\034")
+  d=ldepth; dd=ldark; acc=lacc
+  for(i=1;i<=n;i++){
+    if(tk[i]=="{"){ d++; if(!dd && acc ~ /data-theme[ ]*=[ ]*["\047]?(dark|night)|\.dark([^a-z-]|$)|prefers-color-scheme[ ]*:[ ]*dark/) dd=d; acc="" }
+    else if(tk[i]=="}"){ if(dd==d) dd=0; if(d>0) d--; acc="" }
+    else if(tk[i]==";") acc=""
+    else acc=acc tk[i]
+  }
+  if(keep){ thdepth=d; thdark=dd; thacc=acc }
+  return dd>0
+}
+
 # Resolve a value in one theme: dark overrides sit on top of the light values;
 # a value the pre-pass did not see falls back to the streaming resolver.
 function resolvet(v, t,   nm){
-  gsub(/^[ ]+|[ ;}!].*$/, "", v)
+  sub(/^[ ]+/, "", v)
   if(v ~ /^var\(/){
     nm=v; gsub(/^var\(|\).*$/, "", nm); gsub(/[, ].*$/, "", nm)
     if(t=="dark" && (nm in dvars)) return dvars[nm]
@@ -899,6 +1117,8 @@ function resolvet(v, t,   nm){
 function neareststroke(w,   i, best, bd, d){ bd=1e9; for(i=1;i<=nstw;i++){ d=w-sw[i]; if(d<0) d=-d; if(d<bd){ bd=d; best=sw[i] } } return best "px" }
 
 function resolve(v,   m){
+  sub(/^[ \t\n]+/, "", v)
+  if(tolower(v) ~ /^(rgba?|hsla?|oklch|oklab)\(/) return opaque(v)
   gsub(/^[ ]+|[ ;}!].*$/, "", v)
   if(v ~ /^var\(/){ gsub(/^var\(|\).*$/, "", v); gsub(/[, ].*$/, "", v); return (v in vars) ? vars[v] : "" }
   if(v ~ /^#[0-9a-fA-F]+$/) return toupper(expand(v))

@@ -163,6 +163,8 @@ After the templates are populated, derive two machine views with `bash petals/sc
 - `.brand/tokens.css`: every brand value as a CSS custom property under the brand's token prefix. Colors, font stacks, spacing, radius, strokes, shadows, motion. Projects import it and reference variables instead of hard-coding values.
 - `.brand/tokens.json`: the same values in W3C design-tokens shape (`{ "$value", "$type" }` groups: color, fontFamily, space, layout, radius, stroke, shadow, motion). Build tools and CSS-framework theme configs consume this directly.
 
+A brand with a dark theme also gets a `[data-theme="dark"]` block in tokens.css and a `dark` group in tokens.json. They hold the dark colours from colors.md and, when the Shadow Recipes table has a Night column, the night shadows from it. Fill that column only with values the source states for the dark theme.
+
 The prefix is the `{{PREFIX}}` you fill in colors.md's CSS Custom Properties block: the prefix the source's own custom properties share, or the brand name in lowercase when the source has none (`--acme-`). Every script reads it from that block, so every property there carries it; a block that mixes prefixes is refused, never guessed.
 
 Leave a value that was flagged rather than extracted out of the CSS blocks (colors.md's custom properties, typography.md's fallback stacks), so no token carries it: a generated view must not launder a guess into a value. In the tables the script skips a value that is prose rather than a CSS value. Regenerate both files on every `/petals update` the same way.
