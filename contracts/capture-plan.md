@@ -26,6 +26,7 @@ Each source entry holds:
 | `lifetime_days` | for a private stream | how long its records are kept before the prune command deletes them |
 | `terms` | when the manifest sets `terms_per_site` | the site's own terms, as facts, in the manifest's shape |
 | `posting` | no | the place's own posting rules, as facts, in the manifest's `posting` shape (`contracts/adapter.md`). A place's rules are the source's `rules` plus the entry's. Its `promotion` is the entry's when the entry gives one, else the source's |
+| `volume` | no | the place's recent volume, last measured, as a fact, in the manifest's `volume` shape (`contracts/adapter.md`), for a generic adapter whose places differ |
 | `ruling` | when the source's terms restrict the use | the owner's ruling: `use` (`allowed` or `refused`), `by`, `on` and `says`, copied from the owner's rulings file (`contracts/rulings.md`) |
 | `bots` | no | handles on this source the owner knows to be programs, as the source writes them; their records are marked `author_kind` bot, from the plan |
 | `budget` | when the adapter is paid or needs a credential | the well budget the entry spends; the owner chooses it, and mull refuses to run such an adapter without one, since its requests go through well |
