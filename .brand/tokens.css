@@ -90,6 +90,7 @@
   --pp-stroke-hairline: 1px;
   --pp-stroke-emphasis: 1.5px;
   --pp-stroke-rule: 2px;
+  --pp-stroke-bar: 6px;
 
   /* shadow */
   --pp-shadow-rest: 0 1px 0 #E2D8C0, 0 12px 40px -16px rgba(58, 39, 24, 0.35);

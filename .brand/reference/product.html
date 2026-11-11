@@ -58,6 +58,7 @@
     --pp-space-2xl:96px; --pp-space-3xl:128px;
     --pp-container-max:1200px; --pp-gutter:32px;
     /* radius */
+    --pp-stroke-bar:6px;
     --pp-radius-xs:3px; --pp-radius-sm:6px; --pp-radius-md:8px; --pp-radius-lg:10px;
     --pp-radius-xl:12px; --pp-radius-full:999px;
     /* shadow: ink-tinted */
@@ -262,7 +263,7 @@
   .sg-n{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:var(--pp-radius-sm);
     background:var(--bed);color:var(--bed-on);font-family:var(--pp-font-code);font-weight:700;font-size:.82rem;margin-bottom:var(--pp-space-3xs)}
   .signs.three{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .states li{border-top:6px solid var(--st)}
+  .states li{border-top:var(--pp-stroke-bar) solid var(--st)}
   .st-dot{width:14px;height:14px;border-radius:var(--pp-radius-full);background:var(--st);margin-bottom:var(--pp-space-3xs)}
   .st-done{--st:var(--pp-healthy)} .st-fail{--st:var(--pp-error)} .st-needs{--st:var(--pp-caution)} .st-open{--st:var(--pp-muted)}
 

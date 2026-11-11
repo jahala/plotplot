@@ -26,6 +26,7 @@ Corners come from a fixed scale. Anything else is off-brand.
 | stroke-hairline | 1px solid | Structural borders: cards, dividers, terminal frames |
 | stroke-emphasis | 1.5px | Outline buttons, link underlines |
 | stroke-rule | 2px | Accent rules: stat markers, point markers, dotted leaders |
+| stroke-bar | 6px | Status bars: the coloured top edge of a state card |
 
 Border color defaults to `#E2D8C0` on paper surfaces and `#403628` inside terminal panes (both from `colors.md`).
 
