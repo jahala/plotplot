@@ -12,7 +12,7 @@ Schema: `contracts/rulings.schema.json`. Fixtures: `contracts/fixtures/rulings/`
 | `all` | yes | the ruling for every adapter, present and future |
 | `by_adapter` | yes, may be empty | rulings for single adapters by id, each overriding `all` for that adapter |
 
-A ruling has the capture plan's ruling shape, defined once in `contracts/capture-plan.schema.json`: `use` (`allowed` or `refused`), `by`, `on` and `says`, the owner's own words.
+A ruling has the capture plan's ruling shape, defined once in `contracts/capture-plan.schema.json`: `use` (`allowed` or `refused`), `by`, `on` and `says`, the owner's own words, and may carry `robots` (`obey`, `agent` or `ignore`).
 
 ## Rules a reader may rely on
 

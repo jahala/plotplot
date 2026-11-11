@@ -459,6 +459,14 @@
           "type": "string",
           "minLength": 1,
           "description": "the ruling, in the owner's words or a faithful sentence"
+        },
+        "robots": {
+          "enum": [
+            "obey",
+            "agent",
+            "ignore"
+          ],
+          "description": "how mull treats the site's robots.txt for this use: obey (the default when left out) keeps the group naming mull, or else the one for every agent, and every group naming a crawler that reads for language models; agent keeps only the group naming mull, or else the one for every agent; ignore reads what robots.txt disallows. says holds the owner's words for it"
         }
       }
     }
