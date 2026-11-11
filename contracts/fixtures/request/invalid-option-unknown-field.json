@@ -1,0 +1,59 @@
+{
+  "format": "gate-request/2",
+  "asker": "pollen",
+  "ask": "Where should pollen post the launch notice?",
+  "why": "The notice goes out in the owner's name, and each place costs something different.",
+  "evidence": [
+    "the draft notice",
+    "last month's reach, by channel"
+  ],
+  "options": [
+    {
+      "id": "newsletter",
+      "label": "The newsletter only",
+      "does": "pollen sends the notice to the newsletter's readers and nowhere else."
+    },
+    {
+      "id": "forum",
+      "label": "One forum thread",
+      "does": "pollen opens one thread in the forum the draft names and answers replies for a week."
+    },
+    {
+      "id": "paid",
+      "label": "A paid placement",
+      "does": "pollen books one placement and spends no more than the most it can cost.",
+      "cost": "1,000 kr"
+    }
+  ],
+  "other": "Say what you want instead, and pollen revises the plan from it.",
+  "no": "Nothing is posted. pollen keeps the draft.",
+  "pick": "newsletter",
+  "for": "plotplot-ai",
+  "facts": [
+    {
+      "name": "Most it can cost",
+      "text": "1,000 kr, set aside before the first click"
+    },
+    {
+      "name": "Who sees it",
+      "text": "people outside the garden, in the owner's name"
+    }
+  ],
+  "rulings": [
+    {
+      "text": "Public posts go out in the owner's name only after the owner's yes.",
+      "source": "compass, 2026-11-04",
+      "relation": "holds"
+    },
+    {
+      "text": "Spend nothing on ads before the product has users.",
+      "source": "compass, 2026-11-04",
+      "relation": "clashes"
+    }
+  ],
+  "asked_at": "2026-11-12T09:00:00Z",
+  "expires_at": "2026-11-19T09:00:00Z",
+  "waiting": [
+    "the launch"
+  ]
+}

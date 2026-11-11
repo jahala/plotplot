@@ -1,7 +1,12 @@
 {
-  "format": "gate-answer/1",
+  "format": "gate-answer/2",
   "request": "deploy-42",
-  "answer": "yes",
   "by": "owner",
-  "at": "2026-10-27T10:12:00Z"
+  "at": "2026-11-14T10:12:00Z",
+  "choice": "yes",
+  "signature": {
+    "alg": "ecdsa-p256-sha256",
+    "key": "0bef57faba16e55c694a2c47bbee47d87eea91a84d806d080388ae2e1679a627",
+    "value": "MEYCIQCq49/qrtnEUuswhBXdmcxZEU5skEUt9/qZYf+LcM9wdAIhALyd/ARMd9G/78DHS+BNr65Bn6VK+Oq7ibd4fOFWZDH/"
+  }
 }

@@ -1,0 +1,12 @@
+{
+  "format": "gate-answer/2",
+  "request": "b02517a9728e8d40e6897fc6fc2b592c8a1e539fad00e5ea2134ea172737e6a2",
+  "by": "expiry",
+  "at": "2026-11-19T09:00:00Z",
+  "choice": "no",
+  "signature": {
+    "alg": "ecdsa-p256-sha256",
+    "key": "0bef57faba16e55c694a2c47bbee47d87eea91a84d806d080388ae2e1679a627",
+    "value": "MEYCIQCq49/qrtnEUuswhBXdmcxZEU5skEUt9/qZYf+LcM9wdAIhALyd/ARMd9G/78DHS+BNr65Bn6VK+Oq7ibd4fOFWZDH/"
+  }
+}

@@ -1,24 +1,64 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://plotplot.ai/contracts/request.schema.json",
-  "title": "request or answer",
-  "description": "One request for the owner's answer, or the answer to one request, each one file in the owner's requests folder. See contracts/request.md.",
+  "title": "request, answer, or the owner's keys",
+  "description": "One request for the owner's answer or the answer to one request, each one file in the owner's requests folder; or the owner's installed keys, which an owner's answer must be signed by. Version 2. See contracts/request.md. Rules a schema cannot say, such as option ids being unique, a pick naming an option, and an answer fitting its request, are the vector's accepts cases.",
   "oneOf": [
     {"$ref": "#/$defs/request"},
-    {"$ref": "#/$defs/answer"}
+    {"$ref": "#/$defs/answer"},
+    {"$ref": "#/$defs/owner-keys"}
   ],
   "$defs": {
     "moment": {
       "type": "string",
       "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$"
     },
-    "digest": {
+    "sha256": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
     },
     "text": {
       "type": "string",
       "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "description": "lowercase ASCII: a letter, then letters, digits and hyphens",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "option-id": {
+      "allOf": [{"$ref": "#/$defs/name"}, {"not": {"const": "no"}}]
+    },
+    "option": {
+      "type": "object",
+      "description": "an answer the owner may choose: its id, what the owner reads, and what the asker does if it is chosen",
+      "required": ["id", "label", "does"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"$ref": "#/$defs/option-id"},
+        "label": {"$ref": "#/$defs/text"},
+        "does": {"$ref": "#/$defs/text"}
+      }
+    },
+    "fact": {
+      "type": "object",
+      "required": ["name", "text"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {"$ref": "#/$defs/text"},
+        "text": {"$ref": "#/$defs/text"}
+      }
+    },
+    "ruling": {
+      "type": "object",
+      "description": "an earlier ruling of the owner's that the asker found related, where it comes from, and whether the ask agrees with it",
+      "required": ["text", "source", "relation"],
+      "additionalProperties": false,
+      "properties": {
+        "text": {"$ref": "#/$defs/text"},
+        "source": {"$ref": "#/$defs/text"},
+        "relation": {"enum": ["holds", "clashes"]}
+      }
     },
     "act": {
       "type": "object",
@@ -44,38 +84,104 @@
       "required": ["format", "asker", "ask", "why", "evidence", "options", "asked_at", "expires_at"],
       "additionalProperties": false,
       "properties": {
-        "format": {"const": "gate-request/1"},
-        "asker": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+        "format": {"const": "gate-request/2"},
+        "asker": {"$ref": "#/$defs/name"},
         "ask": {"$ref": "#/$defs/text"},
         "why": {"$ref": "#/$defs/text"},
         "evidence": {"type": "array", "items": {"$ref": "#/$defs/text"}},
-        "options": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {"allOf": [{"$ref": "#/$defs/text"}, {"not": {"const": "no"}}]}
-        },
+        "options": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/option"}},
+        "other": {"$ref": "#/$defs/text"},
+        "no": {"$ref": "#/$defs/text"},
+        "pick": {"$ref": "#/$defs/option-id"},
+        "for": {"$ref": "#/$defs/text"},
+        "facts": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
+        "rulings": {"type": "array", "items": {"$ref": "#/$defs/ruling"}},
         "act": {"$ref": "#/$defs/act"},
         "asked_at": {"$ref": "#/$defs/moment"},
         "expires_at": {"$ref": "#/$defs/moment"},
         "waiting": {"type": "array", "items": {"$ref": "#/$defs/text"}}
       },
       "if": {"required": ["act"]},
-      "then": {"properties": {"options": {"const": ["yes"]}}}
+      "then": {
+        "properties": {
+          "options": {"maxItems": 1, "items": {"properties": {"id": {"const": "yes"}}}},
+          "pick": {"const": "yes"}
+        }
+      }
+    },
+    "signature": {
+      "type": "object",
+      "description": "ECDSA on P-256 over the SHA-256 of the answer's canonical bytes without its signature; value is the X9.62 DER form in standard base64 with padding, so it starts with M, the DER sequence tag; key is the sha256 of the key's 65-byte point",
+      "required": ["alg", "key", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "alg": {"const": "ecdsa-p256-sha256"},
+        "key": {"$ref": "#/$defs/sha256"},
+        "value": {
+          "type": "string",
+          "minLength": 12,
+          "maxLength": 96,
+          "pattern": "^M[A-Za-z0-9+/]{3}([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
+        }
+      }
     },
     "answer": {
       "type": "object",
-      "required": ["format", "request", "answer", "by", "at"],
+      "required": ["format", "request", "by", "at"],
       "additionalProperties": false,
       "properties": {
-        "format": {"const": "gate-answer/1"},
-        "request": {"$ref": "#/$defs/digest"},
-        "answer": {"$ref": "#/$defs/text"},
+        "format": {"const": "gate-answer/2"},
+        "request": {"$ref": "#/$defs/sha256"},
         "by": {"enum": ["owner", "expiry"]},
-        "at": {"$ref": "#/$defs/moment"}
+        "at": {"$ref": "#/$defs/moment"},
+        "choice": {"$ref": "#/$defs/name"},
+        "other": {"$ref": "#/$defs/text"},
+        "reason": {"$ref": "#/$defs/text"},
+        "signature": {"$ref": "#/$defs/signature"}
       },
-      "if": {"properties": {"by": {"const": "expiry"}}},
-      "then": {"properties": {"answer": {"const": "no"}}}
+      "oneOf": [
+        {"required": ["choice"]},
+        {"required": ["other"]}
+      ],
+      "allOf": [
+        {
+          "if": {"properties": {"by": {"const": "owner"}}},
+          "then": {"required": ["signature"]}
+        },
+        {
+          "if": {"properties": {"by": {"const": "expiry"}}},
+          "then": {
+            "required": ["choice"],
+            "properties": {"choice": {"const": "no"}},
+            "not": {"anyOf": [{"required": ["signature"]}, {"required": ["reason"]}]}
+          }
+        }
+      ]
+    },
+    "key": {
+      "type": "object",
+      "description": "one key the owner installed: its id, its 65-byte uncompressed point in standard base64, when it was added, and when it retired if it has",
+      "required": ["id", "point", "added"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"$ref": "#/$defs/sha256"},
+        "point": {
+          "type": "string",
+          "description": "65 bytes, 04 then X then Y, in standard base64 with padding: B, 85 more characters, a last one whose low bits are zero, and one =",
+          "pattern": "^B[A-Za-z0-9+/]{85}[AEIMQUYcgkosw048]=$"
+        },
+        "added": {"$ref": "#/$defs/moment"},
+        "retired": {"$ref": "#/$defs/moment"}
+      }
+    },
+    "owner-keys": {
+      "type": "object",
+      "required": ["format", "keys"],
+      "additionalProperties": false,
+      "properties": {
+        "format": {"const": "hedge-owner-keys/1"},
+        "keys": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/key"}}
+      }
     }
   }
 }
