@@ -212,7 +212,7 @@ fetch_git() {
   local target="$2"
   local tmpdir
   tmpdir=$(mktemp -d /tmp/brand-fetch-XXXXXX)
-  trap "trash \"$tmpdir\" 2>/dev/null || true" EXIT
+  CLEAN+=("$tmpdir")
 
   local clone_args=("clone" "--depth" "1")
   local ref="$REF"
@@ -258,8 +258,6 @@ fetch_git() {
   count=$(count_files "$target")
   log "git clone complete: $count files, version=$VERSION"
 
-  trash "$tmpdir" 2>/dev/null || true
-  trap - EXIT
 }
 
 # Strategy 2: GitHub API
@@ -463,24 +461,59 @@ fetch_raw_http() {
   log "Raw HTTP fetch complete: $count files, version=$VERSION"
 }
 
+# ── Placing the fetched files ────────────────────────────────────────────────
+
+# Copy every fetched file from the staging folder into the target, except a
+# file git tracks there: the project commits it, so it is canonical in this
+# repository (petals' own product layer is) and the fetch names it and keeps it.
+place() {
+  local stage="$1" target="$2" tracked="" rel
+  mkdir -p "$target"
+  if git -C "$target" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    tracked=$(git -C "$target" ls-files)
+  fi
+  while IFS= read -r rel; do
+    if [[ -n "$tracked" ]] && printf '%s\n' "$tracked" | grep -qxF -- "$rel"; then
+      log "kept $rel: the project commits it, so the fetch leaves it alone"
+      continue
+    fi
+    mkdir -p "$target/$(dirname "$rel")"
+    cp "$stage/$rel" "$target/$rel"
+  done < <(cd "$stage" && find . ! -type d | sed 's|^\./||' | sort)
+}
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
+# Temporary folders this run created; removed on any exit (with trash where
+# it exists; a run may remove a temp folder it made itself).
+CLEAN=()
+cleanup() {
+  local d
+  for d in ${CLEAN[@]+"${CLEAN[@]}"}; do
+    if command -v trash >/dev/null 2>&1; then trash "$d" 2>/dev/null || true; else rm -rf "$d"; fi
+  done
+}
+trap cleanup EXIT
+
 main() {
+  local stage
+  stage=$(mktemp -d /tmp/brand-stage-XXXXXX)
+  CLEAN+=("$stage")
   detect_strategy "$SOURCE_URL"
   log "Strategy: $STRATEGY_LOG"
 
   case "$STRATEGY" in
     local)
-      fetch_local "$SOURCE_URL" "$TARGET"
+      fetch_local "$SOURCE_URL" "$stage"
       ;;
     git|git-ssh)
-      fetch_git "$SOURCE_URL" "$TARGET"
+      fetch_git "$SOURCE_URL" "$stage"
       ;;
     github-api)
-      fetch_github_api "$SOURCE_URL" "$TARGET"
+      fetch_github_api "$SOURCE_URL" "$stage"
       ;;
     raw-http)
-      fetch_raw_http "$SOURCE_URL" "$TARGET"
+      fetch_raw_http "$SOURCE_URL" "$stage"
       ;;
     *)
       err "Unknown strategy: $STRATEGY"
@@ -488,6 +521,7 @@ main() {
       ;;
   esac
 
+  place "$stage" "$TARGET"
   verify_brand_dir "$TARGET"
   local count
   count=$(count_files "$TARGET")

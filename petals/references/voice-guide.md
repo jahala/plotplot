@@ -102,3 +102,32 @@ If `.brand/voice.md` does not exist:
 
 - Canonical voice source: `.brand/voice.md`
 - This guide is used by: `/petals voice <text>` and `/petals check <file>` (voice audit dimension)
+
+## /petals voice `<text-or-file>`
+
+When `/petals voice <text-or-file>` is invoked, the agent audits the provided text or file content against `.brand/voice.md` rules. This can be used standalone or as part of `/petals check <file>`.
+
+### Guard clause
+
+1. Check if `.brand/` directory exists. If not:
+   ```
+   No brand configured. Run /petals init --from <url> to connect to a central brand repo.
+   ```
+   Exit non-zero. Do not proceed.
+
+2. Check if `.brand/voice.md` exists. If not:
+   ```
+   SKIP [voice] voice.md not found. Skipping voice audit.
+   ```
+   Exit non-zero (missing configuration is a setup issue).
+
+### Determine the input
+
+The argument can be either inline text or a file path:
+
+- **Inline text** (no file extension, or quoted string that does not match an existing file): Audit the text directly.
+- **File path** (matches an existing file, or has a known extension like `.txt`, `.md`, `.tsx`, `.jsx`, `.html`): Read the file and audit its text content.
+
+### Process
+
+Follow the process above, steps 1 to 9, loading only `.brand/voice.md` (and the product layer's `voice.md` if there is one). Exit 0 when there are no errors (warnings alone do not fail); exit non-zero when any forbidden term is found.

@@ -56,6 +56,8 @@ if [[ "$STOP" -eq 1 ]]; then
 fi
 
 [[ ${#PAGES[@]} -gt 0 ]] || { echo "usage: review.sh <page> [--note <text>]... [--no-open] | review.sh --stop" >&2; exit 2; }
+# the index is styled with the brand's tokens, under the brand's own prefix
+prefix=$(brand_prefix "$ROOT/.brand/colors.md") || { echo "review: $prefix" >&2; exit 2; }
 mkdir -p "$DIR"
 # ask git where the exclude file is: in a worktree .git is a file, not a folder
 if exclude=$(git -C "$ROOT" rev-parse --path-format=absolute --git-path info/exclude 2>/dev/null); then
@@ -72,7 +74,10 @@ for i in "${!PAGES[@]}"; do
   cut -f1 "$DIR/entries.tsv" | grep -qxF -- "$rel" || printf '%s\t%s\n' "$rel" "${NOTES[$i]:-}" >> "$DIR/entries.tsv"
 done
 
-python3 -I - "$DIR/entries.tsv" "$DIR/index.html" "$(basename "$ROOT")" <<'PY'
+# the brand's own font loading: the <link> lines typography.md gives for HTML pages
+fontlinks=$(grep -hE '^[[:space:]]*<link [^>]*(fonts\.googleapis\.com|fonts\.gstatic\.com|rel="stylesheet")' "$ROOT/.brand/typography.md" 2>/dev/null | sed 's/^[[:space:]]*/  /')
+
+python3 -I - "$DIR/entries.tsv" "$DIR/index.html" "$(basename "$ROOT")" "$fontlinks" "$prefix" <<'PY'
 import html, sys
 entries = [l.rstrip("\n").split("\t", 1) for l in open(sys.argv[1], encoding="utf-8") if l.strip()]
 items = []
@@ -87,19 +92,20 @@ page = """<!doctype html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Review: %(project)s</title>
+%(fonts)s
   <link rel="stylesheet" href="../.brand/tokens.css">
   <style>
     html { font-synthesis: none; }
-    body { margin: 0; background: var(--pp-bg); color: var(--pp-text); font-family: var(--pp-font-body); line-height: 1.6; }
-    main { max-width: var(--pp-container-max); margin: 0 auto; padding: 48px 24px; }
-    h1 { font-family: var(--pp-font-heading); font-weight: 400; font-size: 2.4rem; line-height: 1.12; margin: 0 0 8px; }
-    .lede { color: var(--pp-text-soft); margin: 0 0 32px; }
+    body { margin: 0; background: var(%(p)sbg); color: var(%(p)stext); font-family: var(%(p)sfont-body); line-height: 1.6; }
+    main { max-width: var(%(p)scontainer-max); margin: 0 auto; padding: 48px 24px; }
+    h1 { font-family: var(%(p)sfont-heading); font-weight: 400; font-size: 2.4rem; line-height: 1.12; margin: 0 0 8px; }
+    .lede { color: var(%(p)stext-soft); margin: 0 0 32px; }
     ol { list-style: none; padding: 0; margin: 0; }
-    li { border-top: 1px solid var(--pp-border); padding: 16px 0; }
-    a { color: var(--pp-primary); font-weight: 600; }
-    .note { color: var(--pp-text-soft); margin: 4px 0 0; }
-    footer { margin-top: 32px; color: var(--pp-text-soft); }
-    code { font-family: var(--pp-font-code); }
+    li { border-top: 1px solid var(%(p)sborder); padding: 16px 0; }
+    a { color: var(%(p)sprimary); font-weight: 600; }
+    .note { color: var(%(p)stext-soft); margin: 4px 0 0; }
+    footer { margin-top: 32px; color: var(%(p)stext-soft); }
+    code { font-family: var(%(p)sfont-code); }
   </style>
 </head>
 <body>
@@ -113,7 +119,7 @@ page = """<!doctype html>
   </main>
 </body>
 </html>
-""" % {"project": html.escape(sys.argv[3]), "items": "\n".join(items)}
+""" % {"project": html.escape(sys.argv[3]), "items": "\n".join(items), "fonts": sys.argv[4], "p": sys.argv[5]}
 open(sys.argv[2], "w", encoding="utf-8").write(page)
 PY
 

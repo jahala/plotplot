@@ -98,7 +98,7 @@ If `.brand/colors.md` has a "Contrast Pairings" section:
 4. Below the class minimum -> **error**. A color documented as "labels & display only" or "decorative only" used for body copy -> **error**, naming the documented class.
 
 ```
-ERROR [color] line 18: #C9923C on #F0EDE1 is 2.34:1 — below the labels minimum of 3.0:1. Decorative only on light surfaces (see Contrast Pairings).
+ERROR [color] line 18: #C9923C on #F0EDE1 is 2.34:1, below the labels minimum of 3.0:1. Decorative only on light surfaces (see Contrast Pairings).
 ```
 
 ### 9. Chart Categorical Series

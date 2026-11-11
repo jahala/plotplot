@@ -278,7 +278,7 @@ def run(argv):
         dst = night_path(bed)
         if check:
             if not dst.exists() or dst.read_text() != want:
-                print(f"{bed.name}: {dst.relative_to(root)} is not derived from the paper file; run scripts/marks.py")
+                print(f"{bed.name}: {dst.relative_to(root)} is not derived from the paper file; run petals/scripts/marks.py")
                 failed = True
         else:
             dst.write_text(want)

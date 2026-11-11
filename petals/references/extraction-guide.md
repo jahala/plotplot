@@ -158,12 +158,14 @@ When the source material describes a brand FAMILY (an organization plus named pr
 
 ### 5a. Derived machine views
 
-After the templates are populated, emit two generated views (never templates — they are derived from the markdown, and the markdown stays canonical):
+After the templates are populated, derive two machine views with `bash petals/scripts/export-tokens.sh .brand`. They are never written by hand: they come from the markdown, and the markdown stays canonical.
 
-- `.brand/tokens.css` — every brand value as a CSS custom property, using the brand's own token prefix (take it from the CSS custom-properties block in colors.md when one exists; otherwise derive it from the brand name, e.g. `--acme-*`). Colors, font stacks, spacing, radius, strokes, shadows, motion. Projects import it and reference variables instead of hard-coding values.
-- `.brand/tokens.json` — the same values in W3C design-tokens shape (`{ "$value", "$type" }` groups: color, fontFamily, space, layout, radius, stroke, shadow, motion). Build tools and CSS-framework theme configs consume this directly.
+- `.brand/tokens.css`: every brand value as a CSS custom property under the brand's token prefix. Colors, font stacks, spacing, radius, strokes, shadows, motion. Projects import it and reference variables instead of hard-coding values.
+- `.brand/tokens.json`: the same values in W3C design-tokens shape (`{ "$value", "$type" }` groups: color, fontFamily, space, layout, radius, stroke, shadow, motion). Build tools and CSS-framework theme configs consume this directly.
 
-Skip a token when its source value was flagged rather than extracted — a generated view must not launder a guess into a value. Regenerate both files on every `/petals update` by running `bash petals/scripts/export-tokens.sh`.
+The prefix is the `{{PREFIX}}` you fill in colors.md's CSS Custom Properties block: the prefix the source's own custom properties share, or the brand name in lowercase when the source has none (`--acme-`). Every script reads it from that block, so every property there carries it; a block that mixes prefixes is refused, never guessed.
+
+Leave a value that was flagged rather than extracted out of the CSS blocks (colors.md's custom properties, typography.md's fallback stacks), so no token carries it: a generated view must not launder a guess into a value. In the tables the script skips a value that is prose rather than a CSS value. Regenerate both files on every `/petals update` the same way.
 
 Replace each `{{PLACEHOLDER}}` in the template with the extracted value. For placeholders where no explicit value was found:
 - If the field is optional (metadata, visual theme attributes), write "not specified" or remove the line.

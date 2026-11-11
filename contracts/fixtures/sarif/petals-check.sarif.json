@@ -73,6 +73,42 @@
           "name": "petals",
           "rules": [
             {
+              "id": "access/fake-button",
+              "shortDescription": {
+                "text": "A clickable div or span keyboard users cannot reach"
+              }
+            },
+            {
+              "id": "access/focus-removed",
+              "shortDescription": {
+                "text": "A focus outline removed with no visible replacement"
+              }
+            },
+            {
+              "id": "access/img-alt",
+              "shortDescription": {
+                "text": "An image without alt text"
+              }
+            },
+            {
+              "id": "access/unlabelled-field",
+              "shortDescription": {
+                "text": "A form field without a label"
+              }
+            },
+            {
+              "id": "access/unnamed-button",
+              "shortDescription": {
+                "text": "A button with no accessible name"
+              }
+            },
+            {
+              "id": "access/zoom-blocked",
+              "shortDescription": {
+                "text": "A viewport that blocks zooming"
+              }
+            },
+            {
               "id": "color/contrast",
               "shortDescription": {
                 "text": "A text and background pair below its contrast minimum"
@@ -118,6 +154,12 @@
               "id": "layout/spacing",
               "shortDescription": {
                 "text": "Spacing off the scale"
+              }
+            },
+            {
+              "id": "reuse/rebuilt-component",
+              "shortDescription": {
+                "text": "A control rebuilt by hand where a component contract covers it"
               }
             },
             {

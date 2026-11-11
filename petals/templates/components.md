@@ -1,12 +1,16 @@
-# Surface & Motion — {{BRAND_NAME}}
+# Surface & Motion: {{BRAND_NAME}}
 
 <!--
   Template: components.md
-  Machine-readable surface & motion tokens — radius, borders, shadows,
+  Machine-readable surface and motion tokens: radius, borders, shadows,
   easings, durations, component conventions.
-  Every value must be explicitly stated in source materials (design system
-  docs, CSS, component libraries). DO NOT invent a scale the brand never
-  defined — a missing token is flagged, not guessed.
+  Every value must be stated in the source materials (design system docs,
+  CSS, component libraries). Do not invent a scale the brand never defined:
+  a missing token is flagged, not guessed.
+  export-tokens.sh reads the Token and Value columns below, and check.sh
+  holds pages to the radius, stroke and shadow values. A value that is prose
+  rather than a CSS value is skipped. A token becomes --PREFIX-<token>
+  (PREFIX as in colors.md); keep the radius-, stroke- and shadow- names.
 -->
 
 ## Radius Scale
@@ -29,8 +33,8 @@
 
 ## Shadow Recipes
 
-State the shadow color policy explicitly (e.g. ink-tinted vs neutral) and
-the full value of each recipe.
+State the shadow colour policy (for example ink-tinted, never pure black)
+and the full CSS value of each recipe.
 
 | Token | Value | Usage |
 |-------|-------|-------|
@@ -39,6 +43,9 @@ the full value of each recipe.
 | shadow-float | {{SHADOW_FLOAT}} | Floating artifacts |
 
 ## Motion Tokens
+
+<!-- Value is one cubic-bezier() or easing keyword, or one duration such as
+     0.3s. A range (0.15-0.3s) stays prose and is not a token. -->
 
 | Token | Value | Usage |
 |-------|-------|-------|

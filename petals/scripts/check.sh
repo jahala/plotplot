@@ -19,7 +19,8 @@
 # class="no" are skipped by the voice pass (they quote the rule, not break it).
 #
 # Usage: check.sh <file> [--brand <dir>]   (default brand dir: .brand)
-# Exit: 0 when zero errors, 1 when any error present (binary pass/fail).
+# Exit: 0 when zero errors, 1 when any error present (binary pass/fail),
+# 2 for a wrong option.
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -63,52 +64,36 @@ PRODUCT_VOICE=""
 [ -n "$PRODUCT" ] && [ -f "$BRAND/products/$PRODUCT/voice.md" ] && PRODUCT_VOICE="$BRAND/products/$PRODUCT/voice.md"
 
 # ── tokens drift detection ──
+# tokens.css against its canonical sources, under the brand's own token
+# prefix (brand_prefix in lib/common.sh): four colours against colors.md's CSS
+# block, the heading and body faces against typography.md's Font Families
+# table. Without one prefix in colors.md this comparison cannot be made, so it
+# is skipped with a warning that says why; no prefix is guessed, and the rest
+# of the brand is still judged.
 TOKENS_CSS="$BRAND/tokens.css"
 if [ -f "$TOKENS_CSS" ]; then
-  # Compare high-signal token values against canonical sources.
-  # colors.md canonical: CSS :root block values.
-  # typography.md canonical: Font Families table values.
+  if ! TP=$(brand_prefix "$BRAND/colors.md"); then
+    echo "WARNING [tokens] token drift not checked: $TP" >&2
+  else
+    # The value of the first declaration of a custom property in a file.
+    declared() { awk -v name="$1:" '{ i=index($0, name); if(i){ v=substr($0, i+length(name)); sub(/;.*/, "", v); gsub(/^[ \t]+|[ \t]+$/, "", v); print v; exit } }' "$2" 2>/dev/null; }
+    # The first family of a font stack, unquoted.
+    first_face() { printf '%s\n' "$1" | awk '{ sub(/,.*/, ""); gsub(/^[ \t\047\042]+|[ \t\047\042]+$/, ""); print }'; }
+    # The family typography.md's Font Families table gives a role.
+    role_face() { awk -F'|' -v role="$1" '/^## /{ f=($0 ~ /^## Font Families/); next } f && NF>=4 && $2 !~ /Role|---/ { r=$2; v=$3; gsub(/^ +| +$/, "", v); if(tolower(r) ~ role && v!=""){ print v; exit } }' "$BRAND/typography.md" 2>/dev/null; }
 
-  # Primary color
-  CANON_PRIMARY=$(awk -F'[ ;]' '/--pp-primary:/{gsub(/^[ ]*--pp-primary:[ ]*/,""); gsub(/[ ;].*/,""); print; exit}' "$BRAND/colors.md" 2>/dev/null | tr -d '\n')
-  TOKENS_PRIMARY=$(awk -F'[ ;]' '/--pp-primary:/{gsub(/^[ ]*--pp-primary:[ ]*/,""); gsub(/[ ;].*/,""); print; exit}' "$TOKENS_CSS" 2>/dev/null | tr -d '\n')
-  if [ -n "$CANON_PRIMARY" ] && [ -n "$TOKENS_PRIMARY" ] && [ "$CANON_PRIMARY" != "$TOKENS_PRIMARY" ]; then
-    echo "WARNING [tokens] tokens.css --pp-primary: $TOKENS_PRIMARY does not match colors.md: $CANON_PRIMARY" >&2
-  fi
-
-  # Accent color
-  CANON_ACCENT=$(awk -F'[ ;]' '/--pp-accent:/{gsub(/^[ ]*--pp-accent:[ ]*/,""); gsub(/[ ;].*/,""); print; exit}' "$BRAND/colors.md" 2>/dev/null | tr -d '\n')
-  TOKENS_ACCENT=$(awk -F'[ ;]' '/--pp-accent:/{gsub(/^[ ]*--pp-accent:[ ]*/,""); gsub(/[ ;].*/,""); print; exit}' "$TOKENS_CSS" 2>/dev/null | tr -d '\n')
-  if [ -n "$CANON_ACCENT" ] && [ -n "$TOKENS_ACCENT" ] && [ "$CANON_ACCENT" != "$TOKENS_ACCENT" ]; then
-    echo "WARNING [tokens] tokens.css --pp-accent: $TOKENS_ACCENT does not match colors.md: $CANON_ACCENT" >&2
-  fi
-
-  # Text color
-  CANON_TEXT=$(awk -F'[ ;]' '/--pp-text:/{gsub(/^[ ]*--pp-text:[ ]*/,""); gsub(/[ ;].*/,""); print; exit}' "$BRAND/colors.md" 2>/dev/null | tr -d '\n')
-  TOKENS_TEXT=$(awk -F'[ ;]' '/--pp-text:/{gsub(/^[ ]*--pp-text:[ ]*/,""); gsub(/[ ;].*/,""); print; exit}' "$TOKENS_CSS" 2>/dev/null | tr -d '\n')
-  if [ -n "$CANON_TEXT" ] && [ -n "$TOKENS_TEXT" ] && [ "$CANON_TEXT" != "$TOKENS_TEXT" ]; then
-    echo "WARNING [tokens] tokens.css --pp-text: $TOKENS_TEXT does not match colors.md: $CANON_TEXT" >&2
-  fi
-
-  # Background color
-  CANON_BG=$(awk -F'[ ;]' '/--pp-bg:/{gsub(/^[ ]*--pp-bg:[ ]*/,""); gsub(/[ ;].*/,""); print; exit}' "$BRAND/colors.md" 2>/dev/null | tr -d '\n')
-  TOKENS_BG=$(awk -F'[ ;]' '/--pp-bg:/{gsub(/^[ ]*--pp-bg:[ ]*/,""); gsub(/[ ;].*/,""); print; exit}' "$TOKENS_CSS" 2>/dev/null | tr -d '\n')
-  if [ -n "$CANON_BG" ] && [ -n "$TOKENS_BG" ] && [ "$CANON_BG" != "$TOKENS_BG" ]; then
-    echo "WARNING [tokens] tokens.css --pp-bg: $TOKENS_BG does not match colors.md: $CANON_BG" >&2
-  fi
-
-  # Heading font
-  CANON_HEADING=$(awk -F'|' '/^## Font Families/{f=1} /^## /{if(f&&!~/Font Families/)f=0} f && NF>=3 && $2!~/Role|---/{gsub(/^ +| +$/,"",$3); if($2~/Heading/){if($3!=""){print $3; exit}}}' "$BRAND/typography.md" 2>/dev/null | tr -d '\n')
-  TOKENS_HEADING=$(awk -F'[ ;]' '/--pp-font-heading:/{gsub(/^[ ]*--pp-font-heading:[ ]*/,""); gsub(/[ ;].*/,""); gsub(/^'"'"'|'"'"'$/,""); print; exit}' "$TOKENS_CSS" 2>/dev/null | tr -d '\n')
-  if [ -n "$CANON_HEADING" ] && [ -n "$TOKENS_HEADING" ] && [ "$CANON_HEADING" != "$TOKENS_HEADING" ]; then
-    echo "WARNING [tokens] tokens.css --pp-font-heading: $TOKENS_HEADING does not match typography.md: $CANON_HEADING" >&2
-  fi
-
-  # Body font
-  CANON_BODY=$(awk -F'|' '/^## Font Families/{f=1} /^## /{if(f&&!~/Font Families/)f=0} f && NF>=3 && $2!~/Role|---/{gsub(/^ +| +$/,"",$3); if($2~/Body/){if($3!=""){print $3; exit}}}' "$BRAND/typography.md" 2>/dev/null | tr -d '\n')
-  TOKENS_BODY=$(awk -F'[ ;]' '/--pp-font-body:/{gsub(/^[ ]*--pp-font-body:[ ]*/,""); gsub(/[ ;].*/,""); gsub(/^'"'"'|'"'"'$/,""); print; exit}' "$TOKENS_CSS" 2>/dev/null | tr -d '\n')
-  if [ -n "$CANON_BODY" ] && [ -n "$TOKENS_BODY" ] && [ "$CANON_BODY" != "$TOKENS_BODY" ]; then
-    echo "WARNING [tokens] tokens.css --pp-font-body: $TOKENS_BODY does not match typography.md: $CANON_BODY" >&2
+    for role in primary accent text bg; do
+      CANON=$(declared "$TP$role" "$BRAND/colors.md"); TOKEN=$(declared "$TP$role" "$TOKENS_CSS")
+      if [ -n "$CANON" ] && [ -n "$TOKEN" ] && [ "$CANON" != "$TOKEN" ]; then
+        echo "WARNING [tokens] tokens.css $TP$role: $TOKEN does not match colors.md: $CANON" >&2
+      fi
+    done
+    for role in heading body; do
+      CANON=$(role_face "$role"); TOKEN=$(first_face "$(declared "${TP}font-$role" "$TOKENS_CSS")")
+      if [ -n "$CANON" ] && [ -n "$TOKEN" ] && [ "$CANON" != "$TOKEN" ]; then
+        echo "WARNING [tokens] tokens.css ${TP}font-$role: $TOKEN does not match typography.md: $CANON" >&2
+      fi
+    done
   fi
 fi
 
@@ -243,6 +228,32 @@ THEMEVARS=$(awk '
 # The file as SARIF names it: relative to the project root when inside it.
 case "$TARGET" in "$PWD"/*) URI="${TARGET#"$PWD"/}" ;; *) URI="$TARGET" ;; esac
 
+# Component contracts (reuse): "contract|home|class|covers" per Home table row
+# of .brand/components/**/*.md. A home path is relative to the project root,
+# the folder that holds the brand folder; rows whose home is this file are
+# dropped, since a raw element in its own home is the component itself.
+PROJ_ROOT=$(cd "$BRAND/.." && pwd -P)
+SELF_ABS="$(cd "$(dirname "$TARGET")" && pwd -P)/$(basename "$TARGET")"
+SELF_REL="${SELF_ABS#"$PROJ_ROOT"/}"
+CONTRACTS=""
+HAS_CONTRACTS=0
+if [ -d "$BRAND/components" ]; then
+  while IFS= read -r cf; do
+    rel="${cf#"$BRAND"/}"
+    rows=$(awk -F'|' -v c="$rel" -v self="$SELF_REL" '
+      /^## /{h=($0 ~ /^## Home/); next}
+      h && NF>=5 && $2 !~ /File|---/ {
+        for(i=2;i<=4;i++){ gsub(/^[ \t`]+|[ \t`]+$/, "", $i) }
+        if($2!="" && $4!="" && $2!=self) print c "|" $2 "|" $3 "|" $4
+        if($2!="" && $4!="") any=1
+      }
+      END{ if(any) print "#has" }' "$cf")
+    case "$rows" in *"#has"*) HAS_CONTRACTS=1 ;; esac
+    rows=$(printf '%s\n' "$rows" | grep -v '^#has$' | tr '\n' '\036')
+    CONTRACTS="$CONTRACTS$rows"
+  done < <(find "$BRAND/components" -name '*.md' -type f | sort)
+fi
+
 # Stage: --stage wins; else a mockup glob in .petalsrc's
 # stages: mockup: list that matches the file; else production.
 case "$STAGE" in ""|mockup|production) ;; *) echo "ERROR --stage must be mockup or production"; exit 2 ;; esac
@@ -257,7 +268,7 @@ if [ -z "$STAGE" ]; then
 fi
 
 awk -v palette="$PALETTE" -v radii="$RADII" -v bps="$BREAKPOINTS" \
-    -v unit="$SPACE_UNIT" -v forbidden="$FORBIDDEN" -v docpairs="$DOCPAIRS" -v accents="$ACCENTS" -v product="$PRODUCT" -v terms="$TERMS" -v pnames="$PRODUCT_NAMES" -v sarif="$([ "$FORMAT" = sarif ] && echo 1 || echo 0)" -v uri="$URI" -v fonts="$FONTS" -v markup="$MARKUP" -v md="$MDFILE" -v strokes="$STROKES" -v emban="$EMBAN" -v faces="$FACES" -v cssfile="$CSSFILE" -v garden="$GARDEN" -v stage="$STAGE" -v themevars="$THEMEVARS" -v strokew="$STROKEW" -v shadows="$SHADOWS" '
+    -v unit="$SPACE_UNIT" -v forbidden="$FORBIDDEN" -v docpairs="$DOCPAIRS" -v accents="$ACCENTS" -v product="$PRODUCT" -v terms="$TERMS" -v pnames="$PRODUCT_NAMES" -v sarif="$([ "$FORMAT" = sarif ] && echo 1 || echo 0)" -v uri="$URI" -v fonts="$FONTS" -v markup="$MARKUP" -v md="$MDFILE" -v strokes="$STROKES" -v emban="$EMBAN" -v faces="$FACES" -v cssfile="$CSSFILE" -v garden="$GARDEN" -v stage="$STAGE" -v contracts="$CONTRACTS" -v hascontracts="$HAS_CONTRACTS" -v themevars="$THEMEVARS" -v strokew="$STROKEW" -v shadows="$SHADOWS" '
 function hexval(c,   i){ return index("0123456789ABCDEF", toupper(c)) - 1 }
 function h2(s){ return hexval(substr(s,1,1))*16 + hexval(substr(s,2,1)) }
 function expand(h){ if(length(h)==4) return "#" substr(h,2,1) substr(h,2,1) substr(h,3,1) substr(h,3,1) substr(h,4,1) substr(h,4,1); return h }
@@ -281,6 +292,8 @@ function ruleid(dim, msg){
   if(dim=="surface"){ if(msg ~ /radius/) return "surface/radius"; if(msg ~ /stroke tokens/) return "surface/stroke"; if(msg ~ /shadow/) return "surface/shadow"; if(msg ~ /garden row|current pill/) return "surface/garden-row"; return "surface/motion" }
   if(dim=="voice"){ if(msg ~ /forbidden term/) return "voice/forbidden-term"; if(msg ~ /canonical term/) return "voice/terminology"; if(msg ~ /em dash/) return "voice/em-dash"; return "voice/casing" }
   if(dim=="content"){ if(msg ~ /placeholder/) return "content/placeholder"; if(msg ~ /href=/) return "content/dead-link"; return "content/dummy-contact" }
+  if(dim=="reuse") return "reuse/rebuilt-component"
+  if(dim=="access"){ if(msg ~ /image without alt/) return "access/img-alt"; if(msg ~ /form field/) return "access/unlabelled-field"; if(msg ~ /button with no name/) return "access/unnamed-button"; if(msg ~ /focus outline/) return "access/focus-removed"; if(msg ~ /zooming/) return "access/zoom-blocked"; return "access/fake-button" }
   if(dim=="typography"){ if(msg ~ /has no (weight|italic)/) return "typography/faux-style"; if(msg ~ /never loads/) return "typography/unloaded-family"; return "typography/family" }
   return dim "/" dim
 }
@@ -305,6 +318,13 @@ function rules_init(){
   rdesc["content/placeholder"]="Placeholder copy in a production page"
   rdesc["content/dummy-contact"]="A dummy phone number, address or name in a production page"
   rdesc["content/dead-link"]="A link to # in a production page"
+  rdesc["access/img-alt"]="An image without alt text"
+  rdesc["access/unlabelled-field"]="A form field without a label"
+  rdesc["access/unnamed-button"]="A button with no accessible name"
+  rdesc["access/focus-removed"]="A focus outline removed with no visible replacement"
+  rdesc["access/zoom-blocked"]="A viewport that blocks zooming"
+  rdesc["access/fake-button"]="A clickable div or span keyboard users cannot reach"
+  rdesc["reuse/rebuilt-component"]="A control rebuilt by hand where a component contract covers it"
 }
 function jesc(s){ gsub(/\\/, "\\\\", s); gsub(/"/, "\\\"", s); gsub(/\t/, "\\t", s); gsub(/\r/, "", s); gsub(/\n/, "\\n", s); return s }
 function emit_sarif(   i, n, k, ln, text, sug, first){
@@ -455,6 +475,116 @@ iscopy {
     content("line " NR ": href=\"#\" goes nowhere. Link the real page, or keep this page under a mockup path.")
 }
 
+# ── reuse: a control rebuilt where a component contract covers it ──
+# Each Covers selector is a tag, optionally with [attr=value]. A selector with a
+# class (a.btn) names a use of the component, never a rebuild, so it is skipped.
+function hasattr(tg, an, av,   re){
+  re = "[ \t]" an "[ \t]*=[ \t]*[\042\047]?" av
+  if(av=="") return (tg ~ ("[ \t]" an "([ \t=/>]|$)"))
+  return (tg ~ (re "([\042\047 \t/>]|$)"))
+}
+function hasclass(tg, cl,   v){
+  if(!match(tg, /[ \t](class|className)[ \t]*=[ \t]*\{?["\047][^"\047]*["\047]/)) return 0
+  v=substr(tg, RSTART, RLENGTH); sub(/^[^"\047]*["\047]/, "", v); sub(/["\047]$/, "", v)
+  return ((" " v " ") ~ ("[ \t]" cl "[ \t]"))
+}
+BEGIN{
+  nsel=0
+  nc=split(contracts, crow, "\036")
+  for(i=1;i<=nc;i++){
+    if(crow[i]=="") continue
+    split(crow[i], cf, "|")
+    ns=split(cf[4], sels, ",")
+    for(j=1;j<=ns;j++){
+      sl=sels[j]; gsub(/^[ \t]+|[ \t]+$/, "", sl)
+      if(sl=="" || sl ~ /\./) continue
+      tag=sl; an=""; av=""
+      if(match(sl, /\[[^]]*\]/)){
+        at=substr(sl, RSTART+1, RLENGTH-2); tag=substr(sl, 1, RSTART-1)
+        k=index(at, "=")
+        if(k){ an=substr(at, 1, k-1); av=substr(at, k+1); gsub(/["\047]/, "", av) } else an=at
+      }
+      nsel++; stag[nsel]=tag; sattr[nsel]=an; sval[nsel]=av; scls[nsel]=cf[3]; shome[nsel]=cf[2]; scon[nsel]=cf[1]
+    }
+  }
+}
+iscopy && nsel>0 {
+  rest=copytext
+  while(match(rest, /<[a-z][a-z0-9-]*([ \t\/][^>]*)?>/)){
+    tg=substr(rest, RSTART, RLENGTH); rest=substr(rest, RSTART+RLENGTH)
+    tname=tg; sub(/^</, "", tname); sub(/[ \t\/>].*$/, "", tname)
+    for(k=1;k<=nsel;k++){
+      if(stag[k]!=tname) continue
+      if(sattr[k]!="" && !hasattr(tg, sattr[k], sval[k])) continue
+      cl=scls[k]; sub(/^\./, "", cl)
+      if(cl!="" && hasclass(tg, cl)) continue
+      shown=tname; if(sattr[k]!="") shown=shown " " sattr[k] (sval[k]!="" ? "=" sval[k] : "")
+      err("reuse", "line " NR ": a raw <" shown "> rebuilds a component. Use " scls[k] " from " shome[k] " (" scon[k] ").")
+      break
+    }
+  }
+}
+
+# ── access: what the source of a page shows about who can use it ──
+# Each rule locks a real person out when broken, so each is an error in every
+# stage. Quoted markup (<pre>, <code>) is not judged; only copy is.
+function attrval(tg, an,   v){
+  if(!match(tg, "[ \t]" an "[ \t]*=[ \t]*(\042[^\042]*\042|\047[^\047]*\047|\\{[^}]*\\}|[^ \t>]+)")) return "\001"
+  v=substr(tg, RSTART, RLENGTH); sub(/^[^=]*=[ \t]*/, "", v); gsub(/^["\047{]|["\047}]$/, "", v)
+  return v
+}
+function named(tg){ return (attrval(tg, "aria-label")!="\001" && attrval(tg, "aria-label")!="") || attrval(tg, "aria-labelledby")!="\001" || attrval(tg, "title")!="\001" }
+iscopy {
+  rest=copytext
+  while(1){
+    if(match(rest, /<\/?[a-zA-Z][^>]*>/)){ txt=substr(rest, 1, RSTART-1); tg=substr(rest, RSTART, RLENGTH); rest=substr(rest, RSTART+RLENGTH) }
+    else { txt=rest; tg="" }
+    if(inbtn) btntext=btntext txt
+    if(tg=="") break
+    tn=tg; sub(/^<\/?/, "", tn); sub(/[ \t\/>].*$/, "", tn)
+    closing=(tg ~ /^<\//)
+    if(closing){
+      if(tn=="label") inlabel=0
+      if(tn=="button" && inbtn){
+        t=btntext; gsub(/&nbsp;|&#160;|[ \t]/, "", t)
+        if(!btnnamed && t=="") err("access", "line " btnline ": a button with no name. Screen readers say only \"button\"; add text, or aria-label.")
+        inbtn=0
+      }
+      continue
+    }
+    if(tn=="img"){
+      if(inbtn){ a=attrval(tg, "alt"); if(a!="\001" && a!="") btnnamed=1 }
+      if(attrval(tg, "alt")=="\001") err("access", "line " NR ": an image without alt text. Screen readers read out the file name; describe what it shows, or set alt=\"\" for decoration.")
+    }
+    else if(tn=="label"){
+      f=attrval(tg, "for"); if(f=="\001") f=attrval(tg, "htmlFor")
+      if(f!="\001") labelfor[f]=1; else inlabel=1
+    }
+    else if(tn=="input" || tn=="select" || tn=="textarea"){
+      ty=tolower(attrval(tg, "type"))
+      if(tn=="input" && ty ~ /^(hidden|submit|button|reset|image)$/) continue
+      if(inlabel || named(tg)) continue
+      fid=attrval(tg, "id")
+      if(fid!="\001"){ nfield++; fieldid[nfield]=fid; fieldline[nfield]=NR }
+      else err("access", "line " NR ": a form field without a label. A placeholder vanishes as people type; add a <label for>, or aria-label.")
+    }
+    else if(tn=="button"){
+      inbtn=1; btnline=NR; btntext=""; btnnamed=named(tg)
+      if(tg ~ /\/>$/) inbtn=0
+    }
+    else if(tn=="div" || tn=="span"){
+      if((attrval(tg, "onclick")!="\001" || attrval(tg, "onClick")!="\001") && !(attrval(tg, "role")!="\001" && (attrval(tg, "tabindex")!="\001" || attrval(tg, "tabIndex")!="\001")))
+        err("access", "line " NR ": a clickable <" tn ">. Keyboard users cannot reach or press it; use a <button>.")
+    }
+    else if(tn=="meta" && tolower(attrval(tg, "name"))=="viewport"){
+      vc=tolower(attrval(tg, "content")); why=""
+      if(match(vc, /user-scalable[ \t]*=[ \t]*(no|0)/)) why=substr(vc, RSTART, RLENGTH)
+      else if(match(vc, /maximum-scale[ \t]*=[ \t]*[0-9.]+/)){ ms=substr(vc, RSTART, RLENGTH); v=ms; sub(/^[^=]*=[ \t]*/, "", v); if(v+0 < 2) why=ms }
+      if(why!="") err("access", "line " NR ": the viewport blocks zooming (" why "). People who need larger text cannot zoom in; remove it.")
+    }
+  }
+}
+
 # ── typography: font families a line loads or declares ──
 {
   fl=$0
@@ -556,7 +686,7 @@ BEGIN{
     for(i=1;i<=np;i++) if(pal[i]==uhx){found=1;break}
     if(!found) err("color", "line " NR ": " hx " is not in the palette. Did you mean " nearname(uhx) "?")
     else if(product!="" && (uhx in accent_owner) && accent_owner[uhx]!=product)
-      warn("color", "line " NR ": " uhx " is " accent_owner[uhx] "\047s product accent — product accents mark products, not " product " UI (products/" product "/colors.md).")
+      warn("color", "line " NR ": " uhx " is " accent_owner[uhx] "\047s product accent. Product accents mark products, not " product " UI (products/" product "/colors.md).")
     tmp=substr(tmp, RSTART+RLENGTH)
   }
   # var definitions are also brand values — check them too
@@ -586,21 +716,22 @@ BEGIN{
       r=ratio(jsxfg,jsxbg)
       key=jsxfg "|" jsxbg; cls=(key in docclass) ? docclass[key] : ((jsxbg "|" jsxfg) in docclass ? docclass[jsxbg "|" jsxfg] : "")
       if(cls ~ /decorative/)
-        err("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1 — documented decorative-only pair (colors.md Contrast Pairings): never words.")
+        err("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1, a documented decorative-only pair (colors.md Contrast Pairings): never words.")
       else if(cls ~ /label|display/){
-        if(r<3.0) err("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1 — below the 3.0:1 labels minimum (colors.md Contrast Pairings).")
+        if(r<3.0) err("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1, below the 3.0:1 labels minimum (colors.md Contrast Pairings).")
       }
       else if(cls ~ /reading/){
-        if(r<4.5) err("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1 — below the 4.5:1 reading minimum (colors.md Contrast Pairings).")
+        if(r<4.5) err("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1, below the 4.5:1 reading minimum (colors.md Contrast Pairings).")
       }
-      else if(r<3.0) err("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1 — below the 3.0:1 labels minimum (colors.md Contrast Pairings).")
-      else if(r<4.5) warn("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1 — labels & display only; verify the pair class for reading copy (4.5:1).")
+      else if(r<3.0) err("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1, below the 3.0:1 labels minimum (colors.md Contrast Pairings).")
+      else if(r<4.5) warn("color", "line " NR ": " jsxfg " on " jsxbg " is " sprintf("%.2f",r) ":1, labels & display only; verify the pair class for reading copy (4.5:1).")
     }
   }
   # ── rule-block accumulation for contrast ──
   if(line ~ /{/ && blockstart==0){ blockstart=NR; block="" }
   if(blockstart){ block=block " " line }
   if(line ~ /}/ && blockstart){
+    bsel2=block; sub(/\{.*/, "", bsel2)
     vfg=""; vbg=""
     if(match(block, /[^-a-z]color:[ ]*[^;}]*/)){ vfg=substr(block, RSTART, RLENGTH); sub(/^[^:]*:[ ]*/, "", vfg) }
     if(match(block, /background(-color)?:[ ]*[^;}]*/)){ vbg=substr(block, RSTART, RLENGTH); sub(/^[^:]*:[ ]*/, "", vbg) }
@@ -617,6 +748,9 @@ BEGIN{
         else for(ti=1;ti<=nth;ti++) judgepair(resolvet(vfg, th[ti]), resolvet(vbg, th[ti]), blockstart, " (" th[ti] " theme)")
       }
     }
+    # access: an outline removed in a rule with no replacement in that rule
+    if(block ~ /outline[ 	]*:[ 	]*(none|0)([ 	;}]|$)/ && bsel2 !~ /:focus:not\(:focus-visible\)/ && block !~ /box-shadow|outline-(color|style|width)/){ noutline++; outlineline[noutline]=blockstart }
+    if(bsel2 ~ /:focus-visible/ && block ~ /outline|box-shadow/) focusvisible=1
     blockstart=0; block=""
   }
 
@@ -672,10 +806,10 @@ BEGIN{
     gsub(/cubic-bezier\(|\)/, "", cb); n=split(cb, prm, ",")
     over=0
     for(i=1;i<=n;i++){ gsub(/ /,"",prm[i]); if(prm[i]+0 < -0.0001 || prm[i]+0 > 1.0001) over=1 }
-    if(over) warn("surface", "line " NR ": cubic-bezier with overshoot parameters — brand motion settles, it never bounces (components.md).")
+    if(over) warn("surface", "line " NR ": cubic-bezier with overshoot parameters. Brand motion settles and never bounces (components.md).")
   }
   if(line ~ /(bounce|elastic|ease-.*-back)/ && line ~ /(transition|animation)/)
-    warn("surface", "line " NR ": bounce/elastic easing — brand motion settles, it never bounces (components.md).")
+    warn("surface", "line " NR ": bounce/elastic easing. Brand motion settles and never bounces (components.md).")
   if(line ~ /box-shadow[ ]*:/ && (line ~ /#000([^0-9a-fA-F]|$)/ || line ~ /rgba\(0,[ ]*0,[ ]*0/))
     warn("surface", "line " NR ": shadow uses pure black. Brand shadows are ink-tinted (components.md Shadow Recipes).")
 
@@ -716,7 +850,7 @@ BEGIN{
     for(i=1;i<=nt;i++){
       # a synonym is a whole word, and not the tail of a domain (plotplot.ai)
       if(tsyn[i]!="" && vl ~ ("(^|[^a-z.])" tolower(tsyn[i]) "($|[^a-z])")){
-        warn("voice", "line " NR ": \"" tolower(tsyn[i]) "\" — use the canonical term \"" tcanon[i] "\" (voice.md Terminology).")
+        warn("voice", "line " NR ": \"" tolower(tsyn[i]) "\": use the canonical term \"" tcanon[i] "\" (voice.md Terminology).")
       }
     }
     if(nprod>0){
@@ -728,7 +862,7 @@ BEGIN{
       while(match(tmp, "(^|[^a-z])" prodpat "($|[^a-z])")){
         seg=substr(lref, RSTART, RLENGTH)
         gsub(/[^A-Za-z]/, "", seg)
-        if(seg!="" && seg!=tolower(seg)) warn("voice", "line " NR ": \"" seg "\" — product names are lowercase, always (voice.md).")
+        if(seg!="" && seg!=tolower(seg)) warn("voice", "line " NR ": \"" seg "\": product names are lowercase, always (voice.md).")
         tmp=substr(tmp, RSTART+RLENGTH)
         lref=substr(lref, RSTART+RLENGTH)
       }
@@ -742,11 +876,11 @@ function judgepair(fg, bg, ln, tag,   r, key, cls, pre){
   r=ratio(fg,bg)
   key=fg "|" bg; cls=(key in docclass) ? docclass[key] : ((bg "|" fg) in docclass ? docclass[bg "|" fg] : "")
   pre="line " ln ": " fg " on " bg " is " sprintf("%.2f",r) ":1"
-  if(cls ~ /decorative/) err("color", pre " — documented decorative-only pair (colors.md Contrast Pairings): never words." tag)
-  else if(cls ~ /label|display/){ if(r<3.0) err("color", pre " — below the 3.0:1 labels minimum (colors.md Contrast Pairings)." tag) }
-  else if(cls ~ /reading/){ if(r<4.5) err("color", pre " — below the 4.5:1 reading minimum (colors.md Contrast Pairings)." tag) }
-  else if(r<3.0) err("color", pre " — below the 3.0:1 labels minimum (colors.md Contrast Pairings)." tag)
-  else if(r<4.5) warn("color", pre " — labels & display only; verify the pair class for reading copy (4.5:1)." tag)
+  if(cls ~ /decorative/) err("color", pre ", a documented decorative-only pair (colors.md Contrast Pairings): never words." tag)
+  else if(cls ~ /label|display/){ if(r<3.0) err("color", pre ", below the 3.0:1 labels minimum (colors.md Contrast Pairings)." tag) }
+  else if(cls ~ /reading/){ if(r<4.5) err("color", pre ", below the 4.5:1 reading minimum (colors.md Contrast Pairings)." tag) }
+  else if(r<3.0) err("color", pre ", below the 3.0:1 labels minimum (colors.md Contrast Pairings)." tag)
+  else if(r<4.5) warn("color", pre ", labels & display only; verify the pair class for reading copy (4.5:1)." tag)
 }
 
 # Resolve a value in one theme: dark overrides sit on top of the light values;
@@ -775,6 +909,8 @@ END{
   ng=split(garden, grows, "\036")
   for(i=1;i<=ng;i++){ if(grows[i]=="") continue; k=index(grows[i], "|"); err("surface", "line " substr(grows[i], 1, k-1) ": " substr(grows[i], k+1)) }
   if(!synthoff) for(i=1;i<=nfaux;i++) err("typography", faux[i])
+  for(i=1;i<=nfield;i++) if(!(fieldid[i] in labelfor)) err("access", "line " fieldline[i] ": a form field without a label. A placeholder vanishes as people type; add a <label for>, or aria-label.")
+  if(!focusvisible) for(i=1;i<=noutline;i++) err("access", "line " outlineline[i] ": focus outline removed with no :focus-visible style. Keyboard users lose their place; restore it with :focus-visible.")
   if(loadedany) for(k in brandfam) if(!(k in loaded)) warn("typography", "typography.md names \"" brandfam[k] "\" but the page never loads it.")
   if(sarif){
     emit_sarif()
@@ -786,12 +922,15 @@ END{
     printf "Voice:    %d error(s), %d warning(s)\n", e["voice"]+0,  w["voice"]+0
     printf "Typography: %d error(s), %d warning(s) (families; heading and body roles stay with the agent)\n", e["typography"]+0, w["typography"]+0
     printf "Content:  %d error(s), %d warning(s), %d note(s) (%s stage)\n", e["content"]+0, w["content"]+0, notecount["content"]+0, stage
-    te = e["color"]+e["layout"]+e["surface"]+e["voice"]+e["typography"]+e["content"]
-    tw = w["color"]+w["layout"]+w["surface"]+w["voice"]+w["typography"]+w["content"]
+    printf "Access:   %d error(s), %d warning(s) (what the source shows; rendered checks stay with a browser)\n", e["access"]+0, w["access"]+0
+    if(hascontracts) printf "Reuse:    %d error(s), %d warning(s)\n", e["reuse"]+0, w["reuse"]+0
+    else             printf "Reuse:    no contracts (.brand/components/ holds none)\n"
+    te = e["color"]+e["layout"]+e["surface"]+e["voice"]+e["typography"]+e["content"]+e["reuse"]+e["access"]
+    tw = w["color"]+w["layout"]+w["surface"]+w["voice"]+w["typography"]+w["content"]+w["reuse"]+w["access"]
     if(te==0) printf "Result: PASS (%d warning(s) to review)\n", tw
-    else      printf "Result: FAIL — %d error(s) to fix, %d warning(s) to review.\n", te, tw
+    else      printf "Result: FAIL (%d error(s) to fix, %d warning(s) to review).\n", te, tw
   }
-  exit (e["color"]+e["layout"]+e["surface"]+e["voice"]+e["typography"]+e["content"] > 0 ? 1 : 0)
+  exit (e["color"]+e["layout"]+e["surface"]+e["voice"]+e["typography"]+e["content"]+e["reuse"]+e["access"] > 0 ? 1 : 0)
 }
 ' "$TARGET"
 AWK_EXIT=$?

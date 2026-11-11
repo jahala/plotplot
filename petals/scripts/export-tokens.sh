@@ -10,11 +10,16 @@ set -euo pipefail
 #   <brand-dir>/tokens.css   CSS custom properties
 #   <brand-dir>/tokens.json  W3C DTCG groups of { $value, $type }
 #
+# Every token carries the brand's own prefix, the one "--<word>-" all
+# properties in colors.md's CSS blocks share (brand_prefix in lib/common.sh;
+# --pp- for plotplot, --larch- for the template fixture). A colors.md that
+# declares none, or mixes prefixes, is refused with exit 2.
+#
 # Where each token comes from:
-#   colour    the --pp-*: #hex declarations in colors.md's own CSS blocks
+#   colour    the <prefix>*: #hex declarations in colors.md's own CSS blocks
 #             (:root and [data-theme="dark"]); each hex must also sit in a
 #             colors.md table row
-#   font      --font-<role> in typography.md's CSS block, as --pp-font-<role>
+#   font      --font-<role> in typography.md's CSS block, as <prefix>font-<role>
 #   space, radius, stroke, shadow, motion
 #             the token and value columns of their tables, found by header
 #   layout    container max width, gutter and breakpoints, only as layout.md
@@ -23,12 +28,21 @@ set -euo pipefail
 #
 # --check derives into a scratch folder, compares it with the committed files
 # token by token, writes nothing into the brand folder, prints one DIFF line
-# per difference and exits 1 if there is any.
+# per difference and exits 1 if there is any. It also prints one UNKNOWN line
+# per token a component contract (components/**/*.md) cites that the brand
+# does not define, and exits 1 for those too.
 #
 # Exit codes: 0 derived (or, with --check, the tokens match); 1 with --check,
 # the committed tokens differ from the markdown; 2 the markdown cannot be
 # derived (a FATAL line says why) or the command line is wrong.
 # ============================================================================
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [[ ! -f "$SCRIPT_DIR/lib/common.sh" ]]; then
+  echo "petals: lib/common.sh is missing beside $(basename "$0"); install the whole petals/ directory" >&2
+  exit 127
+fi
+source "$SCRIPT_DIR/lib/common.sh"
 
 BRAND_DIR=".brand"
 CHECK=0
@@ -46,6 +60,10 @@ done
 for f in colors.md typography.md layout.md components.md identity.md; do
   [[ -f "$BRAND_DIR/$f" ]] || { echo "Missing: $BRAND_DIR/$f" >&2; exit 2; }
 done
+if ! PREFIX=$(brand_prefix "$BRAND_DIR/colors.md"); then
+  echo "FATAL: $PREFIX" >&2
+  exit 2
+fi
 
 # Work files live in a folder this run creates and removes on any exit.
 SCRATCH=$(mktemp -d)
@@ -59,7 +77,9 @@ import sys
 from collections import namedtuple
 
 EM_DASH = "—"
-PREFIX = "--pp-"
+# The brand's token prefix, read once by brand_prefix in lib/common.sh and
+# passed in by the bash wrapper; main() sets it from the command line.
+PREFIX = None
 
 
 class Fail(Exception):
@@ -216,7 +236,7 @@ def colour_decls(bodies, where):
     out = []
     seen = {}
     for body in bodies:
-        for name, hexv in re.findall(r"--pp-([A-Za-z0-9_-]+)\s*:\s*(#[0-9A-Fa-f]{6})\s*;", body):
+        for name, hexv in re.findall(re.escape(PREFIX) + r"([A-Za-z0-9_-]+)\s*:\s*(#[0-9A-Fa-f]{6})\s*;", body):
             if name in seen and seen[name].lower() != hexv.lower():
                 raise Fail("%s declares %s twice with different values (%s, %s)" % (where, PREFIX + name, seen[name], hexv))
             if name not in seen:
@@ -239,7 +259,7 @@ def derive_tokens(brand_dir):
     light = colour_decls(css_blocks(colors_md, r":root"), "colors.md :root")
     night = colour_decls(css_blocks(colors_md, r"\[data-theme\s*=\s*\"dark\"\]"), 'colors.md [data-theme="dark"]')
     if not light:
-        raise Fail("colors.md has no --pp-*: #hex declarations in a CSS :root block")
+        raise Fail("colors.md has no %s*: #hex declarations in a CSS :root block" % PREFIX)
     table_hexes = set()
     for line in colors_md.split("\n"):
         if line.lstrip().startswith("|"):
@@ -452,8 +472,32 @@ def diff_maps(kind, committed, derived):
     return lines
 
 
+def unknown_in_contracts(brand_dir, derived_dir):
+    """One UNKNOWN line per token a component contract cites that the brand
+    does not define: a contract must send the agent only to values the brand
+    chose (components/<name>.md and components/families/<family>.md)."""
+    with open(os.path.join(derived_dir, "tokens.css"), encoding="utf-8") as f:
+        defined = set(re.findall(r"(--[A-Za-z0-9-]+)\s*:", f.read()))
+    out = []
+    root = os.path.join(brand_dir, "components")
+    for dirpath, _, files in sorted(os.walk(root)):
+        for name in sorted(files):
+            if not name.endswith(".md"):
+                continue
+            path = os.path.join(dirpath, name)
+            rel = os.path.relpath(path, brand_dir)
+            with open(path, encoding="utf-8") as f:
+                cited = sorted(set(re.findall(r"(?<![A-Za-z0-9-])(--[A-Za-z][A-Za-z0-9-]*)", f.read())))
+            # only names under the brand's own prefix; a command-line flag
+            # such as --check in prose is not a token
+            out += ["UNKNOWN %s %s is not a token the brand defines" % (rel, t)
+                    for t in cited if t not in defined and t.startswith(PREFIX)]
+    return out
+
+
 def main(argv):
-    mode = argv[0]
+    global PREFIX
+    mode, PREFIX = argv[0], argv[-1]
     if mode == "derive":
         brand_dir, out_dir = argv[1], argv[2]
         brand, root, dark = derive_tokens(brand_dir)
@@ -469,6 +513,7 @@ def main(argv):
         brand_dir, derived_dir = argv[1], argv[2]
         lines = diff_maps("css", parse_css(os.path.join(brand_dir, "tokens.css")), parse_css(os.path.join(derived_dir, "tokens.css")))
         lines += diff_maps("json", parse_json(os.path.join(brand_dir, "tokens.json")), parse_json(os.path.join(derived_dir, "tokens.json")))
+        lines += unknown_in_contracts(brand_dir, derived_dir)
         for line in lines:
             print(line)
         if lines:
@@ -486,11 +531,11 @@ except Fail as e:
 PYEOF
 )
 
-python3 -I -c "$PY" derive "$BRAND_DIR" "$SCRATCH"
+python3 -I -c "$PY" derive "$BRAND_DIR" "$SCRATCH" "$PREFIX"
 
 if [[ "$CHECK" -eq 1 ]]; then
   # set -e makes the comparison's status the script's: 1 when anything differs.
-  python3 -I -c "$PY" compare "$BRAND_DIR" "$SCRATCH"
+  python3 -I -c "$PY" compare "$BRAND_DIR" "$SCRATCH" "$PREFIX"
   exit 0
 fi
 
