@@ -88,6 +88,13 @@ jobs:
         # The references carry a copy of tokens.css; a var() they never set renders blank.
         run: python3 "$RUNNER_TEMP/base/scripts/reference_tokens.py" .brand
 
+      - name: no private project is named, in the files or the commit messages
+        # The umbrella is public. The base branch's list and script judge, so a pull request cannot
+        # edit the list it is checked against (contracts/private-names.json).
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: python3 "$RUNNER_TEMP/base/scripts/public_names.py" . --range "$(git merge-base "$BASE_SHA" HEAD)..HEAD"
+
       - name: the marks hold their rules
         # One grid, two inks, night files derived from paper (.brand/DESIGN.md, section 7).
         run: python3 "$RUNNER_TEMP/base/petals/scripts/marks.py" --check --brand .brand
