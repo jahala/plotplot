@@ -32,13 +32,13 @@ Border color defaults to `#E2D8C0` on paper surfaces and `#403628` inside termin
 
 ## Shadow Recipes
 
-Shadows are always ink-tinted: `rgba(58, 39, 24, …)`, never pure black and never blue-gray. On soil-night they are soil-tinted, `rgba(8, 6, 4, …)`, because an ink-brown shadow vanishes on soil. `tokens.css` carries no dark shadow yet (petals issue 22), so the reference pages set them in their dark block. Two layers: a close contact shadow plus a soft ambient one.
+Shadows are always ink-tinted: `rgba(58, 39, 24, …)`, never pure black and never blue-gray. On soil-night they are soil-tinted, `rgba(8, 6, 4, …)`, because an ink-brown shadow vanishes on soil: the Night column holds each recipe's dark value, derived into `tokens.css`'s dark block. shadow-float has no night value yet; no page uses it in the dark theme. Two layers: a close contact shadow plus a soft ambient one.
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| shadow-rest | `0 1px 0 #E2D8C0, 0 12px 40px -16px rgba(58, 39, 24, 0.35)` | Hero terminal, large resting panes |
-| shadow-lift | `0 2px 4px rgba(58, 39, 24, 0.05), 0 14px 32px rgba(58, 39, 24, 0.08)` | Cards on hover: the −3px lift |
-| shadow-float | `0 2px 6px rgba(58, 39, 24, 0.07), 0 18px 44px rgba(58, 39, 24, 0.12)` | Floating artifacts: specimens, comment bubbles |
+| Token | Value | Night | Usage |
+|-------|-------|-------|-------|
+| shadow-rest | `0 1px 0 #E2D8C0, 0 12px 40px -16px rgba(58, 39, 24, 0.35)` | `0 1px 0 #403628, 0 12px 40px -16px rgba(8, 6, 4, 0.6)` | Hero terminal, large resting panes |
+| shadow-lift | `0 2px 4px rgba(58, 39, 24, 0.05), 0 14px 32px rgba(58, 39, 24, 0.08)` | `0 2px 4px rgba(8, 6, 4, 0.3), 0 14px 32px rgba(8, 6, 4, 0.45)` | Cards on hover: the −3px lift |
+| shadow-float | `0 2px 6px rgba(58, 39, 24, 0.07), 0 18px 44px rgba(58, 39, 24, 0.12)` | | Floating artifacts: specimens, comment bubbles |
 
 ## Motion Tokens
 
