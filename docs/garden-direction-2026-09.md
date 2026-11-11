@@ -59,10 +59,10 @@ private.
   only structural moat any bed has (umbel's insight generalizes: no first-party vendor can
   orchestrate, gate, or measure its competitors).
 - **Not the income plan.** Memory is explicit: plotplot is the reputation-and-gift garden
-  in the venture-altruist model; Surraura is the paid product. tilth went from 53 to 339
+  in the venture-altruist model; the owner's paid product lives elsewhere. tilth went from 53 to 339
   stars between March and August 2026, which is the compounding this garden is for. Where
   a paid layer could attach without bending the garden is in §8; none of it replaces
-  Surraura.
+  that product.
 
 ## 4. Landscape check, September 2026
 
@@ -193,7 +193,7 @@ honest "seed".
 6. **Money, honestly.** Paid layers that would not bend the garden: petals for brand
    teams (the market exists, though what they buy today is servers), copeca verified runs
    for vendors (behind a neutrality wall), hedge policy packs for teams. None is the income
-   plan; Surraura is.
+   plan.
 
 ## 9. Sequencing (order, not dates)
 
