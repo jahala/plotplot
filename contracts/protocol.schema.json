@@ -211,6 +211,7 @@
         "reason": {
           "enum": [
             "host-not-declared",
+            "robots-disallowed",
             "access-not-ready",
             "ceiling",
             "unsettled-claim",
