@@ -325,7 +325,7 @@ main() {
     local val="${line#*=}"
 
     if [[ "$val" == "null" ]]; then
-      log "Skipping $key (null — inherits from central)"
+      log "Skipping $key (null: inherits from central)"
       SKIPPED_KEYS+=("$key")
       SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
     else

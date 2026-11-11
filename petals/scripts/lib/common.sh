@@ -37,3 +37,35 @@ find_project_root() {
   done
   return 1
 }
+
+# The custom-property prefix a brand declares, such as --pp- or --acme-: the
+# one "--<word>-" every property in colors.md's own CSS blocks (:root and
+# [data-theme="dark"], inside code fences) starts with. Every script reads the
+# prefix here and nowhere else. Prints the prefix and returns 0; when colors.md
+# is missing, declares no properties, or mixes prefixes, prints why and
+# returns 1. It never guesses one.
+brand_prefix() {
+  local colors="$1"
+  [[ -f "$colors" ]] || { echo "$colors is missing, so the brand's token prefix is unknown"; return 1; }
+  awk -v file="$colors" '
+    /^[ \t]*```/ { infence = !infence; next }
+    infence { text = text $0 "\n" }
+    END {
+      gsub(/\/\*([^*]|\*+[^*\/])*\*+\//, "", text)
+      while (match(text, /[^{}]*\{[^{}]*\}/)) {
+        rule = substr(text, RSTART, RLENGTH); text = substr(text, RSTART + RLENGTH)
+        sel = rule; sub(/\{.*/, "", sel); sub(/^.*;/, "", sel); gsub(/^[ \t\n]+|[ \t\n]+$/, "", sel)
+        if (sel != ":root" && sel !~ /^\[data-theme[ ]*=[ ]*\042dark\042\]$/) continue
+        body = rule; sub(/^[^{]*\{/, "", body)
+        while (match(body, /--[A-Za-z0-9_-]+[ \t\n]*:/)) {
+          name = substr(body, RSTART, RLENGTH); body = substr(body, RSTART + RLENGTH)
+          sub(/[ \t\n]*:$/, "", name)
+          p = match(name, /^--[A-Za-z0-9]+-/) ? substr(name, 1, RLENGTH) : name
+          if (!(p in seen)) { seen[p] = 1; n++; list = list (n > 1 ? ", " : "") p }
+        }
+      }
+      if (n == 0) { print file " declares no custom properties in a CSS :root block, so the brand\047s token prefix is unknown"; exit 1 }
+      if (n > 1) { print file " uses more than one token prefix in its CSS blocks (" list "); a brand declares one, such as --acme-"; exit 1 }
+      print list
+    }' "$colors"
+}

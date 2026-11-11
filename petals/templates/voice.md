@@ -1,9 +1,12 @@
-# Brand Voice & Tone — {{BRAND_NAME}}
+# Brand Voice & Tone: {{BRAND_NAME}}
 
 <!--
   Template: voice.md
-  Forbidden terms and tone rules must be explicitly stated in source.
-  DO NOT invent forbidden terms or tone descriptors.
+  Forbidden terms and tone rules must be stated in the source.
+  Do not invent forbidden terms or tone descriptors.
+  check.sh reads the Forbidden Terms and Terminology tables. It flags em
+  dashes in copy only when the Em dashes line below bans them; fill that line
+  only from the source.
 -->
 
 ## Personality Traits
@@ -23,20 +26,25 @@
 | Error Messages | {{TONE_ERR_FORMAL}} | {{TONE_ERR_WARMTH}} | {{TONE_ERR_DIRECT}} |
 | Social Media | {{TONE_SOCIAL_FORMAL}} | {{TONE_SOCIAL_WARMTH}} | {{TONE_SOCIAL_DIRECT}} |
 
-## Vocabulary
+## Forbidden Terms
 
-### Approved Terms
-- {{APPROVED_TERM_1}}
-- {{APPROVED_TERM_2}}
-- {{APPROVED_TERM_3}}
+<!-- One row per term. A page that uses one is an error, and the finding
+     offers Use Instead. -->
 
-### Forbidden Terms
-
-| Term | Reason | Preferred Alternative |
-|------|--------|-----------------------|
+| Term | Reason | Use Instead |
+|------|--------|------------|
 | {{FORBIDDEN_TERM_1}} | {{FORBIDDEN_REASON_1}} | {{FORBIDDEN_ALT_1}} |
 | {{FORBIDDEN_TERM_2}} | {{FORBIDDEN_REASON_2}} | {{FORBIDDEN_ALT_2}} |
 | {{FORBIDDEN_TERM_3}} | {{FORBIDDEN_REASON_3}} | {{FORBIDDEN_ALT_3}} |
+
+## Terminology
+
+<!-- The brand's canonical terms. Not lists the synonyms to avoid, comma
+     separated; a page that uses one gets a warning naming the term in Use. -->
+
+| Use | Not | Why |
+|-----|-----|-----|
+| {{CANONICAL_TERM_1}} | {{AVOIDED_SYNONYMS_1}} | {{TERM_REASON_1}} |
 
 ## Grammar & Formatting
 
@@ -45,22 +53,21 @@
 - **Contractions:** {{GRAMMAR_CONTRACTIONS}}
 - **Sentence length:** {{GRAMMAR_SENTENCE_LENGTH}}
 - **Paragraph structure:** {{GRAMMAR_PARAGRAPH}}
+- **Em dashes:** {{GRAMMAR_EM_DASHES}}
 
 ## Before / After Examples
 
-{{VOICE_EXAMPLES}}
-
-### Example 1 — Marketing Copy
+### Example 1: Marketing Copy
 
 **Before:** {{BEFORE_MARKETING}}
 **After:** {{AFTER_MARKETING}}
 
-### Example 2 — UI Microcopy
+### Example 2: UI Microcopy
 
 **Before:** {{BEFORE_UI}}
 **After:** {{AFTER_UI}}
 
-### Example 3 — Error Message
+### Example 3: Error Message
 
 **Before:** {{BEFORE_ERROR}}
 **After:** {{AFTER_ERROR}}

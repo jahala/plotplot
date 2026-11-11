@@ -89,7 +89,7 @@
 
 When generating UI or design output, follow these constraints:
 
-1. **Colors:** Use only the palette defined in Section 2. Reference by semantic role, not raw hex.
+1. **Colors:** Use only the palette defined in Section 2. Reference a colour by its token in `.brand/tokens.css` (`var(--{{PREFIX}}-primary)`), never by raw hex.
 2. **Typography:** Apply the hierarchy from Section 3. Never introduce fonts outside the defined families.
 3. **Components:** Follow the styling rules in Section 4. Reuse patterns before inventing new ones.
 4. **Spacing:** Adhere to the spacing scale in Section 5. Never use arbitrary pixel values.
