@@ -8,10 +8,12 @@ Schema: `contracts/subject.schema.json`. Fixtures: `contracts/fixtures/subject/`
 |---|---|---|
 | `id` | yes | sha256 of `subject`, a newline, and the first identifier written as `scheme:value`, as lowercase hex |
 | `source` | yes | the adapter that read it, or `capture-plan` when a project names it |
-| `kind` | yes | `product`, `project`, `package`, `repository`, `app`, `site` or `organization` |
+| `kind` | yes | `product`, `project`, `package`, `repository`, `app`, `site`, `organization` or `topic` |
 | `name` | yes | the name the source gives it |
 | `identifiers` | yes | at least one `{scheme, value}`; the first is the one the source knows it by |
 | `fetched_at`, `private`, `raw_ref` | yes | as for every record |
+
+A `topic` is a subject matter people look up or search for, such as an encyclopedia article or a search term. Like every subject, it is never a person: a reader that names an article about a person has named a person. Nothing checks this yet; the capture plan's writer chooses the articles.
 
 ## Identifier schemes
 
@@ -30,6 +32,7 @@ A value is written in its scheme's form before it is stored, so the same thing a
 | `gb-company` | a UK Companies House company number: eight characters, digits and capital letters, leading zeros kept |
 | `url` | an absolute `https://` address, as written by the source |
 | `mcp` | a server's name in the official MCP registry, as the registry writes it, such as `io.github.example/weather` |
+| `wikipedia` | `<project>/<title>`: the Wikimedia project's host without `.org` (`en.wikipedia`), a slash, and the article title as the Pageviews API writes it, with spaces as underscores, such as `en.wikipedia/Spaced_repetition` |
 
 A new scheme is a change to this contract.
 

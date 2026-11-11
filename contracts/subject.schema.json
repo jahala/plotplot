@@ -34,7 +34,8 @@
         "repository",
         "app",
         "site",
-        "organization"
+        "organization",
+        "topic"
       ],
       "description": "what the subject is"
     },
@@ -95,6 +96,22 @@
               "properties": {
                 "value": {
                   "pattern": "^[A-Z0-9]{8}$"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "scheme": {
+                  "const": "wikipedia"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "value": {
+                  "pattern": "^[a-z][a-z0-9-]*\\.[a-z]+/[^\\s]+$"
                 }
               }
             }
