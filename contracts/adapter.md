@@ -44,7 +44,7 @@ One adapter has one kind. A source read two ways gets two adapters.
 
 ### Volume
 
-`volume` (optional) is the source's recent volume, last measured, as a fact. A place where people no longer post can still answer every search, so a caller looking for where people ask now needs to see that before relying on it. `measured_on` is the day it was measured. `what` says in words what was counted, such as "questions asked on stackoverflow.com". `per_days` is the span counted over, and `count` is how many fell in it. `how` says where the number came from: an API's total for a date range, or a page. Left out, the volume has not been measured. A generic adapter's places carry theirs in each capture plan entry, in the same shape (`contracts/capture-plan.md`). A run's own count of the posts it stored, by age, is the reader's to report, beside its records.
+`volume` (optional) is the source's recent volume, last measured, as facts: one entry for each kind of post counted, since a source such as Hacker News has stories and comments at different rates. A place where people no longer post can still answer every search, so a caller looking for where people ask now needs to see that before relying on it. In each entry, `measured_on` is the day it was measured. `what` says in words what was counted, such as "questions asked on stackoverflow.com". `per_days` is the span counted over, and `count` is how many fell in it. `how` says where the number came from: an API's total for a date range, or a page. Left out, the volume has not been measured. A generic adapter's places carry theirs in each capture plan entry, in the same shape (`contracts/capture-plan.md`). A run's own count of the posts it stored, by age, is the reader's to report, beside its records.
 
 ### Terms
 

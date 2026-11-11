@@ -40,13 +40,15 @@
           }
         ]
       },
-      "volume": {
-        "measured_on": "2026-11-11",
-        "what": "posts in the place's forum",
-        "per_days": 30,
-        "count": 3862,
-        "how": "a count of the dated posts on the place's listing pages"
-      }
+      "volume": [
+        {
+          "measured_on": "2026-11-11",
+          "what": "posts in the place's forum",
+          "per_days": 30,
+          "count": 3862,
+          "how": "a count of the dated posts on the place's listing pages"
+        }
+      ]
     },
     {
       "adapter": "local-files",

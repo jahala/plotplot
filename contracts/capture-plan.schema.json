@@ -373,42 +373,47 @@
             }
           },
           "volume": {
-            "type": "object",
-            "required": [
-              "measured_on",
-              "what",
-              "per_days",
-              "count",
-              "how"
-            ],
-            "additionalProperties": false,
-            "description": "a generic adapter's place's recent volume, last measured, as a fact, in the manifest's volume shape; left out, it has not been measured",
-            "properties": {
-              "measured_on": {
-                "type": "string",
-                "format": "date",
-                "description": "the day it was measured"
+            "type": "array",
+            "minItems": 1,
+            "description": "a generic adapter's place's recent volume, one entry per kind of post counted, last measured, as a fact, in the manifest's volume shape; left out, it has not been measured",
+            "items": {
+              "type": "object",
+              "required": [
+                "measured_on",
+                "what",
+                "per_days",
+                "count",
+                "how"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "measured_on": {
+                  "type": "string",
+                  "format": "date",
+                  "description": "the day it was measured"
+                },
+                "what": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "what was counted, in words, such as questions asked on stackoverflow.com"
+                },
+                "per_days": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "the span counted over, in days"
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "how many were counted in that span"
+                },
+                "how": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "where the number came from: an API's total for a date range, or a page"
+                }
               },
-              "what": {
-                "type": "string",
-                "minLength": 1,
-                "description": "what was counted, in words, such as questions asked on stackoverflow.com"
-              },
-              "per_days": {
-                "type": "integer",
-                "minimum": 1,
-                "description": "the span counted over, in days"
-              },
-              "count": {
-                "type": "integer",
-                "minimum": 0,
-                "description": "how many were counted in that span"
-              },
-              "how": {
-                "type": "string",
-                "minLength": 1,
-                "description": "where the number came from: an API's total for a date range, or a page"
-              }
+              "description": "one count of one kind of post"
             }
           }
         },

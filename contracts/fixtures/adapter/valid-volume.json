@@ -31,13 +31,22 @@
     "building",
     "wanting"
   ],
-  "volume": {
-    "measured_on": "2026-11-11",
-    "what": "questions asked on stackoverflow.com",
-    "per_days": 30,
-    "count": 3862,
-    "how": "the Stack Exchange API's total for questions created in the 30 days"
-  },
+  "volume": [
+    {
+      "measured_on": "2026-11-11",
+      "what": "questions asked on stackoverflow.com",
+      "per_days": 30,
+      "count": 3862,
+      "how": "the Stack Exchange API's total for questions created in the 30 days"
+    },
+    {
+      "measured_on": "2026-11-11",
+      "what": "answers posted on stackoverflow.com",
+      "per_days": 1,
+      "count": 412,
+      "how": "the Stack Exchange API's total for answers created that day"
+    }
+  ],
   "terms": {
     "url": "https://www.ycombinator.com/legal/",
     "read_on": "2026-10-26",
