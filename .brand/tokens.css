@@ -123,4 +123,6 @@
   --pp-upkeep: #7D6021;
   --pp-pollen-ink: #BD59D2;
   --pp-weeder-word: #A37A6E;
+  --pp-shadow-rest: 0 1px 0 #403628, 0 12px 40px -16px rgba(8, 6, 4, 0.6);
+  --pp-shadow-lift: 0 2px 4px rgba(8, 6, 4, 0.3), 0 14px 32px rgba(8, 6, 4, 0.45);
 }
