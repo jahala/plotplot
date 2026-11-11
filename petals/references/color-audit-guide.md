@@ -24,6 +24,11 @@ Use regex to find all hex color patterns in the target file:
 #[0-9a-fA-F]{8}\b         # #rrggbbaa (if the brand uses 8-digit hex)
 ```
 
+Then find every colour function: `oklch()`, `oklab()`, `rgb()`/`rgba()` and `hsl()`/`hsla()`, in the space syntax (`oklch(0.6 0.2 30 / 50%)`) and the comma syntax rgb() and hsl() keep (`rgba(47, 107, 79, 0.5)`). Convert each to its sRGB hex and judge that hex like any other: alpha does not change which colour it is. Two cases are not converted:
+
+- **Outside sRGB**: a colour no sRGB hex can hold (`oklch(0.7 0.4 140)`, `rgb(300 0 0)`). It is an error with its own message and no suggestion. Never move it into the gamut to find a match.
+- **Not a literal**: a value built from `var()`, `calc()` or the relative syntax (`oklch(from ...)`). It cannot be read without running the page, so it is skipped.
+
 Scan line by line. Record each match with its line number and the full matched value.
 
 ### 3. Exclude False Positives
@@ -39,12 +44,14 @@ Guideline for context detection:
 - If a hex pattern appears immediately after `data:image/`, skip it.
 - If a hex pattern appears within a string that is >100 characters and contains only base64 characters (`[A-Za-z0-9+/=]`), skip it.
 - If a hex pattern appears inside `url(...)` that does not start with `data:`, skip it.
+- Quoted output (`<pre>`, `<code>`, markdown code) and page text are not colours, in any notation.
 
 ### 4. Match Against Palette
 
 For each remaining match, normalise the case (uppercase) and check against the palette set:
 
 - **Match found**: No violation. Skip.
+- **A shadow tint**: in a shadow declaration (`box-shadow`, `text-shadow`, a custom property named for a shadow), a colour the Shadow Recipes section of `components.md` names is on-brand, though colors.md does not hold it.
 - **No match**: This is a color error. Proceed to step 5.
 
 ### 5. Find the Closest Palette Match
@@ -81,6 +88,8 @@ For each violation, report:
 Format:
 ```
 ERROR [color] line 42: #3B82F6 is not in the palette. Did you mean #2F99A4?
+ERROR [color] line 43: oklch(0.6 0.2 30) (#DE3E2D) is not in the palette. Did you mean #B3402A?
+ERROR [color] line 44: oklch(0.7 0.4 140) is outside sRGB, so it is not in the palette (every palette colour is an sRGB hex). Use a palette colour.
 ```
 
 If zero violations:
@@ -93,7 +102,7 @@ PASS [color] All colors match the brand palette.
 If `.brand/colors.md` has a "Contrast Pairings" section:
 
 1. Extract the pair-class minimums (reading / labels & display / decorative) and any documented pair classifications.
-2. Find places where a text color and its background are both statically knowable: a rule or inline style setting both `color` and `background`(-color). Resolve `var()` references against the file's `:root`. Skip pairs that cannot be resolved.
+2. Find places where a text color and its background are both statically knowable: a rule or inline style setting both `color` and `background`(-color). Resolve `var()` references against the file's `:root`, and once more for the dark theme's overrides. Colour functions resolve to their hex. Skip pairs that cannot be resolved: a translucent colour (its backdrop decides how it looks), a colour outside sRGB, a value built from `calc()`.
 3. Compute the WCAG 2.x contrast ratio. Classify the text: body-size prose -> reading; short labels, tags, kickers, display-size (>= 24px) type -> labels & display.
 4. Below the class minimum -> **error**. A color documented as "labels & display only" or "decorative only" used for body copy -> **error**, naming the documented class.
 

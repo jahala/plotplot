@@ -22,6 +22,11 @@ set -euo pipefail
 #   font      --font-<role> in typography.md's CSS block, as <prefix>font-<role>
 #   space, radius, stroke, shadow, motion
 #             the token and value columns of their tables, found by header
+#   night shadow
+#             the Shadow Recipes table's optional Night column, written into
+#             the dark block, for a brand with a dark theme (brand_has_dark in
+#             lib/common.sh). No column, an empty cell or no dark theme gives
+#             no night shadow.
 #   layout    container max width, gutter and breakpoints, only as layout.md
 #             states them
 # A value that is prose rather than a CSS value is skipped, never guessed.
@@ -150,13 +155,14 @@ def tables_under(md, heading_prefix):
     return out
 
 
-def token_value_rows(md, heading_prefix):
-    """(token, value) pairs found by the Token and Value header names."""
+def token_value_rows(md, heading_prefix, column="value"):
+    """(token, value) pairs found by the Token header name and the header
+    name of the value column (Value, or Night for a night shadow)."""
     pairs = []
     for header, rows in tables_under(md, heading_prefix):
         names = [h.lower() for h in header]
         tcol = next((i for i, h in enumerate(names) if h in ("token", "name")), None)
-        vcol = names.index("value") if "value" in names else None
+        vcol = names.index(column) if column in names else None
         if tcol is None or vcol is None:
             continue
         for r in rows:
@@ -245,7 +251,7 @@ def colour_decls(bodies, where):
     return out
 
 
-def derive_tokens(brand_dir):
+def derive_tokens(brand_dir, has_dark):
     colors_md = read(brand_dir, "colors.md")
     typog_md = read(brand_dir, "typography.md")
     layout_md = read(brand_dir, "layout.md")
@@ -334,10 +340,19 @@ def derive_tokens(brand_dir):
         if m:
             root.append(Token("motion", PREFIX + tok, m[0], m[1], "motion", tok))
 
-    names = [t.css for t in root]
-    dupes = sorted({n for n in names if names.count(n) > 1})
-    if dupes:
-        raise Fail("these tokens come out twice: " + ", ".join(dupes))
+    # 5. night shadows: the Night column, for a brand with a dark theme
+    if has_dark:
+        for tok, val in token_value_rows(comps_md, "Shadow Recipes", "night"):
+            v = as_shadow(val)
+            if v:
+                key = tok[len("shadow-"):] if tok.startswith("shadow-") else tok
+                dark.append(Token("shadow", PREFIX + tok, v, "shadow", "shadow", key))
+
+    for where, tokens in (("", root), ("dark ", dark)):
+        names = [t.css for t in tokens]
+        dupes = sorted({n for n in names if names.count(n) > 1})
+        if dupes:
+            raise Fail("these %stokens come out twice: %s" % (where, ", ".join(dupes)))
     return brand_name(identity_md), root, dark
 
 
@@ -383,7 +398,11 @@ def render_json(brand, root, dark):
         if members:
             doc[g] = members
     if dark:
-        doc["dark"] = {"color": {t.key: {"$value": t.value, "$type": t.type} for t in dark}}
+        doc["dark"] = {}
+        for g in GROUP_ORDER:
+            members = {t.key: {"$value": t.value, "$type": t.type} for t in dark if t.group == g}
+            if members:
+                doc["dark"][g] = members
     return json.dumps(doc, indent=2, ensure_ascii=False) + "\n"
 
 
@@ -499,8 +518,8 @@ def main(argv):
     global PREFIX
     mode, PREFIX = argv[0], argv[-1]
     if mode == "derive":
-        brand_dir, out_dir = argv[1], argv[2]
-        brand, root, dark = derive_tokens(brand_dir)
+        brand_dir, out_dir, has_dark = argv[1], argv[2], argv[3] == "1"
+        brand, root, dark = derive_tokens(brand_dir, has_dark)
         css, js = render_css(brand, root, dark), render_json(brand, root, dark)
         if EM_DASH in css or EM_DASH in js:
             raise Fail("the derived files would carry an em dash; the brand bans them")
@@ -531,7 +550,9 @@ except Fail as e:
 PYEOF
 )
 
-python3 -I -c "$PY" derive "$BRAND_DIR" "$SCRATCH" "$PREFIX"
+HAS_DARK=0
+if brand_has_dark "$BRAND_DIR/colors.md"; then HAS_DARK=1; fi
+python3 -I -c "$PY" derive "$BRAND_DIR" "$SCRATCH" "$HAS_DARK" "$PREFIX"
 
 if [[ "$CHECK" -eq 1 ]]; then
   # set -e makes the comparison's status the script's: 1 when anything differs.
