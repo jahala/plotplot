@@ -1,0 +1,15 @@
+{
+  "id": "c852ee3fe8c0eeb2f3ac0e871f2d80fdb2fd0c6417a64438fca07aff7c4afba2",
+  "source": "wikimedia-pageviews",
+  "kind": "topic",
+  "name": "Spaced repetition",
+  "identifiers": [
+    {
+      "scheme": "wikipedia",
+      "value": "en.wikipedia/Spaced repetition"
+    }
+  ],
+  "fetched_at": "2026-11-11T17:30:00Z",
+  "private": false,
+  "raw_ref": "responses/4c/4c1e2a90.json.gz"
+}
