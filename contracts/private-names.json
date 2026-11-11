@@ -1,0 +1,14 @@
+{
+ "private_names": "1",
+ "note": "The owner's private projects, which a public repository must not name. Held as hashes so this file does not publish what it guards: FNV-1a, 64 bits, of the lowercase name, as hex. A word in a text is split on anything that is not a letter, a digit or a hyphen, lowercased, hashed and compared. The garden's own tools may be named. To add a name, hash it with scripts/public_names.py --hash <name>.",
+ "hashes": [
+  "02f10b755d783b92",
+  "0fb1a692ffc8e976",
+  "28c0fe54fbcaf424",
+  "31b63ab900908604",
+  "4ccdb3639430bb7e",
+  "77eae572ed45b463",
+  "99ea79ebb630970e",
+  "f284a59e8900a2fc"
+ ]
+}
