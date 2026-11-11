@@ -327,6 +327,50 @@
             "type": "string",
             "pattern": "^[a-z][a-z0-9-]*$",
             "description": "the well budget this entry spends; required when the adapter is paid, which the runner checks against the manifest"
+          },
+          "posting": {
+            "type": "object",
+            "required": [
+              "promotion",
+              "rules"
+            ],
+            "additionalProperties": false,
+            "description": "the place's own posting rules, as facts, in the manifest's posting shape. A place's rules are the source's rules plus the entry's; its promotion is the entry's when the entry gives one, else the source's",
+            "properties": {
+              "promotion": {
+                "enum": [
+                  "allowed",
+                  "limited",
+                  "forbidden",
+                  "not-stated"
+                ],
+                "description": "what the rules say about posting to promote one's own product; limited means allowed only under a stated condition, such as a weekly thread, a share of one's posts, or a disclosure; not-stated means read and silent"
+              },
+              "rules": {
+                "type": "array",
+                "description": "each clause on self-promotion, links, disclosure or automated posting, quoted, with where it was read",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "says",
+                    "url"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "says": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "the clause, quoted"
+                    },
+                    "url": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "where it was read"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "allOf": [

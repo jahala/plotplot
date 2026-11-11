@@ -255,6 +255,50 @@
               "how"
             ]
           }
+        },
+        "posting": {
+          "type": "object",
+          "required": [
+            "promotion",
+            "rules"
+          ],
+          "additionalProperties": false,
+          "description": "what the place's own rules say about posting there, as fact, for a tool that may post on the owner's word; left out, the rules have not been read. A manifest never decides whether a post is allowed: the owner's campaign does, under these facts",
+          "properties": {
+            "promotion": {
+              "enum": [
+                "allowed",
+                "limited",
+                "forbidden",
+                "not-stated"
+              ],
+              "description": "what the rules say about posting to promote one's own product; limited means allowed only under a stated condition, such as a weekly thread, a share of one's posts, or a disclosure; not-stated means read and silent"
+            },
+            "rules": {
+              "type": "array",
+              "description": "each clause on self-promotion, links, disclosure or automated posting, quoted, with where it was read",
+              "items": {
+                "type": "object",
+                "required": [
+                  "says",
+                  "url"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "says": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "the clause, quoted"
+                  },
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "where it was read"
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "description": "what the source's terms say, as read, as fact; whether a use is allowed is the ruling of the owner whose capture plan runs the adapter (contracts/capture-plan.md)"
