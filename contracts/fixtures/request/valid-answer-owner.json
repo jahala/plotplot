@@ -1,7 +1,12 @@
 {
-  "format": "gate-answer/1",
-  "request": "8abba80c73b96be18ee0cb306bdaf32c664147359b3e2a2b988b813f18445870",
-  "answer": "yes",
+  "format": "gate-answer/2",
+  "request": "265a667f85892634e386890249f0d56442ad4e8de5dc0536ad6b9871fea04b65",
   "by": "owner",
-  "at": "2026-10-27T10:12:00Z"
+  "at": "2026-11-14T10:12:00Z",
+  "choice": "yes",
+  "signature": {
+    "alg": "ecdsa-p256-sha256",
+    "key": "0bef57faba16e55c694a2c47bbee47d87eea91a84d806d080388ae2e1679a627",
+    "value": "MEYCIQCq49/qrtnEUuswhBXdmcxZEU5skEUt9/qZYf+LcM9wdAIhALyd/ARMd9G/78DHS+BNr65Bn6VK+Oq7ibd4fOFWZDH/"
+  }
 }

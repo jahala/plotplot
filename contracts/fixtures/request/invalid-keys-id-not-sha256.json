@@ -1,0 +1,16 @@
+{
+  "format": "hedge-owner-keys/1",
+  "keys": [
+    {
+      "id": "B",
+      "point": "BL6bGK7XU941uTu09I5BdB4j574MKFPKsNn6j7aoOANdCuIve1ybfprbH+Lc2GKRBa0BGVM/5DVjKXq8+WHHR1w=",
+      "added": "2026-11-12T08:00:00Z",
+      "retired": "2026-11-14T08:00:00Z"
+    },
+    {
+      "id": "0bef57faba16e55c694a2c47bbee47d87eea91a84d806d080388ae2e1679a627",
+      "point": "BLyQFoTISjjFncMrjwi0waBFddb9hc4EBKvZg9qoG6pFIVrPnQLyDrKwbredpvgBPL0dpR+1tibM93V7ZJzkPHo=",
+      "added": "2026-11-14T08:00:00Z"
+    }
+  ]
+}
