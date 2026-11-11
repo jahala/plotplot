@@ -35,7 +35,7 @@ What changed:
 |---|---|
 | `requests/<digest>.json` | one request, written once when it is first asked |
 | `answers/<digest>.json` | the answer to that request |
-| `~/.config/hedge/owner-keys.json` | the owner's installed keys, owned by root |
+| `/Library/Application Support/hedge/owner-keys.json` | the owner's installed keys, owned by root in a folder only root can write |
 
 The first two live in the owner's requests folder, `~/.local/share/plotplot/owner/requests/` by
 default. `<digest>` is the request's digest. Anything else in that folder, such as hedge's record
@@ -167,7 +167,7 @@ key is not installed, or the answer is dated after its key retired.
 
 ## The installed keys
 
-`~/.config/hedge/owner-keys.json` holds the public half of each key the owner has made:
+`/Library/Application Support/hedge/owner-keys.json` holds the public half of each key the owner has made:
 
 ```json
 {"format": "hedge-owner-keys/1", "keys": [{"id": "…", "point": "…", "added": "…", "retired": "…"}]}
@@ -180,13 +180,14 @@ key is not installed, or the answer is dated after its key retired.
 | `added` | yes | when the owner installed it, UTC |
 | `retired` | no | when the owner replaced it, UTC |
 
-The owner installs the file with sudo, in the same step that installs hedge's policy, and root owns
-it. hedge trusts the file only when root owns it and no one but root can write it. When the file is
-missing, unreadable, or fails that check, no owner's answer verifies, and so no yes holds.
+The installer makes the folder, owned by root, and `hedge setup` writes the file into it with sudo.
+hedge trusts the file only when root owns it and no one but root can write it. Every folder above it
+belongs to root, so no program running as the owner can move it aside. When the file is missing,
+unreadable, or fails that check, no owner's answer verifies, and so no yes holds.
 
 A replaced key stays in the list with `retired` set, so the answers it signed earlier still verify.
-hedge's own tests verify with a software key they install under their own home folder. The
-installed hedge reads only the root-owned file, and an agent has no way to point it elsewhere.
+hedge's own tests verify with a software key whose keys file they name with `--keys`. The installed
+hedge reads only the root-owned file, and an agent has no way to point it elsewhere.
 
 **Verifying.** An owner's answer verifies when its `key` is in the trusted list, its `at` is before
 that key's `retired` if the key has one, and its signature checks over its bytes against the key's
