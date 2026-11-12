@@ -23,6 +23,9 @@
       "$ref": "#/$defs/gone"
     },
     {
+      "$ref": "#/$defs/skipped"
+    },
+    {
       "$ref": "#/$defs/found"
     },
     {
@@ -338,6 +341,44 @@
           "type": "string",
           "minLength": 1,
           "description": "the url or locator of the deleted item, as its record holds it"
+        }
+      }
+    },
+    "skipped": {
+      "type": "object",
+      "required": [
+        "type",
+        "address",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "description": "adapter to runner: an address the adapter meant to read and did not, with a reason from a fixed list. A skip is not a failure; the run still stores",
+      "properties": {
+        "type": {
+          "const": "skipped"
+        },
+        "address": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the url or locator the adapter meant to read"
+        },
+        "reason": {
+          "enum": [
+            "robots-disallowed",
+            "challenged",
+            "refused",
+            "gone",
+            "not-captured",
+            "excluded",
+            "out-of-window",
+            "not-a-page"
+          ],
+          "description": "robots-disallowed: the site's robots.txt disallows it; challenged: a bot challenge, login or captcha, never passed; refused: the source answered 401 or 403; gone: the source answered 404 or 410; not-captured: an archived reader found no capture; excluded: the entry's exclude_titles left it out; out-of-window: said outside the run's window; not-a-page: a type mull does not read"
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the adapter's own sentence about this skip"
         }
       }
     },

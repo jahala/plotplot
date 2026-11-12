@@ -34,10 +34,11 @@ The run is kept whole or not at all. Only a run whose last line is a valid `stat
 | `refused` | mull to adapter | `id` and `reason`: `host-not-declared`, `robots-disallowed` (for an adapter that reads any site, the site's robots.txt disallows the path for mull or for a crawler that reads for language models; `detail` names the path and the group; unless the entry's ruling says `robots: ignore`, or says `agent` and only a model crawler's group disallows it), `access-not-ready`, `ceiling`, `unsettled-claim`, `not-recorded` (a replay with no kept response), `rate-limit-exhausted`, `unanswered` (the request failed before the source answered; a paid request stays claimed and is never resent) |
 | `record` | adapter to mull | `kind` (`post`, `document`, `observation`, `subject`, `reaction` or `change`), `from` (the fetch id), `fields` |
 | `gone` | adapter to mull | `from` (the fetch whose response said so) and `address` (the url or locator of an item the source says was deleted) |
+| `skipped` | adapter to mull | `address` (a url or locator the adapter meant to read and did not), `reason` and, optionally, `detail` (the adapter's own sentence). `reason` is one of: `robots-disallowed` (the site's robots.txt disallows it), `challenged` (a bot challenge, login or captcha, never passed), `refused` (the source answered 401 or 403), `gone` (404 or 410), `not-captured` (an archived reader found no capture), `excluded` (the entry's `exclude_titles` left it out), `out-of-window` (said outside the run's window), `not-a-page` (a type mull does not read). mull refuses an unknown reason, as it refuses an unknown record kind. A skip is not a failure: the run still stores. It is how a reader learns what a run did not read, never from standard error |
 | `found` | adapter to mull | `from`, `address` (a place a discover adapter found), and optionally `title` and `signals` as the source gave them |
 | `state` | adapter to mull | `cursor`: any JSON value, read back on the next `start` |
 
-Standard error is free text. mull keeps it in the run's log and never parses it.
+Standard error is free text. mull keeps it in the run's log and never parses it. What an adapter meant to read and did not goes in a `skipped` line, never only on standard error.
 
 ## What mull completes in a record
 
