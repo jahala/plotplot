@@ -29,10 +29,29 @@ product (pleach does), decide prices (the owner does, from cultivate's evidence)
    the compass lists (the first deploy to a domain, anything that costs money, turning on billing)
    wait for a yes in gate, and every cost is reserved in well first. Each step's undo is recorded
    before the step runs.
-4. **Watch.** Uptime and error-rate checks on the live product. A breach opens an incident: roll
-   back to the last good release with the recorded undo, record what happened, tell the owner
-   through hedge's queue.
-5. **Before going live**, a checklist code can check: terms and privacy pages present, the
+4. **Verify each release.** A deploy is not done when it finishes, or when CI passes, but when
+   production clears it. Each release is compared with the last healthy one, route by route, job
+   by job and for each business event the product counts (an order created, a receipt sent), from
+   the product's own telemetry read through an adapter. Fixed thresholds miss a page that quietly
+   stopped being called; a baseline does not.
+   - **The verdict is one of three:** cleared, saying what it did not assess (routes not run since
+     the deploy); failed, with its findings (a regression, a new error, a route or event that
+     dropped); or not cleared yet, with what it is still waiting to see.
+   - **A quiet release is exercised.** A product with little traffic never gathers enough evidence
+     on its own. transplant sends read-only requests to the routes the release changed, recorded
+     as sent by us, and never sends one that changes data.
+   - **Watching goes on after the first check.** A nightly job or a rarely used page can fail days
+     later; that reopens the release as a late regression.
+   - **A fix is confirmed by the release after it.** A failed release stays failed. The next
+     release's verdict says, for each earlier problem, fixed, healthy so far, still failing, or not
+     run since.
+   - **An intended change is accepted by a person.** A failure caused on purpose (a route
+     removed) waits for the owner's acceptance with a reason. No agent accepts it.
+5. **Watch and roll back.** Uptime and the release verdict on the live product. A failed release or
+   a breach opens an incident: roll back to the last cleared release with the recorded undo, on
+   the owner's word, record what happened, and tell the owner through hedge's queue. An agent
+   starting work on the product reads any failed, uncleared or late-regressed release first.
+6. **Before going live**, a checklist code can check: terms and privacy pages present, the
    product's data stores each declare a lifetime (trellis), a way for users to delete their data.
 
 It wraps the hosting platform's own command-line tool and the owner's existing deploy, email and
@@ -41,7 +60,9 @@ billing skills. It is not a platform of its own.
 ## What code decides
 
 The plan, the order, the stop at first failure, the recorded undo, the cost reservation, the
-yes check, the monitoring thresholds and the rollback.
+yes check, the release verdict against its baseline, which requests an exercise may send (read-only
+only), the monitoring thresholds and the rollback. The owner accepts an intended change and approves
+a rollback.
 
 ## Alone, and with the garden
 
@@ -56,7 +77,8 @@ samples are kept 30 days; incidents are kept for the life of the product.
 
 ## Metric and kill criterion
 
-Metric: ship steps that needed a person, per product; time from a breach to rollback.
+Metric: ship steps that needed a person, per product; time from a breach to rollback; releases that
+reached users broken while marked cleared (the target is none).
 
 Kill criterion: if a product's ship cannot be written as a plan with an undo for every step on
 the owner's hosting platform, transplant is a checklist skill, not a tool.

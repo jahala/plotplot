@@ -25,7 +25,7 @@ notes and advisories (mull fetches them), plan the work (tend) or run it (pleach
    proposed loop for the product's map (upgrade this framework, with its checks), or an alert to
    the owner through hedge's queue (a security advisory with a known exploit).
 3. **Batch.** Small upgrades of the same kind across products are proposed together, so one plan
-   runs them all and lands each on its own product's checks.
+   runs them all and lands each on its own product's checks and its own release verdict.
 
 It wraps the existing open dependency-update tools and advisory databases rather than rebuilding
 them.
@@ -33,7 +33,8 @@ them.
 ## What code decides
 
 Which items are due, which pass a severity line, which batch together, and whether an upgrade
-landed (the product's own checks). A typed judge may read a free-text retirement notice for its
+landed. An upgrade lands only when its release is cleared in production (transplant's release
+verdict), not when the product's own checks pass, and a late regression after it reopens the item. A typed judge may read a free-text retirement notice for its
 date and scope, in a shape code can refuse.
 
 ## Alone, and with the garden
