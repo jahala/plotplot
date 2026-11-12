@@ -1,0 +1,6 @@
+{
+  "type": "skipped",
+  "address": "https://forum.example.org/t/412",
+  "reason": "too-long",
+  "detail": "a reason the protocol does not name"
+}
