@@ -12,7 +12,7 @@ Schema: `contracts/document.schema.json`. Fixtures: `contracts/fixtures/document
 | `url` | when public | the page's address |
 | `locator` | when private and no url | a file and line, a message id |
 | `title` | no | the page's title |
-| `media_type` | yes | `text/html`, `text/markdown` or `text/plain` |
+| `media_type` | yes | `text/html`, `text/markdown`, `text/plain` or `application/json` (a source's own structured page, such as a community's rules list, kept as the source gave it) |
 | `content` | yes | the page as served, decoded to text, never cleaned or shortened |
 | `published_at` | yes, may be null | when the page says it was published |
 | `captured_at` | no | when the source itself captured the page, for a source that serves captures, such as a web archive's snapshot moment |

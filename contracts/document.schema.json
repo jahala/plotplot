@@ -50,7 +50,8 @@
       "enum": [
         "text/html",
         "text/markdown",
-        "text/plain"
+        "text/plain",
+        "application/json"
       ],
       "description": "how content is written; a reader that wants plain text extracts it"
     },
