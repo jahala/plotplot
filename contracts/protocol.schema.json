@@ -371,9 +371,10 @@
             "not-captured",
             "excluded",
             "out-of-window",
-            "not-a-page"
+            "not-a-page",
+            "moved"
           ],
-          "description": "robots-disallowed: the site's robots.txt disallows it; challenged: a bot challenge, login or captcha, never passed; refused: the source answered 401 or 403; gone: the source answered 404 or 410, or shows the item as deleted or removed; not-captured: an archived reader found no capture; excluded: the entry's exclude_titles left it out; out-of-window: said outside the run's window; not-a-page: a type mull does not read"
+          "description": "robots-disallowed: the site's robots.txt disallows it; challenged: a bot challenge, login or captcha, never passed; refused: the source answered 401 or 403; gone: the source answered 404 or 410, or shows the item as deleted or removed; not-captured: an archived reader found no capture; excluded: the entry's exclude_titles left it out; out-of-window: said outside the run's window; not-a-page: a type mull does not read; moved: a redirect to a place the adapter may not follow, its target in detail, which never feeds prune"
         },
         "detail": {
           "type": "string",
