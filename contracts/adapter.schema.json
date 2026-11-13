@@ -18,7 +18,8 @@
     "carries",
     "terms",
     "access",
-    "private"
+    "private",
+    "reads_pages"
   ],
   "additionalProperties": false,
   "properties": {
@@ -852,7 +853,7 @@
     },
     "reads_pages": {
       "type": "boolean",
-      "description": "true when the adapter reads a site's own pages, as a visitor's browser would, rather than an interface made for programs; mull asks the site's robots.txt before the adapter's first fetch there whenever reads_pages or terms_per_site holds"
+      "description": "true when the adapter reads a site's own pages, as a visitor's browser would, false when it reads an interface made for programs; every manifest states it, so a page reader can never go without robots.txt by leaving it out. mull asks the site's robots.txt whenever reads_pages or terms_per_site holds"
     }
   },
   "allOf": [

@@ -27,7 +27,7 @@ One JSON object per adapter, kept beside the adapter's program.
 | `carries` | yes | the kinds of signal the source carries (below) |
 | `terms` | yes | the source's terms as read, and the adapter's verdict (below) |
 | `terms_per_site` | no | true when each configured site has its own terms, which its capture plan entry then carries |
-| `reads_pages` | no | true when the adapter reads a site's own pages, as a visitor's browser would, rather than an interface made for programs. A fact about the adapter, not a policy: mull asks the site's robots.txt before the adapter's first fetch there whenever `reads_pages` or `terms_per_site` holds |
+| `reads_pages` | yes | true when the adapter reads a site's own pages, as a visitor's browser would, false when it reads an interface made for programs. Every manifest states it, so a page reader cannot go without robots.txt by leaving it out. A fact about the adapter, not a policy: mull asks the site's robots.txt before the adapter's first fetch there whenever `reads_pages` or `terms_per_site` holds |
 | `access` | yes | what reading the source needs (below) |
 | `private` | yes | whether the source is a private stream the owner consented to |
 | `split` | for expand and stream | for each kind it emits, where each field is read from (below) |

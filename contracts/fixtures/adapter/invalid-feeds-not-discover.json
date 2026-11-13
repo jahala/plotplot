@@ -87,6 +87,7 @@
     "paid": false
   },
   "private": false,
+  "reads_pages": true,
   "split": {
     "post": {
       "text": "The post's raw field, the markdown its author wrote.",

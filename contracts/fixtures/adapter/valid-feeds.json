@@ -84,5 +84,6 @@
     "human_step": null,
     "paid": false
   },
-  "private": false
+  "private": false,
+  "reads_pages": true
 }
