@@ -2,7 +2,7 @@
 
 The contract every mull adapter's manifest follows. mull owns its content. It sits beside the record contracts: a record says what one person said, what a page showed or what a number was, and the manifest says where it was read, how, and under what terms. mull reads the manifest before it runs the adapter (`contracts/protocol.md`), and readers use it to decide which records may count: glean scores a need only on sources that reach its people, and reports an audience no source reaches as a gap.
 
-Schema: `contracts/adapter.schema.json`. Fixtures: `contracts/fixtures/adapter/`, a stream adapter (`valid.json`) and a generic forum adapter (`valid-forum.json`). Test: `test/contracts.test.ts`.
+Schema: `contracts/adapter.schema.json`. Fixtures: `contracts/fixtures/adapter/`, a stream adapter (`valid.json`), a generic forum adapter (`valid-forum.json`) and a probe with a categorical metric (`valid-categories.json`). Test: `test/contracts.test.ts`.
 
 ## The shape
 
@@ -29,6 +29,7 @@ One JSON object per adapter, kept beside the adapter's program.
 | `access` | yes | what reading the source needs (below) |
 | `private` | yes | whether the source is a private stream the owner consented to |
 | `split` | for expand and stream | for each kind it emits, where each field is read from (below) |
+| `categories` | for a categorical metric | for each categorical metric its observations carry, every name it may write and the fixed rule that gives each (below) |
 
 ### Kinds
 
@@ -40,7 +41,7 @@ One adapter has one kind. A source read two ways gets two adapters.
 
 ### What a source carries
 
-`carries` takes the signal kinds of the umbrella's plan for reading the world (`jahala/plotplot:docs/plans/reading-the-world.md`): `wanting`, `paying`, `building`, `harm`, `stranded`, `movement` and `own`. A new kind is a change to this contract. The word is `carries` because a post's `signals` already means the numbers a source gives about one post.
+`carries` takes the signal kinds of the umbrella's plan for reading the world (`jahala/plotplot:docs/plans/reading-the-world.md`): `wanting`, `paying`, `building`, `harm`, `stranded`, `movement` and `own`. A new kind is a change to this contract. An adapter that reads no one's words, such as one that reports which software a site runs, carries none, and its list is empty. The word is `carries` because a post's `signals` already means the numbers a source gives about one post.
 
 ### Volume
 
@@ -85,6 +86,10 @@ One rule is held by the schema whatever any ruling says: a `human_step` makes th
 ### Split
 
 For each kind the adapter emits, `split` names each field the adapter writes and where it is read from in a response, in a sentence a person can check against a recorded response. An adapter whose source says what an account is writes `author_kind` (`person` or `bot`) and names where it reads it in `split`. Field names are those of the protocol's `record` lines (`contracts/protocol.md`): `handle` for the author, `parent_address` for the parent. A field the source does not give says so. The keys of `split` are exactly the kinds in `emits`.
+
+### Categories
+
+An adapter whose observations carry a name instead of a number (`contracts/observation.md`) lists, under `categories`, each such metric with every name it may write. Each name has a `rule`: what in the source's answer gives that name, in a sentence a person can check against a recorded response, such as a field the source sends about itself or a marker in its page. The rules are fixed and are tried in the order listed; the contract names no category itself. A name for "read, and no rule matched" may be listed with that as its rule. A source that could not be read is a skipped line, never a name. mull refuses an observation whose value is not listed for its metric.
 
 ## Rules a reader may rely on
 

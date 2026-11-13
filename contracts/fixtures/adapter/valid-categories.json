@@ -1,0 +1,122 @@
+{
+  "adapter": "forum-engine",
+  "version": "0.1.0",
+  "protocol": "1",
+  "run": [
+    "node",
+    "adapter.ts"
+  ],
+  "source": {
+    "name": "A site's forum, asked which forum software it runs",
+    "url": "https://www.rfc-editor.org/rfc/rfc9309"
+  },
+  "kind": "expand",
+  "emits": [
+    "subject",
+    "observation"
+  ],
+  "reaches": {
+    "hosts": [],
+    "files": false,
+    "config_hosts": "site"
+  },
+  "config": {
+    "type": "object",
+    "required": [
+      "site"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "site": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+(\\.[a-z0-9-]+)+$",
+        "description": "the forum's host name, such as community.shopify.com; mull reads its robots.txt first"
+      },
+      "address": {
+        "type": "string",
+        "pattern": "^https://",
+        "description": "the forum's home page on the site, for a forum that lives under a path, such as https://www.bogleheads.org/forum/; https://<site>/ when left out"
+      }
+    }
+  },
+  "terms_per_site": true,
+  "channel": "The forum's host name, one channel per site.",
+  "identity_space": "channel",
+  "audiences": [
+    "people who talk on a site's own forum, such as a vendor's customer community or a trade's board"
+  ],
+  "carries": [],
+  "terms": {
+    "url": "https://www.rfc-editor.org/rfc/rfc9309",
+    "read_on": "2026-11-13",
+    "licence": "Each site sets its own licence for its pages; the reader sets none. Each capture plan entry quotes its site's own terms.",
+    "attribution": {
+      "required": false
+    },
+    "commercial_use": "not-stated",
+    "rate_limit": {
+      "requests": 1,
+      "per_seconds": 2,
+      "stated_by": "adapter"
+    },
+    "restrictions": [],
+    "deletion": {
+      "required": false
+    }
+  },
+  "access": {
+    "method": "none",
+    "credentials": [],
+    "account": null,
+    "automation": "not-stated",
+    "obtain": {
+      "how": "Two pages are read as any visitor who is not signed in reads them: the forum's about.json, then its home page. mull asks for the site's robots.txt first and follows RFC 9309, as for web-page, including the groups naming readers for language models. A 401 or 403, or an answer carrying a bot challenge, writes no name and is never worked around. It sends User-Agent: mull, and keeps one request per 2 seconds across every run on the machine.",
+      "approval": false,
+      "cost": "free",
+      "status": "ready"
+    },
+    "scopes": {
+      "least": [],
+      "read_only": true
+    },
+    "expiry": null,
+    "human_step": null,
+    "paid": false
+  },
+  "private": false,
+  "split": {
+    "subject": {
+      "kind": "Always site.",
+      "name": "The configured site, as given.",
+      "identifiers": "One domain identifier: the configured site in lowercase, without a leading www."
+    },
+    "observation": {
+      "subject_identifier": "The site's domain identifier, as for its subject.",
+      "metric": "forum_engine, from categories.",
+      "value": "The first name in categories.forum_engine whose rule matches, tried in order.",
+      "at": "The received_at of the answer that gave the name.",
+      "url": "The address of the answer that gave the name: about.json for discourse, the home page for the others.",
+      "unit": "None: a name has no unit."
+    }
+  },
+  "categories": {
+    "forum_engine": [
+      {
+        "name": "discourse",
+        "rule": "about.json, read relative to the forum's home page, answers 200 with JSON whose about.version is a string, as Discourse's does (community.shopify.com: 2026.11.0-latest.1 on 2026-11-13)."
+      },
+      {
+        "name": "phpbb",
+        "rule": "The home page answers 200 with HTML holding <body id=\"phpbb\", the body phpBB's own templates open with (www.bogleheads.org/forum, three captures kept in test/fixtures/phpbb-forum/pages)."
+      },
+      {
+        "name": "khoros",
+        "rule": "The home page answers 200 with HTML holding LITHIUM.CommunityJsonObject, the script object Khoros (formerly Lithium) communities set (community.squareup.com on 2026-11-13)."
+      },
+      {
+        "name": "unknown",
+        "rule": "Both pages were read and no rule above matched."
+      }
+    ]
+  }
+}

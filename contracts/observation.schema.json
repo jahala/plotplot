@@ -34,10 +34,10 @@
     "metric": {
       "type": "string",
       "minLength": 1,
-      "description": "the source's own name for the number, such as downloads or stargazers_count"
+      "description": "the source's own name for the number, such as downloads or stargazers_count, or a categorical metric's name from its adapter's manifest"
     },
     "value": {
-      "description": "the number, or the moment, as the source gave it; the metric says which",
+      "description": "the number, or the moment, as the source gave it, or for a categorical metric a name its adapter's manifest lists; the metric says which",
       "anyOf": [
         {
           "type": "number"
@@ -45,6 +45,10 @@
         {
           "type": "string",
           "format": "date-time"
+        },
+        {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]*$"
         }
       ]
     },

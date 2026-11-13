@@ -1,0 +1,12 @@
+{
+  "id": "eb846d93faefe1d00fc23e945e675073796ab1caa6b9b76624c47fa440afbcf4",
+  "source": "forum-engine",
+  "subject": "70a7598ef58ca9420509803638edc7b1b52c0715e8ece0efe7b2385e4c9538e3",
+  "metric": "forum_engine",
+  "value": "Discourse 2026.11.0-latest.1",
+  "at": "2026-11-13T14:31:02Z",
+  "url": "https://community.shopify.com/about.json",
+  "fetched_at": "2026-11-13T14:31:02Z",
+  "private": false,
+  "raw_ref": "responses/7c/7c41d0e2.json.gz"
+}
