@@ -191,7 +191,8 @@
                 "additionalProperties": false,
                 "properties": {
                   "required": {
-                    "type": "boolean"
+                    "enum": [true, false, "not-stated"],
+                    "description": "true or false as the terms say, or not-stated when they say nothing; a reader that quotes treats not-stated as required, showing the item's address"
                   },
                   "how": {
                     "type": "string",
@@ -280,7 +281,8 @@
                 "description": "whether the source requires that what was read be deleted when its author deletes it, or after a time; no ruling changes this",
                 "properties": {
                   "required": {
-                    "type": "boolean"
+                    "enum": [true, false, "not-stated"],
+                    "description": "true or false as the terms say, or not-stated when they say nothing; mull treats not-stated as required and deletes what the source reports deleted"
                   },
                   "within_hours": {
                     "type": "integer",
