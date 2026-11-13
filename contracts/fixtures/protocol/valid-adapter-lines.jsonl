@@ -6,3 +6,4 @@
 {"type": "found", "from": "issue-41", "address": "https://forum.example.org/t/exporting-invoices/412", "title": "Exporting invoices breaks after a thousand rows", "signals": {"rerank_score": 0.82}}
 {"type": "skipped", "address": "https://forum.example.org/t/exporting-invoices/412/reply", "reason": "robots-disallowed", "detail": "robots.txt disallows /t/*/reply for every agent"}
 {"type": "state", "cursor": {"since": "2026-10-26T00:00:00Z"}}
+{"type": "skipped", "address": "https://ukbusinessforums.example/", "reason": "moved", "detail": "answered 301 to https://www.ukbusinessforums.example/, a host this entry does not name"}
