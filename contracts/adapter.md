@@ -55,12 +55,12 @@ What the source's terms say, as read, as fact. A manifest never decides whether 
 
 - `url` and `read_on`: where the terms were read, and the day.
 - `licence`: the licence of what people post, as the terms name it, or the terms' own words when they name none.
-- `attribution`: whether a reader that quotes a record must attribute it, and how.
+- `attribution`: whether a reader that quotes a record must attribute it, and how. `required` is `not-stated` when the terms say nothing, never a guess; a reader that quotes treats it as required and shows the item's address.
 - `commercial_use`: `allowed`, `forbidden` or `not-stated`.
 - `rate_limit`: requests per span of seconds, `stated_by` the `source` or, when it states none, the `adapter`, which then keeps its own. mull holds this limit as a budget per span, whatever any ruling says.
 - `restrictions`: each clause that restricts reading the source by program or using what is read, quoted, with where it was read. Empty when the terms restrict nothing.
 - `posting` (optional): what the source's own rules say about posting there, as fact, for a tool that may post on the owner's word. `promotion` is `allowed`, `limited`, `forbidden` or `not-stated`. `limited` means allowed only under a stated condition, such as a weekly thread, a share of one's posts, or a disclosure. `rules` quotes each clause on self-promotion, links, disclosure or automated posting, with where it was read. Left out, the rules have not been read. That differs from `not-stated`, which means they were read and say nothing. A manifest never decides whether a post is allowed. The owner's campaign does, under these facts.
-- `deletion`: whether the source requires that what was read be deleted when its author deletes it or after a time, how soon, and how. mull complies, whatever any ruling says.
+- `deletion`: whether the source requires that what was read be deleted when its author deletes it or after a time, how soon, and how. mull complies, whatever any ruling says. `required` is `not-stated` when the terms say nothing, never a guess; mull treats it as required and deletes what the source reports deleted.
 
 A generic adapter that reads many sites (`terms_per_site: true`) states the software's own limits here, and each capture plan entry carries the site's terms in the same shape. Each capture plan entry may carry the place's own `posting`, in the same shape, since a place within a source (a forum, a subreddit, a repository) keeps rules of its own.
 
