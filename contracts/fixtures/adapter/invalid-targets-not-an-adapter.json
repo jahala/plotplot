@@ -75,6 +75,7 @@
     "paid": false
   },
   "private": false,
+  "reads_pages": false,
   "split": {
     "post": {
       "text": "The node's text field, as the API returns it.",

@@ -84,6 +84,7 @@
     "paid": false
   },
   "private": false,
+  "reads_pages": true,
   "split": {
     "subject": {
       "kind": "Always site.",
