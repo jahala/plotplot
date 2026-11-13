@@ -2,7 +2,7 @@
 
 The contract every mull adapter's manifest follows. mull owns its content. It sits beside the record contracts: a record says what one person said, what a page showed or what a number was, and the manifest says where it was read, how, and under what terms. mull reads the manifest before it runs the adapter (`contracts/protocol.md`), and readers use it to decide which records may count: glean scores a need only on sources that reach its people, and reports an audience no source reaches as a gap.
 
-Schema: `contracts/adapter.schema.json`. Fixtures: `contracts/fixtures/adapter/`, a stream adapter (`valid.json`), a generic forum adapter (`valid-forum.json`) and a probe with a categorical metric (`valid-categories.json`). Test: `test/contracts.test.ts`.
+Schema: `contracts/adapter.schema.json`. Fixtures: `contracts/fixtures/adapter/`, a stream adapter (`valid.json`), a generic forum adapter (`valid-forum.json`), a probe with a categorical metric (`valid-categories.json`) and the same probe reading pages under one posture (`valid-reads-pages.json`). Test: `test/contracts.test.ts`.
 
 ## The shape
 
@@ -26,6 +26,7 @@ One JSON object per adapter, kept beside the adapter's program.
 | `carries` | yes | the kinds of signal the source carries (below) |
 | `terms` | yes | the source's terms as read, and the adapter's verdict (below) |
 | `terms_per_site` | no | true when each configured site has its own terms, which its capture plan entry then carries |
+| `reads_pages` | no | true when the adapter reads a site's own pages, as a visitor's browser would, rather than an interface made for programs. A fact about the adapter, not a policy: mull asks the site's robots.txt before the adapter's first fetch there whenever `reads_pages` or `terms_per_site` holds |
 | `access` | yes | what reading the source needs (below) |
 | `private` | yes | whether the source is a private stream the owner consented to |
 | `split` | for expand and stream | for each kind it emits, where each field is read from (below) |
