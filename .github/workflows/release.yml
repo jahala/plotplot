@@ -110,7 +110,7 @@ jobs:
           if [ "$RUNNER_OS" = Windows ]; then binary=plotplot.exe; fi
           tar -czf "plotplot-$TARGET.tar.gz" -C "target/$TARGET/release" "$binary"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: plotplot-${{ matrix.target }}
           path: plotplot-${{ matrix.target }}.tar.gz
@@ -148,7 +148,7 @@ jobs:
           gh release download "$TAG" --pattern SHA256SUMS --dir published
           test "$(wc -l < published/SHA256SUMS)" -eq 5
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sha256sums
           path: published/SHA256SUMS
