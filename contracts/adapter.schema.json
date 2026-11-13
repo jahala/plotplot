@@ -61,6 +61,37 @@
       ],
       "description": "discover returns addresses and never items; expand reads one address into posts; stream reads a channel over a window"
     },
+    "feeds": {
+      "type": "object",
+      "required": [
+        "adapter",
+        "address_field",
+        "carries"
+      ],
+      "additionalProperties": false,
+      "description": "for a discover adapter whose found addresses one expanding adapter reads: that adapter, the property of its configuration the addresses go into, and the settings of this adapter's configuration that carry over unchanged",
+      "properties": {
+        "adapter": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "the expanding adapter that reads the found addresses"
+        },
+        "address_field": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the property of the fed adapter's configuration that takes the found addresses"
+        },
+        "carries": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "the settings of this adapter's configuration copied unchanged into the fed adapter's, such as site"
+        }
+      }
+    },
     "channel": {
       "type": "string",
       "minLength": 1,
@@ -929,6 +960,20 @@
             "required": [
               "config_paths"
             ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "feeds"
+        ]
+      },
+      "then": {
+        "properties": {
+          "kind": {
+            "const": "discover"
           }
         }
       }
