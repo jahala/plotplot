@@ -6,7 +6,7 @@ Schema: `contracts/observation.schema.json`. Fixtures: `contracts/fixtures/obser
 
 | Field | Required | Meaning |
 |---|---|---|
-| `id` | yes | sha256 of `observation`, `source`, `subject`, `metric`, the time key and `value`, joined by newlines, as lowercase hex. The time key is `at`, or the period as `from/to`; `value` is written as JSON writes the number |
+| `id` | yes | sha256 of `observation`, `source`, `subject`, `metric`, the time key and `value`, joined by newlines, as lowercase hex. The time key is `at`, or the period as `from/to`; `value` is written as JSON writes it: a number as a number, a moment as a quoted string |
 | `source` | yes | the adapter that fetched it |
 | `subject` | yes | the id of the subject the number is about |
 | `metric` | yes | the source's own name for the number: `downloads`, `stargazers_count` |
