@@ -93,6 +93,11 @@
         }
       }
     },
+    "engine": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*$",
+      "description": "for an adapter that reads a whole site of one forum software, that software, named as the forum-engine probe names it under categories.forum_engine, such as discourse or phpbb, so a caller picks the reader for a site by the engine the probe reported"
+    },
     "channel": {
       "type": "string",
       "minLength": 1,

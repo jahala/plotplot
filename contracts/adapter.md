@@ -2,7 +2,7 @@
 
 The contract every mull adapter's manifest follows. mull owns its content. It sits beside the record contracts: a record says what one person said, what a page showed or what a number was, and the manifest says where it was read, how, and under what terms. mull reads the manifest before it runs the adapter (`contracts/protocol.md`), and readers use it to decide which records may count: glean scores a need only on sources that reach its people, and reports an audience no source reaches as a gap.
 
-Schema: `contracts/adapter.schema.json`. Fixtures: `contracts/fixtures/adapter/`, a stream adapter (`valid.json`), a generic forum adapter (`valid-forum.json`), a probe with a categorical metric (`valid-categories.json`) the same probe reading pages under one posture (`valid-reads-pages.json`), and a discover adapter that names the adapter it feeds (`valid-feeds.json`). Test: `test/contracts.test.ts`.
+Schema: `contracts/adapter.schema.json`. Fixtures: `contracts/fixtures/adapter/`, a stream adapter (`valid.json`), a generic forum adapter (`valid-forum.json`), a probe with a categorical metric (`valid-categories.json`) the same probe reading pages under one posture (`valid-reads-pages.json`), a discover adapter that names the adapter it feeds (`valid-feeds.json`), and the same adapter naming the forum software it reads (`valid-engine.json`). Test: `test/contracts.test.ts`.
 
 ## The shape
 
@@ -21,6 +21,7 @@ One JSON object per adapter, kept beside the adapter's program.
 | `config` | yes, may be null | for a generic adapter, the JSON Schema its capture plan configuration must satisfy |
 | `channel` | for expand and stream | how it fills a record's `channel`, in a sentence |
 | `feeds` | discover only, no | the expanding adapter that reads its found addresses, the configuration property they go into, and its own settings that carry over (below, Kinds) |
+| `engine` | no | for an adapter that reads a whole site of one forum software, that software, named as the forum-engine probe names it (`discourse`, `phpbb`), so a caller picks a site's reader by the engine the probe reported |
 | `targets` | no | the adapter whose posts this adapter's reactions and changes point at, when they are another adapter's, such as `github-issues` for an adapter that reads issue timelines; mull resolves each `target_address` among that adapter's posts. Left out, they point at the adapter's own posts. Only an adapter that emits `reaction` or `change` names it |
 | `identity_space` | for expand and stream | where an author's handle names one person: the platform's account space as its host name, such as `github.com` for every GitHub repository, or `channel` when each channel has its own people; mull hashes authors over it |
 | `audiences` | yes | the groups of people the source reaches, in words a compass would use |

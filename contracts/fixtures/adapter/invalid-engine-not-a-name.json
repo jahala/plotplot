@@ -1,0 +1,90 @@
+{
+  "adapter": "discourse-topics",
+  "version": "0.1.0",
+  "protocol": "1",
+  "run": [
+    "node",
+    "adapter.ts"
+  ],
+  "source": {
+    "name": "Discourse topic listings",
+    "url": "https://docs.discourse.org"
+  },
+  "kind": "discover",
+  "feeds": {
+    "adapter": "discourse-forum",
+    "address_field": "addresses",
+    "carries": [
+      "site"
+    ]
+  },
+  "engine": "Discourse 2026.11.0",
+  "emits": [],
+  "reaches": {
+    "hosts": [],
+    "files": false,
+    "config_hosts": "site"
+  },
+  "config": {
+    "type": "object",
+    "required": [
+      "site"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "site": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+(\\.[a-z0-9-]+)+$",
+        "description": "the forum's host name, such as discourse.example.org"
+      }
+    }
+  },
+  "terms_per_site": true,
+  "audiences": [
+    "the members of any Discourse forum; discovery finds the topics, and discourse-forum, which reads them, says whom it reaches"
+  ],
+  "carries": [
+    "wanting",
+    "harm",
+    "stranded"
+  ],
+  "terms": {
+    "url": "https://docs.discourse.org",
+    "read_on": "2026-10-26",
+    "licence": "Each forum sets its own licence for posts; the software sets none.",
+    "attribution": {
+      "required": false
+    },
+    "commercial_use": "not-stated",
+    "rate_limit": {
+      "requests": 1,
+      "per_seconds": 2,
+      "stated_by": "adapter"
+    },
+    "restrictions": [],
+    "deletion": {
+      "required": false
+    }
+  },
+  "access": {
+    "method": "none",
+    "credentials": [],
+    "account": null,
+    "automation": "not-stated",
+    "obtain": {
+      "how": "A topic's posts are readable as JSON from /t/<id>.json?include_raw=true, with the rest of a long topic from /t/<id>/posts.json by post id, 20 to a request, on a forum that lets visitors read without signing in. The software's own defaults (config/discourse_defaults.conf) allow 200 requests per minute and 50 per 10 seconds from one address; each forum may set its own, so the adapter keeps one request per 2 seconds. Discourse's default terms of service, which a forum may keep or replace, say \"You may not automate access to the forum\"; each capture plan entry quotes its forum's own terms.",
+      "approval": false,
+      "cost": "free",
+      "status": "ready"
+    },
+    "scopes": {
+      "least": [],
+      "read_only": true
+    },
+    "expiry": null,
+    "human_step": null,
+    "paid": false
+  },
+  "private": false,
+  "reads_pages": true
+}
