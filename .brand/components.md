@@ -127,7 +127,7 @@ Rules:
 - Required on every **product** page: the **plotplot band** (links back to plotplot.ai), the forest surface, the garden row (full garden, bloom dots, current highlighted), and the "a plotplot garden tool" attribution. The umbrella page keeps the forest footer but omits the band.
 - Default is **three columns** (identity · the garden · nearby), collapsing to one at 880; a page with nothing "nearby" may drop to two. The umbrella page (plotplot.ai) uses the same three columns (identity · the garden · the project).
 - The band is a **shared family surface**: built from fixed family tokens (`--pp-forest`, `--pp-term-text`, `--pp-term-green`) so it renders identically in every theme **and on every product**. Never wire it to theme-flipping vars, and never re-tint it to the product's accent. Per-product colour lives only in the garden-row dots and the current-pill highlight.
-- Garden-row links go to each bed's page where it has one (`https://jahala.github.io/<bed>/`), as the reference pages do; the snippet below shows repository links, which stand in for a bed with no page yet.
+- Garden-row links go to each bed's page where it has one, at `https://plotplot.ai/<bed>/` (bed pages live on plotplot.ai since 2026-11-13, not on GitHub Pages), as the reference pages do; a repository link stands in for a bed with no page yet.
 - `/petals check` compares a page's garden row with the row in the snippet below: the same beds, in the same order, and exactly one current pill on a product page. A bed is in the row once it has code or a public page, so a bed under construction (`.wip`) lists itself; the site plan still draws it fallow until it ships.
 
 ### Reference implementation
@@ -171,18 +171,18 @@ Copy this verbatim and change only the three marked spots: the **identity** colu
           <span style="--bloom:var(--pp-glean)"><span class="gf-dot"></span>glean</span>
           <span style="--bloom:var(--pp-cultivate)"><span class="gf-dot"></span>cultivate</span>
           <span style="--bloom:var(--pp-graft)"><span class="gf-dot"></span>graft</span>
-          <a href="https://jahala.github.io/petals/" style="--bloom:var(--pp-petals)"><span class="gf-dot"></span>petals</a>
+          <a href="https://plotplot.ai/petals/" style="--bloom:var(--pp-petals)"><span class="gf-dot"></span>petals</a>
           <span style="--bloom:var(--pp-tend)"><span class="gf-dot"></span>tend</span>
-          <a href="https://jahala.github.io/pleach/" style="--bloom:var(--pp-pleach)"><span class="gf-dot"></span>pleach</a>
-          <a href="https://jahala.github.io/umbel/" style="--bloom:var(--pp-umbel)" class="is-current"><span class="gf-dot"></span>umbel</a>
+          <a href="https://plotplot.ai/pleach/" style="--bloom:var(--pp-pleach)"><span class="gf-dot"></span>pleach</a>
+          <a href="https://plotplot.ai/umbel/" style="--bloom:var(--pp-umbel)" class="is-current"><span class="gf-dot"></span>umbel</a>
           <span style="--bloom:var(--pp-pollen)"><span class="gf-dot"></span>pollen</span>
-          <a href="https://jahala.github.io/tilth/" style="--bloom:var(--pp-tilth)"><span class="gf-dot"></span>tilth</a>
-          <a href="https://jahala.github.io/mycelium/" style="--bloom:var(--pp-mycelium)"><span class="gf-dot"></span>mycelium</a>
-          <a href="https://jahala.github.io/weeder/" style="--bloom:var(--pp-weeder)"><span class="gf-dot"></span>weeder</a>
-          <a href="https://jahala.github.io/copeca/" style="--bloom:var(--pp-copeca)"><span class="gf-dot"></span>copeca</a>
+          <a href="https://plotplot.ai/tilth/" style="--bloom:var(--pp-tilth)"><span class="gf-dot"></span>tilth</a>
+          <a href="https://plotplot.ai/mycelium/" style="--bloom:var(--pp-mycelium)"><span class="gf-dot"></span>mycelium</a>
+          <a href="https://plotplot.ai/weeder/" style="--bloom:var(--pp-weeder)"><span class="gf-dot"></span>weeder</a>
+          <a href="https://plotplot.ai/copeca/" style="--bloom:var(--pp-copeca)"><span class="gf-dot"></span>copeca</a>
           <span style="--bloom:var(--pp-hedge)"><span class="gf-dot"></span>hedge</span>
-          <a href="https://jahala.github.io/coldframe/" style="--bloom:var(--pp-coldframe)"><span class="gf-dot"></span>coldframe</a>
-          <a href="https://jahala.github.io/well/" style="--bloom:var(--pp-well)"><span class="gf-dot"></span>well</a>
+          <a href="https://plotplot.ai/coldframe/" style="--bloom:var(--pp-coldframe)"><span class="gf-dot"></span>coldframe</a>
+          <a href="https://plotplot.ai/well/" style="--bloom:var(--pp-well)"><span class="gf-dot"></span>well</a>
         </nav>
         <p class="gf-soft">small, sharp tools for building with agents.</p>
       </div>
