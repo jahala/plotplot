@@ -136,7 +136,7 @@ beside the test that needs it, writing the same records; the stand-in moves into
 Adapters are code from many authors. Each runs reaching only its manifest's hosts, receives its
 keys from well at call time, and may write nothing but its records. The umbrella's redaction
 contract (`contracts/redaction.md`) applies to documents that carry personal data. A source whose
-site changes and breaks its adapter shows in the census, and upkeep opens the repair.
+site changes and breaks its adapter shows in the census, and transplant opens the repair.
 
 ### Capture plans
 
@@ -156,7 +156,7 @@ and returns the contract formats:
 | cultivate | every post in a window per channel or subject, with its thread |
 | glean | posts and observations about a need as of a date, from sources reaching its people; one author's posts over time |
 | harvest | posts after a release that mention a feature, and each asker's address, to reply there |
-| upkeep | release notes, end-of-support notices and advisories for a product's dependencies |
+| transplant | release notes, end-of-support notices and advisories for a product's dependencies |
 
 Formats are delivery adapters, as the old mull named them: JSON Lines for tools, Parquet or CSV
 for analysis, a Markdown digest for people and agents, and an MCP tool of at most three tools for

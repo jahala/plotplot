@@ -18,7 +18,8 @@ survived review), `docs/garden-2031.md` §5 (each tool's what, how, why). The v1
 document is superseded where the review says so.
 
 The beds planted today, in four rows. The garden's layers and the tools still to plant are in
-`docs/decisions/2026-10-26-layers.md`, which holds where it differs from this page:
+`docs/decisions/2026-10-26-layers.md`, amended by `docs/decisions/2026-11-14-product-record.md`.
+Those two pages hold where they differ from this page:
 
 | Row | Beds | Question |
 |---|---|---|
@@ -42,8 +43,9 @@ A change that breaks one of these is wrong even if every test passes.
    or account. A local process may render a page.
 3. **Neutral across harnesses.** Integrate only through seams every agent CLI shares: the
    filesystem, `AGENTS.md` and `SKILL.md`, lifecycle hooks, MCP over stdio, git, the shell.
-4. **Standalone and composable.** Every bed has full value alone with nothing else installed.
-   Composition is through contracts, never imports across beds or shared process state.
+4. **Standalone and composable.** Every bed has full value alone with nothing else installed,
+   through files any person could write by hand. It never rebuilds another bed's work to stand
+   alone. Composition is through contracts, never imports across beds or shared process state.
 5. **Zero-tax presence.** A bed costs an agent nothing in context unless it is speaking, and
    it speaks only on evidence. Capabilities are CLIs behind a skill; channels are MCP with
    at most three tools; gates and boundaries are hooks and git hooks.
@@ -232,12 +234,16 @@ One paragraph each; the loop carries the checks.
   it asks mull to fetch, so hosts, keys, the author salt, rate limits and replay are held once.
   The same window gives the same bytes. Paid and keyed fetches go through well. Its records
   are the contracts' post, document, observation, subject and reaction.
-- **cultivate** owns the people layer: needs merged and counted by role (`contracts/needs.md`),
-  personas, and jobs and desired outcomes with the people behind each (`contracts/outcomes.md`). It reads raw items, never fetches, and marks nothing it was not
-  told: bots come from the source or the owner's capture plan.
-- **glean** finds what is worth growing: it scores needs against the owner's compass as a
-  profile of separate scores, each tested against its own outcome, with no weight the owner did
-  not write. It never fetches, never merges, and never contacts anyone.
+- **cultivate** owns the people layer, and with it all of listening
+  (`docs/decisions/2026-11-14-product-record.md`): for a group or for a product's users, where
+  they talk and under which rules, their own words, their needs merged and counted by role
+  (`contracts/needs.md`), and jobs and desired outcomes with the people behind each
+  (`contracts/outcomes.md`). It reads through mull and never fetches, and marks nothing it was
+  not told: bots come from the source or the owner's capture plan.
+- **glean** finds what is worth growing: what serves each need today, three to five argued
+  opportunities with the runners-up and the reasons, the riskiest assumption and the test that
+  settles it, and a seed the next bed can start from. The owner picks. It carries no weight the
+  owner did not write. It never fetches, never merges, and never contacts anyone.
 - **well** is the one door for every call that costs money or needs a key (`contracts/ledger.md`).
   Every paid call reserves before it is sent; a program that finds no budget spends nothing; a
   call that may have been charged is never resent without a person's word.

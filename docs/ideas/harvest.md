@@ -58,5 +58,5 @@ gap is fixed first.
 ## Open questions
 
 - How long the verdict window is per kind of change.
-- Whether help pages are part of the product (graft's screens) or harvest's own output; stake keeps
-  them true either way.
+- Whether help pages are part of the product (graft's screens) or harvest's own output; weeder's
+  `scan` rules keep them true either way.

@@ -1,5 +1,9 @@
 # the gardener, the factory's brain
 
+Amended 2026-11-14 (`docs/decisions/2026-11-14-product-record.md`): almanac is folded away. The
+gardener reads what is due from each product's record and keeps its own decision log. Where this
+page says almanac or gate, read the product record and hedge's queue.
+
 2026-10-26. A draft, not a loop. Around every layer (`docs/decisions/2026-10-26-layers.md`).
 
 ## Who it is for, and their pain

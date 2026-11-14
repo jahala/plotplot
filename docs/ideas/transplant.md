@@ -1,5 +1,10 @@
 # transplant, moving a built product into the world
 
+Amended 2026-11-14 (`docs/decisions/2026-11-14-product-record.md`): transplant is planted next,
+on the owner's own Cloudflare account first, and takes upkeep's job of keeping a shipped product
+alive. Where this page says gate, read hedge's queue. Where it says almanac, read the product
+record's ship state.
+
 2026-10-26. A draft, not a loop. Layer: ship (`docs/decisions/2026-10-26-layers.md`). A
 transplant moves a seedling from the nursery into open ground.
 

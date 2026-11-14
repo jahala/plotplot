@@ -1,5 +1,8 @@
 # stake, the bed that keeps what a repository says about itself true
 
+Not planted, by the decision of 2026-11-14 (`docs/decisions/2026-11-14-product-record.md`). Its
+checks land as weeder `scan` rules. This page is kept as prior art for those rules.
+
 2026-09-24. An idea, not a loop. The owner asked whether a third product was missing beside
 tend (the bets and their proof) and graft (where things belong and whom they serve), one that
 "keeps things up to date, checks for drift". This page names it.

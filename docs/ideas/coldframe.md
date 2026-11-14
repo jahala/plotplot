@@ -104,7 +104,7 @@ There is no model and no judge.
 - **With weeder:** weeder blocks the diff that weakens a test, and coldframe runs the tests that remain.
 - **With tend:** a verify script can call `coldframe run` and read its exit code and leak report as evidence.
 - **With the stem:** the stem plants it and dispatches its pre-push guard. The stem's `garden` workflow job should follow one of D2's two runner conventions, not hard-code a hosted runner. Today it hard-codes one, and hosted runs fail for private repositories.
-- **With the gardener and almanac, later:** `status` and `measure` are what they would read.
+- **With the gardener, later:** `status` and `measure` are what they would read.
 
 ## Data and its lifetime
 
