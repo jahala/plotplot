@@ -4,6 +4,10 @@
 bed's code and real output. It amends `docs/decisions/2026-10-26-layers.md`. Where the two
 pages differ, this page holds.
 
+Amended the same day, after the owner set three tests and asked for every bed to be gone through
+again against them. The amendments are the three tests, each bed's one thing, the rule for
+standing alone, who plants and wakes the factory on Cloudflare, trellis, and the open jobs.
+
 ## What the owner said
 
 On what plotplot is, 2026-11-14: "the current thinking is: 1. the repo is the harness - the tools
@@ -21,6 +25,11 @@ a thousand different compasses". On folding three planned beds: "almanac - ok", 
 "stake - ok". On who defines an app's views: "isnt glean, or graft - supposed to give input on UX
 and UI - essentially being able to define the views that an app should have?" It is graft, as
 the layers decision already says, and this page spells it out.
+
+The three tests, 2026-11-14: "1. each bed should be able to provide value to the user on its own
+2. each bed does 'one thing, and does it great' (not literarely, but you get what i mean - clear
+separation of what each bed does) 3. as a sum, the beds will enable a near-autonomous software
+factory to operate."
 
 Everything below that is not quoted above is the plotplot agent's design. The owner read it on
 2026-11-14.
@@ -48,6 +57,37 @@ The review found a working build side and a product side that has never carried 
 
 ## The decision
 
+### The three tests, and each bed's one thing
+
+Every bed passes the owner's three tests, or the bed is wrong:
+
+1. Alone, with no other bed installed, it gives a person a result they can use.
+2. It does one thing, and no other bed does that thing.
+3. Together the beds run a software factory that needs the owner only at a few stops.
+
+| Bed | Its one thing | Alone, a person gets |
+|---|---|---|
+| mull | Reads public places under their rules and keeps what was said | A dated, word-for-word record of what people said, that can be searched and replayed |
+| cultivate | Knows the people: who they are, where they talk, what they need | For a group or a product they name: the people file |
+| glean | Finds the gap worth a bet: what exists, where it falls short, which need deserves a product | For a group or an idea they name: three to five argued opportunities, each with its test |
+| graft | Defines the product: its views, its flows and what done looks like | For an idea: a definition agents can build from. For a built product: what it still lacks |
+| petals | The look and the voice | Their brand as files, every page checked against it, a mockup of each view |
+| trellis | The structure: the stack, the data, the interfaces | A shape agents build into, and a check that the code keeps to it |
+| tend | Intent with proof | A plan whose boxes only a verifier can tick |
+| pleach | Conducts many units of verified work | A plan in, merged and verified work out |
+| umbel | Runs one unit of agent work on any agent CLI | Any agent CLI started, watched and read from another |
+| mycelium | Messages between agents, with a person at the gate | Their agents talking to each other, and nobody else's reaching them unasked |
+| tilth | Reads code | Exact definitions, callers and outlines |
+| weeder | Judges whether a change is honest, and whether the repository still says true things about itself | A gate on every commit and pull request |
+| coldframe | Runs tests on the owner's own machines and leaves nothing behind | Fast, clean test runs and a health answer |
+| transplant | Puts a product live and keeps it alive | A repository shipped with a dry run and an undo, and a verdict on each release |
+| pollen | Gets a product to the people it is for, and reads what happened | A campaign approved once, sent, counted and read |
+| harvest | Looks after the people who already use a product, and says whether a change helped | Release notes, answers, and a verdict per release |
+| hedge | The owner's limits and the owner's yes | Agents that cannot cross a hard limit, and one place to say yes |
+| well | The one door for money and keys | Budgets no tool can overspend, and keys agents never see |
+| the gardener | Decides what runs next, and keeps it moving | One repository's work moving while they are away |
+| the stem | Plants all of it, proves it is planted, and shows what waits | One command to install, check and see the state |
+
 ### 1. A product carries its own record
 
 A tended repository carries the intent, law and proof for its code. A product's repository now
@@ -68,10 +108,14 @@ next. Together they are the product record.
 
 Raw posts stay in mull's store, outside the repository. The record points at them by id.
 
+What belongs to the owner and to no single product lives in the owner's own repository: the
+compass, the seeds that are not products yet, the list of products, and the gardener's log.
+
 graft owns the experience: which views exist, what each holds and how a person moves through
 them. petals owns the look: the mockup of each view and the components. The owner sees the
 mockups before anything is built. tend's format already has a shape for a screen and a shape for
-a flow, so graft's views and flows are tend pages.
+a flow, so graft's views and flows are tend pages. Once the product is built, graft reads its real
+screens and says where they differ from the views and flows it defined.
 
 ### 2. One pattern for a bed that does a professional's work
 
@@ -83,7 +127,7 @@ This holds for cultivate, glean, graft and pollen, and for any later bed of the 
 | The command | The bed's own command starts an agent session with that skill, a fixed model and named tools, through the runner seam (`contracts/runner.md`). A development session doing the work by hand never counts |
 | The handover | The practitioner's usual document, every claim pointing at its evidence |
 | The checker | Code that reads the handover and can refuse it. It finds each quote in mull's own record, never in a file the agent wrote, so no worker stamps its own work (law §1, invariant 8) |
-| The judged sample | Code can prove a quote exists. It cannot prove that the quote supports the claim, or that the writer belongs to the group. A typed judge on another provider checks a sample of those, in a shape code can refuse |
+| The judged sample | Code can prove a quote exists. It cannot prove that the quote supports the claim, or that the writer belongs to the group. A second opinion from another provider checks a sample of those, in a shape code can refuse. It goes through the runner to any second agent CLI. A paid typed judge is an option the user may set, never a requirement |
 | The record | What was predicted, what the owner said, what happened later. Three runs on one case are compared on their claims, with the mark written first |
 
 This is invariant 1 as the law states it: agents produce, code decides. The law never barred an
@@ -98,10 +142,24 @@ the stem can run every bed's checker as one gate. tend's format does not change.
 
 ### 3. Alone, and with the garden
 
-Invariant 4 is read as rule 4 of the layers decision words it: a bed works alone through files
-any person could write by hand. Alone, a bed reads the file of the station before it, and a
-hand-written claim shows as claimed. With mull's records behind it, the same claim shows as
-proven. A bed never rebuilds another bed's work to be able to stand alone.
+Test 1 and test 2 pull against each other: a bed must stand alone, and must not redo its
+neighbour's work. These rules hold both.
+
+- **Code has one home.** No bed carries a second implementation of what another bed does.
+- **Alone, a bed starts from what a person has:** their own words, or a file they could write by
+  hand. It never demands another bed's output.
+- **A missing neighbour is stood in for by the host agent's own tools,** on the skill's
+  instruction, with no code of the bed's own. Without mull, the agent reads the web with whatever
+  its CLI offers. Without cultivate, glean's agent gathers what it can about the group first.
+- **What a stand-in produced shows as claimed.** With the neighbour installed, the same step goes
+  through it and can show as proven. The handover says which.
+- **Where code must call a neighbour,** one thin stand-in is allowed: one file, the contract's
+  minimum, pinned by a test. pleach's direct runner for agent CLIs is the model.
+- **No bed needs one particular paid service to run.** The user's own agent CLI is enough. A bed's
+  review of its own code lists what its smallest run needs, and removes every hard requirement
+  beyond that.
+- **A bed nobody can install passes no test.** Each bed has an install route a stranger can
+  follow, and a first result within minutes of it.
 
 ### 4. The compass is a format
 
@@ -113,8 +171,10 @@ compass. A tool that finds a field empty asks, or says the gate is not set.
 
 plotplot hosts nothing. The tools stay local commands over files. A product's live parts (its
 page, sign-up, analytics, mail and billing), the scheduled wake-ups and the owner's yes away from
-the desk run in the owner's own Cloudflare account, planted and checked by transplant. This
-keeps rule 6 of the layers decision: nothing is a proxy or a server of plotplot's.
+the desk run in the owner's own Cloudflare account. Three beds share that work, each by its one
+thing. transplant plants and checks a product's live parts. The stem plants the factory's own
+runner there, as it plants the beds into any agent CLI. The gardener is what the schedule wakes.
+This keeps rule 6 of the layers decision: nothing is a proxy or a server of plotplot's.
 
 An agent session started there reaches its model with a token, so it is a paid call, where a
 session on the owner's machine rides a subscription. Every such session goes through well.
@@ -126,19 +186,19 @@ No new bed is invented.
 | Bed | Change | Gains | Gives up |
 |---|---|---|---|
 | mull | Grows | Search inside a site. Reading on an agent's request through the same door, with a cap. One shared store as the default. Each place's facts kept once: its terms, its software, how active it is | Nothing |
-| cultivate | Widens to the whole people layer | All of listening, for a group or for a product's users. The people file. The owner's interview kit | Its chain of typed sorting steps as the main road. Its counting stays |
+| cultivate | Widens to the whole people layer | All of listening, for a group or for a product's users, including the reading of each place's terms, which mull keeps. The people file. The owner's interview kit | Its chain of typed sorting steps as the main road. Its counting stays |
 | glean | Narrows and deepens | The market map, the argued shortlist, the test for each opportunity, the seed as a work order, the record of what became of each seed | Finding places, reading terms, sampling and membership, which go to cultivate. The formula that picked seeds: the owner picks |
-| graft | Becomes the shaper | The pitch, each view and each flow, table stakes read from glean's market map, acceptance examples. It keeps the gap list for a built product | The ranking, choosing and pruning families that failed their tests |
-| petals | Grows | A mockup of each view. Components. Still images made from a product's real screens | Nothing |
-| tend | Stays | One check per handover. It shows a product's record | The plan for a page kind per layer (rule 2 of the layers decision). A handover is a contract file that a page points at |
+| graft | Becomes the shaper | The pitch, each view and each flow, table stakes read from glean's market map, acceptance examples. The check of a built product against its views and flows. It keeps the gap list for a built product | The ranking, choosing and pruning families that failed their tests |
+| petals | Grows | A mockup of each view. Components. Every image a campaign needs, made from the product's real screens and the brand | Nothing |
+| tend | Stays | One check per handover. It shows a product's record | The plan for a page kind per layer (rule 2 of the layers decision). A handover is a contract file that a page points at. Its skill for writing persona and opportunity pages goes to cultivate and glean, as the layers decision said. Its `run` starts a worker through the runner seam and leaves worktrees to pleach |
 | umbel | Stays | It is the default runner for every bed's agent session | Nothing |
 | pollen | Narrows at the front, grows at the back | Going out, counting, answering, learning | Its own search for people, places and rules, and its own read of alternatives. It reads the people file and the market map |
-| transplant | Planted next, on Cloudflare first | Shipping, and keeping a shipped product alive, which was upkeep's job | |
+| transplant | Planted next, on Cloudflare first | Shipping a product, and keeping it alive, which was upkeep's job | |
 | the gardener | Planted after the pattern is in | It keeps the decision log that almanac was to hold | |
 | hedge | Stays | The owner's yes reachable away from the desk | Nothing |
-| the stem | Grows | `plotplot status` over a product's record, and every bed's checker run as one gate | Nothing |
+| the stem | Grows | `plotplot status` over a product's record, every bed's checker run as one gate, and planting the factory's runner in the owner's Cloudflare account | Nothing |
 | harvest | Waits | It starts when a product has users. pollen's outcomes carry the learning until then | |
-| trellis | Waits | It is planted only if agents are seen breaking a product's shape | |
+| trellis | Planted after transplant | The owner named this layer on 2026-10-26: "we plan out the entire \<architecture\>, \<structure\>, \<data model\>, \<apis\>". Until it exists the building agent chooses the structure, and each choice is written down as trellis's first cases | |
 
 pleach, mycelium, well, coldframe, weeder, tilth, copeca and quadrat do not change.
 
@@ -176,10 +236,11 @@ cite a ruling by plotplot are relabelled as the umbrella agent's call unless the
    its views and flows, the campaign, the outcomes, the compass and the record's layout.
 2. A brief for each bed whose job changes: cultivate and mull first, then glean, graft and
    pollen. At most three beds are busy at once.
-3. One product of the owner's through the selling half, and one new product from a hunt through
+3. The install routes test 1 needs: tend and umbel first, because other beds lean on them.
+4. One product of the owner's through the selling half, and one new product from a hunt through
    to its first users, with every hand step written down. That list is the gardener's
    specification and transplant's.
-4. almanac, upkeep and stake leave the brand's bed list and the website's list with the next
+5. almanac, upkeep and stake leave the brand's bed list and the website's list with the next
    brand release.
 
 Paused until a walk says otherwise: tuning glean's middle stages, pollen's wide proof on its
@@ -203,3 +264,9 @@ panel, and graft's ranking spikes.
   for safety and for quality there, and not yet for a new group.
 - Only one agent CLI's route to a Cloudflare sandbox was read. The others are unchecked.
 - No practitioner has read any bed's handover.
+- Nobody owns the security and privacy review of what the factory builds. weeder catches a
+  secret in a diff and nothing more. The proposal is weeder for faults in a change and trellis for
+  what data a product keeps and for how long.
+- Nobody owns helping a new owner write their compass and their first brief.
+- Several beds run only on one operating system today, through its keychain and its sign-in
+  prompt.
