@@ -1,5 +1,9 @@
 # upkeep (working name), keeping shipped products from rotting
 
+Folded into transplant on 2026-11-14 (`docs/decisions/2026-11-14-product-record.md`). Shipping a
+product and keeping it alive are one job. This page is kept as prior art for that part of
+transplant.
+
 2026-10-26. A draft, not a loop. Infrastructure (`docs/decisions/2026-10-26-layers.md`).
 
 ## Who it is for, and their pain

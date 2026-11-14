@@ -55,5 +55,6 @@ differently. Written 2026-09-24 from the project notes this page replaces.
 
 ## Boundaries with the beds
 
-Settled boundaries are in the law §6a. Proposed ones between tend, graft and stake are in
-`docs/ideas/stake.md` until the owner settles them.
+Settled boundaries are in the law §6a. stake is not planted: its checks land as weeder `scan`
+rules (`docs/decisions/2026-11-14-product-record.md`), and `docs/ideas/stake.md` is kept as prior
+art for them.

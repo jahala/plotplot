@@ -1,5 +1,9 @@
 # almanac, the record of what is due and what was decided
 
+Folded away on 2026-11-14 (`docs/decisions/2026-11-14-product-record.md`). What is due is read
+from the dates in each product's record and listed by `plotplot status`. The decision log goes to
+the gardener. This page is kept as prior art.
+
 2026-10-26. A draft, not a loop. Infrastructure (`docs/decisions/2026-10-26-layers.md`).
 
 ## Who it is for, and their pain
